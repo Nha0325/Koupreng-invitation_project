@@ -14,10 +14,19 @@
 
 ## 🔐 SSH Key Setup
 
-### ១. បង្កើត SSH Key
+### ១. បង្កើត SSH Key open terminal or Ctrl + J
 
 ```bash
-ssh-keygen -t ed25519 -C "your@email.com"
+ssh-keygen -t ed25519 -C "example@email.com" enter
+                                              
+                                            (Name) : SSH-Key
+                                                     
+                                                     enter
+                                                     enter
+cat SSH-Key 
+or
+cat SSH-Key.pub 
+ssh-ed25519 AAAA************************************ example@email.com                                
 ```
 
 បង្កើត key ២ ប្រភេទ:
@@ -32,7 +41,7 @@ ssh-keygen -t ed25519 -C "your@email.com"
 ### ២. Copy Public Key ទៅ GitHub
 
 ```
-ssh-ed25519 AAAAC3NzaC1J37KXGRvKJVGtz your@email.com
+ssh-ed25519 AAAAC3NzaC1************************ your@email.com
 ```
 
 🔗 Go to: [https://github.com/settings/keys](https://github.com/settings/keys)
