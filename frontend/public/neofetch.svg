@@ -1,37 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280">
-  <rect width="800" height="280" fill="#1e1e2e" rx="10"/>
-  <text font-family="monospace" font-size="13" fill="#ff5555">
-    <tspan x="20" dy="20">                          ./+o+-</tspan>
-    <tspan x="20" dy="16">                  yyyyy- -yyyyyy+</tspan>
-    <tspan x="20" dy="16">               ://+//////-yyyyyyo</tspan>
-    <tspan x="20" dy="16">           .++ .:/++++++/-.+sss/`</tspan>
-    <tspan x="20" dy="16">         .:++o:  /++++++++/:--:/-</tspan>
-    <tspan x="20" dy="16">        o:+o+:++.`..```.-/oo+++++/</tspan>
-    <tspan x="20" dy="16">       .:+o:+o/.          `+sssoo+/</tspan>
-    <tspan x="20" dy="16">  .++/+:+oo+o:`             /sssooo.</tspan>
-    <tspan x="20" dy="16"> /+++//+:`oo+o               /::--:.</tspan>
-    <tspan x="20" dy="16"> \+/+o+++`o++o               ++////.</tspan>
-    <tspan x="20" dy="16">  .++.o+++oo+:`             /dddhhh.</tspan>
-    <tspan x="20" dy="16">       .+.o+oo:.          `oddhhhh+</tspan>
-    <tspan x="20" dy="16">        \+.++o+o``-````.:ohdhhhhh+</tspan>
-    <tspan x="20" dy="16">         `:o+++ `ohhhhhhhhyo++os:</tspan>
-    <tspan x="20" dy="16">           .o:`.syhhhhhhh/.oo++o`</tspan>
-    <tspan x="20" dy="16">               /osyyyyyyo++ooo+++/</tspan>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 300" width="860" height="300">
+  <rect width="860" height="300" fill="#1e1e2e" rx="12"/>
+
+  <!-- Ubuntu ASCII art in RED (left side) -->
+  <text font-family="'Courier New', Courier, monospace" font-size="12" fill="#ff5555" xml:space="preserve">
+    <tspan x="20" y="30">                                ./+o+-   </tspan>
+    <tspan x="20" dy="15">                     yyyyy- -yyyyyy+    </tspan>
+    <tspan x="20" dy="15">                  ://+//////-yyyyyyo    </tspan>
+    <tspan x="20" dy="15">              .++ .:/++++++/-.+sss/`    </tspan>
+    <tspan x="20" dy="15">            .:++o:  /++++++++/:--:/-    </tspan>
+    <tspan x="20" dy="15">           o:+o+:++.`..```.-/oo+++++/   </tspan>
+    <tspan x="20" dy="15">          .:+o:+o/.          `+sssoo+/  </tspan>
+    <tspan x="20" dy="15">     .++/+:+oo+o:`             /sssooo. </tspan>
+    <tspan x="20" dy="15">    /+++//+:`oo+o               /::--:. </tspan>
+    <tspan x="20" dy="15">    \+/+o+++`o++o               ++////. </tspan>
+    <tspan x="20" dy="15">     .++.o+++oo+:`             /dddhhh. </tspan>
+    <tspan x="20" dy="15">          .+.o+oo:.          `oddhhhh+  </tspan>
+    <tspan x="20" dy="15">           \+.++o+o`-````..:ohdhhhhh+   </tspan>
+    <tspan x="20" dy="15">             `:o+++ `ohhhhhhhhyo++os:   </tspan>
+    <tspan x="20" dy="15">               .o:`.syhhhhhhh/.oo++o`   </tspan>
+    <tspan x="20" dy="15">                   /osyyyyyyo++ooo+++/  </tspan>
+    <tspan x="20" dy="15">                       ````` +oo+++o\:  </tspan>
+    <tspan x="20" dy="15">                              `oo++.    </tspan>
   </text>
-  <text font-family="monospace" font-size="13" fill="#cdd6f4">
-    <tspan x="370" dy="-240">root@star-ThinkPad-T470p</tspan>
-    <tspan x="370" dy="16">OS:         <tspan fill="#89b4fa">Ubuntu 26.04 resolute</tspan></tspan>
-    <tspan x="370" dy="16">Kernel:     <tspan fill="#89b4fa">x86_64 Linux 7.0.0-14-generic</tspan></tspan>
-    <tspan x="370" dy="16">Uptime:     <tspan fill="#a6e3a1">1d 18h 30m</tspan></tspan>
-    <tspan x="370" dy="16">Packages:   <tspan fill="#a6e3a1">2378</tspan></tspan>
-    <tspan x="370" dy="16">Shell:      <tspan fill="#f9e2af">bash 5.3.9</tspan></tspan>
-    <tspan x="370" dy="16">Resolution: <tspan fill="#f9e2af">3072x1728</tspan></tspan>
-    <tspan x="370" dy="16">WM:         <tspan fill="#cba6f7">Mutter</tspan></tspan>
-    <tspan x="370" dy="16">WM Theme:   <tspan fill="#cba6f7">Adwaita</tspan></tspan>
-    <tspan x="370" dy="16">GTK Theme:  <tspan fill="#cba6f7">Yaru [GTK3]</tspan></tspan>
-    <tspan x="370" dy="16">Disk:       <tspan fill="#fab387">341G / 474G (74%)</tspan></tspan>
-    <tspan x="370" dy="16">CPU:        <tspan fill="#fab387">Intel Core i5-7300HQ @ 4x 3.5GHz</tspan></tspan>
-    <tspan x="370" dy="16">GPU:        <tspan fill="#fab387">Mesa Intel HD Graphics 630</tspan></tspan>
-    <tspan x="370" dy="16">RAM:        <tspan fill="#f38ba8">7685MiB / 31325MiB</tspan></tspan>
+  <!-- System info (right side) -->
+  <text font-family="'Courier New', Courier, monospace" font-size="13" xml:space="preserve">
+    <tspan x="340" y="30" fill="#ffffff" font-weight="bold">root</tspan>
+    <tspan fill="#888888">@</tspan>
+    <tspan fill="#ffffff" font-weight="bold">star-ThinkPad-T470p</tspan>
+
+    <tspan x="340" dy="15" fill="#888888">─────────────────────────</tspan>
+
+    <tspan x="340" dy="15" fill="#ff5555">OS:         </tspan><tspan fill="#cdd6f4">Ubuntu 26.04 resolute</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">Kernel:     </tspan><tspan fill="#cdd6f4">x86_64 Linux 7.0.0-14-generic</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">Uptime:     </tspan><tspan fill="#a6e3a1">1d 18h 30m</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">Packages:   </tspan><tspan fill="#a6e3a1">2378</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">Shell:      </tspan><tspan fill="#f9e2af">bash 5.3.9</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">Resolution: </tspan><tspan fill="#f9e2af">3072x1728</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">WM:         </tspan><tspan fill="#cba6f7">Mutter</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">WM Theme:   </tspan><tspan fill="#cba6f7">Adwaita</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">GTK Theme:  </tspan><tspan fill="#cba6f7">Yaru [GTK3]</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">Disk:       </tspan><tspan fill="#fab387">341G / 474G (74%)</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">CPU:        </tspan><tspan fill="#fab387">Intel Core i5-7300HQ @ 4x 3.5GHz</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">GPU:        </tspan><tspan fill="#fab387">Mesa Intel HD Graphics 630</tspan>
+    <tspan x="340" dy="15" fill="#ff5555">RAM:        </tspan><tspan fill="#f38ba8">7685MiB / 31325MiB</tspan>
+
+    <tspan x="340" dy="20" fill="#888888">─────────────────────────</tspan>
+
+    <!-- Color dots -->
+    <tspan x="340" dy="18" fill="#1e1e2e">█</tspan>
+    <tspan fill="#ff5555"> ███ </tspan>
+    <tspan fill="#a6e3a1">███ </tspan>
+    <tspan fill="#f9e2af">███ </tspan>
+    <tspan fill="#89b4fa">███ </tspan>
+    <tspan fill="#cba6f7">███ </tspan>
+    <tspan fill="#fab387">███ </tspan>
+    <tspan fill="#cdd6f4">███</tspan>
   </text>
 </svg>
