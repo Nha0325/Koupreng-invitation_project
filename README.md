@@ -1,4 +1,4 @@
-# 🎉 Koupreng Invitation Project
+#  Koupreng Invitation Project
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/Nha0325/Koupreng-invitation_project?color=blue)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Nha0325/Koupreng-invitation_project?color=green)
@@ -8,7 +8,7 @@
 
 ## 🖥️ System Info
 
-```
+![System Info](
                           ./+o+-       root@star-ThinkPad-T470p
                   yyyyy- -yyyyyy+      OS: Ubuntu 26.04 resolute
                ://+//////-yyyyyyo      Kernel: x86_64 Linux 7.0.0-14-generic
@@ -27,8 +27,7 @@
                /osyyyyyyo++ooo+++/    
                    ````` +oo+++o\:    
                           `oo++.    
-```
-
+?color=green)
 ---
 
 ## 🔐 SSH Key Setup
@@ -104,7 +103,7 @@ npx @tailwindcss/cli \
 ## 🛠️ Tech Stack
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![JavaScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=javascript&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
