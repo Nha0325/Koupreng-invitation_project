@@ -56,17 +56,17 @@ ssh-ed25519 AAAAC3NzaC1************************ your@email.com
 ssh -T git@github.com
 ```
 
-✅ GitHub បានឆ្លើយ: **"Hi Nha0325!"**
+✅ GitHub បានឆ្លើយ: **"Hi Nha0325! You've successfully authenticated, but GitHub does not provide shell access."**
 
 ---
 
 ### ៤. Push Code
 
 ```bash
-git push -u origin main
+git push -u origin main 
 ```
 
-✅ Code ទៅដល់ GitHub ជោគជ័យ
+✅ Code ទៅដល់ GitHub ជោគជ័យ **"Everything up-to-date"**
 
 ---
 
@@ -83,10 +83,7 @@ git add . && git commit -m "your message here" && git push
 ## 🎨 Run Tailwind CSS
 
 ```bash
-npx @tailwindcss/cli \
-  -i ./src/assets/style/input.css \
-  -o ./src/assets/style/output.css \
-  --watch
+npx @tailwindcss/cli \ -i ./src/assets/style/input.css \ -o ./src/assets/style/output.css \ --watch
 ```
 
 ---
