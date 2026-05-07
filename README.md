@@ -4,7 +4,9 @@ ssh-keygen -t ed25519 -C "example@gmail.com"
 → បង្កើត key ២ ប្រភេទ:
 
 cmd or Ctrl+J
+
   ~/.ssh/id_ed25519 → Private key (កុំចែករំលែក!)
+  
   ~/.ssh/id_ed25519.pub → Public key (ដាក់ GitHub)
 
 ២. Copy Public Key ទៅ GitHub
@@ -24,6 +26,11 @@ ssh -T git@github.com
 git push -u origin main
 → Code ទៅដល់ GitHub ជោគជ័យ ✅
 
+
+Every time you write new code and want to push
+git add .
+git commit -m "add login page"
+git push
 
 command run Tailwin
 
