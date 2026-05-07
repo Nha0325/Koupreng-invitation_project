@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="km" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React JSX - How to Use</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&amp;family=Noto+Sans+Khmer:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { box-sizing: border-box; }
+    
+    .code-block {
+      background: #1e1e2e;
+      border-radius: 12px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #abb2bf;
+      border: 1px solid #2a2a4a;
+    }
+    
+    .keyword { color: #c678dd; font-weight: 600; }
+    .func { color: #61afef; }
+    .string { color: #98c379; }
+    .tag { color: #e06c75; }
+    .attr { color: #d19a66; }
+    .comment { color: #5c6370; font-style: italic; }
+    .bracket { color: #abb2bf; }
+    .variable { color: #e5c07b; }
+    .number { color: #d19a66; }
+
+    .section-card {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 1px solid #2a2a4a;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .example-box {
+      background: #0f0f1a;
+      border-left: 4px solid #7c3aed;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin: 1.25rem 0;
+    }
+
+    .tip-box {
+      background: linear-gradient(135deg, #1a3a2e, #1a2a3e);
+      border-left: 4px solid #10b981;
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+
+    .warning-box {
+      background: linear-gradient(135deg, #3a2a1a, #2a1a1a);
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+
+    .nav-pill {
+      transition: all 0.3s ease;
+    }
+    .nav-pill.active {
+      background: #7c3aed;
+      color: white;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-number {
+      display: inline-flex;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #7c3aed;
+      color: white;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 12px;
+    }
+
+    .live-demo {
+      background: #0f0f1a;
+      border: 2px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .flow-diagram {
+      background: #12122a;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+
+    .flow-box {
+      display: inline-block;
+      background: #1a1a2e;
+      border: 2px solid #7c3aed;
+      border-radius: 8px;
+      padding: 0.75rem 1.5rem;
+      margin: 0.5rem;
+    }
+
+    .arrow { color: #3b82f6; font-size: 1.5rem; margin: 0 1rem; }
+  </style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full w-full bg-[#0f0f1a] text-gray-200 font-khmer overflow-auto">
+  <div class="w-full"><!-- Header -->
+   <header class="sticky top-0 z-50 bg-[#0f0f1a]/95 backdrop-blur-sm border-b border-[#2a2a4a] px-4 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+     <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#3b82f6] flex items-center justify-center text-lg font-bold">
+       ⚛️
+      </div>
+      <div>
+       <h1 id="main-title" class="text-lg font-bold text-white">React Fundamentals - How to Use</h1>
+       <p class="text-xs text-gray-400">ហាក់ដូចជារៀនលម្អិត 📖</p>
+      </div>
+     </div>
+    </div>
+   </header><!-- Navigation -->
+   <nav class="sticky top-[73px] z-40 bg-[#0f0f1a]/90 backdrop-blur-sm px-4 py-3 border-b border-[#2a2a4a] overflow-x-auto">
+    <div class="max-w-6xl mx-auto flex gap-2 pb-1"><button class="nav-pill active px-4 py-2 rounded-full text-sm whitespace-nowrap" onclick="showSection(0)">💻 JSX ឧទាហរណ៍</button> <button class="nav-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-[#1a1a2e] text-gray-400" onclick="showSection(1)">📦 Components</button> <button class="nav-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-[#1a1a2e] text-gray-400" onclick="showSection(2)">⚡ useState</button> <button class="nav-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-[#1a1a2e] text-gray-400" onclick="showSection(3)">🪝 useEffect</button> <button class="nav-pill px-4 py-2 rounded-full text-sm whitespace-nowrap bg-[#1a1a2e] text-gray-400" onclick="showSection(4)">🛒 E-commerce</button>
+    </div>
+   </nav><!-- Content -->
+   <main class="max-w-6xl mx-auto px-4 py-8"><!-- Section 0: JSX Examples -->
+    <div class="section fade-in" id="section-0">
+     <div class="section-card">
+      <h2 class="text-3xl font-bold text-white mb-2">💻 JSX - ឧទាហរណ៍លម្អិត</h2>
+      <p class="text-gray-400 mb-6">របៀបសរសេរ HTML ក្នុង JavaScript រៀងរាល់ថ្ងៃ</p><!-- Example 1 -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#7c3aed] mb-3">ឧទាហរណ៍ ១ - ជំងឺើង្ហា JSX សាមញ្ញ</h3>
+       <p class="text-gray-300 mb-3">ដើម្បីបង្ហាញឈ្មោះ និងអាយុ</p>
+       <div class="code-block mb-4"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;<br><br><span class="keyword">function</span> <span class="func">Greeting</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">name</span> = <span class="string">"សុខា"</span>;<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">age</span> = <span class="number">25</span>;<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>សូស្វាគមន៍ {<span class="variable">name</span>}<span class="tag">&lt;/h1&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>អាយុ: {<span class="variable">age</span>} ឆ្នាំ<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }<br><br><span class="keyword">export default</span> <span class="func">Greeting</span>;
+       </div>
+       <div class="tip-box">
+        <p class="text-emerald-300 font-medium">💡 ពន្យល់:</p>
+        <ul class="text-gray-300 text-sm mt-2 space-y-1 list-disc list-inside">
+         <li>{name} បង្ហាញតម្លៃ variable "សុខា"</li>
+         <li>{age} បង្ហាញលេខ 25</li>
+         <li>&lt;&gt; &lt;/&gt; ជា Fragment (ឲ្យម្ដង root element)</li>
+        </ul>
+       </div>
+      </div><!-- Example 2 -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#3b82f6] mb-3">ឧទាហរណ៍ ២ - Conditional Rendering</h3>
+       <p class="text-gray-300 mb-3">បង្ហាញរឺលាក់ដោយផ្អែកលើលក្ខខណ្ឌ</p>
+       <div class="code-block mb-4"><span class="keyword">function</span> <span class="func">LoginStatus</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">isLoggedIn</span> = <span class="variable">true</span>;<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="variable">isLoggedIn</span> ? (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>សូស្វាគមន៍ ឡើងវិញ! 🎉<span class="tag">&lt;/h1&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) : (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>សូមចូលប្រើប្រាស់ឡើង<span class="tag">&lt;/h1&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="tip-box">
+        <p class="text-emerald-300 font-medium">💡 ដូចម្ដេច ដំណើរការ:</p>
+        <p class="text-gray-300 text-sm mt-2">ប្រសិនបើ isLoggedIn ពិត → បង្ហាញ "សូស្វាគមន៍ឡើងវិញ!"<br>
+         ប្រសិនបើ មិនពិត → បង្ហាញ "សូមចូលប្រើប្រាស់ឡើង"</p>
+       </div>
+      </div><!-- Example 3 -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#f59e0b] mb-3">ឧទាហរណ៍ ៣ - ប្រើប្រាស់ Array ដែលមាន .map()</h3>
+       <p class="text-gray-300 mb-3">បង្ហាញបញ្ជីលក្ខខ័ណ្ឌ</p>
+       <div class="code-block mb-4"><span class="keyword">function</span> <span class="func">StudentList</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">students</span> = [<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="attr">id</span>: <span class="number">1</span>, <span class="attr">name</span>: <span class="string">"សុខា"</span> },<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="attr">id</span>: <span class="number">2</span>, <span class="attr">name</span>: <span class="string">"សម័យ"</span> },<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="attr">id</span>: <span class="number">3</span>, <span class="attr">name</span>: <span class="string">"មរតី"</span> }<br>
+         &nbsp;&nbsp;];<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ul&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="variable">students</span>.<span class="func">map</span>((<span class="variable">student</span>) =&gt; (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li</span> <span class="attr">key</span>={<span class="variable">student</span>.id}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="variable">student</span>.name}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/li&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/ul&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="warning-box">
+        <p class="text-amber-300 font-medium">⚠️ សម្គាល់ថា:</p>
+        <p class="text-gray-300 text-sm mt-2">key={student.id} ពិតជាចាំបាច់! វាដាក់សម្គាល់របស់ component និងទើបកែក្នុងក្តារ DOM ឱ្យប្រកបដោយប្រសិទ្ធភាព</p>
+       </div>
+      </div><!-- Example 4 -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#10b981] mb-3">ឧទាហរណ៍ ៤ - Styling ក្នុង JSX</h3>
+       <p class="text-gray-300 mb-3">ដាក់ពណ៌ និង style ដេកក្នុង Component</p>
+       <div class="code-block mb-4"><span class="keyword">function</span> <span class="func">Card</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">styles</span> = {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">card</span>: {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background: <span class="string">'#7c3aed'</span>,<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;padding: <span class="string">'20px'</span>,<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;borderRadius: <span class="string">'8px'</span>,<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color: <span class="string">'white'</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+         &nbsp;&nbsp;};<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div</span> <span class="attr">style</span>={<span class="variable">styles</span>.card}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h2&gt;</span>ការដ៍ Product Card<span class="tag">&lt;/h2&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>ថ្លៃៈ $99<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="tip-box">
+        <p class="text-emerald-300 font-medium">💡 ចាប់ផ្តើម:</p>
+        <ul class="text-gray-300 text-sm mt-2 space-y-1 list-disc list-inside">
+         <li>borderRadius ឬ fontSize គឺ camelCase (មិនមែន border-radius, font-size)</li>
+         <li>ជាធម្មតា Tailwind CSS ងាយក្នុង React នៅលើលក្ខណៈប្រម្នឹង</li>
+        </ul>
+       </div>
+      </div>
+     </div>
+    </div><!-- Section 1: Components -->
+    <div class="section fade-in hidden" id="section-1">
+     <div class="section-card">
+      <h2 class="text-3xl font-bold text-white mb-2">📦 Components - របៀបប្រើ</h2>
+      <p class="text-gray-400 mb-6">សមាសភាគ ជាផ្នែកនៃកូដដែលអាចប្រើឡើងវិញបាន</p><!-- Component Concept -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#7c3aed] mb-3">📌 Component គឺផ្នែក UI ដែលអាចប្រើម្តងហើយម្តងទៀត</h3>
+       <div class="flow-diagram">
+        <div class="flow-box">
+         Component
+        </div>
+        <div class="arrow">
+         →
+        </div>
+        <div class="flow-box">
+         Props
+        </div>
+        <div class="arrow">
+         →
+        </div>
+        <div class="flow-box">
+         JSX ត្រឡប់
+        </div>
+       </div>
+      </div><!-- Example 1: Simple Component -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#3b82f6] mb-3">ឧទាហរណ៍ ១ - Component សាមញ្ញ</h3>
+       <div class="code-block mb-4"><span class="comment">// ═══════════════════════════════════════</span><br><span class="comment">// 1️⃣ សរសេរ Component មួយ</span><br><span class="comment">// ═══════════════════════════════════════</span><br><span class="keyword">function</span> <span class="func">Header</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">return</span> <span class="tag">&lt;h1&gt;</span>ឧទ្ឌយាន ឱនលាញ់ 🇰🇭<span class="tag">&lt;/h1&gt;</span>;<br>
+         }<br><br><span class="comment">// ═══════════════════════════════════════</span><br><span class="comment">// 2️⃣ ប្រើ Component</span><br><span class="comment">// ═══════════════════════════════════════</span><br><span class="keyword">function</span> <span class="func">App</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;Header</span> <span class="tag">/&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;Header</span> <span class="tag">/&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;Header</span> <span class="tag">/&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="tip-box">
+        <p class="text-emerald-300 font-medium">💡 ឯក:</p>
+        <p class="text-gray-300 text-sm mt-2">សរសេរម្ដង ប្រើបានបីដង! វាជា DRY (Don't Repeat Yourself) ក្នុង React</p>
+       </div>
+      </div><!-- Example 2: Component with Props -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#f59e0b] mb-3">ឧទាហរណ៍ ២ - ប្រើ Props ដើម្បីផ្ញើទិន្នន័យ</h3>
+       <div class="code-block mb-4"><span class="comment">// Props = ទិន្នន័យដែលឆ្លងចូល Component</span><br><span class="keyword">function</span> <span class="func">ProductCard</span>(<span class="variable">props</span>) {<br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h2&gt;</span>{<span class="variable">props</span>.name}<span class="tag">&lt;/h2&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>តម្លៃ: ${<span class="variable">props</span>.price}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>{<span class="variable">props</span>.description}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }<br><br><span class="comment">// ════════════════════════════════════════</span><br><span class="comment">// ប្រើ Props</span><br><span class="comment">// ════════════════════════════════════════</span><br><span class="keyword">function</span> <span class="func">Shop</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ProductCard</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">name</span>=<span class="string">"Nike Shoes"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">price</span>={<span class="number">120</span>}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">description</span>=<span class="string">"ស៊ីឈូស ដ៏ល្អ"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">/&gt;</span><br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ProductCard</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">name</span>=<span class="string">"Adidas Shoes"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">price</span>={<span class="number">100</span>}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">description</span>=<span class="string">"ស៊ីឈូស ស៊ីលឺវ"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">/&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="tip-box">
+        <p class="text-emerald-300 font-medium">💡 ព័ត៌មាន:</p>
+        <p class="text-gray-300 text-sm mt-2">Props ខ្លាក់ដូចជា JavaScript function parameter។ ឆ្លងទៅ component ដើម្បីផ្លាស់ប្ដូរលក្ខណ់វត្ថុ</p>
+       </div>
+      </div><!-- Example 3: Destructuring Props -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#10b981] mb-3">ឧទាហរណ៍ ៣ - Destructuring Props (ងាយស្រួលជាង)</h3>
+       <p class="text-gray-300 mb-3">ឡើងវិញ ដូចប៉ុន្តែលេខយូច្បាក់ ក្នុង component</p>
+       <div class="code-block mb-4"><span class="comment">// Destructuring = ច្របាច់ដក props ចេញ</span><br><span class="keyword">function</span> <span class="func">ProductCard</span>({ <span class="variable">name</span>, <span class="variable">price</span>, <span class="variable">description</span> }) {<br>
+         &nbsp;&nbsp;<span class="comment">// គ្មាន props.name ទេ - ដែលយូច្បាក់ដក name ចេញរួច</span><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h2&gt;</span>{<span class="variable">name</span>}<span class="tag">&lt;/h2&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>តម្លៃ: ${<span class="variable">price</span>}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>{<span class="variable">description</span>}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="warning-box">
+        <p class="text-amber-300 font-medium">⚠️ ចាប់ផ្តើម:</p>
+        <p class="text-gray-300 text-sm mt-2">Destructuring ជ្រើសយក props ដែលត្រូវការ។ ងាយស្រួលនិងលេខយូច្បាក់នាំ}</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Section 2: useState -->
+    <div class="section fade-in hidden" id="section-2">
+     <div class="section-card">
+      <h2 class="text-3xl font-bold text-white mb-2">⚡ useState - គ្រប់គ្រងទិន្នន័យ</h2>
+      <p class="text-gray-400 mb-6">အခြား State ដែលផ្លាស់ប្ដូរដូចជា Counter, Form</p><!-- Counter Example -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#7c3aed] mb-3">ឧទាហរណ៍ ១ - Counter (រាប់ម្ដង)</h3>
+       <div class="code-block mb-4"><span class="keyword">import</span> { <span class="variable">useState</span> } <span class="keyword">from</span> <span class="string">'react'</span>;<br><br><span class="keyword">function</span> <span class="func">Counter</span>() {<br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="comment">// useState = Hook គ្រប់គ្រង state</span><br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">count</span>, <span class="variable">setCount</span>] = <span class="func">useState</span>(<span class="number">0</span>);<br>
+         &nbsp;&nbsp;<span class="comment">// count = តម្លៃបច្ចុប្បន្ន (0)</span><br>
+         &nbsp;&nbsp;<span class="comment">// setCount = function ឯើងផ្លាស់ប្ដូរ count</span><br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>រាប់រវាង: {<span class="variable">count</span>}<span class="tag">&lt;/h1&gt;</span><br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="func">setCount</span>(<span class="variable">count</span> + <span class="number">1</span>)}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ម្ដង + 1<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/button&gt;</span><br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="func">setCount</span>(<span class="variable">count</span> - <span class="number">1</span>)}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ម្ដង - 1<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/button&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="live-demo">
+        <p class="text-emerald-300 font-medium mb-3">🎯 វា​ដំណើរការ​ដូច​ម្ដេច:</p>
+        <ol class="text-gray-300 text-sm space-y-2 list-decimal list-inside">
+         <li>ចុច button "ម្ដង + 1" → count ក្លាយជា 1</li>
+         <li>React render ឡើងវិញ ហើយបង្ហាញ 1</li>
+         <li>ចុច button "ម្ដង - 1" → count ក្លាយជា 0</li>
+         <li>React render ឡើងវិញ ហើយបង្ហាញ 0</li>
+        </ol>
+       </div>
+      </div><!-- Form Example -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#3b82f6] mb-3">ឧទាហរណ៍ ២ - Form (Controlled Input)</h3>
+       <p class="text-gray-300 mb-3">គ្រប់គ្រង input value ដោយ React</p>
+       <div class="code-block mb-4"><span class="keyword">function</span> <span class="func">LoginForm</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">email</span>, <span class="func">setEmail</span>] = <span class="func">useState</span>(<span class="string">""</span>);<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">password</span>, <span class="func">setPassword</span>] = <span class="func">useState</span>(<span class="string">""</span>);<br><br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="func">handleSubmit</span> = (<span class="variable">e</span>) =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="variable">e</span>.<span class="func">preventDefault</span>();<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;console.<span class="func">log</span>(<span class="string">"Email:"</span>, <span class="variable">email</span>, <span class="string">"Password:"</span>, <span class="variable">password</span>);<br>
+         &nbsp;&nbsp;};<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;form</span> <span class="attr">onSubmit</span>={<span class="variable">handleSubmit</span>}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">type</span>=<span class="string">"email"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">value</span>={<span class="variable">email</span>}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">onChange</span>={(<span class="variable">e</span>) =&gt; <span class="func">setEmail</span>(<span class="variable">e</span>.target.value)}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">placeholder</span>=<span class="string">"ឈ្មោះប្រើប្រាស់"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">/&gt;</span><br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;input</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">type</span>=<span class="string">"password"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">value</span>={<span class="variable">password</span>}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">onChange</span>={(<span class="variable">e</span>) =&gt; <span class="func">setPassword</span>(<span class="variable">e</span>.target.value)}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">placeholder</span>=<span class="string">"ពាក្យសម្ងាត់"</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">/&gt;</span><br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="string">"submit"</span><span class="tag">&gt;</span>ចូលប្រើប្រាស់<span class="tag">&lt;/button&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/form&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="tip-box">
+        <p class="text-emerald-300 font-medium">💡 ចំនួច្បាក់៖</p>
+        <ul class="text-gray-300 text-sm mt-2 space-y-1 list-disc list-inside">
+         <li>onChange ពេល input ផ្លាស់ប្ដូរ → ឆ្លងទៅ setEmail/setPassword</li>
+         <li>e.preventDefault() កុំឱ្យ submit រលូត ទំព័រ</li>
+         <li>value={email} ធានាថា input រក្សា state React</li>
+        </ul>
+       </div>
+      </div><!-- Multiple States -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#f59e0b] mb-3">ឧទាហរណ៍ ៣ - Multiple States</h3>
+       <p class="text-gray-300 mb-3">ប្រើ useState មួយច្រើនដង</p>
+       <div class="code-block mb-4"><span class="keyword">function</span> <span class="func">UserProfile</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">name</span>, <span class="func">setName</span>] = <span class="func">useState</span>(<span class="string">""</span>);<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">age</span>, <span class="func">setAge</span>] = <span class="func">useState</span>(<span class="number">0</span>);<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">isActive</span>, <span class="func">setIsActive</span>] = <span class="func">useState</span>(<span class="variable">false</span>);<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>ឈ្មោះ: {<span class="variable">name</span>}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>អាយុ: {<span class="variable">age</span>}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>សកម្ម: {<span class="variable">isActive</span> ? <span class="string">"ព្រឹត្តិបត្របាទ"</span> : <span class="string">"មិនព្រឹត្តិបត្របាទ"</span>}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+      </div>
+     </div>
+    </div><!-- Section 3: useEffect -->
+    <div class="section fade-in hidden" id="section-3">
+     <div class="section-card">
+      <h2 class="text-3xl font-bold text-white mb-2">🪝 useEffect - គេហៅឡើង Side Effects</h2>
+      <p class="text-gray-400 mb-6">រត់ក្នុងនាង fetch data, timer, localStorage</p><!-- Simple Example -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#7c3aed] mb-3">ឧទាហរណ៍ ១ - ឡើង ម្ដង Render</h3>
+       <p class="text-gray-300 mb-3">ដូចជា useEffect រត់ម្ដង ពេលនឹងបង្ហាញ component</p>
+       <div class="code-block mb-4"><span class="keyword">import</span> { <span class="variable">useState</span>, <span class="variable">useEffect</span> } <span class="keyword">from</span> <span class="string">'react'</span>;<br><br><span class="keyword">function</span> <span class="func">PageTitle</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">title</span>, <span class="func">setTitle</span>] = <span class="func">useState</span>(<span class="string">"ស្ដីឯង"</span>);<br><br>
+         &nbsp;&nbsp;<span class="func">useEffect</span>(() =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;console.<span class="func">log</span>(<span class="string">"Component បង្ហាញ!"</span>);<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;document.title = <span class="variable">title</span>;<br>
+         &nbsp;&nbsp;}, []); <span class="comment">// [] = រត់ម្ដង</span><br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> <span class="tag">&lt;h1&gt;</span>{<span class="variable">title</span>}<span class="tag">&lt;/h1&gt;</span>;<br>
+         }
+       </div>
+      </div><!-- API Fetch Example -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#3b82f6] mb-3">ឧទាហរណ៍ ២ - Fetch ទិន្នន័យពីមាន API</h3>
+       <div class="code-block mb-4"><span class="keyword">function</span> <span class="func">GetUsers</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">users</span>, <span class="func">setUsers</span>] = <span class="func">useState</span>([]);<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">loading</span>, <span class="func">setLoading</span>] = <span class="func">useState</span>(<span class="variable">true</span>);<br><br>
+         &nbsp;&nbsp;<span class="func">useEffect</span>(() =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Fetch ទិន្នន័យពីមាន server</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="func">fetch</span>(<span class="string">"https://jsonplaceholder.typicode.com/users"</span>)<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="func">then</span>(<span class="variable">res</span> =&gt; <span class="variable">res</span>.<span class="func">json</span>())<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="func">then</span>(<span class="variable">data</span> =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">setUsers</span>(<span class="variable">data</span>);<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">setLoading</span>(<span class="variable">false</span>);<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+         &nbsp;&nbsp;}, []); <span class="comment">// រត់ម្ដង ពេលមាន</span><br><br>
+         &nbsp;&nbsp;<span class="keyword">if</span> (<span class="variable">loading</span>) <span class="keyword">return</span> <span class="tag">&lt;p&gt;</span>រង់ចាំ...<span class="tag">&lt;/p&gt;</span>;<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;ul&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="variable">users</span>.<span class="func">map</span>((<span class="variable">user</span>) =&gt; (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;li</span> <span class="attr">key</span>={<span class="variable">user</span>.id}<span class="tag">&gt;</span>{<span class="variable">user</span>.name}<span class="tag">&lt;/li&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/ul&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }
+       </div>
+       <div class="tip-box">
+        <p class="text-emerald-300 font-medium">💡 អ្វីដែលផ្តើម៖</p>
+        <ul class="text-gray-300 text-sm mt-2 space-y-1 list-disc list-inside">
+         <li>useEffect រត់បន្ទាប់ពី component render</li>
+         <li>fetch ទាញទិន្នន័យ រៀងរាល់ 2-3 វិនាទី</li>
+         <li>setUsers រក្សា ទិន្នន័យក្នុង state</li>
+         <li>[] dependency array មានន័យ "រត់ម្ដង"</li>
+        </ul>
+       </div>
+      </div><!-- Timer Example -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#f59e0b] mb-3">ឧទាហរណ៍ ៣ - Timer/Interval</h3>
+       <div class="code-block mb-4"><span class="keyword">function</span> <span class="func">Clock</span>() {<br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">time</span>, <span class="func">setTime</span>] = <span class="func">useState</span>(<span class="number">0</span>);<br><br>
+         &nbsp;&nbsp;<span class="func">useEffect</span>(() =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// រត់រាល់ 1 វិនាទី</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">interval</span> = <span class="func">setInterval</span>(() =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">setTime</span>(<span class="variable">t</span> =&gt; <span class="variable">t</span> + <span class="number">1</span>);<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;}, <span class="number">1000</span>);<br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 청소ន = បន្ដឹងលុប interval ពេលមិនត្រូវការ</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> () =&gt; <span class="func">clearInterval</span>(<span class="variable">interval</span>);<br>
+         &nbsp;&nbsp;}, []);<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> <span class="tag">&lt;h1&gt;</span>ពេលវេលា: {<span class="variable">time</span>}<span class="tag">&lt;/h1&gt;</span>;<br>
+         }
+       </div>
+      </div><!-- Dependency Array -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#10b981] mb-3">📋 Dependency Array អត្ថន័យ</h3>
+       <div class="grid grid-cols-1 gap-4">
+        <div class="bg-[#12122a] rounded-xl p-4">
+         <div class="code-block text-xs mb-2">
+          useEffect(() =&gt; {}, [])
+         </div>
+         <p class="text-gray-300 text-sm"><strong class="text-white">ឡើង ម្ដង</strong> ពេល component mount (ដូច componentDidMount)</p>
+        </div>
+        <div class="bg-[#12122a] rounded-xl p-4">
+         <div class="code-block text-xs mb-2">
+          useEffect(() =&gt; {}, [count])
+         </div>
+         <p class="text-gray-300 text-sm"><strong class="text-white">រត់រាល់ពេល count ផ្លាស់ប្ដូរ</strong></p>
+        </div>
+        <div class="bg-[#12122a] rounded-xl p-4">
+         <div class="code-block text-xs mb-2">
+          useEffect(() =&gt; {})
+         </div>
+         <p class="text-gray-300 text-sm"><strong class="text-white">រត់រាល់ពេល render</strong> (⚠️ ប្រុងប្រយ័ត្ន - អាចធ្វើ infinite loop!)</p>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Section 4: E-commerce Project -->
+    <div class="section fade-in hidden" id="section-4">
+     <div class="section-card">
+      <h2 class="text-3xl font-bold text-white mb-2">🛒 Real Project - E-Commerce Store</h2>
+      <p class="text-gray-400 mb-6">គម្រោង ពិតប្រាកដ - ល្ក្ខ ការគាំង គៀង Cart</p><!-- Complete Example -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#7c3aed] mb-3">គម្រោងពេញលេញ - មាន Items, Quantity, Total</h3>
+       <div class="code-block mb-4" style="max-height: 600px; overflow-y: auto;"><span class="keyword">import</span> { <span class="variable">useState</span> } <span class="keyword">from</span> <span class="string">'react'</span>;<br><br><span class="keyword">function</span> <span class="func">EcommerceApp</span>() {<br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="comment">// ១. ទិន្នន័យផលិតផល</span><br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">products</span> = [<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="attr">id</span>: <span class="number">1</span>, <span class="attr">name</span>: <span class="string">"Nike Shoes"</span>, <span class="attr">price</span>: <span class="number">120</span> },<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="attr">id</span>: <span class="number">2</span>, <span class="attr">name</span>: <span class="string">"iPhone 14"</span>, <span class="attr">price</span>: <span class="number">999</span> },<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="attr">id</span>: <span class="number">3</span>, <span class="attr">name</span>: <span class="string">"Laptop"</span>, <span class="attr">price</span>: <span class="number">1200</span> }<br>
+         &nbsp;&nbsp;];<br><br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="comment">// ២. Cart State</span><br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="keyword">const</span> [<span class="variable">cart</span>, <span class="func">setCart</span>] = <span class="func">useState</span>([]);<br><br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="comment">// ៣. បង្កើត functions</span><br>
+         &nbsp;&nbsp;<span class="comment">// ═════════════════════════════════════════</span><br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="func">addToCart</span> = (<span class="variable">product</span>) =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> <span class="variable">existingItem</span> = <span class="variable">cart</span>.<span class="func">find</span>(<span class="variable">item</span> =&gt; <span class="variable">item</span>.id === <span class="variable">product</span>.id);<br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> (<span class="variable">existingItem</span>) {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// ប្រសិនបើមាននៅក្នុង cart រួច - បង្កើន quantity</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">setCart</span>(<span class="variable">cart</span>.<span class="func">map</span>(<span class="variable">item</span> =&gt;<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="variable">item</span>.id === <span class="variable">product</span>.id<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? { ...<span class="variable">item</span>, <span class="attr">quantity</span>: <span class="variable">item</span>.quantity + <span class="number">1</span> }<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="variable">item</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;));<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;} <span class="keyword">else</span> {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// ផលិតផលថ្មី - បន្ថែមទៅ cart</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">setCart</span>([...<span class="variable">cart</span>, { ...<span class="variable">product</span>, <span class="attr">quantity</span>: <span class="number">1</span> }]);<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+         &nbsp;&nbsp;};<br><br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="func">removeFromCart</span> = (<span class="variable">productId</span>) =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="func">setCart</span>(<span class="variable">cart</span>.<span class="func">filter</span>(<span class="variable">item</span> =&gt; <span class="variable">item</span>.id !== <span class="variable">productId</span>));<br>
+         &nbsp;&nbsp;};<br><br>
+         &nbsp;&nbsp;<span class="keyword">const</span> <span class="func">getTotalPrice</span> = () =&gt; {<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="variable">cart</span>.<span class="func">reduce</span>((<span class="variable">total</span>, <span class="variable">item</span>) =&gt;<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="variable">total</span> + <span class="variable">item</span>.price * <span class="variable">item</span>.quantity,<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="number">0</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;);<br>
+         &nbsp;&nbsp;};<br><br>
+         &nbsp;&nbsp;<span class="keyword">return</span> (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h1&gt;</span>ហាង E-Commerce 🛒<span class="tag">&lt;/h1&gt;</span><br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h2&gt;</span>ផលិតផល<span class="tag">&lt;/h2&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="variable">products</span>.<span class="func">map</span>((<span class="variable">product</span>) =&gt; (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div</span> <span class="attr">key</span>={<span class="variable">product</span>.id} <span class="attr">style</span>={{ <span class="attr">border</span>: <span class="string">'1px solid #ccc'</span>, <span class="attr">padding</span>: <span class="string">'10px'</span> }}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h3&gt;</span>{<span class="variable">product</span>.name}<span class="tag">&lt;/h3&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>${<span class="variable">product</span>.price}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="func">addToCart</span>(<span class="variable">product</span>)}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;បន្ថែមទៅក្រាប់<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/button&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h2&gt;</span>ក្រាប់របស់ខ្ញុំ<span class="tag">&lt;/h2&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="variable">cart</span>.<span class="func">length</span> === <span class="number">0</span> ? (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>ក្រាប់ទទេ<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) : (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<span class="variable">cart</span>.<span class="func">map</span>((<span class="variable">item</span>) =&gt; (<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;div</span> <span class="attr">key</span>={<span class="variable">item</span>.id}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;p&gt;</span>{<span class="variable">item</span>.name} x{<span class="variable">item</span>.quantity} = ${<span class="variable">item</span>.price * <span class="variable">item</span>.quantity}<span class="tag">&lt;/p&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attr">onClick</span>={() =&gt; <span class="func">removeFromCart</span>(<span class="variable">item</span>.id)}<span class="tag">&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;លុប<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/button&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;h3&gt;</span>សរុប: ${<span class="func">getTotalPrice</span>()}<span class="tag">&lt;/h3&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/&gt;</span><br>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)}<br>
+         &nbsp;&nbsp;&nbsp;&nbsp;<span class="tag">&lt;/div&gt;</span><br>
+         &nbsp;&nbsp;);<br>
+         }<br><br><span class="keyword">export default</span> <span class="func">EcommerceApp</span>;
+       </div>
+       <div class="live-demo">
+        <p class="text-emerald-300 font-medium mb-3">🎯 របៀបដំណើរការ៖</p>
+        <ol class="text-gray-300 text-sm space-y-2 list-decimal list-inside">
+         <li>ចុច "បន្ថែមទៅក្រាប់" ដើម្បីបង្កើនផលិតផល</li>
+         <li>ប្រសិនបើផលិតផលដូចគ្នា - quantity បង្កើន</li>
+         <li>គណនា total price ដោយប្រើ reduce()</li>
+         <li>ចុច "លុប" ដើម្បីដកផលិតផលចេញ</li>
+        </ol>
+       </div>
+      </div><!-- Key Concepts Used -->
+      <div class="example-box">
+       <h3 class="text-xl font-bold text-[#3b82f6] mb-3">🎓 គោលការណ៍សក្ខី ដែលប្រើ:</h3>
+       <ul class="text-gray-300 text-sm space-y-3 list-disc list-inside">
+        <li><strong class="text-white">useState</strong> - ដាក់ cart ក្នុង state</li>
+        <li><strong class="text-white">.map()</strong> - បង្ហាញបញ្ជីផលិតផល និង cart items</li>
+        <li><strong class="text-white">Conditional Rendering</strong> - បង្ហាញ "ក្រាប់ទទេ" ឬ items</li>
+        <li><strong class="text-white">.find()</strong> - ស្វាគមន៍ផលិតផល នៅក្នុង cart</li>
+        <li><strong class="text-white">.filter()</strong> - លុបផលិតផល</li>
+        <li><strong class="text-white">.reduce()</strong> - គណនា total price</li>
+        <li><strong class="text-white">Spread Operator (...)</strong> - ច្របាច់ array / object</li>
+       </ul>
+      </div>
+     </div>
+    </div>
+   </main><!-- Footer -->
+   <footer class="border-t border-[#2a2a4a] px-4 py-8 mt-12">
+    <div class="max-w-6xl mx-auto text-center">
+     <p class="text-gray-400 mb-2">រៀន React ជាមួយលម្អិត 🇰🇭</p>
+     <p class="text-gray-500 text-sm">សាលាបង្រៀន ⚛️ React Fundamentals - How to Use</p>
+    </div>
+   </footer>
+  </div>
+  <script>
+    function showSection(index) {
+      document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.nav-pill').forEach((p, i) => {
+        p.classList.remove('active');
+        p.classList.add('bg-[#1a1a2e]', 'text-gray-400');
+        if (i === index) {
+          p.classList.add('active');
+          p.classList.remove('bg-[#1a1a2e]', 'text-gray-400');
+        }
+      });
+      const section = document.getElementById(`section-${index}`);
+      section.classList.remove('hidden');
+      section.style.animation = 'none';
+      section.offsetHeight;
+      section.style.animation = 'fadeIn 0.5s ease forwards';
+    }
+
+    const defaultConfig = {
+      main_title: 'React Fundamentals - How to Use'
+    };
+
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => {
+        const title = document.querySelector('header h1');
+        if (title) title.textContent = config.main_title || defaultConfig.main_title;
+      },
+      mapToCapabilities: (config) => ({
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ["main_title", config.main_title || defaultConfig.main_title]
+      ])
+    });
+
+    lucide.createIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f7ded3c50e83bd7',t:'MTc3ODEzMjgxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
