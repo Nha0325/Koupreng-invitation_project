@@ -1,15 +1,16 @@
-#  Koupreng Invitation Project
-
-![GitHub repo size](https://img.shields.io/github/repo-size/Nha0325/Koupreng-invitation_project?color=blue)
-![GitHub last commit](https://img.shields.io/github/last-commit/Nha0325/Koupreng-invitation_project?color=green)
-![GitHub stars](https://img.shields.io/github/stars/Nha0325/Koupreng-invitation_project?color=yellow)
-
 ---
 
 ## 🖥️ System Info
 
 ![System Info](./frontend/public/neofetch.svg)
 ---
+
+#  Koupreng Invitation Project
+
+![GitHub repo size](https://img.shields.io/github/repo-size/Nha0325/Koupreng-invitation_project?color=blue)
+![GitHub last commit](https://img.shields.io/github/last-commit/Nha0325/Koupreng-invitation_project?color=green)
+![GitHub stars](https://img.shields.io/github/stars/Nha0325/Koupreng-invitation_project?color=yellow)
+
 
 ## 🔐 SSH Key Setup
 
