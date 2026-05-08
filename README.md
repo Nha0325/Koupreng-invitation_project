@@ -19,7 +19,7 @@
 ```bash
 ssh-keygen -t ed25519 -C "example@email.com" enter
                                               
-                                            (Name) : SSH-Key
+                                            (Name) : SSH-Key or ...
                                                      
                                                      enter
                                                      enter
@@ -83,7 +83,7 @@ git add . && git commit -m "your message here" && git push
 ## 🎨 Run Tailwind CSS
 
 ```bash
-npx @tailwindcss/cli \ -i ./src/assets/style/input.css \ -o ./src/assets/style/output.css \ --watch
+npx @tailwindcss/cli -i ./src/assets/style/input.css -o ./src/assets/style/output.css --watch
 ```
 
 ---

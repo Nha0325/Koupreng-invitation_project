@@ -7,6 +7,9 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env
 
+# Node modules
+node_modules/
+
 # FastAPI
 service/venv/
 service/__pycache__/
