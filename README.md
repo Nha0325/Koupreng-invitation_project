@@ -5,12 +5,11 @@
 ![System Info](./frontend/public/neofetch.svg)
 ---
 
-#  Koupreng Invitation Project
+# Koupreng Invitation Project
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/Nha0325/Koupreng-invitation_project?color=blue)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Nha0325/Koupreng-invitation_project?color=green)
 ![GitHub stars](https://img.shields.io/github/stars/Nha0325/Koupreng-invitation_project?color=yellow)
-
 
 ## 🔐 SSH Key Setup
 
@@ -18,23 +17,23 @@
 
 ```bash
 ssh-keygen -t ed25519 -C "example@email.com" enter
-                                              
+
                                             (Name) : SSH-Key or ...
-                                                     
+
                                                      enter
                                                      enter
-cat SSH-Key 
+cat SSH-Key
 or
-cat SSH-Key.pub 
-ssh-ed25519 AAAA************************************ example@email.com                                
+cat SSH-Key.pub
+ssh-ed25519 AAAA************************************ example@email.com
 ```
 
 បង្កើត key ២ ប្រភេទ:
 
-| File | Description |
-|------|-------------|
-| `~/.ssh/id_ed25519` | 🔒 Private key — **កុំចែករំលែក!** |
-| `~/.ssh/id_ed25519.pub` | 🌐 Public key — ដាក់ GitHub |
+| File                    | Description                       |
+| ----------------------- | --------------------------------- |
+| `~/.ssh/id_ed25519`     | 🔒 Private key — **កុំចែករំលែក!** |
+| `~/.ssh/id_ed25519.pub` | 🌐 Public key — ដាក់ GitHub       |
 
 ---
 
@@ -63,7 +62,7 @@ ssh -T git@github.com
 ### ៤. Push Code
 
 ```bash
-git push -u origin main 
+git push -u origin main
 ```
 
 ✅ Code ទៅដល់ GitHub ជោគជ័យ **"Everything up-to-date"**
@@ -73,7 +72,7 @@ git push -u origin main
 ## 🚀 Git Workflow — Every Time You Write Code
 
 ```bash
-git add . && git commit -m "your data connect w supabase" && git push
+git add . && git commit -m "Debug all Frontend pages." && git push
 ```
 
 > 💡 No password needed — SSH handles it automatically!
