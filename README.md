@@ -73,7 +73,7 @@ git push -u origin main
 ## 🚀 Git Workflow — Every Time You Write Code
 
 ```bash
-git add . && git commit -m "youy data connect w supabase" && git push
+git add . && git commit -m "your data connect w supabase" && git push
 ```
 
 > 💡 No password needed — SSH handles it automatically!
