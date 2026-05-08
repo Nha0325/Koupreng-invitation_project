@@ -1,11 +1,11 @@
-import Login from './Login'
+import LoginForm from './LoginForm';
 
-const login = () => {
+const Login = () => {
   return (
     <div>
-      <Login />
+      <LoginForm />
     </div>
-  )
-}
+  );
+};
 
-export default login
+export default Login;

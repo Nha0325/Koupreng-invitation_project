@@ -32,8 +32,8 @@ function Header() {
 
       {/* Desktop right nav */}
       <div className="header-nav">
-        <Link to="/">ចូល</Link>
-        <Link to="/" className="btn-start">
+        <Link to="/login">ចូល</Link>
+        <Link to="/register" className="btn-start">
           ចាប់ផ្តើម
         </Link>
       </div>
@@ -62,14 +62,14 @@ function Header() {
             ))}
             <div className="mobile-nav-actions">
               <Link
-                to="/"
+                to="/login"
                 className="mobile-login"
                 onClick={() => setMenuOpen(false)}
               >
                 ចូល
               </Link>
               <Link
-                to="/"
+                to="/register"
                 className="btn-start"
                 onClick={() => setMenuOpen(false)}
               >

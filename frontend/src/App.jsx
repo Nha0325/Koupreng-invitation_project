@@ -1,7 +1,9 @@
-import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Home from "./pages/Home";
+import Login from "./pages/log/Login";
+import Register from "./pages/log/register";
+import ForgotPassword from "./pages/log/ForgotPassword";
 import "./App.css";
 
 function App() {
@@ -11,6 +13,9 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
       </div>
     </Router>
