@@ -6,7 +6,9 @@ import com.koupreng.backend.auth.dto.UpdateRoleRequest;
 import com.koupreng.backend.auth.dto.UserResponse;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @RequestMapping("/api/admin/users")
 public class AdminUserController {
 
@@ -31,7 +34,7 @@ public class AdminUserController {
 
     @PatchMapping("/{userId}/role")
     public UserResponse updateRole(
-            @PathVariable Long userId,
+            @PathVariable @Positive Long userId,
             @Valid @RequestBody UpdateRoleRequest request
     ) {
         return userService.updateRole(userId, request.role());

@@ -48,7 +48,7 @@ public class AppProperties {
     public static class Jwt {
 
         @NotBlank
-        @Size(min = 32)
+        @Size(min = 64)
         private String secret;
 
         @NotBlank

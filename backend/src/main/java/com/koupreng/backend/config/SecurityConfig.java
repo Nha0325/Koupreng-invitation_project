@@ -1,12 +1,17 @@
 package com.koupreng.backend.config;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Set;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.koupreng.backend.auth.AppUserRepository;
+import com.koupreng.backend.security.ApiRequestLoggingFilter;
+import com.koupreng.backend.security.ApiSecurityProperties;
+import com.koupreng.backend.waf.WafFilter;
+import com.koupreng.backend.waf.WafProperties;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 import org.springframework.context.annotation.Bean;
@@ -23,24 +28,53 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
 
     private static final Set<String> UNSAFE_JWT_SECRETS = Set.of(
             "local-development-jwt-secret-change-me-32-chars",
-            "change_me_to_a_random_secret_with_at_least_32_chars"
+            "change_me_to_a_random_secret_with_at_least_32_chars",
+            "replace_with_a_random_64_character_or_longer_secret"
     );
 
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            AppJwtAuthenticationConverter jwtAuthenticationConverter
+            AppJwtAuthenticationConverter jwtAuthenticationConverter,
+            WafProperties wafProperties,
+            ApiSecurityProperties apiSecurityProperties,
+            CorsConfigurationSource corsConfigurationSource
     ) throws Exception {
+        WafFilter wafFilter = new WafFilter(wafProperties);
+        ApiRequestLoggingFilter apiRequestLoggingFilter =
+                new ApiRequestLoggingFilter(apiSecurityProperties.getLogging());
+
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))
+                        .frameOptions(frame -> frame.deny())
+                        .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                        .httpStrictTransportSecurity(hsts -> {
+                            if (apiSecurityProperties.getHttps().isHstsEnabled()) {
+                                hsts.includeSubDomains(true)
+                                        .maxAgeInSeconds(apiSecurityProperties.getHttps().getHstsMaxAgeSeconds());
+                            } else {
+                                hsts.disable();
+                            }
+                        })
+                )
+                .addFilterBefore(wafFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(apiRequestLoggingFilter, WafFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/api/health").permitAll()
                         .requestMatchers(
@@ -57,6 +91,16 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form.disable())
                 .httpBasic(httpBasic -> httpBasic.disable());
+
+        if (apiSecurityProperties.getCors().isEnabled()) {
+            http.cors(cors -> cors.configurationSource(corsConfigurationSource));
+        } else {
+            http.cors(cors -> cors.disable());
+        }
+
+        if (apiSecurityProperties.getHttps().isRequired()) {
+            http.redirectToHttps(https -> https.requestMatchers(AnyRequestMatcher.INSTANCE));
+        }
 
         return http.build();
     }
@@ -86,14 +130,31 @@ public class SecurityConfig {
         return decoder;
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(ApiSecurityProperties apiSecurityProperties) {
+        ApiSecurityProperties.Cors corsProperties = apiSecurityProperties.getCors();
+
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.copyOf(corsProperties.getAllowedOrigins()));
+        configuration.setAllowedMethods(List.copyOf(corsProperties.getAllowedMethods()));
+        configuration.setAllowedHeaders(List.copyOf(corsProperties.getAllowedHeaders()));
+        configuration.setExposedHeaders(List.copyOf(corsProperties.getExposedHeaders()));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(corsProperties.getMaxAgeSeconds());
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
+    }
+
     private SecretKey jwtSecretKey(String secret) {
         if (UNSAFE_JWT_SECRETS.contains(secret)) {
             throw new IllegalStateException("app.jwt.secret must be replaced with a strong random value");
         }
 
         byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
-        if (bytes.length < 32) {
-            throw new IllegalStateException("app.jwt.secret must be at least 32 characters for HS256");
+        if (bytes.length < 64) {
+            throw new IllegalStateException("app.jwt.secret must be at least 64 characters for HS256");
         }
         return new SecretKeySpec(bytes, "HmacSHA256");
     }
