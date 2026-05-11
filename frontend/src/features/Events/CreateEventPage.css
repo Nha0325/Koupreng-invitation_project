@@ -1,0 +1,524 @@
+/* ─────────────────────────────────────────
+   Create Event Page
+───────────────────────────────────────── */
+
+.ce-page {
+    height: 100vh;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Noto Sans Khmer', 'DM Sans', sans-serif;
+    overflow: hidden;
+}
+
+/* ── Scrollable body ── */
+.ce-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 24px 100px;
+    max-width: 780px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── Section title ── */
+.ce-section-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+}
+
+.ce-section-sub {
+    font-size: 12px;
+    color: #aaa;
+    margin: 0 0 20px;
+}
+
+/* ── Image upload ── */
+.ce-img-label {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.ce-img-box {
+    width: 100%;
+    height: 180px;
+    border-radius: 12px;
+    background: #f5f5f7;
+    border: 1.5px dashed #ddd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #bbb;
+    font-size: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.ce-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+}
+
+.ce-img-box-icon {
+    font-size: 28px;
+    color: #ccc;
+}
+
+.ce-img-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.ce-img-upload-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #fff;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #444;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.ce-img-upload-btn:hover {
+    border-color: #e11d48;
+    color: #e11d48;
+}
+
+.ce-img-clear-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #fce7f3;
+    border: none;
+    color: #e11d48;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.ce-img-clear-btn:hover {
+    background: #fbd0e0;
+}
+
+/* ── Form grid ── */
+.ce-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.ce-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ce-field.full {
+    grid-column: 1 / -1;
+}
+
+.ce-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+}
+
+.ce-label .req {
+    color: #e11d48;
+    margin-left: 2px;
+}
+
+.ce-input,
+.ce-select,
+.ce-textarea {
+    height: 42px;
+    border-radius: 10px;
+    border: 1.5px solid #ebebeb;
+    background: #f9f9f9;
+    padding: 0 14px;
+    font-size: 13px;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ce-textarea {
+    height: 80px;
+    padding: 10px 14px;
+    resize: none;
+}
+
+.ce-input:focus,
+.ce-select:focus,
+.ce-textarea:focus {
+    border-color: #e11d48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.08);
+    background: #fff;
+}
+
+.ce-input-icon-wrap {
+    position: relative;
+}
+
+.ce-input-icon-wrap .ce-input {
+    padding-left: 36px;
+}
+
+.ce-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bbb;
+    pointer-events: none;
+}
+
+/* ── Toggle ── */
+.ce-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.ce-toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+
+.ce-toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.ce-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.ce-toggle-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #ddd;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.ce-toggle input:checked+.ce-toggle-track {
+    background: #e11d48;
+}
+
+.ce-toggle-track::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.ce-toggle input:checked+.ce-toggle-track::after {
+    transform: translateX(20px);
+}
+
+/* ── Sessions section ── */
+.ce-sessions {
+    margin-top: 8px;
+}
+
+.ce-sessions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1.5px solid #ebebeb;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 0;
+    transition: border-color 0.15s;
+}
+
+.ce-sessions-header:hover {
+    border-color: #e11d48;
+}
+
+.ce-sessions-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.ce-sessions-count {
+    background: #e8f0fe;
+    color: #3b5bdb;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.ce-sessions-body {
+    border: 1.5px solid #ebebeb;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Single session card ── */
+.ce-session-card {
+    background: #fff;
+    border: 1.5px solid #ebebeb;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.ce-session-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.ce-session-card-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.ce-session-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e11d48;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s;
+}
+
+.ce-session-delete-btn:hover {
+    background: #fce7f3;
+}
+
+/* ── Sub-items (venue+time rows) ── */
+.ce-sub-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 2px solid #f0f0f0;
+    padding-left: 12px;
+    margin-top: 8px;
+}
+
+.ce-sub-item-row {
+    display: grid;
+    grid-template-columns: 1fr 160px 32px;
+    gap: 8px;
+    align-items: center;
+}
+
+.ce-sub-item-row .ce-input {
+    height: 38px;
+    font-size: 12px;
+}
+
+.ce-sub-delete-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e11d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.ce-sub-delete-btn:hover {
+    background: #fce7f3;
+}
+
+/* ── Add buttons ── */
+.ce-add-sub-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: #e11d48;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 0;
+    font-family: inherit;
+    margin-top: 4px;
+}
+
+.ce-add-sub-btn:hover {
+    text-decoration: underline;
+}
+
+.ce-add-session-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px;
+    background: #fff;
+    border: 1.5px dashed #ddd;
+    border-radius: 10px;
+    color: #888;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.ce-add-session-btn:hover {
+    border-color: #e11d48;
+    color: #e11d48;
+}
+
+/* ── Bottom action bar ── */
+.ce-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #f0f0f0;
+    padding: 12px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    z-index: 100;
+    max-width: 780px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* Fix: bottom bar needs to span full width */
+.ce-bottom-bar-outer {
+    background: #fff;
+    border-top: 1px solid #f0f0f0;
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.ce-bottom-bar-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 12px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    box-sizing: border-box;
+}
+
+.ce-btn-back {
+    height: 48px;
+    border-radius: 10px;
+    border: 1.5px solid #e0e0e0;
+    background: #fff;
+    color: #555;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: border-color 0.15s;
+}
+
+.ce-btn-back:hover {
+    border-color: #aaa;
+}
+
+.ce-btn-submit {
+    height: 48px;
+    border-radius: 10px;
+    border: none;
+    background: #e11d48;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.ce-btn-submit:hover {
+    background: #be123c;
+}
+
+.ce-btn-submit:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 600px) {
+    .ce-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ce-sub-item-row {
+        grid-template-columns: 1fr 120px 32px;
+    }
+}

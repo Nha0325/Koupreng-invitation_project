@@ -1,0 +1,136 @@
+/* ── Template Page ── */
+.tp-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 28px;
+}
+
+.tp-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.tp-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+}
+
+.tp-subtitle {
+    font-size: 13px;
+    color: #7a8799;
+    margin: 0;
+}
+
+.tp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.tp-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e7e7ee;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tp-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.tp-popular-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #fffbeb;
+    color: #ca8a04;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    z-index: 1;
+}
+
+.tp-preview {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tp-preview-icon {
+    font-size: 48px;
+}
+
+.tp-card-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tp-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.tp-style-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.tp-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.tp-preview-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1.5px solid #e7e7ee;
+    background: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #525252;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.tp-preview-btn:hover {
+    border-color: #7033ff;
+    color: #7033ff;
+}
+
+.tp-use-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.15s;
+}
+
+.tp-use-btn:hover {
+    opacity: 0.85;
+}

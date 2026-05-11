@@ -1,0 +1,197 @@
+/* ─────────────────────────────────────────
+   TimePicker
+───────────────────────────────────────── */
+
+.tp-wrap {
+    position: relative;
+    width: 100%;
+}
+
+/* ── Trigger button ── */
+.tp-trigger {
+    width: 100%;
+    height: 42px;
+    border-radius: 10px;
+    border: 1.5px solid #ebebeb;
+    background: #f9f9f9;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-align: left;
+}
+
+.tp-trigger:hover,
+.tp-trigger.open {
+    border-color: #e11d48;
+    background: #fff;
+}
+
+.tp-trigger.open {
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.08);
+}
+
+.tp-clock-icon {
+    color: #bbb;
+    flex-shrink: 0;
+}
+
+.tp-placeholder {
+    font-size: 13px;
+    color: #aaa;
+}
+
+.tp-value {
+    font-size: 13px;
+    color: #333;
+    font-weight: 500;
+}
+
+/* ── Dropdown ── */
+.tp-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 200;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 16px 16px 14px;
+    min-width: 280px;
+    animation: tp-fade-in 0.15s ease;
+}
+
+@keyframes tp-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tp-dropdown-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 12px;
+}
+
+/* ── Labels row ── */
+.tp-row-labels {
+    display: grid;
+    grid-template-columns: 1fr 8px 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.tp-row-labels span {
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 600;
+}
+
+.tp-row-labels span:nth-child(2) {
+    visibility: hidden;
+    /* colon spacer */
+}
+
+/* ── Selects row ── */
+.tp-selects-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.tp-select-wrap {
+    position: relative;
+    flex: 1;
+}
+
+.tp-select {
+    width: 100%;
+    height: 40px;
+    border-radius: 999px;
+    border: 1.5px solid #ebebeb;
+    background: #f5f5f7;
+    padding: 0 28px 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tp-select:focus {
+    border-color: #e11d48;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1);
+    background: #fff;
+}
+
+.tp-chevron {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    pointer-events: none;
+}
+
+.tp-colon {
+    font-size: 16px;
+    font-weight: 700;
+    color: #555;
+    flex-shrink: 0;
+    margin-bottom: 2px;
+}
+
+/* ── Actions ── */
+.tp-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.tp-btn-cancel {
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 1.5px solid #e0e0e0;
+    background: #fff;
+    color: #555;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.tp-btn-cancel:hover {
+    border-color: #aaa;
+}
+
+.tp-btn-confirm {
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: none;
+    background: #e11d48;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.tp-btn-confirm:hover {
+    background: #be123c;
+}

@@ -1,98 +1,127 @@
+@import "./assets/fonts/fonts.css";
 @import "tailwindcss";
 
-/* ── CSS Variables ── */
+/* ── Font CSS Variables ── */
 :root {
-  /* Purples */
-  --purple-main: #6b3fa0;
-  --purple-light: #9b59d0;
-  --purple-dark: #4a2870;
+  /* Inter → DM Sans (closest available) */
+  --app-planessential-com-inter-medium-font-family: 'DM Sans', sans-serif;
 
-  /* Golds */
-  --gold-main: #c9a84c;
-  --gold-light: #e8c96a;
-  --gold-dark: #a07830;
+  /* Noto Sans Khmer weights */
+  --app-planessential-com-noto-sans-khmer-bold-font-family: 'Noto Sans Khmer', sans-serif;
+  --app-planessential-com-noto-sans-khmer-medium-font-family: 'Noto Sans Khmer', sans-serif;
+  --app-planessential-com-noto-sans-khmer-regular-font-family: 'Noto Sans Khmer', sans-serif;
+  --app-planessential-com-noto-sans-khmer-regular-underline-font-family: 'Noto Sans Khmer', sans-serif;
+  --app-planessential-com-noto-sans-khmer-semibold-font-family: 'Noto Sans Khmer', sans-serif;
 
-  /* Text */
-  --text-main: #1a1a2e;
-  --text-secondary: #5a5a7a;
-  --text-h: #08060d;
+  /* SF Pro → DM Sans fallback */
+  --apple-com-SF-pro-bold-font-family: 'DM Sans', sans-serif;
+  --apple-com-SF-pro-regular-font-family: 'DM Sans', sans-serif;
+  --apple-com-SF-pro-regular-underline-font-family: 'DM Sans', sans-serif;
+  --apple-com-SF-pro-semibold-font-family: 'DM Sans', sans-serif;
 
-  /* Backgrounds */
-  --bg: #faf9f7;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-dark: #16171d;
+  /* Metal → DM Sans fallback */
+  --planessential-com-metal-regular-font-family: 'DM Sans', sans-serif;
 
-  /* Borders */
-  --border: #e5e4e7;
-  --border-soft: rgba(107, 63, 160, 0.12);
+  /* Montserrat */
+  --planessential-com-montserrat-bold-font-family: 'Montserrat', sans-serif;
+  --planessential-com-montserrat-medium-font-family: 'Montserrat', sans-serif;
+  --planessential-com-montserrat-regular-font-family: 'Montserrat', sans-serif;
+  --planessential-com-montserrat-regular-strikethrough-font-family: 'Montserrat', sans-serif;
 
-  /* Legacy / compat */
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Moulpali → Noto Sans Khmer fallback */
+  --planessential-com-moulpali-regular-font-family: 'Noto Sans Khmer', sans-serif;
 
-  --sans: 'DM Sans', 'Noto Sans Khmer', system-ui, sans-serif;
-  --heading: 'DM Sans', 'Noto Sans Khmer', system-ui, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Theme colors (light) */
+  --color-primary: #7033ff;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #edf0f4;
+  --color-secondary-foreground: #080808;
+  --color-accent: #e2ebff;
+  --color-accent-foreground: #1e69dc;
+  --color-background: #fdfdfd;
+  --color-foreground: #000000;
+  --color-card: #fdfdfd;
+  --color-card-foreground: #000000;
+  --color-popover: #fcfcfc;
+  --color-popover-foreground: #000000;
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #525252;
+  --color-destructive: #e54b4f;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e7e7ee;
+  --color-input: #ebebeb;
+  --color-ring: #000000;
+  --color-chart-1: #4ac885;
+  --color-chart-2: #7033ff;
+  --color-chart-3: #fd822b;
+  --color-chart-4: #3276e4;
+  --color-chart-5: #747474;
+  --color-sidebar: #f5f8fb;
+  --color-sidebar-foreground: #000000;
+  --color-sidebar-primary: #000000;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #ebebeb;
+  --color-sidebar-accent-foreground: #000000;
+  --color-sidebar-border: #ebebeb;
+  --color-sidebar-ring: #000000;
+
+  /* Theme colors (dark) */
+  --color-dark-primary: #8c5cff;
+  --color-dark-primary-foreground: #ffffff;
+  --color-dark-secondary: #2a2c33;
+  --color-dark-secondary-foreground: #f0f0f0;
+  --color-dark-accent: #1e293b;
+  --color-dark-accent-foreground: #79c0ff;
+  --color-dark-background: #1a1b1e;
+  --color-dark-foreground: #f0f0f0;
+  --color-dark-card: #222327;
+  --color-dark-card-foreground: #f0f0f0;
+  --color-dark-popover: #222327;
+  --color-dark-popover-foreground: #f0f0f0;
+  --color-dark-muted: #2a2c33;
+  --color-dark-muted-foreground: #a0a0a0;
+  --color-dark-destructive: #f87171;
+  --color-dark-destructive-foreground: #ffffff;
+  --color-dark-border: #33353a;
+  --color-dark-input: #33353a;
+  --color-dark-ring: #8c5cff;
+  --color-dark-chart-1: #4ade80;
+  --color-dark-chart-2: #8c5cff;
+  --color-dark-chart-3: #fca5a5;
+  --color-dark-chart-4: #5993f4;
+  --color-dark-chart-5: #a0a0a0;
+  --color-dark-sidebar: #161618;
+  --color-dark-sidebar-foreground: #f0f0f0;
+  --color-dark-sidebar-primary: #8c5cff;
+  --color-dark-sidebar-primary-foreground: #ffffff;
+  --color-dark-sidebar-accent: #2a2c33;
+  --color-dark-sidebar-accent-foreground: #8c5cff;
+  --color-dark-sidebar-border: #33353a;
+  --color-dark-sidebar-ring: #8c5cff;
 }
 
-/* ── Dark mode overrides ── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-main: #e8e6f0;
-    --text-secondary: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #0f0e17;
-    --bg-card: rgba(22, 23, 35, 0.85);
-    --border: #2e303a;
-    --border-soft: rgba(155, 89, 208, 0.2);
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-}
-
-/* ── Base resets ── */
-body {
+/* ── Base ── */
+* {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--text-main);
-  font-family: var(--sans);
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: 'Noto Sans Khmer', 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   width: 100%;
-  margin: 0 auto;
-  min-height: 100svh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  margin: 0;
-  font-family: var(--heading);
-  color: var(--text-h);
-}
-
-p {
-  margin: 0;
-}
-
-a {
-  text-decoration: none;
-}
-
-code {
-  font-family: var(--mono);
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--accent-bg);
-  border-radius: 4px;
 }
