@@ -6,15 +6,16 @@ backend/*.log
 frontend/node_modules/
 frontend/dist/
 frontend/.env
-
-# Node modules
-node_modules/
+frontend/.env.*
+!frontend/.env.example
 
 # FastAPI
 service/venv/
 service/__pycache__/
 service/*.pyc
 service/.env
+service/.env.*
+!service/.env.example
 
 # IDE
 .idea/
@@ -27,3 +28,5 @@ Thumbs.db
 
 # Global env
 .env
+.env.*
+!.env.example
