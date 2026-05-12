@@ -1,0 +1,169 @@
+{
+  "appointments": [
+    {
+      "id": "appt-1",
+      "petId": "pet-7",
+      "ownerId": "owner-5",
+      "date": "2026-03-09",
+      "time": "09:00",
+      "type": "checkup",
+      "status": "confirmed",
+      "notes": "Annual wellness check",
+      "veterinarian": "Dr. Amanda Foster"
+    },
+    {
+      "id": "appt-2",
+      "petId": "pet-9",
+      "ownerId": "owner-6",
+      "date": "2026-03-09",
+      "time": "10:30",
+      "type": "vaccination",
+      "status": "scheduled",
+      "notes": "Puppy booster shots",
+      "veterinarian": "Dr. James Wilson"
+    },
+    {
+      "id": "appt-3",
+      "petId": "pet-12",
+      "ownerId": "owner-8",
+      "date": "2026-03-10",
+      "time": "14:00",
+      "type": "grooming",
+      "status": "scheduled",
+      "notes": "Full grooming session - mat removal",
+      "veterinarian": "Lisa Martinez"
+    },
+    {
+      "id": "appt-4",
+      "petId": "pet-10",
+      "ownerId": "owner-7",
+      "date": "2026-03-11",
+      "time": "11:00",
+      "type": "follow-up",
+      "status": "scheduled",
+      "notes": "Breathing assessment follow-up",
+      "veterinarian": "Dr. Amanda Foster"
+    },
+    {
+      "id": "appt-5",
+      "petId": "pet-13",
+      "ownerId": "owner-9",
+      "date": "2026-03-12",
+      "time": "15:30",
+      "type": "checkup",
+      "status": "scheduled",
+      "notes": "Athletic performance check",
+      "veterinarian": "Dr. James Wilson"
+    },
+    {
+      "id": "appt-6",
+      "petId": "pet-18",
+      "ownerId": "owner-12",
+      "date": "2026-03-16",
+      "time": "09:30",
+      "type": "vaccination",
+      "status": "scheduled",
+      "notes": "Annual vaccines due",
+      "veterinarian": "Dr. Amanda Foster"
+    },
+    {
+      "id": "appt-7",
+      "petId": "pet-11",
+      "ownerId": "owner-7",
+      "date": "2026-03-18",
+      "time": "10:00",
+      "type": "checkup",
+      "status": "scheduled",
+      "notes": "Rabbit wellness exam",
+      "veterinarian": "Dr. James Wilson"
+    },
+    {
+      "id": "appt-8",
+      "petId": "pet-8",
+      "ownerId": "owner-5",
+      "date": "2026-03-23",
+      "time": "14:30",
+      "type": "grooming",
+      "status": "scheduled",
+      "notes": "Nail trim and ear cleaning",
+      "veterinarian": "Lisa Martinez"
+    },
+    {
+      "id": "appt-9",
+      "petId": "pet-19",
+      "ownerId": "owner-13",
+      "date": "2026-03-25",
+      "time": "11:30",
+      "type": "checkup",
+      "status": "scheduled",
+      "notes": "Senior wellness exam",
+      "veterinarian": "Dr. Amanda Foster"
+    },
+    {
+      "id": "appt-10",
+      "petId": "pet-6",
+      "ownerId": "owner-4",
+      "date": "2026-03-30",
+      "time": "16:00",
+      "type": "follow-up",
+      "status": "scheduled",
+      "notes": "Hip dysplasia check",
+      "veterinarian": "Dr. James Wilson"
+    },
+    {
+      "id": "appt-11",
+      "petId": "pet-7",
+      "ownerId": "owner-5",
+      "date": "2026-04-02",
+      "time": "09:00",
+      "type": "surgery",
+      "status": "scheduled",
+      "notes": "Dental cleaning under sedation",
+      "veterinarian": "Dr. Amanda Foster"
+    },
+    {
+      "id": "appt-12",
+      "petId": "pet-9",
+      "ownerId": "owner-6",
+      "date": "2026-04-07",
+      "time": "10:00",
+      "type": "follow-up",
+      "status": "scheduled",
+      "notes": "Post-vaccination check",
+      "veterinarian": "Dr. Amanda Foster"
+    },
+    {
+      "id": "appt-13",
+      "petId": "pet-13",
+      "ownerId": "owner-9",
+      "date": "2026-04-10",
+      "time": "13:00",
+      "type": "checkup",
+      "status": "scheduled",
+      "notes": "Quarterly wellness check",
+      "veterinarian": "Dr. James Wilson"
+    },
+    {
+      "id": "appt-14",
+      "petId": "pet-10",
+      "ownerId": "owner-7",
+      "date": "2026-04-15",
+      "time": "15:00",
+      "type": "vaccination",
+      "status": "scheduled",
+      "notes": "Annual boosters",
+      "veterinarian": "Dr. Amanda Foster"
+    },
+    {
+      "id": "appt-15",
+      "petId": "pet-12",
+      "ownerId": "owner-8",
+      "date": "2026-04-22",
+      "time": "11:00",
+      "type": "grooming",
+      "status": "scheduled",
+      "notes": "Full grooming - summer cut",
+      "veterinarian": "Lisa Martinez"
+    }
+  ]
+}
