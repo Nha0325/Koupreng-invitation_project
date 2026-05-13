@@ -79,7 +79,11 @@ function Use-Jdk25 {
     $env:JAVA_HOME = $jdkHome
     $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 
-    $mavenJavaVersion = (& "$env:JAVA_HOME\bin\java.exe" -version 2>&1) -join " "
+    try {
+        $mavenJavaVersion = (& "$env:JAVA_HOME\bin\java.exe" -version 2>&1) -join " "
+    } catch {
+        $mavenJavaVersion = "JDK 25 (version check failed)"
+    }
     Write-Host "Using JAVA_HOME=$env:JAVA_HOME ($mavenJavaVersion)"
 }
 
@@ -122,8 +126,17 @@ if (-not $SkipBackend) {
 }
 
 if (-not $SkipFrontend) {
-    Write-Step "Installing frontend dependencies into frontend/node_modules"
-    Push-Location "$ProjectRoot\frontend"
+    Write-Step "Installing frontend-admin dependencies into frontend-admin/node_modules"
+    Push-Location "$ProjectRoot\frontend-admin"
+    try {
+        npm install
+    }
+    finally {
+        Pop-Location
+    }
+
+    Write-Step "Installing frontend-user dependencies into frontend-user/node_modules"
+    Push-Location "$ProjectRoot\frontend-user"
     try {
         npm install
     }
