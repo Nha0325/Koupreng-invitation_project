@@ -1,6 +1,7 @@
 # Spring Boot
 backend/target/
 backend/*.log
+backend/*.err
 
 # React
 frontend/node_modules/
@@ -8,6 +9,10 @@ frontend/dist/
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+frontend-admin/*.log
+frontend-admin/*.err
+frontend-user/*.log
+frontend-user/*.err
 
 # FastAPI
 service/venv/
@@ -30,4 +35,8 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Local runtime
+.run-logs/
+.mysql-data*/
 node_modules

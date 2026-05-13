@@ -2,7 +2,7 @@ package com.koupreng.backend.invitation;
 
 import java.time.Instant;
 
-import com.koupreng.backend.auth.AppUser;
+import com.koupreng.backend.entity.AppUser;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -29,7 +29,7 @@ function useEvents() {
         } catch (err) {
             const msg = err.response?.data?.message || err.message;
             setError(msg);
-            throw new Error(msg);
+            throw new Error(msg, { cause: err });
         }
     }, []);
 
@@ -42,7 +42,7 @@ function useEvents() {
         } catch (err) {
             const msg = err.response?.data?.message || err.message;
             setError(msg);
-            throw new Error(msg);
+            throw new Error(msg, { cause: err });
         }
     }, []);
 
@@ -54,7 +54,7 @@ function useEvents() {
         } catch (err) {
             const msg = err.response?.data?.message || err.message;
             setError(msg);
-            throw new Error(msg);
+            throw new Error(msg, { cause: err });
         }
     }, []);
 

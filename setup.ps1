@@ -126,6 +126,7 @@ if (-not $SkipBackend) {
 }
 
 if (-not $SkipFrontend) {
+<<<<<<< HEAD
     Write-Step "Installing frontend-admin dependencies into frontend-admin/node_modules"
     Push-Location "$ProjectRoot\frontend-admin"
     try {
@@ -142,6 +143,20 @@ if (-not $SkipFrontend) {
     }
     finally {
         Pop-Location
+=======
+    foreach ($frontendFolder in @("frontend-user", "frontend-admin")) {
+        $frontendPath = Join-Path $ProjectRoot $frontendFolder
+        if (Test-Path (Join-Path $frontendPath "package.json")) {
+            Write-Step "Installing dependencies into $frontendFolder/node_modules"
+            Push-Location $frontendPath
+            try {
+                npm install
+            }
+            finally {
+                Pop-Location
+            }
+        }
+>>>>>>> e330031c2cf66f13905179cf0e614ec55694b370
     }
 }
 
@@ -163,5 +178,6 @@ if (-not $SkipService) {
 
 Write-Step "Setup complete"
 Write-Host "Run backend:  cd backend; .\mvnw.cmd spring-boot:run"
-Write-Host "Run frontend: cd frontend; npm run dev"
+Write-Host "Run user UI:   cd frontend-user; npm run dev"
+Write-Host "Run admin UI:  cd frontend-admin; npm run dev"
 Write-Host "Run service:  cd service; .\venv\Scripts\Activate.ps1; uvicorn service:app --reload --port 8000"
