@@ -99,6 +99,38 @@ const Icons = {
       />
     </svg>
   ),
+  designer: (
+    <svg
+      width="16"
+      height="16"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+      />
+    </svg>
+  ),
+  myInvitations: (
+    <svg
+      width="16"
+      height="16"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+      />
+    </svg>
+  ),
   links: (
     <svg
       width="16"
@@ -283,6 +315,22 @@ const primaryNavItems = [
     iconClass: "icon-rose",
     badge: null,
     path: "/add-template",
+  },
+  {
+    id: "designer",
+    label: "ការរចនា",
+    icon: Icons.designer,
+    iconClass: "icon-purple",
+    badge: null,
+    path: "/invitation-templates",
+  },
+  {
+    id: "my-invitations",
+    label: "ការអញ្ជើញរបស់ខ្ញុំ",
+    icon: Icons.myInvitations,
+    iconClass: "icon-orange",
+    badge: null,
+    path: "/my-invitations",
   },
 ];
 

@@ -83,6 +83,8 @@ public class SecurityConfig {
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password"
                         ).permitAll()
+                        .requestMatchers("/api/invitations/templates", "/api/invitations/templates/**").permitAll()
+                        .requestMatchers("/api/invitations/shared/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
