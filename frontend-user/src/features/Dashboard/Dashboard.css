@@ -522,6 +522,188 @@
   color: var(--color-muted-foreground);
 }
 
+/* ── Analysis card ── */
+.db-analysis-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.db-analysis-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.db-analysis-section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin: 0;
+}
+
+.db-analysis-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.db-analysis-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--color-muted);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.db-analysis-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.db-analysis-stat-label {
+  font-size: 0.72rem;
+  color: var(--color-muted-foreground);
+}
+
+/* RSVP Progress */
+.db-rsvp-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.db-rsvp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.db-rsvp-label {
+  font-size: 0.78rem;
+  color: var(--color-muted-foreground);
+  min-width: 60px;
+}
+
+.db-rsvp-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--color-muted);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.db-rsvp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), #a78bfa);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.db-rsvp-value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Budget Breakdown */
+.db-budget-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.db-budget-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db-budget-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db-budget-item-category {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-foreground);
+}
+
+.db-budget-item-pct {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.db-budget-item-bar {
+  height: 8px;
+  background: var(--color-muted);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.db-budget-item-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), #a78bfa);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.db-budget-item-fill.over-budget {
+  background: linear-gradient(90deg, var(--color-destructive), #f87171);
+}
+
+.db-budget-item-fill.near-budget {
+  background: linear-gradient(90deg, #ca8a04, #fbbf24);
+}
+
+.db-budget-item-amounts {
+  display: flex;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+}
+
+.db-budget-item-total {
+  color: var(--color-muted-foreground);
+}
+
+/* Timeline Info */
+.db-timeline-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.db-timeline-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--color-muted);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.db-timeline-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.db-timeline-label {
+  font-size: 0.72rem;
+  color: var(--color-muted-foreground);
+}
+
 /* ── Dash wrapper (layout) ── */
 .dash-wrapper {
   display: grid;

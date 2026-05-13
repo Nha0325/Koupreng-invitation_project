@@ -5,16 +5,16 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import { useLenis } from "./hooks/useLenis";
-import PageTransition from "./components/ui/PageTransition";
+import { useLenis } from "./shared/hooks/useLenis";
+import PageTransition from "./shared/ui/PageTransition";
 import { AuthProvider } from "./context/AuthContext";
 
 /* ── Public layout ── */
-import Header from "./layout/Header";
-import Footer from "./layout/Footer";
+import Header from "./shared/layout/Header";
+import Footer from "./shared/layout/Footer";
 
 /* ── Dashboard layout (shared sidebar) ── */
-import DashboardLayout from "./layout/DashboardLayout";
+import DashboardLayout from "./shared/layout/DashboardLayout";
 
 /* ── Public pages ── */
 import HomePage from "./pages/Home/HomePage";
@@ -30,6 +30,8 @@ import WeddingGiftPage from "./pages/Dashboard/WeddingGiftPage";
 import TemplatePage from "./pages/Dashboard/TemplatePage";
 import AddTemplatePage from "./pages/Dashboard/AddTemplatePage";
 import SettingsPage from "./pages/Dashboard/SettingsPage";
+import LinksPage from "./pages/Dashboard/LinksPage";
+import ComparisonPage from "./pages/Dashboard/ComparisonPage";
 
 /* ── Events pages ── */
 import EventsPage from "./pages/Events/EventsPage";
@@ -48,6 +50,8 @@ const HIDDEN_LAYOUT_PATHS = [
   "/add-template",
   "/settings",
   "/events",
+  "/links",
+  "/comparison",
 ];
 
 const AnimatedRoutes = () => {
@@ -106,6 +110,8 @@ const AnimatedRoutes = () => {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/create" element={<CreateEventPage />} />
+            <Route path="/links" element={<LinksPage />} />
+            <Route path="/comparison" element={<ComparisonPage />} />
           </Route>
         </Routes>
       </AnimatePresence>
@@ -126,6 +132,6 @@ const App = () => {
       </Router>
     </AuthProvider>
   );
-}
+};
 
 export default App;

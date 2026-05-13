@@ -6,8 +6,8 @@ import {
   upcomingTasks,
   months,
   expenseData,
-} from "../../hooks/useDashboardData";
-import useEvents from "../../hooks/useEvents";
+} from "../../shared/hooks/useDashboardData";
+import useEvents from "../../shared/hooks/useEvents";
 import "./Dashboard.css";
 
 /* ─────────────────────────────────────────
@@ -146,7 +146,7 @@ const StatCards = ({ eventCount }) => {
       ))}
     </div>
   );
-}
+};
 
 /* ─────────────────────────────────────────
    Status badge helper
@@ -160,7 +160,7 @@ const StatusBadge = ({ status }) => {
   return (
     <span className={`db-badge ${map[status] || "badge--gray"}`}>{status}</span>
   );
-}
+};
 
 /* ─────────────────────────────────────────
    Upcoming Tasks card  (V0 "Upcoming" panel)
@@ -268,7 +268,7 @@ const UpcomingTasksCard = ({ events = [] }) => {
       </div>
     </div>
   );
-}
+};
 
 /* ─────────────────────────────────────────
    Recent Guests card  (V0 "Recent Patients" panel)
@@ -326,7 +326,7 @@ const RecentGuestsCard = () => {
       </div>
     </div>
   );
-}
+};
 
 /* ─────────────────────────────────────────
    Quick Actions card
@@ -368,7 +368,7 @@ const QuickActionsCard = () => {
       </div>
     </div>
   );
-}
+};
 
 /* ─────────────────────────────────────────
    Budget Progress card
@@ -441,7 +441,205 @@ const BudgetCard = () => {
       </div>
     </div>
   );
-}
+};
+
+/* ─────────────────────────────────────────
+   Wedding Invitation System Analysis card
+───────────────────────────────────────── */
+const AnalysisCard = () => {
+  const analysisData = {
+    guestAttendance: {
+      confirmed: 186,
+      pending: 42,
+      rejected: 20,
+      total: 248,
+      rate: 75,
+    },
+    rsvpStats: {
+      sent: 248,
+      opened: 198,
+      clicked: 156,
+      responded: 186,
+    },
+    budgetBreakdown: [
+      { category: "អាហារ", spent: 3500, budget: 4000, pct: 87.5 },
+      { category: "តុបតែង", spent: 1200, budget: 1500, pct: 80 },
+      { category: "ឈុតខ្លួន", spent: 800, budget: 1000, pct: 80 },
+      { category: "ដឹកជញ្ជូន", spent: 600, budget: 600, pct: 100 },
+      { category: "ផ្សេងៗ", spent: 2400, budget: 3000, pct: 80 },
+    ],
+    timeline: {
+      daysRemaining: 44,
+      tasksCompleted: 34,
+      totalTasks: 50,
+      onTrack: true,
+    },
+  };
+
+  return (
+    <div className="db-card">
+      <div className="db-card__header">
+        <div className="db-card__title">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            className="db-card__title-icon"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          ការវិភាគប្រព័ន្ធអញ្ជើញ
+        </div>
+        <span
+          className={`db-badge ${analysisData.timeline.onTrack ? "badge--green" : "badge--amber"}`}
+        >
+          {analysisData.timeline.onTrack ? "✓ ល្អ" : "⚠ ប្រុង"}
+        </span>
+      </div>
+
+      {/* Guest Attendance */}
+      <div className="db-analysis-section">
+        <h4 className="db-analysis-section-title">ការចូលរួមភ្ញៀវ</h4>
+        <div className="db-analysis-stats">
+          <div className="db-analysis-stat">
+            <span className="db-analysis-stat-value">
+              {analysisData.guestAttendance.confirmed}
+            </span>
+            <span className="db-analysis-stat-label">បានបញ្ជាក់</span>
+          </div>
+          <div className="db-analysis-stat">
+            <span className="db-analysis-stat-value">
+              {analysisData.guestAttendance.pending}
+            </span>
+            <span className="db-analysis-stat-label">កំពុងរង់ចាំ</span>
+          </div>
+          <div className="db-analysis-stat">
+            <span className="db-analysis-stat-value">
+              {analysisData.guestAttendance.rejected}
+            </span>
+            <span className="db-analysis-stat-label">បដិសេធ</span>
+          </div>
+          <div className="db-analysis-stat">
+            <span className="db-analysis-stat-value">
+              {analysisData.guestAttendance.rate}%
+            </span>
+            <span className="db-analysis-stat-label">អត្រាការចូលរួម</span>
+          </div>
+        </div>
+      </div>
+
+      {/* RSVP Stats */}
+      <div className="db-analysis-section">
+        <h4 className="db-analysis-section-title">ស្ថិតិ RSVP</h4>
+        <div className="db-rsvp-progress">
+          <div className="db-rsvp-item">
+            <span className="db-rsvp-label">បានផ្ញើ</span>
+            <div className="db-rsvp-bar">
+              <div className="db-rsvp-fill" style={{ width: "100%" }} />
+            </div>
+            <span className="db-rsvp-value">{analysisData.rsvpStats.sent}</span>
+          </div>
+          <div className="db-rsvp-item">
+            <span className="db-rsvp-label">បានបើក</span>
+            <div className="db-rsvp-bar">
+              <div
+                className="db-rsvp-fill"
+                style={{
+                  width: `${(analysisData.rsvpStats.opened / analysisData.rsvpStats.sent) * 100}%`,
+                }}
+              />
+            </div>
+            <span className="db-rsvp-value">
+              {analysisData.rsvpStats.opened}
+            </span>
+          </div>
+          <div className="db-rsvp-item">
+            <span className="db-rsvp-label">បានចុច</span>
+            <div className="db-rsvp-bar">
+              <div
+                className="db-rsvp-fill"
+                style={{
+                  width: `${(analysisData.rsvpStats.clicked / analysisData.rsvpStats.sent) * 100}%`,
+                }}
+              />
+            </div>
+            <span className="db-rsvp-value">
+              {analysisData.rsvpStats.clicked}
+            </span>
+          </div>
+          <div className="db-rsvp-item">
+            <span className="db-rsvp-label">បានឆ្លើយ</span>
+            <div className="db-rsvp-bar">
+              <div
+                className="db-rsvp-fill"
+                style={{
+                  width: `${(analysisData.rsvpStats.responded / analysisData.rsvpStats.sent) * 100}%`,
+                }}
+              />
+            </div>
+            <span className="db-rsvp-value">
+              {analysisData.rsvpStats.responded}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Budget Breakdown */}
+      <div className="db-analysis-section">
+        <h4 className="db-analysis-section-title">ការបំបែកថវិការ</h4>
+        <div className="db-budget-breakdown">
+          {analysisData.budgetBreakdown.map((item, i) => (
+            <div key={i} className="db-budget-item">
+              <div className="db-budget-item-header">
+                <span className="db-budget-item-category">{item.category}</span>
+                <span className="db-budget-item-pct">{item.pct}%</span>
+              </div>
+              <div className="db-budget-item-bar">
+                <div
+                  className={`db-budget-item-fill ${item.pct >= 100 ? "over-budget" : item.pct >= 90 ? "near-budget" : ""}`}
+                  style={{ width: `${Math.min(item.pct, 100)}%` }}
+                />
+              </div>
+              <div className="db-budget-item-amounts">
+                <span>${item.spent.toLocaleString()}</span>
+                <span className="db-budget-item-total">
+                  / ${item.budget.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="db-analysis-section">
+        <h4 className="db-analysis-section-title">កាលបរិច្ឆេទ</h4>
+        <div className="db-timeline-info">
+          <div className="db-timeline-stat">
+            <span className="db-timeline-value">
+              {analysisData.timeline.daysRemaining}
+            </span>
+            <span className="db-timeline-label">ថ្ងៃនៅសល់</span>
+          </div>
+          <div className="db-timeline-stat">
+            <span className="db-timeline-value">
+              {analysisData.timeline.tasksCompleted}/
+              {analysisData.timeline.totalTasks}
+            </span>
+            <span className="db-timeline-label">កិច្ចការបានបញ្ចប់</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* ─────────────────────────────────────────
    Page header
@@ -503,7 +701,7 @@ const DashboardHeader = () => {
       </div>
     </div>
   );
-}
+};
 
 /* ─────────────────────────────────────────
    Main export
@@ -531,8 +729,11 @@ const DashboardMain = () => {
         <BudgetCard />
         <QuickActionsCard />
       </div>
+
+      {/* Full width — Analysis card */}
+      <AnalysisCard />
     </div>
   );
-}
+};
 
 export default DashboardMain;

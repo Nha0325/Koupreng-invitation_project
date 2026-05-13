@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import ScrollReveal, {
   fadeUp,
   staggerContainer,
-} from "../../components/ui/ScrollReveal";
-import { useImageSlider } from "../../hooks/useImageSlider";
-import { useHeroAnimation } from "../../hooks/useHeroAnimation";
-import AnimatedButton from "../../components/ui/AnimatedButton";
-import MagicCard from "../../components/ui/MagicCard";
+} from "../../shared/ui/ScrollReveal";
+import { useImageSlider } from "../../shared/hooks/useImageSlider";
+import { useHeroAnimation } from "../../shared/hooks/useHeroAnimation";
+import AnimatedButton from "../../shared/ui/AnimatedButton";
+import MagicCard from "../../shared/ui/MagicCard";
 import "./HomePage.css";
 import heroBg from "../../assets/icons/background.png";
 import icon_1 from "../../assets/icons/icon-1.png";
@@ -244,7 +244,7 @@ const StarRating = ({ count }) => {
       ))}
     </div>
   );
-}
+};
 
 const FaqItem = ({ q, a }) => {
   const [open, setOpen] = useState(false);
@@ -280,7 +280,7 @@ const FaqItem = ({ q, a }) => {
       </div>
     </div>
   );
-}
+};
 
 /* ── Page ── */
 const Home = () => {
@@ -695,6 +695,6 @@ const Home = () => {
       {/* end section-band */}
     </div>
   );
-}
+};
 
 export default Home;

@@ -1,10 +1,3 @@
----
-
-## 🖥️ System Info
-
-![System Info](./frontend/public/neofetch.svg)
----
-
 # Koupreng Invitation Project
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/Nha0325/Koupreng-invitation_project?color=blue)
