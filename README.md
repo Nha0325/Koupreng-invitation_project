@@ -65,7 +65,7 @@ git push -u Nha0325 main
 ## 🚀 Git Workflow — Every Time You Write Code
 
 ```bash
-git add . && git commit -m "Debug all Frontend pages." && git push Nha0325 main
+git add . && git commit -m "Debug all Frontend pages." && git push -u origin main
 ```
 
 > 💡 No password needed — SSH handles it automatically!
