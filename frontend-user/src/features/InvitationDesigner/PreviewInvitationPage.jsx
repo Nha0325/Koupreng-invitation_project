@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Stage, Layer, Rect, Text } from 'react-konva';
+import { Stage, Layer, Rect, Text, Image as KonvaImage } from 'react-konva';
 import { invitationService } from '../../shared/services/invitationService';
 
 const CANVAS_WIDTH = 600;
@@ -12,6 +12,8 @@ const PreviewInvitationPage = () => {
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loadedImages, setLoadedImages] = useState({});
+  const [imagesLoading, setImagesLoading] = useState(false);
 
   useEffect(() => {
     const fetchInvitation = async () => {
@@ -21,11 +23,39 @@ const PreviewInvitationPage = () => {
         const data = res.data;
         if (data?.canvasDataJson) {
           const canvasData = JSON.parse(data.canvasDataJson);
-          setInvitation({
+          const parsedInvitation = {
             title: data.title,
             background: canvasData.background || { type: 'solid', color: '#ffffff' },
             elements: canvasData.elements || [],
-          });
+          };
+          setInvitation(parsedInvitation);
+
+          // Load image elements
+          const imageElements = (canvasData.elements || []).filter(
+            (el) => el.type === 'image' && el.src
+          );
+          if (imageElements.length > 0) {
+            setImagesLoading(true);
+            const loaded = {};
+            await Promise.all(
+              imageElements.map(
+                (el) =>
+                  new Promise((resolve) => {
+                    const img = new window.Image();
+                    img.onload = () => {
+                      loaded[el.id] = img;
+                      resolve();
+                    };
+                    img.onerror = () => {
+                      resolve();
+                    };
+                    img.src = el.src;
+                  })
+              )
+            );
+            setLoadedImages(loaded);
+            setImagesLoading(false);
+          }
         } else {
           setError('Invitation not found');
         }
@@ -44,14 +74,25 @@ const PreviewInvitationPage = () => {
     }
     const bg = invitation.background;
     if (bg.type === 'gradient') {
+      const getGradientPoints = () => {
+        switch (bg.direction) {
+          case 'horizontal':
+            return { start: { x: 0, y: 0 }, end: { x: CANVAS_WIDTH, y: 0 } };
+          case 'diagonal':
+            return { start: { x: 0, y: 0 }, end: { x: CANVAS_WIDTH, y: CANVAS_HEIGHT } };
+          default:
+            return { start: { x: 0, y: 0 }, end: { x: 0, y: CANVAS_HEIGHT } };
+        }
+      };
+      const { start, end } = getGradientPoints();
       return (
         <Rect
           x={0}
           y={0}
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
-          fillLinearGradientStartPoint={{ x: 0, y: 0 }}
-          fillLinearGradientEndPoint={{ x: 0, y: CANVAS_HEIGHT }}
+          fillLinearGradientStartPoint={start}
+          fillLinearGradientEndPoint={end}
           fillLinearGradientColorStops={[0, bg.color1 || '#000', 1, bg.color2 || '#333']}
         />
       );
@@ -59,7 +100,7 @@ const PreviewInvitationPage = () => {
     return <Rect x={0} y={0} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill={bg.color || '#ffffff'} />;
   };
 
-  if (loading) {
+  if (loading || imagesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -95,7 +136,20 @@ const PreviewInvitationPage = () => {
             {renderBackground()}
             {invitation?.elements?.map((el) => {
               if (el.type === 'image' && el.src) {
-                return null; // Images from data URLs cannot be rendered in preview without reloading
+                const img = loadedImages[el.id];
+                if (!img) return null;
+                return (
+                  <KonvaImage
+                    key={el.id}
+                    x={el.x}
+                    y={el.y}
+                    image={img}
+                    width={el.width || 200}
+                    height={el.height || 200}
+                    rotation={el.rotation || 0}
+                    opacity={el.opacity !== undefined ? el.opacity : 1}
+                  />
+                );
               }
               return (
                 <Text

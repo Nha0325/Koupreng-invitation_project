@@ -95,7 +95,7 @@ const MyInvitationsPage = () => {
                 </p>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => navigate(`/designer/${inv.templateId}`)}
+                    onClick={() => navigate(`/designer/edit?id=${inv.id}`)}
                     className="flex-1 py-1.5 text-xs bg-[#c8a96e] text-white rounded-lg hover:bg-[#b8994e] transition-colors"
                   >
                     Edit

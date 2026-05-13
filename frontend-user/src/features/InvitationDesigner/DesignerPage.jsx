@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import templates from './data/templates';
 import CanvasEditor from './components/CanvasEditor';
 import Toolbar from './components/Toolbar';
@@ -14,6 +14,8 @@ import './InvitationDesigner.css';
 
 const DesignerPage = () => {
   const { templateId } = useParams();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('id');
   const navigate = useNavigate();
   const stageRef = useRef(null);
 
@@ -38,12 +40,57 @@ const DesignerPage = () => {
   const [showImageUploader, setShowImageUploader] = useState(false);
   const [invitationId, setInvitationId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
+  const [loadingInvitation, setLoadingInvitation] = useState(false);
 
   // Use a ref to track historyIndex for the pushHistory closure
   const historyIndexRef = useRef(historyIndex);
   useEffect(() => {
     historyIndexRef.current = historyIndex;
   }, [historyIndex]);
+
+  // Load existing invitation if editing by ID
+  useEffect(() => {
+    if (!editId) return;
+    const loadInvitation = async () => {
+      setLoadingInvitation(true);
+      try {
+        const res = await invitationService.getInvitationById(editId);
+        const data = res.data;
+        if (data) {
+          setInvitationId(data.id);
+          if (data.canvasDataJson) {
+            const canvasData = JSON.parse(data.canvasDataJson);
+            const bg = canvasData.background || { type: 'solid', color: '#ffffff' };
+            setBackground(bg);
+            // Reload image elements from stored src
+            const loadedElements = await Promise.all(
+              (canvasData.elements || []).map((el) => {
+                if (el.type === 'image' && el.src) {
+                  return new Promise((resolve) => {
+                    const img = new window.Image();
+                    img.onload = () => resolve({ ...el, image: img });
+                    img.onerror = () => resolve({ ...el, image: null });
+                    img.src = el.src;
+                  });
+                }
+                return Promise.resolve(el);
+              })
+            );
+            setElements(loadedElements);
+            setHistory([loadedElements]);
+            setHistoryIndex(0);
+          }
+        }
+      } catch {
+        setSaveMessage({ type: 'error', text: 'Failed to load invitation.' });
+        setTimeout(() => setSaveMessage(null), 4000);
+      } finally {
+        setLoadingInvitation(false);
+      }
+    };
+    loadInvitation();
+  }, [editId]);
 
   // Push to history using ref to avoid stale closure
   const pushHistory = useCallback((newElements) => {
@@ -106,6 +153,7 @@ const DesignerPage = () => {
         y: 200,
         width: w,
         height: h,
+        src: dataUrl,
         image: img,
         opacity: 1,
       };
@@ -173,8 +221,17 @@ const DesignerPage = () => {
   // Save to backend
   const handleSave = async () => {
     setSaving(true);
+    setSaveMessage(null);
     try {
-      const canvasData = JSON.stringify({ elements, background });
+      // Serialize elements, preserving src for images but excluding the DOM image object
+      const serializableElements = elements.map((el) => {
+        if (el.type === 'image') {
+          const { id, type, x, y, width, height, src, opacity, rotation } = el;
+          return { id, type, x, y, width, height, src, opacity, rotation };
+        }
+        return el;
+      });
+      const canvasData = JSON.stringify({ elements: serializableElements, background });
       let thumbnailDataUrl = null;
       if (stageRef.current) {
         thumbnailDataUrl = stageRef.current.toDataURL({ pixelRatio: 0.5, mimeType: 'image/png' });
@@ -193,8 +250,11 @@ const DesignerPage = () => {
           setInvitationId(res.data.id);
         }
       }
+      setSaveMessage({ type: 'success', text: 'Saved successfully!' });
+      setTimeout(() => setSaveMessage(null), 4000);
     } catch {
-      // Save failed silently - user can retry
+      setSaveMessage({ type: 'error', text: 'Failed to save. Please try again.' });
+      setTimeout(() => setSaveMessage(null), 4000);
     } finally {
       setSaving(false);
     }
@@ -225,6 +285,29 @@ const DesignerPage = () => {
 
   return (
     <div className="designer-page h-screen w-screen flex flex-col overflow-hidden bg-gray-50">
+      {/* Save toast notification */}
+      {saveMessage && (
+        <div
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg text-sm font-medium transition-opacity ${
+            saveMessage.type === 'error'
+              ? 'bg-red-500 text-white'
+              : 'bg-green-500 text-white'
+          }`}
+        >
+          {saveMessage.text}
+        </div>
+      )}
+
+      {/* Loading overlay when loading saved invitation */}
+      {loadingInvitation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-[#c8a96e] border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-500 text-sm">Loading invitation...</p>
+          </div>
+        </div>
+      )}
+
       {/* Top bar with back button */}
       <div className="designer-topbar flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
         <button

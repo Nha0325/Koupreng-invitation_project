@@ -127,6 +127,7 @@ const AnimatedRoutes = () => {
           </Route>
 
           {/* ── Standalone pages (no DashboardLayout) ── */}
+          <Route path="/designer/edit" element={<InvitationDesignerPage />} />
           <Route path="/designer/:templateId" element={<InvitationDesignerPage />} />
           <Route path="/preview/:shareToken" element={<InvitationPreviewPage />} />
         </Routes>

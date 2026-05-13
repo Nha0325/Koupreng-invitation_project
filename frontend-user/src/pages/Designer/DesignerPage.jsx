@@ -1,9 +1,11 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import DesignerFeature from "../../features/InvitationDesigner/DesignerPage";
 
 const DesignerPage = () => {
   const { templateId } = useParams();
-  return <DesignerFeature key={templateId} />;
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
+  return <DesignerFeature key={templateId || editId || "new"} />;
 };
 
 export default DesignerPage;
