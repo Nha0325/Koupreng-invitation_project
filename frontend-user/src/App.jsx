@@ -37,6 +37,12 @@ import ComparisonPage from "./pages/Dashboard/ComparisonPage";
 import EventsPage from "./pages/Events/EventsPage";
 import CreateEventPage from "./pages/Events/CreateEventPage";
 
+/* ── Designer pages ── */
+import InvitationTemplatesPage from "./pages/Designer/TemplatesPage";
+import InvitationDesignerPage from "./pages/Designer/DesignerPage";
+import InvitationMyInvitationsPage from "./pages/Designer/MyInvitationsPage";
+import InvitationPreviewPage from "./pages/Designer/PreviewInvitationPage";
+
 /* ── Routes that hide the public Header & Footer ── */
 const HIDDEN_LAYOUT_PATHS = [
   "/login",
@@ -52,6 +58,10 @@ const HIDDEN_LAYOUT_PATHS = [
   "/events",
   "/links",
   "/comparison",
+  "/invitation-templates",
+  "/designer",
+  "/my-invitations",
+  "/preview",
 ];
 
 const AnimatedRoutes = () => {
@@ -112,7 +122,13 @@ const AnimatedRoutes = () => {
             <Route path="/events/create" element={<CreateEventPage />} />
             <Route path="/links" element={<LinksPage />} />
             <Route path="/comparison" element={<ComparisonPage />} />
+            <Route path="/invitation-templates" element={<InvitationTemplatesPage />} />
+            <Route path="/my-invitations" element={<InvitationMyInvitationsPage />} />
           </Route>
+
+          {/* ── Standalone pages (no DashboardLayout) ── */}
+          <Route path="/designer/:templateId" element={<InvitationDesignerPage />} />
+          <Route path="/preview/:shareToken" element={<InvitationPreviewPage />} />
         </Routes>
       </AnimatePresence>
       {!hideLayout && <Footer />}
