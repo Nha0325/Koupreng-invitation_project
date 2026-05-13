@@ -57,12 +57,23 @@ const methods = ["ទាំងអស់", "Bakong QR", "ABA", "សាច់ប�
 
 const WeddingGiftPage = () => {
   const [methodFilter, setMethod] = useState("ទាំងអស់");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [gifts, setGifts] = useState(allGifts);
 
-  const filtered = allGifts.filter(
+  const filtered = gifts.filter(
     (g) => methodFilter === "ទាំងអស់" || g.method === methodFilter,
   );
 
-  const total = allGifts.reduce((s, g) => s + g.amount, 0);
+  const total = gifts.reduce((s, g) => s + g.amount, 0);
+
+  const handleAddGift = (newGift) => {
+    const giftWithId = {
+      ...newGift,
+      id: gifts.length + 1,
+      amount: Number(newGift.amount),
+    };
+    setGifts([...gifts, giftWithId]);
+  };
 
   return (
     <div className="wg-page">
@@ -72,7 +83,9 @@ const WeddingGiftPage = () => {
           <h1 className="wg-title">ចំណងដៃ</h1>
           <p className="wg-subtitle">តាមដានការផ្ញើចំណងដៃទាំងអស់</p>
         </div>
-        <button className="wg-add-btn">+ បន្ថែមចំណងដៃ</button>
+        <button className="wg-add-btn" onClick={() => setIsAddModalOpen(true)}>
+          + បន្ថែមចំណងដៃ
+        </button>
       </div>
 
       {/* Summary */}
@@ -83,18 +96,18 @@ const WeddingGiftPage = () => {
         </div>
         <div className="wg-sum-card">
           <span className="wg-sum-label">ចំនួនអ្នកផ្ញើ</span>
-          <span className="wg-sum-value">{allGifts.length}</span>
+          <span className="wg-sum-value">{gifts.length}</span>
         </div>
         <div className="wg-sum-card">
           <span className="wg-sum-label">មធ្យមភាគ</span>
           <span className="wg-sum-value">
-            ${Math.round(total / allGifts.length)}
+            ${Math.round(total / gifts.length)}
           </span>
         </div>
         <div className="wg-sum-card">
           <span className="wg-sum-label">ច្រើនបំផុត</span>
           <span className="wg-sum-value">
-            ${Math.max(...allGifts.map((g) => g.amount))}
+            ${Math.max(...gifts.map((g) => g.amount))}
           </span>
         </div>
       </div>
@@ -148,6 +161,11 @@ const WeddingGiftPage = () => {
           </tbody>
         </table>
       </div>
+      <AddGiftModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddGift}
+      />
     </div>
   );
 };
