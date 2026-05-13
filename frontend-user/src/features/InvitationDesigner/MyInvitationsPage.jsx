@@ -1,18 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { invitationService } from '../../shared/services/invitationService';
 
 const MyInvitationsPage = () => {
   const navigate = useNavigate();
   const [invitations, setInvitations] = useState([]);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (id) => {
-    setInvitations((prev) => prev.filter((inv) => inv.id !== id));
+  useEffect(() => {
+    const fetchInvitations = async () => {
+      try {
+        setLoading(true);
+        const res = await invitationService.getMyInvitations();
+        setInvitations(res.data || []);
+      } catch {
+        setInvitations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvitations();
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await invitationService.deleteInvitation(id);
+      setInvitations((prev) => prev.filter((inv) => inv.id !== id));
+    } catch {
+      // Delete failed silently
+    }
   };
 
-  const handleCopyLink = (id) => {
-    const url = `${window.location.origin}/preview/${id}`;
+  const handleCopyLink = (shareToken) => {
+    if (!shareToken) return;
+    const url = `${window.location.origin}/preview/${shareToken}`;
     navigator.clipboard.writeText(url);
   };
 
@@ -60,8 +82,8 @@ const MyInvitationsPage = () => {
               className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm"
             >
               <div className="h-40 bg-gray-100 flex items-center justify-center">
-                {inv.thumbnail ? (
-                  <img src={inv.thumbnail} alt={inv.title} className="w-full h-full object-cover" />
+                {inv.thumbnailDataUrl ? (
+                  <img src={inv.thumbnailDataUrl} alt={inv.title} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl">📄</span>
                 )}
@@ -85,8 +107,9 @@ const MyInvitationsPage = () => {
                     Preview
                   </button>
                   <button
-                    onClick={() => handleCopyLink(inv.id)}
-                    className="py-1.5 px-2 text-xs border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors"
+                    onClick={() => handleCopyLink(inv.shareToken)}
+                    disabled={!inv.shareToken}
+                    className="py-1.5 px-2 text-xs border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Copy Share Link"
                   >
                     🔗

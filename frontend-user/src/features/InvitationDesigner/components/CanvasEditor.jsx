@@ -52,6 +52,17 @@ const CanvasEditor = ({ elements, selectedId, onSelect, onChange, background, zo
     if (!background) return <Rect name="background" x={0} y={0} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} fill="#ffffff" />;
 
     if (background.type === 'gradient') {
+      const getGradientPoints = () => {
+        switch (background.direction) {
+          case 'horizontal':
+            return { start: { x: 0, y: 0 }, end: { x: CANVAS_WIDTH, y: 0 } };
+          case 'diagonal':
+            return { start: { x: 0, y: 0 }, end: { x: CANVAS_WIDTH, y: CANVAS_HEIGHT } };
+          default: // vertical
+            return { start: { x: 0, y: 0 }, end: { x: 0, y: CANVAS_HEIGHT } };
+        }
+      };
+      const { start, end } = getGradientPoints();
       return (
         <Rect
           name="background"
@@ -59,14 +70,8 @@ const CanvasEditor = ({ elements, selectedId, onSelect, onChange, background, zo
           y={0}
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
-          fillLinearGradientStartPoint={
-            background.direction === 'horizontal' ? { x: 0, y: 0 } : { x: 0, y: 0 }
-          }
-          fillLinearGradientEndPoint={
-            background.direction === 'horizontal'
-              ? { x: CANVAS_WIDTH, y: 0 }
-              : { x: 0, y: CANVAS_HEIGHT }
-          }
+          fillLinearGradientStartPoint={start}
+          fillLinearGradientEndPoint={end}
           fillLinearGradientColorStops={[0, background.color1 || '#000000', 1, background.color2 || '#333333']}
         />
       );

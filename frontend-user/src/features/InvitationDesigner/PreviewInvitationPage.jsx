@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Stage, Layer, Rect, Text } from 'react-konva';
+import { invitationService } from '../../shared/services/invitationService';
 
 const CANVAS_WIDTH = 600;
 const CANVAS_HEIGHT = 800;
@@ -10,24 +11,31 @@ const PreviewInvitationPage = () => {
   const navigate = useNavigate();
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // In production, this would call invitationService.getSharedInvitation(shareToken)
-    // For now, show a demo invitation
-    setTimeout(() => {
-      setInvitation({
-        title: 'Wedding Invitation',
-        background: { type: 'solid', color: '#fdf6e3' },
-        elements: [
-          { id: 'title', type: 'text', text: 'Wedding Invitation', x: 150, y: 80, fontSize: 28, fontFamily: 'Georgia', fill: '#c8a96e', align: 'center', width: 300 },
-          { id: 'names', type: 'text', text: 'Sophea & Dara', x: 100, y: 300, fontSize: 44, fontFamily: 'Georgia', fill: '#2d2d2d', align: 'center', width: 400, bold: true },
-          { id: 'date', type: 'text', text: 'January 15, 2026', x: 200, y: 420, fontSize: 20, fontFamily: 'DM Sans', fill: '#666666', align: 'center', width: 200 },
-          { id: 'venue', type: 'text', text: 'Grand Palace Hotel', x: 175, y: 480, fontSize: 18, fontFamily: 'DM Sans', fill: '#c8a96e', align: 'center', width: 250 },
-        ],
-      });
-      setLoading(false);
-    }, 500);
+    const fetchInvitation = async () => {
+      try {
+        setLoading(true);
+        const res = await invitationService.getSharedInvitation(shareToken);
+        const data = res.data;
+        if (data?.canvasDataJson) {
+          const canvasData = JSON.parse(data.canvasDataJson);
+          setInvitation({
+            title: data.title,
+            background: canvasData.background || { type: 'solid', color: '#ffffff' },
+            elements: canvasData.elements || [],
+          });
+        } else {
+          setError('Invitation not found');
+        }
+      } catch {
+        setError('Unable to load this invitation. It may have been removed or the link is invalid.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvitation();
   }, [shareToken]);
 
   const renderBackground = () => {
@@ -85,20 +93,25 @@ const PreviewInvitationPage = () => {
         <Stage width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
           <Layer>
             {renderBackground()}
-            {invitation?.elements?.map((el) => (
-              <Text
-                key={el.id}
-                x={el.x}
-                y={el.y}
-                text={el.text}
-                fontSize={el.fontSize || 24}
-                fontFamily={el.fontFamily || 'DM Sans'}
-                fill={el.fill || '#000000'}
-                width={el.width || 200}
-                align={el.align || 'center'}
-                fontStyle={`${el.bold ? 'bold' : ''} ${el.italic ? 'italic' : ''}`.trim() || 'normal'}
-              />
-            ))}
+            {invitation?.elements?.map((el) => {
+              if (el.type === 'image' && el.src) {
+                return null; // Images from data URLs cannot be rendered in preview without reloading
+              }
+              return (
+                <Text
+                  key={el.id}
+                  x={el.x}
+                  y={el.y}
+                  text={el.text}
+                  fontSize={el.fontSize || 24}
+                  fontFamily={el.fontFamily || 'DM Sans'}
+                  fill={el.fill || '#000000'}
+                  width={el.width || 200}
+                  align={el.align || 'center'}
+                  fontStyle={`${el.bold ? 'bold' : ''} ${el.italic ? 'italic' : ''}`.trim() || 'normal'}
+                />
+              );
+            })}
           </Layer>
         </Stage>
       </div>

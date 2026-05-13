@@ -9,6 +9,7 @@ import ThemePanel from './components/ThemePanel';
 import TemplateSidebar from './components/TemplateSidebar';
 import PreviewPanel from './components/PreviewPanel';
 import ExportPanel from './components/ExportPanel';
+import { invitationService } from '../../shared/services/invitationService';
 import './InvitationDesigner.css';
 
 const DesignerPage = () => {
@@ -35,17 +36,23 @@ const DesignerPage = () => {
   const [showExport, setShowExport] = useState(false);
   const [leftPanel, setLeftPanel] = useState('elements');
   const [showImageUploader, setShowImageUploader] = useState(false);
+  const [invitationId, setInvitationId] = useState(null);
+  const [saving, setSaving] = useState(false);
 
+  // Use a ref to track historyIndex for the pushHistory closure
+  const historyIndexRef = useRef(historyIndex);
+  useEffect(() => {
+    historyIndexRef.current = historyIndex;
+  }, [historyIndex]);
 
-
-  // Push to history
+  // Push to history using ref to avoid stale closure
   const pushHistory = useCallback((newElements) => {
     setHistory((prev) => {
-      const trimmed = prev.slice(0, historyIndex + 1);
+      const trimmed = prev.slice(0, historyIndexRef.current + 1);
       return [...trimmed, newElements];
     });
     setHistoryIndex((prev) => prev + 1);
-  }, [historyIndex]);
+  }, []);
 
   // Element change handler
   const handleElementChange = (id, props) => {
@@ -163,10 +170,34 @@ const DesignerPage = () => {
     }
   };
 
-  // Save (placeholder - would call API)
+  // Save to backend
   const handleSave = async () => {
-    // In a full implementation, this would save to backend
-    alert('Invitation saved!');
+    setSaving(true);
+    try {
+      const canvasData = JSON.stringify({ elements, background });
+      let thumbnailDataUrl = null;
+      if (stageRef.current) {
+        thumbnailDataUrl = stageRef.current.toDataURL({ pixelRatio: 0.5, mimeType: 'image/png' });
+      }
+      const payload = {
+        templateId: null,
+        title: template?.name || 'My Invitation',
+        canvasDataJson: canvasData,
+        thumbnailDataUrl,
+      };
+      if (invitationId) {
+        await invitationService.updateInvitation(invitationId, payload);
+      } else {
+        const res = await invitationService.saveInvitation(payload);
+        if (res.data?.id) {
+          setInvitationId(res.data.id);
+        }
+      }
+    } catch {
+      // Save failed silently - user can retry
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Keyboard shortcuts
@@ -211,9 +242,10 @@ const DesignerPage = () => {
         <div className="flex gap-2">
           <button
             onClick={handleSave}
-            className="px-4 py-1.5 bg-[#c8a96e] text-white text-sm rounded-lg font-medium hover:bg-[#b8994e] transition-colors"
+            disabled={saving}
+            className="px-4 py-1.5 bg-[#c8a96e] text-white text-sm rounded-lg font-medium hover:bg-[#b8994e] transition-colors disabled:opacity-50"
           >
-            Save
+            {saving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
@@ -328,7 +360,7 @@ const DesignerPage = () => {
         <PreviewPanel stageRef={stageRef} onClose={() => setShowPreview(false)} />
       )}
       {showExport && (
-        <ExportPanel stageRef={stageRef} onClose={() => setShowExport(false)} invitationId={null} />
+        <ExportPanel stageRef={stageRef} onClose={() => setShowExport(false)} invitationId={invitationId} />
       )}
     </div>
   );

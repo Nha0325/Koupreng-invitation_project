@@ -136,10 +136,11 @@ const ExportPanel = ({ stageRef, onClose, invitationId }) => {
         <div className="border-t border-gray-100 pt-4">
           <button
             onClick={handleGenerateShareLink}
-            disabled={loading}
-            className="w-full py-3 border border-[#c8a96e] text-[#c8a96e] rounded-lg font-medium hover:bg-[#c8a96e]/5 transition-colors disabled:opacity-50"
+            disabled={loading || !invitationId}
+            className="w-full py-3 border border-[#c8a96e] text-[#c8a96e] rounded-lg font-medium hover:bg-[#c8a96e]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title={!invitationId ? 'Save your invitation first to generate a share link' : ''}
           >
-            {loading ? 'Generating...' : 'Generate Share Link'}
+            {loading ? 'Generating...' : !invitationId ? 'Save First to Share' : 'Generate Share Link'}
           </button>
 
           {shareUrl && (
