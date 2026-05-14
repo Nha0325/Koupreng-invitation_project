@@ -1,15 +1,10 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-<<<<<<< HEAD
-import ScrollReveal from "../../shared/ui/ScrollReveal";
-import { fadeUp, staggerContainer } from "../../shared/ui/scrollRevealVariants";
-=======
 import ScrollReveal, {
   fadeUp,
   staggerContainer,
 } from "../../shared/ui/ScrollReveal";
->>>>>>> 60dfe88 (Debug all Frontend pages.)
 import { useImageSlider } from "../../shared/hooks/useImageSlider";
 import { useHeroAnimation } from "../../shared/hooks/useHeroAnimation";
 import AnimatedButton from "../../shared/ui/AnimatedButton";
@@ -245,7 +240,7 @@ const StarRating = ({ count }) => {
       ))}
     </div>
   );
-};
+}
 
 const FaqItem = ({ q, a }) => {
   const [open, setOpen] = useState(false);
@@ -281,7 +276,7 @@ const FaqItem = ({ q, a }) => {
       </div>
     </div>
   );
-};
+}
 
 /* ── Page ── */
 const Home = () => {
@@ -720,6 +715,6 @@ const Home = () => {
       {/* end section-band */}
     </div>
   );
-};
+}
 
 export default Home;

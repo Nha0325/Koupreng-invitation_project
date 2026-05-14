@@ -10,9 +10,6 @@ import {
 import useEvents from "../../shared/hooks/useEvents";
 import "./Dashboard.css";
 
-<<<<<<< HEAD
-const DashboardPage = () => {
-=======
 /* ─────────────────────────────────────────
    Stat Cards Row  (V0 pattern)
 ───────────────────────────────────────── */
@@ -114,7 +111,6 @@ const StatCards = ({ eventCount }) => {
     },
   ];
 
->>>>>>> 60dfe88 (Debug all Frontend pages.)
   return (
     <div className="db-stats-grid">
       {stats.map((s) => (

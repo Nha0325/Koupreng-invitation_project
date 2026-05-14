@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Header.css";
 
@@ -12,18 +12,13 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
-<<<<<<< HEAD
-=======
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMenuOpen(false);
   }, [location.pathname]);
 
->>>>>>> 60dfe88 (Debug all Frontend pages.)
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
-
-  const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
@@ -34,10 +29,7 @@ const Header = () => {
           <Link
             to="/"
             className="site-header__logo"
-            onClick={() => {
-              closeMenu();
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
             <svg className="site-header__logo-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
               <rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
@@ -56,10 +48,9 @@ const Header = () => {
                 className={`site-nav__link${isActive(to) ? " site-nav__link--active" : ""}`}
                 onClick={scrollTo ? (e) => {
                   e.preventDefault();
-                  closeMenu();
                   const el = document.getElementById(scrollTo);
                   if (el) el.scrollIntoView({ behavior: "smooth" });
-                } : closeMenu}
+                } : undefined}
               >
                 {label}
               </Link>
@@ -68,8 +59,8 @@ const Header = () => {
 
           {/* ── Right cluster ── */}
           <div className="site-header__right">
-            <Link to="/login" className="site-header__login" onClick={closeMenu}>Log in</Link>
-            <Link to="/register" className="site-header__cta" onClick={closeMenu}>Get Started</Link>
+            <Link to="/login" className="site-header__login">Log in</Link>
+            <Link to="/register" className="site-header__cta">Get Started</Link>
 
             {/* Hamburger — mobile only */}
             <button
@@ -104,14 +95,13 @@ const Header = () => {
                 key={label}
                 to={to}
                 className={`site-drawer__link${isActive(to) ? " site-drawer__link--active" : ""}`}
-                onClick={closeMenu}
               >
                 {label}
               </Link>
             ))}
             <div className="site-drawer__divider" />
-            <Link to="/login" className="site-drawer__cta site-drawer__cta--ghost" onClick={closeMenu}>Log in</Link>
-            <Link to="/register" className="site-drawer__cta site-drawer__cta--fill" onClick={closeMenu}>Get Started</Link>
+            <Link to="/login" className="site-drawer__cta site-drawer__cta--ghost">Log in</Link>
+            <Link to="/register" className="site-drawer__cta site-drawer__cta--fill">Get Started</Link>
           </div>
         )}
       </header>

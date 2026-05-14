@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
-import PageTransition from "../shared/ui/PageTransition";
-
-/* ── Public layout ── */
-import Header from "../shared/layout/Header";
-=======
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "../shared/ui/PageTransition";
@@ -19,7 +11,6 @@ const SHOW_HEADER_ROUTES = ["/"];
 
 /* Routes where the aside (sidebar) should be shown */
 const SHOW_ASIDE_ROUTES = ["/dashboard", "/guests", "/expenses", "/gifts", "/templates", "/add-template", "/settings"];
->>>>>>> 60dfe88 (Debug all Frontend pages.)
 
 /* ── Public pages ── */
 import HomePage from "../pages/Home/HomePage";
@@ -27,8 +18,6 @@ import LoginPage from "../pages/Auth/LoginPage";
 import RegisterPage from "../pages/Auth/RegisterPage";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 
-<<<<<<< HEAD
-=======
 /* ── Feature pages ── */
 import EventsPage from "../pages/Events/EventsPage";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
@@ -39,63 +28,10 @@ import TemplatePage from "../pages/Dashboard/TemplatePage";
 import AddTemplatePage from "../pages/Dashboard/AddTemplatePage";
 import SettingsPage from "../pages/Dashboard/SettingsPage";
 
->>>>>>> 60dfe88 (Debug all Frontend pages.)
 /* ── Invitation pages ── */
 import InvitationPage from "../invitation/pages/InvitationPage";
 
 const AnimatedRoutes = () => {
-<<<<<<< HEAD
-  return (
-    <>
-      <Header />
-      <AnimatePresence mode="wait">
-        <Routes>
-          {/* ── Public routes ── */}
-          <Route
-            path="/"
-            element={
-              <PageTransition>
-                <HomePage />
-              </PageTransition>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <PageTransition>
-                <LoginPage />
-              </PageTransition>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PageTransition>
-                <RegisterPage />
-              </PageTransition>
-            }
-          />
-          <Route
-            path="/forgot-password"
-            element={
-              <PageTransition>
-                <ForgotPassword />
-              </PageTransition>
-            }
-          />
-
-          {/* ── Dynamic invitation route ── */}
-          <Route
-            path="/invitation/:slug"
-            element={
-              <PageTransition>
-                <InvitationPage />
-              </PageTransition>
-            }
-          />
-        </Routes>
-      </AnimatePresence>
-=======
   const location = useLocation();
   const hideHeader = !SHOW_HEADER_ROUTES.includes(location.pathname);
   const showAside = SHOW_ASIDE_ROUTES.includes(location.pathname);
@@ -137,7 +73,6 @@ const AnimatedRoutes = () => {
           </Routes>
         </AnimatePresence>
       )}
->>>>>>> 60dfe88 (Debug all Frontend pages.)
     </>
   );
 };

@@ -62,22 +62,22 @@ The plan rebuilds `frontend-user/` (React 19 + Vite + Tailwind v4 + Framer Motio
     - _Requirements: Correctness Properties → Accessibility (reduced motion); Error Scenario 6_
 
 - [ ] 3. Shared API client and services
-  - [-] 3.1 Implement `src/shared/api/client.js`
+  - [x] 3.1 Implement `src/shared/api/client.js`
     - Axios instance with `baseURL` from `VITE_API_URL` (default `http://localhost:8080/api`)
     - Request interceptor: attach `Authorization: Bearer <token>` from `localStorage.koupreng.token` unless `config.public === true`
     - Response interceptor: on 401 with auth header, clear token and `window.dispatchEvent(new Event('auth:expired'))`
     - _Requirements: API Integration_
 
-  - [~] 3.2 Implement `src/shared/api/errors.js`
+  - [x] 3.2 Implement `src/shared/api/errors.js`
     - Define `ApiError` class with `{ code, message, status }`
     - Export a `parseError(err)` helper that maps Axios errors to `ApiError`
     - _Requirements: API Integration; Error Scenario 2_
 
-  - [~] 3.3 Write unit tests for the API client
+  - [x] 3.3 Write unit tests for the API client
     - Mock axios; assert token attachment, `public: true` skip, and 401 dispatch behavior
     - _Requirements: API Integration; Error Scenario 4_
 
-  - [~] 3.4 Implement service modules under `src/shared/services/`
+  - [-] 3.4 Implement service modules under `src/shared/services/`
     - `authService.js` (login, logout, register, forgotPassword, resetPassword, me, changePassword)
     - `userService.js` (getMe, updateMe)
     - `eventService.js` (list, getById, getBySlug, create, update, remove, uploadImage, uploadMusic) with a `MOCK = true` fallback for offline dev

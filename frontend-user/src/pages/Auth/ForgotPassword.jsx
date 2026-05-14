@@ -1,91 +1,55 @@
 import { useId, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";
-<<<<<<< HEAD
-import { authService } from "../../shared/services/api";
-=======
->>>>>>> 60dfe88 (Debug all Frontend pages.)
 import "./AuthPage.css";
 
 /* ── Eye icon ── */
 const EyeIcon = ({ open }) => {
   return open ? (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="15"
-      height="15"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-      />
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
     </svg>
   ) : (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="15"
-      height="15"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-      />
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
     </svg>
   );
-};
+}
 
 /* ── Step 1 — Email/Phone ── */
-const StepEmail = ({ onNext, error, loading }) => {
+const StepEmail = ({ onNext }) => {
   const emailId = useId();
   const [identifier, setIdentifier] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (identifier.trim()) {
-      await onNext(identifier.trim());
-    }
+    if (identifier.trim()) onNext(identifier.trim());
   };
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="auth-field">
         <label htmlFor={emailId} className="auth-label">
-          អ៊ីមែល
+          លេខទូរស័ព្ទ ឬ អ៊ីមែល
         </label>
         <input
           id={emailId}
-          type="email"
+          type="text"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          placeholder="បញ្ចូលអ៊ីមែល"
+          placeholder="បញ្ចូលលេខទូរស័ព្ទ ឬ អ៊ីមែល"
           required
           className="auth-input"
         />
-        <p className="auth-hint">យើងនឹងផ្ញើតំណកំណត់លេខសម្ងាត់ទៅអ៊ីមែលរបស់អ្នក</p>
+        <p className="auth-hint">យើងនឹងផ្ញើ OTP ៦ ខ្ទង់ទៅកាន់អ្នក</p>
       </div>
-      {error && <p className="auth-error-msg">{error}</p>}
-      <button type="submit" className="auth-submit" disabled={loading}>
-        {loading ? "កំពុងផ្ញើ..." : "ផ្ញើតំណកំណត់ឡើងវិញ"}
+      <button type="submit" className="auth-submit">
+        ផ្ញើ OTP
       </button>
     </form>
   );
-};
+}
 
 /* ── Step 2 — OTP ── */
 const StepOTP = ({ identifier, onNext, onResend }) => {
@@ -101,16 +65,12 @@ const StepOTP = ({ identifier, onNext, onResend }) => {
   };
 
   const handleKeyDown = (i, e) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0)
-      inputs.current[i - 1]?.focus();
+    if (e.key === "Backspace" && !otp[i] && i > 0) inputs.current[i - 1]?.focus();
   };
 
   const handlePaste = (e) => {
     const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (text.length === 6) {
-      setOtp(text.split(""));
-      inputs.current[5]?.focus();
-    }
+    if (text.length === 6) { setOtp(text.split("")); inputs.current[5]?.focus(); }
     e.preventDefault();
   };
 
@@ -145,9 +105,7 @@ const StepOTP = ({ identifier, onNext, onResend }) => {
         </div>
         <p className="auth-resend">
           មិនទទួលបាន OTP?{" "}
-          <button type="button" onClick={onResend}>
-            ផ្ញើម្តងទៀត
-          </button>
+          <button type="button" onClick={onResend}>ផ្ញើម្តងទៀត</button>
         </p>
       </div>
       <button type="submit" disabled={!filled} className="auth-submit">
@@ -155,7 +113,7 @@ const StepOTP = ({ identifier, onNext, onResend }) => {
       </button>
     </form>
   );
-};
+}
 
 /* ── Step 3 — New Password ── */
 const StepNewPassword = ({ onDone }) => {
@@ -175,9 +133,7 @@ const StepNewPassword = ({ onDone }) => {
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="auth-field">
-        <label htmlFor={newPassId} className="auth-label">
-          លេខសម្ងាត់ថ្មី
-        </label>
+        <label htmlFor={newPassId} className="auth-label">លេខសម្ងាត់ថ្មី</label>
         <div className="auth-input-wrap">
           <input
             id={newPassId}
@@ -188,21 +144,14 @@ const StepNewPassword = ({ onDone }) => {
             required
             className="auth-input"
           />
-          <button
-            type="button"
-            onClick={togglePass}
-            className="auth-eye-btn"
-            aria-label="Toggle password"
-          >
+          <button type="button" onClick={togglePass} className="auth-eye-btn" aria-label="Toggle password">
             <EyeIcon open={showPass} />
           </button>
         </div>
       </div>
 
       <div className="auth-field">
-        <label htmlFor={confirmPassId} className="auth-label">
-          បញ្ជាក់លេខសម្ងាត់
-        </label>
+        <label htmlFor={confirmPassId} className="auth-label">បញ្ជាក់លេខសម្ងាត់</label>
         <input
           id={confirmPassId}
           type="password"
@@ -224,49 +173,27 @@ const StepNewPassword = ({ onDone }) => {
       </button>
     </form>
   );
-};
+}
 
 /* ── Step 4 — Success ── */
-const StepSuccess = ({ title = "ជោគជ័យ!", message = "សំណើត្រូវបានបញ្ចប់ដោយជោគជ័យ" }) => {
+const StepSuccess = () => {
   return (
     <div className="auth-success">
       <div className="auth-success-icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2.5}
-            d="M5 13l4 4L19 7"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
         </svg>
       </div>
       <div>
-        <h2>{title}</h2>
-        <p>{message}</p>
+        <h2>ជោគជ័យ!</h2>
+        <p>លេខសម្ងាត់ត្រូវបានកំណត់ឡើងវិញដោយជោគជ័យ</p>
       </div>
-      <Link
-        to="/login"
-        className="auth-submit"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textDecoration: "none",
-          marginTop: "4px",
-        }}
-      >
+      <Link to="/login" className="auth-submit" style={{ display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", marginTop: "4px" }}>
         ចូលគណនី
       </Link>
     </div>
   );
-};
+}
 
 /* ── Step config ── */
 const STEPS = [
@@ -276,7 +203,7 @@ const STEPS = [
 ];
 
 const STEP_META = {
-  1: { title: "ភ្លេចលេខសម្ងាត់", sub: "បញ្ចូលអ៊ីមែល ដើម្បីទទួលតំណកំណត់ឡើងវិញ" },
+  1: { title: "ភ្លេចលេខសម្ងាត់", sub: "បញ្ចូលអ៊ីមែល ឬ លេខទូរស័ព្ទ ដើម្បីទទួល OTP" },
   2: { title: "បញ្ចូល OTP", sub: "OTP ៦ ខ្ទង់ត្រូវបានផ្ញើទៅអ្នក" },
   3: { title: "លេខសម្ងាត់ថ្មី", sub: "កំណត់លេខសម្ងាត់ថ្មីរបស់អ្នក" },
   4: { title: "រួចរាល់", sub: "" },
@@ -286,27 +213,8 @@ const STEP_META = {
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
   const [identifier, setIdentifier] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const meta = STEP_META[step];
-
-  const requestResetLink = async (id) => {
-    setIdentifier(id);
-    setError("");
-    setLoading(true);
-
-    try {
-      const { data } = await authService.forgotPassword(id);
-      setSuccessMessage(data.message || "If the email exists, password reset instructions will be sent.");
-      setStep(4);
-    } catch (err) {
-      setError(err.response?.data?.message || "Could not send password reset instructions.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="auth-page">
@@ -328,33 +236,15 @@ const ForgotPassword = () => {
           <div className="auth-steps">
             {STEPS.map((s, i) => (
               <div key={s.num} className="auth-step-row">
-                <div
-                  className={`auth-step-dot ${step > s.num ? "done" : step === s.num ? "active" : "pending"}`}
-                >
+                <div className={`auth-step-dot ${step > s.num ? "done" : step === s.num ? "active" : "pending"}`}>
                   {step > s.num ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
-                  ) : (
-                    s.num
-                  )}
+                  ) : s.num}
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div
-                    className={`auth-step-line ${step > s.num ? "done" : "pending"}`}
-                  />
+                  <div className={`auth-step-line ${step > s.num ? "done" : "pending"}`} />
                 )}
               </div>
             ))}
@@ -362,29 +252,18 @@ const ForgotPassword = () => {
         )}
 
         {/* Step content */}
-        {step === 1 && <StepEmail onNext={requestResetLink} error={error} loading={loading} />}
+        {step === 1 && <StepEmail onNext={(id) => { setIdentifier(id); setStep(2); }} />}
         {step === 2 && <StepOTP identifier={identifier} onNext={() => setStep(3)} onResend={() => { }} />}
         {step === 3 && <StepNewPassword onDone={() => setStep(4)} />}
-        {step === 4 && (
-          <StepSuccess
-            title="ពិនិត្យអ៊ីមែល"
-            message={successMessage || "Password reset instructions have been sent if the email exists."}
-          />
-        )}
+        {step === 4 && <StepSuccess />}
 
         {/* Back */}
         {step < 4 && (
           <div className="auth-back">
             {step === 1 ? (
-              <Link to="/login" className="auth-back-btn">
-                ← ត្រឡប់ទៅចូលគណនី
-              </Link>
+              <Link to="/login" className="auth-back-btn">← ត្រឡប់ទៅចូលគណនី</Link>
             ) : (
-              <button
-                type="button"
-                onClick={() => setStep((s) => s - 1)}
-                className="auth-back-btn"
-              >
+              <button type="button" onClick={() => setStep((s) => s - 1)} className="auth-back-btn">
                 ← ត្រឡប់ក្រោយ
               </button>
             )}
@@ -393,6 +272,6 @@ const ForgotPassword = () => {
       </div>
     </div>
   );
-};
+}
 
 export default ForgotPassword;

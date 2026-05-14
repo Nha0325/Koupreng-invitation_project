@@ -1,8 +1,5 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-<<<<<<< HEAD
-import { fadeUp } from "./scrollRevealVariants";
-=======
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const fadeUp = {
@@ -20,7 +17,6 @@ export const staggerContainer = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1 } },
 };
->>>>>>> 60dfe88 (Debug all Frontend pages.)
 
 /**
  * ScrollReveal
