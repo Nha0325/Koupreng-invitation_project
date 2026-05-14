@@ -1,7 +1,7 @@
 import { MotionConfig } from "framer-motion";
 import { useLenis } from "./shared/hooks/useLenis";
 import { usePrefersReducedMotion } from "./shared/hooks/usePrefersReducedMotion";
-import { AuthProvider } from "./shared/AuthContext";
+import { AuthProvider } from "./app/auth/AuthContext";
 import AppRoutes from "./routes";
 
 const App = () => {

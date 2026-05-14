@@ -6,43 +6,76 @@
 
 ## 🔐 SSH Key Setup
 
-### ១. បង្កើត SSH Key open terminal or Ctrl + J
+### ១. បង្កើត SSH Key — open terminal or Ctrl + J
 
 ```bash
-ssh-keygen -t ed25519 -C "example@email.com" enter
+ssh-keygen -t ed25519 -C "selenagamingti2@gmail.com" -f ~/.ssh/id_ed25519_selena -N ""
+```
 
-                                            (Name) : SSH-Key or ...
+> 💡 ប្រើ flag `-f` ដើម្បីដាក់ឈ្មោះ key file ផ្ទាល់ (មិន overwrite key ចាស់) និង `-N ""` ដើម្បីមិនកំណត់ passphrase។
 
-                                                     enter
-                                                     enter
-cat SSH-Key
-or
-cat SSH-Key.pub
-ssh-ed25519 AAAA************************************ example@email.com
+មើល public key:
+
+```bash
+cat ~/.ssh/id_ed25519_selena.pub
+```
+
+លទ្ធផល:
+
+```
+ssh-ed25519 AAAA************************************ selenagamingti2@gmail.com
 ```
 
 បង្កើត key ២ ប្រភេទ:
 
-| File                    | Description                       |
-| ----------------------- | --------------------------------- |
-| `~/.ssh/id_ed25519`     | 🔒 Private key — **កុំចែករំលែក!** |
-| `~/.ssh/id_ed25519.pub` | 🌐 Public key — ដាក់ GitHub       |
+| File                           | Description                       |
+| ------------------------------ | --------------------------------- |
+| `~/.ssh/id_ed25519_selena`     | 🔒 Private key — **កុំចែករំលែក!** |
+| `~/.ssh/id_ed25519_selena.pub` | 🌐 Public key — ដាក់ GitHub       |
 
 ---
 
-### ២. Copy Public Key ទៅ GitHub
+### ២. កំណត់ SSH config ឲ្យ GitHub ប្រើ key នេះ
+
+បង្កើត ឬ កែ `~/.ssh/config`:
 
 ```
-ssh-ed25519 AAAAC3NzaC1************************ your@email.com
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_selena
+    IdentitiesOnly yes
+```
+
+Set permission:
+
+```bash
+chmod 600 ~/.ssh/config
+```
+
+---
+
+### ៣. Copy Public Key ទៅ GitHub
+
+```
+ssh-ed25519 AAAAC3NzaC1************************ selenagamingti2@gmail.com
 ```
 
 🔗 Go to: [https://github.com/settings/keys](https://github.com/settings/keys)
 
-> GitHub Settings → SSH Keys → **"ThinkPad T470p"** or **"My Laptop"**
+> GitHub Settings → SSH Keys → **New SSH key** → ដាក់ឈ្មោះ ឧទាហរណ៍ **"ThinkPad T470p"**
 
 ---
 
-### ៣. Test Connection
+### ៤. កំណត់ Git user email
+
+```bash
+git config user.email "selenagamingti2@gmail.com"
+```
+
+---
+
+### ៥. Test Connection
 
 ```bash
 ssh -T git@github.com
@@ -52,13 +85,13 @@ ssh -T git@github.com
 
 ---
 
-### ៤. Push Code
+### ៦. Push Code
 
 ```bash
-git push -u Nha0325 main
+git push -u origin main
 ```
 
-✅ Code ទៅដល់ GitHub ជោគជ័យ **"Everything up-to-date"**
+✅ Code ទៅដល់ GitHub ជោគជ័យ
 
 ---
 
