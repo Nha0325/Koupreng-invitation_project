@@ -1,4 +1,4 @@
-package com.koupreng.backend.entity;
+package com.koupreng.backend.entity.user;
 
 import java.time.Instant;
 
@@ -141,3 +141,4 @@ public class AppUser {
         return updatedAt;
     }
 }
+

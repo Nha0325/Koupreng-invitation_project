@@ -6,7 +6,7 @@ import java.time.Instant;
 
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.AppProperties;
-import com.koupreng.backend.entity.AppUser;
+import com.koupreng.backend.entity.user.AppUser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,3 +81,4 @@ public class EmailVerificationNotificationService {
         return frontendUrl + separator + "token=" + encodedToken;
     }
 }
+

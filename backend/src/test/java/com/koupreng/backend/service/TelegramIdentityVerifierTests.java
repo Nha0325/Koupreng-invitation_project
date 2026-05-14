@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.AppProperties;
 import com.koupreng.backend.dto.TelegramLoginRequest;
-import com.koupreng.backend.entity.AuthProvider;
+import com.koupreng.backend.entity.user.AuthProvider;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -196,3 +196,4 @@ class TelegramIdentityVerifierTests {
         }
     }
 }
+

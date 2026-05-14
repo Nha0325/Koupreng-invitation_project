@@ -6,8 +6,8 @@ import com.koupreng.backend.dto.ChangePasswordRequest;
 import com.koupreng.backend.dto.MessageResponse;
 import com.koupreng.backend.dto.UpdateProfileRequest;
 import com.koupreng.backend.dto.UserResponse;
-import com.koupreng.backend.entity.AppUser;
-import com.koupreng.backend.entity.Role;
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.common.ApiException;
 
@@ -89,3 +89,4 @@ public class UserService {
                 .orElseThrow(() -> new BadCredentialsException("Authentication required"));
     }
 }
+

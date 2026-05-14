@@ -1,6 +1,6 @@
 package com.koupreng.backend.service;
 
-import com.koupreng.backend.entity.AuthProvider;
+import com.koupreng.backend.entity.user.AuthProvider;
 
 public record ExternalAuthIdentity(
         AuthProvider provider,
@@ -9,3 +9,4 @@ public record ExternalAuthIdentity(
         String fullName
 ) {
 }
+

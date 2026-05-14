@@ -2,7 +2,7 @@ package com.koupreng.backend.service;
 
 import java.util.Locale;
 
-import com.koupreng.backend.entity.AppUser;
+import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.common.ApiException;
 
 import org.springframework.http.HttpStatus;
@@ -71,3 +71,4 @@ public class PasswordPolicy {
         }
     }
 }
+
