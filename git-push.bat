@@ -3,17 +3,17 @@ setlocal enabledelayedexpansion
 chcp 65001 >nul
 
 REM ============================================
-REM  Quick Git Push Helper
-REM  Usage: double-click or run from terminal
+REM  Team Git Push Helper (Windows)
+REM  Flow: status -> commit -> pull --rebase -> push
 REM ============================================
 
 echo.
 echo ========================================
-echo   Git Push Helper
+echo   Git Push Helper (Team)
 echo ========================================
 echo.
 
-REM --- Check we are inside a git repo ---
+REM --- Must be inside a git repo ---
 git rev-parse --is-inside-work-tree >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Not a git repository.
@@ -21,58 +21,62 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM --- Show current branch ---
+REM --- Current branch ---
 for /f "delims=" %%b in ('git branch --show-current') do set "BRANCH=%%b"
 echo Current branch: !BRANCH!
 echo.
 
 REM --- Show status ---
-echo --- Changes ---
+echo --- Local changes ---
 git status --short
 echo.
 
-REM --- Check if there is anything to commit ---
-git diff --quiet
-set "WORKING_CHANGED=!errorlevel!"
-git diff --cached --quiet
-set "STAGED_CHANGED=!errorlevel!"
+REM --- Detect if there is anything to commit ---
+set "HAS_CHANGES=0"
+git diff --quiet || set "HAS_CHANGES=1"
+git diff --cached --quiet || set "HAS_CHANGES=1"
 
-if "!WORKING_CHANGED!"=="0" if "!STAGED_CHANGED!"=="0" (
-    echo No changes to commit.
+if "!HAS_CHANGES!"=="1" (
+    set "MSG="
+    set /p MSG="Commit message: "
+    if "!MSG!"=="" (
+        echo [ERROR] Commit message cannot be empty.
+        pause
+        exit /b 1
+    )
+
     echo.
-    set /p PUSH_ONLY="Push existing commits to origin/!BRANCH!? (y/N): "
-    if /i "!PUSH_ONLY!"=="y" goto :do_push
-    echo Aborted.
-    pause
-    exit /b 0
+    echo [1/4] Staging all changes...
+    git add -A
+    if errorlevel 1 goto :fail
+
+    echo [2/4] Committing...
+    git commit -m "!MSG!"
+    if errorlevel 1 goto :fail
+) else (
+    echo No local changes. Will only sync and push existing commits.
 )
 
-REM --- Ask for commit message ---
-set "MSG="
-set /p MSG="Commit message: "
-if "!MSG!"=="" (
-    echo [ERROR] Commit message cannot be empty.
+echo.
+echo [3/4] Pulling latest from origin/!BRANCH! (rebase)...
+git pull --rebase origin !BRANCH!
+if errorlevel 1 (
+    echo.
+    echo [CONFLICT] Rebase has conflicts. Fix them, then run:
+    echo     git add ^<files^>
+    echo     git rebase --continue
+    echo Or cancel with:
+    echo     git rebase --abort
     pause
     exit /b 1
 )
 
-REM --- Stage, commit, push ---
 echo.
-echo [1/3] Staging all changes...
-git add -A
-if errorlevel 1 goto :fail
-
-echo [2/3] Committing...
-git commit -m "!MSG!"
-if errorlevel 1 goto :fail
-
-:do_push
-echo [3/3] Pushing to origin/!BRANCH!...
+echo [4/4] Pushing to origin/!BRANCH!...
 git push origin !BRANCH!
 if errorlevel 1 (
     echo.
-    echo Push failed. The branch may not exist on remote.
-    set /p SET_UPSTREAM="Push and set upstream? (y/N): "
+    set /p SET_UPSTREAM="Branch has no upstream. Push with -u? (y/N): "
     if /i "!SET_UPSTREAM!"=="y" (
         git push -u origin !BRANCH!
         if errorlevel 1 goto :fail
@@ -83,7 +87,7 @@ if errorlevel 1 (
 
 echo.
 echo ========================================
-echo   Done. Pushed to origin/!BRANCH!
+echo   Done. Synced and pushed to origin/!BRANCH!
 echo ========================================
 pause
 exit /b 0
