@@ -7,9 +7,11 @@ import java.util.Set;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.koupreng.backend.auth.AppUserRepository;
+import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.security.ApiRequestLoggingFilter;
 import com.koupreng.backend.security.ApiSecurityProperties;
+import com.koupreng.backend.security.ClientAddressResolver;
+import com.koupreng.backend.service.RateLimitService;
 import com.koupreng.backend.waf.WafFilter;
 import com.koupreng.backend.waf.WafProperties;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
@@ -29,8 +31,8 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -51,9 +53,11 @@ public class SecurityConfig {
             AppJwtAuthenticationConverter jwtAuthenticationConverter,
             WafProperties wafProperties,
             ApiSecurityProperties apiSecurityProperties,
-            CorsConfigurationSource corsConfigurationSource
+            CorsConfigurationSource corsConfigurationSource,
+            RateLimitService rateLimitService,
+            ClientAddressResolver clientAddressResolver
     ) throws Exception {
-        WafFilter wafFilter = new WafFilter(wafProperties);
+        WafFilter wafFilter = new WafFilter(wafProperties, rateLimitService, clientAddressResolver);
         ApiRequestLoggingFilter apiRequestLoggingFilter =
                 new ApiRequestLoggingFilter(apiSecurityProperties.getLogging());
 
@@ -80,8 +84,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
+                                "/api/auth/google",
+                                "/api/auth/telegram",
                                 "/api/auth/forgot-password",
-                                "/api/auth/reset-password"
+                                "/api/auth/reset-password",
+                                "/api/auth/verify-email",
+                                "/api/auth/resend-verification"
                         ).permitAll()
                         .requestMatchers("/api/invitations/templates", "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()

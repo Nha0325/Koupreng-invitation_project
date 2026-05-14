@@ -4,20 +4,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import com.koupreng.backend.common.ApiException;
+import com.koupreng.backend.security.ClientAddressResolver;
+import com.koupreng.backend.service.RateLimitService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,6 @@ import org.springframework.web.util.UriUtils;
 public class WafFilter extends OncePerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WafFilter.class);
-    private static final int MAX_RATE_LIMIT_BUCKETS = 10_000;
 
     private static final List<NamedPattern> ATTACK_PATTERNS = List.of(
             new NamedPattern("path-traversal", Pattern.compile("(?i)(?:\\.\\.[/\\\\]|[/\\\\]\\.\\.|%2e%2e|%252e%252e|%c0%ae|%c1%9c)")),
@@ -47,11 +46,17 @@ public class WafFilter extends OncePerRequestFilter {
     );
 
     private final WafProperties properties;
-    private final Clock clock = Clock.systemUTC();
-    private final Map<String, RequestWindow> requestWindows = new ConcurrentHashMap<>();
+    private final RateLimitService rateLimitService;
+    private final ClientAddressResolver clientAddressResolver;
 
-    public WafFilter(WafProperties properties) {
+    public WafFilter(
+            WafProperties properties,
+            RateLimitService rateLimitService,
+            ClientAddressResolver clientAddressResolver
+    ) {
         this.properties = properties;
+        this.rateLimitService = rateLimitService;
+        this.clientAddressResolver = clientAddressResolver;
     }
 
     @Override
@@ -201,30 +206,16 @@ public class WafFilter extends OncePerRequestFilter {
     }
 
     private WafDecision checkRateLimit(HttpServletRequest request) {
-        String key = clientAddress(request);
-        Instant now = clock.instant();
-        RateLimitDecision rateLimitDecision = new RateLimitDecision();
-
-        requestWindows.compute(key, (ignored, current) -> {
-            if (current == null || !current.resetAt().isAfter(now)) {
-                return new RequestWindow(now.plus(properties.getRateLimitWindow()), 1);
-            }
-
-            if (current.count() >= properties.getMaxRequestsPerMinute()) {
-                rateLimitDecision.blocked = true;
-                return current;
-            }
-
-            return new RequestWindow(current.resetAt(), current.count() + 1);
-        });
-
-        if (requestWindows.size() > MAX_RATE_LIMIT_BUCKETS) {
-            requestWindows.entrySet().removeIf(entry -> !entry.getValue().resetAt().isAfter(now));
+        try {
+            rateLimitService.check(
+                    "waf:ip:" + clientAddress(request),
+                    properties.getMaxRequestsPerMinute(),
+                    properties.getRateLimitWindow()
+            );
+            return WafDecision.allow();
+        } catch (ApiException exception) {
+            return WafDecision.block(exception.getStatus(), "rate-limit");
         }
-
-        return rateLimitDecision.blocked
-                ? WafDecision.block(HttpStatus.TOO_MANY_REQUESTS, "rate-limit")
-                : WafDecision.allow();
     }
 
     private boolean shouldInspectBody(HttpServletRequest request) {
@@ -325,8 +316,7 @@ public class WafFilter extends OncePerRequestFilter {
     }
 
     private String clientAddress(HttpServletRequest request) {
-        String remoteAddress = request.getRemoteAddr();
-        return remoteAddress == null || remoteAddress.isBlank() ? "unknown" : remoteAddress;
+        return clientAddressResolver.resolve(request);
     }
 
     private String nullToEmpty(String value) {
@@ -373,13 +363,6 @@ public class WafFilter extends OncePerRequestFilter {
                 return StandardCharsets.UTF_8;
             }
         }
-    }
-
-    private record RequestWindow(Instant resetAt, int count) {
-    }
-
-    private static class RateLimitDecision {
-        private boolean blocked;
     }
 
     private static class BodylessMethod {

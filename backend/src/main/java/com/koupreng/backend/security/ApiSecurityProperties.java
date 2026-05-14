@@ -26,6 +26,9 @@ public class ApiSecurityProperties {
     @Valid
     private final Upload upload = new Upload();
 
+    @Valid
+    private final ClientAddress clientAddress = new ClientAddress();
+
     public Cors getCors() {
         return cors;
     }
@@ -40,6 +43,10 @@ public class ApiSecurityProperties {
 
     public Upload getUpload() {
         return upload;
+    }
+
+    public ClientAddress getClientAddress() {
+        return clientAddress;
     }
 
     public static class Cors {
@@ -264,6 +271,19 @@ public class ApiSecurityProperties {
 
         public void setVerifySignatures(boolean verifySignatures) {
             this.verifySignatures = verifySignatures;
+        }
+    }
+
+    public static class ClientAddress {
+
+        private boolean forwardedHeadersEnabled;
+
+        public boolean isForwardedHeadersEnabled() {
+            return forwardedHeadersEnabled;
+        }
+
+        public void setForwardedHeadersEnabled(boolean forwardedHeadersEnabled) {
+            this.forwardedHeadersEnabled = forwardedHeadersEnabled;
         }
     }
 

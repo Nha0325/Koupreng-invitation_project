@@ -2,13 +2,13 @@ package com.koupreng.backend.config;
 
 import java.util.List;
 
-import com.koupreng.backend.auth.AppUser;
-import com.koupreng.backend.auth.AppUserRepository;
+import com.koupreng.backend.entity.AppUser;
+import com.koupreng.backend.repository.AppUserRepository;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 

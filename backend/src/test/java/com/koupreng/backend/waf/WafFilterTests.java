@@ -11,7 +11,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.servlet.FilterChain;
 
+import com.koupreng.backend.config.AppProperties;
+import com.koupreng.backend.security.ApiSecurityProperties;
+import com.koupreng.backend.security.ClientAddressResolver;
+import com.koupreng.backend.service.RateLimitService;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -20,7 +27,7 @@ class WafFilterTests {
 
     @Test
     void allowsNormalJsonApiRequestAndKeepsBodyReadable() throws Exception {
-        WafFilter filter = new WafFilter(new WafProperties());
+        WafFilter filter = filter(new WafProperties());
         byte[] body = """
                 {"email":"user@example.com","password":"Str0ng!Password"}
                 """.getBytes(StandardCharsets.UTF_8);
@@ -39,7 +46,7 @@ class WafFilterTests {
 
     @Test
     void blocksPathTraversalBeforeController() throws Exception {
-        WafFilter filter = new WafFilter(new WafProperties());
+        WafFilter filter = filter(new WafProperties());
         MockHttpServletRequest request = apiRequest("GET", "/api/users/../admin");
         MockHttpServletResponse response = new MockHttpServletResponse();
         AtomicBoolean controllerCalled = new AtomicBoolean();
@@ -53,7 +60,7 @@ class WafFilterTests {
 
     @Test
     void blocksSuspiciousJsonBodyBeforeController() throws Exception {
-        WafFilter filter = new WafFilter(new WafProperties());
+        WafFilter filter = filter(new WafProperties());
         MockHttpServletRequest request = apiRequest("POST", "/api/auth/login");
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
         request.setContent("""
@@ -72,7 +79,7 @@ class WafFilterTests {
     void blocksOversizedBody() throws Exception {
         WafProperties properties = new WafProperties();
         properties.setMaxBodyBytes(1024);
-        WafFilter filter = new WafFilter(properties);
+        WafFilter filter = filter(properties);
         MockHttpServletRequest request = apiRequest("POST", "/api/auth/login");
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
         request.setContent("x".repeat(1025).getBytes(StandardCharsets.UTF_8));
@@ -87,7 +94,7 @@ class WafFilterTests {
     void rateLimitsApiRequestsPerClientAddress() throws Exception {
         WafProperties properties = new WafProperties();
         properties.setMaxRequestsPerMinute(1);
-        WafFilter filter = new WafFilter(properties);
+        WafFilter filter = filter(properties);
 
         MockHttpServletResponse firstResponse = new MockHttpServletResponse();
         filter.doFilter(apiRequest("GET", "/api/health"), firstResponse, (request, response) -> {
@@ -109,5 +116,13 @@ class WafFilterTests {
 
     private FilterChain markCalled(AtomicBoolean called) {
         return (servletRequest, servletResponse) -> called.set(true);
+    }
+
+    private WafFilter filter(WafProperties properties) {
+        ObjectProvider<StringRedisTemplate> redisTemplateProvider = new ObjectProvider<>() {
+        };
+        RateLimitService rateLimitService = new RateLimitService(redisTemplateProvider, new AppProperties());
+        ClientAddressResolver clientAddressResolver = new ClientAddressResolver(new ApiSecurityProperties());
+        return new WafFilter(properties, rateLimitService, clientAddressResolver);
     }
 }
