@@ -40,3 +40,5 @@ Thumbs.db
 .run-logs/
 .mysql-data*/
 node_modules
+
+.kiro/
