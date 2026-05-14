@@ -9,13 +9,15 @@ The project ignores generated and local-only files:
 | Ignored path | Why it is ignored | How to recreate it |
 | --- | --- | --- |
 | `backend/target/` | Java build output | Run Maven commands in `backend/` |
-| `frontend/node_modules/` | npm packages | Run `npm install` in `frontend/` |
-| `frontend/dist/` | frontend build output | Run `npm run build` in `frontend/` |
+| `frontend-user/node_modules/` | user UI npm packages | Run `npm install` in `frontend-user/` |
+| `frontend-admin/node_modules/` | admin UI npm packages | Run `npm install` in `frontend-admin/` |
+| `frontend-user/dist/` | user UI build output | Run `npm run build` in `frontend-user/` |
+| `frontend-admin/dist/` | admin UI build output | Run `npm run build` in `frontend-admin/` |
 | `service/venv/` | Python virtual environment | Run `python -m venv venv` and `pip install -r requirements.txt` in `service/` |
 | `service/__pycache__/` | Python cache files | Created automatically by Python |
 | `.env` files | local secrets/config | Copy from `.env.example` and edit locally |
 
-These files should not be committed. They are recreated from committed files like `backend/pom.xml`, `frontend/package-lock.json`, root `requirements.txt`, `service/requirements.txt`, and `.env.example`.
+These files should not be committed. They are recreated from committed files like `backend/pom.xml`, frontend `package-lock.json` files, root `requirements.txt`, `service/requirements.txt`, and `.env.example`.
 
 ## Quick Setup After Clone
 
@@ -32,7 +34,7 @@ Run the setup script:
 .\setup.ps1
 ```
 
-This recreates the local files ignored by Git, including `frontend/node_modules/` and `service/venv/`. It also downloads backend Maven dependencies.
+This recreates the local files ignored by Git, including frontend `node_modules/` folders and `service/venv/`. It also downloads backend Maven dependencies.
 If `.env` does not exist, the script copies `.env.example` to `.env`.
 
 If PowerShell blocks the script, run:
@@ -137,10 +139,19 @@ cd backend
 .\mvnw.cmd spring-boot:run
 ```
 
-Frontend:
+User frontend:
 
 ```powershell
-cd frontend
+cd frontend-user
+npm run dev
+```
+
+The user frontend defaults to `VITE_API_URL=/api`; Vite proxies `/api` to the Spring Boot backend at `http://localhost:8080`. Run the FastAPI service only if you explicitly set `VITE_API_URL=http://localhost:8000/api`.
+
+Admin frontend:
+
+```powershell
+cd frontend-admin
 npm run dev
 ```
 
@@ -156,10 +167,71 @@ Local URLs:
 
 ```text
 Backend: http://localhost:8080
-Frontend: http://localhost:5173
+User frontend: http://localhost:5173
+Admin frontend: http://localhost:5174
 FastAPI: http://localhost:8000
 FastAPI health: http://localhost:8000/health
 ```
+
+## Google Login Setup
+
+Create or select a Google OAuth client with Application type `Web application`. Add these Authorized JavaScript origins for local development:
+
+```text
+http://localhost
+http://localhost:5173
+```
+
+Set the web client ID in local `.env`:
+
+```properties
+GOOGLE_CLIENT_IDS=your-google-web-client-id.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
+```
+
+`GOOGLE_CLIENT_IDS` is used by the backend to verify Google ID tokens. `VITE_GOOGLE_CLIENT_ID` is used by the user frontend; if it is omitted, `frontend-user/vite.config.js` falls back to the first value in `GOOGLE_CLIENT_IDS`.
+
+## Telegram Login Setup
+
+For local development, use Telegram's domain-based widget with a localhost alias. `localhost` itself is not accepted by BotFather `/setdomain`, so use `lvh.me`, which resolves to `127.0.0.1`.
+
+1. Open `@BotFather`.
+2. Choose your bot.
+3. Use `Bot Settings > Domain` or `/setdomain`.
+4. Send only the bare domain:
+
+```text
+lvh.me
+```
+
+Do not include `http://`, `:5173`, or `/login` in the domain command.
+
+Open the local user frontend with:
+
+```text
+http://lvh.me:5173/login
+```
+
+For production or a public HTTPS tunnel, use the newer Web Login / OIDC setup and add the real HTTPS URLs, for example:
+
+```text
+https://koupreng.example.com
+https://koupreng.example.com/login
+```
+
+Set these values in local `.env`:
+
+```properties
+TELEGRAM_BOT_TOKEN=123456789:your_bot_token
+TELEGRAM_CLIENT_ID=
+TELEGRAM_BOT_USERNAME=your_bot_username
+VITE_TELEGRAM_CLIENT_ID=
+VITE_TELEGRAM_BOT_USERNAME=your_bot_username
+```
+
+Keep `TELEGRAM_CLIENT_ID` and `VITE_TELEGRAM_CLIENT_ID` blank for localhost. If you later use the newer Web Login / OIDC setup, fill both with the Client ID shown in BotFather Web Login.
+
+Restart the backend and the Vite dev server after changing any auth value in `.env`.
 
 ## Manual Install Commands
 
@@ -176,7 +248,10 @@ cd ..
 Frontend dependencies:
 
 ```powershell
-cd frontend
+cd frontend-user
+npm install
+cd ..
+cd frontend-admin
 npm install
 cd ..
 ```
@@ -209,10 +284,19 @@ cd backend
 .\mvnw.cmd clean package
 ```
 
-Frontend:
+User frontend:
 
 ```powershell
-cd frontend
+cd frontend-user
+npm run lint
+npm run build
+npm run preview
+```
+
+Admin frontend:
+
+```powershell
+cd frontend-admin
 npm run lint
 npm run build
 npm run preview
