@@ -28,7 +28,6 @@ Linux / macOS
 ./git-push.sh
 ./git-push.sh "feat: add login page"
 ```
-
 ## Recommended team rules
 
 - Pull before you start working: `git pull --rebase`

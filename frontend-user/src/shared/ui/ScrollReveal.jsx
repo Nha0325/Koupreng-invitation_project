@@ -1,33 +1,19 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const fadeUp = {
-  hidden: { opacity: 0, y: 40, scale: 0.98 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const staggerContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
-};
+import { fadeUp } from "../motion/variants";
 
 /**
  * ScrollReveal
- * Animates children when they scroll into view.
- * Re-animates every time the element re-enters the viewport so the
- * effect plays on scroll-down and again on scroll-up.
  *
- * Pass `once` to opt back into single-shot behavior.
+ * Animates children when they scroll into view. Re-animates every time the
+ * element re-enters the viewport so the effect plays on scroll-down and
+ * again on scroll-up. Pass `once` to opt back into single-shot behavior.
  *
- * NOTE: delay is baked into the variant transition to avoid
- * the framer-motion "transition prop overrides variants" bug.
+ * The default variant is the shared `fadeUp` from `src/shared/motion/variants.js`
+ * (added in task 2.3). Callers may override via the `variants` prop.
+ *
+ * NOTE: `delay` is baked into the variant transition to avoid the
+ * framer-motion "transition prop overrides variants" gotcha.
  */
 const ScrollReveal = ({
   children,
@@ -40,7 +26,7 @@ const ScrollReveal = ({
   const ref = useRef(null);
   const inView = useInView(ref, { once, margin: "-60px", amount });
 
-  // Build variant with delay baked in so the outer transition prop isn't needed
+  // Build variant with delay baked in so the outer transition prop isn't needed.
   const resolvedVariants = variants ?? {
     hidden: fadeUp.hidden,
     visible: {
@@ -63,6 +49,6 @@ const ScrollReveal = ({
       {children}
     </motion.div>
   );
-}
+};
 
 export default ScrollReveal;

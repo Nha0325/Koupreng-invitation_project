@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import ScrollReveal, {
-  fadeUp,
-  staggerContainer,
-} from "../../shared/ui/ScrollReveal";
+import ScrollReveal from "../../shared/ui/ScrollReveal";
+import { fadeUp, stagger } from "../../shared/motion/variants";
 import { useImageSlider } from "../../shared/hooks/useImageSlider";
 import { useHeroAnimation } from "../../shared/hooks/useHeroAnimation";
-import AnimatedButton from "../../shared/ui/AnimatedButton";
-import MagicCard from "../../shared/ui/MagicCard";
+import Button from "../../shared/ui/Button";
+import GlassCard from "../../shared/ui/GlassCard";
+
+// Local alias kept so the existing JSX `variants={staggerContainer}` keeps
+// reading clearly. The shared `stagger(gap)` factory replaces the old
+// `staggerContainer` constant from `ScrollReveal.jsx`.
+const staggerContainer = stagger(0.1);
 import "./HomePage.css";
 import heroBg from "../../assets/icons/background.png";
 import icon3 from "../../assets/icons/icon-3.png";
@@ -316,7 +319,7 @@ const Home = () => {
               តាមដានការចំណាយក្នុងពិធីមង្គលការរបស់អ្នកប្រកបដោយប្រសិទ្ធភាព។
             </p>
             <div className="hero-actions">
-              <AnimatedButton to="/booking">ចាប់ផ្តើមឥឡូវនេះ</AnimatedButton>
+              <Button to="/booking">ចាប់ផ្តើមឥឡូវនេះ</Button>
               <button className="btn-secondary">មើលមុខងារ</button>
             </div>
             <div className="hero-stats">
@@ -541,7 +544,7 @@ const Home = () => {
           >
             {plans.map((plan) => (
               <motion.div key={plan.id} variants={fadeUp}>
-                <MagicCard
+                <GlassCard
                   className={`pricing-card${plan.featured ? " featured" : ""}${plan.isEnterprise ? " enterprise" : ""}`}
                 >
                   {plan.featured && (
@@ -624,7 +627,7 @@ const Home = () => {
                       ចុចដើម្បីចាប់ផ្តើម — មិនតម្រូវការ Credit Card
                     </p>
                   )}
-                </MagicCard>
+                </GlassCard>
               </motion.div>
             ))}
           </motion.div>
