@@ -1,26 +1,33 @@
 package com.koupreng.backend.service;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.koupreng.backend.config.AppProperties;
 import com.koupreng.backend.dto.AuthResponse;
+import com.koupreng.backend.dto.GoogleLoginRequest;
 import com.koupreng.backend.dto.LoginRequest;
 import com.koupreng.backend.dto.RegisterRequest;
 import com.koupreng.backend.dto.ResetPasswordRequest;
+
 import com.koupreng.backend.dto.VerifyEmailRequest;
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.entity.user.AuthProvider;
@@ -30,11 +37,6 @@ import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.repository.EmailVerificationTokenRepository;
 import com.koupreng.backend.repository.PasswordResetTokenRepository;
-
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 class AuthServiceTests {
 
@@ -47,21 +49,33 @@ class AuthServiceTests {
     private final EmailVerificationNotificationService emailVerificationNotificationService =
             mock(EmailVerificationNotificationService.class);
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final GoogleIdentityVerifier googleIdentityVerifier = mock(GoogleIdentityVerifier.class);
+    private final TelegramIdentityVerifier telegramIdentityVerifier = mock(TelegramIdentityVerifier.class);
+    private final TokenHashingService tokenHashingService = mock(TokenHashingService.class);
     private final AuthService authService = new AuthService(
             userRepository,
             resetTokenRepository,
             emailVerificationTokenRepository,
             passwordEncoder,
             jwtService,
-            new TokenHashingService(),
+            tokenHashingService,
             notificationService,
             emailVerificationNotificationService,
             mock(AuthRateLimiter.class),
             new PasswordPolicy(),
-            mock(GoogleIdentityVerifier.class),
-            mock(TelegramIdentityVerifier.class),
+            googleIdentityVerifier,
+            telegramIdentityVerifier,
             appProperties()
     );
+
+
+    @BeforeEach
+    public void setUp() {
+        when(tokenHashingService.sha256(any(String.class))).thenAnswer(inv -> {
+            String token = inv.getArgument(0);
+            return (token + "a".repeat(64)).substring(0, 64);
+        });
+    }
 
     @Test
     void registerCreatesEnabledLocalUserWithHashedPassword() {
@@ -177,6 +191,32 @@ class AuthServiceTests {
 
         assertTrue(user.isEnabled());
         assertNotNull(verificationToken.getUsedAt());
+    }
+
+    @Test
+    void externalAuthWithLongProviderIdDoesNotExceedBcryptLimit() {
+        when(userRepository.findByAuthProviderAndProviderId(any(), any())).thenReturn(Optional.empty());
+        when(userRepository.findByEmailIgnoreCase(any())).thenReturn(Optional.empty());
+        when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ExternalAuthIdentity identity = new ExternalAuthIdentity(
+                AuthProvider.GOOGLE,
+                "a".repeat(100),
+                "long@example.com",
+                "Long User"
+        );
+        when(googleIdentityVerifier.verify(any(String.class))).thenReturn(identity);
+        when(jwtService.createAccessToken(any(AppUser.class))).thenReturn("access-token");
+        when(jwtService.getAccessTokenTtlSeconds()).thenReturn(3600L);
+
+        authService.loginWithGoogle(new GoogleLoginRequest("fake-id-token"), "203.0.113.10");
+
+        ArgumentCaptor<AppUser> userCaptor = ArgumentCaptor.forClass(AppUser.class);
+        verify(userRepository).save(userCaptor.capture());
+        
+        AppUser savedUser = userCaptor.getValue();
+        assertEquals("long@example.com", savedUser.getEmail());
+        assertTrue(savedUser.getPasswordHash() != null && savedUser.getPasswordHash().length() >= 60);
     }
 
     private AppUser localUser(String email, String password) {

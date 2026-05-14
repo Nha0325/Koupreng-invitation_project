@@ -295,7 +295,7 @@ public class AuthService {
         AppUser user = new AppUser();
         user.setEmail(email);
         user.setFullName(safeFullName(identity.fullName(), email));
-        user.setPasswordHash(externalPasswordHash(identity));
+        user.setPasswordHash(externalPasswordHash());
         user.setAuthProvider(identity.provider());
         user.setProviderId(identity.providerId());
         user.setRole(firstUserAdminEnabled && userRepository.count() == 0 ? Role.ADMIN : Role.USER);
@@ -320,10 +320,8 @@ public class AuthService {
         return value.length() <= 120 ? value : value.substring(0, 120);
     }
 
-    private String externalPasswordHash(ExternalAuthIdentity identity) {
-        String randomSecret = generateToken();
-        String marker = "external:%s:%s:%s".formatted(identity.provider(), identity.providerId(), randomSecret);
-        return passwordEncoder.encode(marker);
+    private String externalPasswordHash() {
+        return passwordEncoder.encode("external:" + generateToken());
     }
 
     private ForgotPasswordResponse passwordResetResponse() {

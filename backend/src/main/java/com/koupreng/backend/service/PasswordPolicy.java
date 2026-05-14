@@ -22,6 +22,10 @@ public class PasswordPolicy {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Password must be at least 12 characters long");
         }
 
+        if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password cannot be more than 72 bytes");
+        }
+
         boolean hasLowercase = false;
         boolean hasUppercase = false;
         boolean hasDigit = false;
