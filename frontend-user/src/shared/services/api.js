@@ -4,6 +4,16 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 const TOKEN_STORAGE_KEY = "koupreng_access_token";
 const USER_STORAGE_KEY = "koupreng_user";
 
+const PUBLIC_AUTH_PATHS = new Set([
+  "/auth/login",
+  "/auth/register",
+  "/auth/google",
+  "/auth/telegram",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/verify-email",
+  "/auth/resend-verification",
+]);
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -12,6 +22,11 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  const path = config.url?.split("?", 1)[0] || "";
+  if (PUBLIC_AUTH_PATHS.has(path)) {
+    return config;
+  }
+
   const token = localStorage.getItem(TOKEN_STORAGE_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

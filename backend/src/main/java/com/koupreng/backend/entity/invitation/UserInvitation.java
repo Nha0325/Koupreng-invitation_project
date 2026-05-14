@@ -55,6 +55,24 @@ public class UserInvitation {
     @Column(name = "partner_name")
     private String partnerName;
 
+    @Column(name = "groom_name")
+    private String groomName;
+
+    @Column(name = "bride_name")
+    private String brideName;
+
+    @Column(name = "groom_father_name")
+    private String groomFatherName;
+
+    @Column(name = "groom_mother_name")
+    private String groomMotherName;
+
+    @Column(name = "bride_father_name")
+    private String brideFatherName;
+
+    @Column(name = "bride_mother_name")
+    private String brideMotherName;
+
     @Column(name = "story_text", columnDefinition = "TEXT")
     private String storyText;
 
