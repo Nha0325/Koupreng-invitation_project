@@ -1,6 +1,7 @@
 import { useId, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";
+import { authService } from "../../shared/services/api";
 import "./AuthPage.css";
 
 /* ── Eye icon ── */
@@ -47,34 +48,37 @@ const EyeIcon = ({ open }) => {
 };
 
 /* ── Step 1 — Email/Phone ── */
-const StepEmail = ({ onNext }) => {
+const StepEmail = ({ onNext, error, loading }) => {
   const emailId = useId();
   const [identifier, setIdentifier] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (identifier.trim()) onNext(identifier.trim());
+    if (identifier.trim()) {
+      await onNext(identifier.trim());
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <div className="auth-field">
         <label htmlFor={emailId} className="auth-label">
-          លេខទូរស័ព្ទ ឬ អ៊ីមែល
+          អ៊ីមែល
         </label>
         <input
           id={emailId}
-          type="text"
+          type="email"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          placeholder="បញ្ចូលលេខទូរស័ព្ទ ឬ អ៊ីមែល"
+          placeholder="បញ្ចូលអ៊ីមែល"
           required
           className="auth-input"
         />
-        <p className="auth-hint">យើងនឹងផ្ញើ OTP ៦ ខ្ទង់ទៅកាន់អ្នក</p>
+        <p className="auth-hint">យើងនឹងផ្ញើតំណកំណត់លេខសម្ងាត់ទៅអ៊ីមែលរបស់អ្នក</p>
       </div>
-      <button type="submit" className="auth-submit">
-        ផ្ញើ OTP
+      {error && <p className="auth-error-msg">{error}</p>}
+      <button type="submit" className="auth-submit" disabled={loading}>
+        {loading ? "កំពុងផ្ញើ..." : "ផ្ញើតំណកំណត់ឡើងវិញ"}
       </button>
     </form>
   );
@@ -220,7 +224,7 @@ const StepNewPassword = ({ onDone }) => {
 };
 
 /* ── Step 4 — Success ── */
-const StepSuccess = () => {
+const StepSuccess = ({ title = "ជោគជ័យ!", message = "សំណើត្រូវបានបញ្ចប់ដោយជោគជ័យ" }) => {
   return (
     <div className="auth-success">
       <div className="auth-success-icon">
@@ -241,8 +245,8 @@ const StepSuccess = () => {
         </svg>
       </div>
       <div>
-        <h2>ជោគជ័យ!</h2>
-        <p>លេខសម្ងាត់ត្រូវបានកំណត់ឡើងវិញដោយជោគជ័យ</p>
+        <h2>{title}</h2>
+        <p>{message}</p>
       </div>
       <Link
         to="/login"
@@ -269,10 +273,7 @@ const STEPS = [
 ];
 
 const STEP_META = {
-  1: {
-    title: "ភ្លេចលេខសម្ងាត់",
-    sub: "បញ្ចូលអ៊ីមែល ឬ លេខទូរស័ព្ទ ដើម្បីទទួល OTP",
-  },
+  1: { title: "ភ្លេចលេខសម្ងាត់", sub: "បញ្ចូលអ៊ីមែល ដើម្បីទទួលតំណកំណត់ឡើងវិញ" },
   2: { title: "បញ្ចូល OTP", sub: "OTP ៦ ខ្ទង់ត្រូវបានផ្ញើទៅអ្នក" },
   3: { title: "លេខសម្ងាត់ថ្មី", sub: "កំណត់លេខសម្ងាត់ថ្មីរបស់អ្នក" },
   4: { title: "រួចរាល់", sub: "" },
@@ -282,8 +283,27 @@ const STEP_META = {
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
   const [identifier, setIdentifier] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const meta = STEP_META[step];
+
+  const requestResetLink = async (id) => {
+    setIdentifier(id);
+    setError("");
+    setLoading(true);
+
+    try {
+      const { data } = await authService.forgotPassword(id);
+      setSuccessMessage(data.message || "If the email exists, password reset instructions will be sent.");
+      setStep(4);
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not send password reset instructions.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -339,23 +359,15 @@ const ForgotPassword = () => {
         )}
 
         {/* Step content */}
-        {step === 1 && (
-          <StepEmail
-            onNext={(id) => {
-              setIdentifier(id);
-              setStep(2);
-            }}
-          />
-        )}
-        {step === 2 && (
-          <StepOTP
-            identifier={identifier}
-            onNext={() => setStep(3)}
-            onResend={() => {}}
-          />
-        )}
+        {step === 1 && <StepEmail onNext={requestResetLink} error={error} loading={loading} />}
+        {step === 2 && <StepOTP identifier={identifier} onNext={() => setStep(3)} onResend={() => { }} />}
         {step === 3 && <StepNewPassword onDone={() => setStep(4)} />}
-        {step === 4 && <StepSuccess />}
+        {step === 4 && (
+          <StepSuccess
+            title="ពិនិត្យអ៊ីមែល"
+            message={successMessage || "Password reset instructions have been sent if the email exists."}
+          />
+        )}
 
         {/* Back */}
         {step < 4 && (

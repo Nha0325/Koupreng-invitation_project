@@ -1,21 +1,15 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import ScrollReveal, {
-  fadeUp,
-  staggerContainer,
-} from "../../shared/ui/ScrollReveal";
+import ScrollReveal from "../../shared/ui/ScrollReveal";
+import { fadeUp, staggerContainer } from "../../shared/ui/scrollRevealVariants";
 import { useImageSlider } from "../../shared/hooks/useImageSlider";
 import { useHeroAnimation } from "../../shared/hooks/useHeroAnimation";
 import AnimatedButton from "../../shared/ui/AnimatedButton";
 import MagicCard from "../../shared/ui/MagicCard";
 import "./HomePage.css";
 import heroBg from "../../assets/icons/background.png";
-import icon_1 from "../../assets/icons/icon-1.png";
-import icon_2_2 from "../../assets/icons/icon-2-2.png";
-import icon_2_3 from "../../assets/icons/icon-2-3.png";
 import icon3 from "../../assets/icons/icon-3.png";
-import icon_4 from "../../assets/icons/icon-4.png";
 
 // Hero slider — free Unsplash wedding photos (served via CDN, no download needed)
 const imgStyle1 =

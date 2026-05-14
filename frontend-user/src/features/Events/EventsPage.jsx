@@ -210,7 +210,7 @@ const EventCard = ({ event, onManage }) => {
 const EventsPage = () => {
   const navigate = useNavigate();
   const [view, setView] = useState("list"); // "list" | "create"
-  const { events, loading, error, addEvent, fetchEvents } = useEvents();
+  const { events, fetchEvents } = useEvents();
 
   useEffect(() => {
     fetchEvents();

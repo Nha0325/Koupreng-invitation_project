@@ -21,6 +21,8 @@ import HomePage from "./pages/Home/HomePage";
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
+import VerifyEmail from "./pages/Auth/VerifyEmail";
 
 /* ── Dashboard pages ── */
 import DashboardPage from "./pages/Dashboard/DashboardPage";
@@ -48,6 +50,8 @@ const HIDDEN_LAYOUT_PATHS = [
   "/login",
   "/register",
   "/forgot-password",
+  "/reset-password",
+  "/verify-email",
   "/dashboard",
   "/guests",
   "/expenses",
@@ -105,6 +109,22 @@ const AnimatedRoutes = () => {
             element={
               <PageTransition>
                 <ForgotPassword />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <PageTransition>
+                <ResetPassword />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/verify-email"
+            element={
+              <PageTransition>
+                <VerifyEmail />
               </PageTransition>
             }
           />
