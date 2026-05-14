@@ -3,13 +3,13 @@ package com.koupreng.backend.invitation;
 import java.util.List;
 import java.util.UUID;
 
-import com.koupreng.backend.auth.AppUser;
-import com.koupreng.backend.auth.AppUserRepository;
 import com.koupreng.backend.common.ApiException;
+import com.koupreng.backend.entity.AppUser;
 import com.koupreng.backend.invitation.dto.InvitationRequest;
 import com.koupreng.backend.invitation.dto.InvitationResponse;
 import com.koupreng.backend.invitation.dto.ShareLinkResponse;
 import com.koupreng.backend.invitation.dto.TemplateResponse;
+import com.koupreng.backend.repository.AppUserRepository;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;

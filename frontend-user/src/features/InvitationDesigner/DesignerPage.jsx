@@ -164,31 +164,31 @@ const DesignerPage = () => {
   };
 
   // Delete selected
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!selectedId) return;
     const updated = elements.filter((el) => el.id !== selectedId);
     setElements(updated);
     setSelectedId(null);
     pushHistory(updated);
-  };
+  }, [elements, pushHistory, selectedId]);
 
   // Undo
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (historyIndex <= 0) return;
     const newIndex = historyIndex - 1;
     setHistoryIndex(newIndex);
     setElements(history[newIndex]);
     setSelectedId(null);
-  };
+  }, [history, historyIndex]);
 
   // Redo
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (historyIndex >= history.length - 1) return;
     const newIndex = historyIndex + 1;
     setHistoryIndex(newIndex);
     setElements(history[newIndex]);
     setSelectedId(null);
-  };
+  }, [history, historyIndex]);
 
   // Zoom controls
   const handleZoomIn = () => setZoom((z) => Math.min(2, z + 0.1));
@@ -279,7 +279,7 @@ const DesignerPage = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedId, historyIndex, elements]);
+  }, [selectedId, historyIndex, elements, handleDelete, handleUndo, handleRedo]);
 
   const selectedElement = elements.find((el) => el.id === selectedId);
 
