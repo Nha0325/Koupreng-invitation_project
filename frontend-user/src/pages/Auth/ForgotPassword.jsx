@@ -1,7 +1,10 @@
 import { useId, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";
+<<<<<<< HEAD
 import { authService } from "../../shared/services/api";
+=======
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
 import "./AuthPage.css";
 
 /* ── Eye icon ── */

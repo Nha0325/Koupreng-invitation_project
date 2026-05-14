@@ -1,9 +1,13 @@
 import { useContext, useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import { AuthContext } from "../../context/auth-context";
 import { useToggle } from "../../shared/hooks/useToggle";
 import { authService } from "../../shared/services/api";
 import SocialAuthButtons from "./SocialAuthButtons";
+=======
+import { useToggle } from "../../shared/hooks/useToggle";
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
 import "./AuthPage.css";
 
 const Login = () => {

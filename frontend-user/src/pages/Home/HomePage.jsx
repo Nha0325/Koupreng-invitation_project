@@ -1,8 +1,15 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
+<<<<<<< HEAD
 import ScrollReveal from "../../shared/ui/ScrollReveal";
 import { fadeUp, staggerContainer } from "../../shared/ui/scrollRevealVariants";
+=======
+import ScrollReveal, {
+  fadeUp,
+  staggerContainer,
+} from "../../shared/ui/ScrollReveal";
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
 import { useImageSlider } from "../../shared/hooks/useImageSlider";
 import { useHeroAnimation } from "../../shared/hooks/useHeroAnimation";
 import AnimatedButton from "../../shared/ui/AnimatedButton";
@@ -293,7 +300,8 @@ const Home = () => {
             className="hero-left"
             initial={{ opacity: 0, x: -60 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
+            exit={{ opacity: 0, x: -60 }}
+            viewport={{ once: false, amount: 0.2 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
           >
             <p className="hero-badge">
@@ -347,7 +355,8 @@ const Home = () => {
             className="hero-right"
             initial={{ opacity: 0, x: 60 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.1 }}
+            exit={{ opacity: 0, x: 60 }}
+            viewport={{ once: false, amount: 0.2 }}
             transition={{
               duration: 0.8,
               ease: [0.22, 1, 0.36, 1],
@@ -439,7 +448,14 @@ const Home = () => {
           </ScrollReveal>
 
           {/* Row 1 — scrolls left */}
-          <div className="marquee-wrapper">
+          <motion.div
+            className="marquee-wrapper"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            viewport={{ once: false, amount: 0.2, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
             <div className="marquee-track marquee-left">
               {[...testimonials, ...testimonials].map((t, i) => (
                 <div key={i} className="testimonial-card">
@@ -459,10 +475,17 @@ const Home = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Row 2 — scrolls right */}
-          <div className="marquee-wrapper">
+          <motion.div
+            className="marquee-wrapper"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            viewport={{ once: false, amount: 0.2, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+          >
             <div className="marquee-track marquee-right">
               {[...testimonials, ...testimonials].map((t, i) => (
                 <div key={i} className="testimonial-card">
@@ -482,7 +505,7 @@ const Home = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </section>
 
         {/* ── Pricing ── */}
@@ -513,95 +536,103 @@ const Home = () => {
             <img src={icon3} alt="" className="pricing-deco-icon" />
             <img src={icon_4} alt="" className="pricing-deco-icon" />
           </div> */}
-          <div className="pricing-grid">
+          <motion.div
+            className="pricing-grid"
+            initial="hidden"
+            whileInView="visible"
+            exit="hidden"
+            viewport={{ once: false, amount: 0.15, margin: "-80px" }}
+            variants={staggerContainer}
+          >
             {plans.map((plan) => (
-              <MagicCard
-                key={plan.id}
-                className={`pricing-card${plan.featured ? " featured" : ""}${plan.isEnterprise ? " enterprise" : ""}`}
-              >
-                {plan.featured && (
-                  <div className="featured-top-badge">⭐ ពេញនិយមជាងគេ</div>
-                )}
-                {/* Icon + tier */}
-                <div className="plan-icon-row">
-                  <div className={`${plan.id}`}>
-                    {plan.icon && (
-                      <img
-                        src={plan.icon}
-                        alt=""
-                        style={{
-                          width: 50,
-                          height: 50,
-                          mixBlendMode: "screen",
-                          objectFit: "contain",
-                        }}
-                      />
+              <motion.div key={plan.id} variants={fadeUp}>
+                <MagicCard
+                  className={`pricing-card${plan.featured ? " featured" : ""}${plan.isEnterprise ? " enterprise" : ""}`}
+                >
+                  {plan.featured && (
+                    <div className="featured-top-badge">⭐ ពេញនិយមជាងគេ</div>
+                  )}
+                  {/* Icon + tier */}
+                  <div className="plan-icon-row">
+                    <div className={`${plan.id}`}>
+                      {plan.icon && (
+                        <img
+                          src={plan.icon}
+                          alt=""
+                          style={{
+                            width: 50,
+                            height: 50,
+                            mixBlendMode: "screen",
+                            objectFit: "contain",
+                          }}
+                        />
+                      )}
+                    </div>
+                    <span className={`tier-badge tier-${plan.id}`}>
+                      {plan.tier}
+                    </span>
+                  </div>
+                  {/* Name + desc */}
+                  <div className="plan-header">
+                    <h3 className="plan-name">{plan.name}</h3>
+                    <p className="plan-desc">{plan.desc}</p>
+                  </div>
+
+                  {/* Price */}
+                  <div className="plan-price">
+                    {plan.isEnterprise ? (
+                      <div className="enterprise-price">
+                        <span className="price-amount enterprise-text">
+                          {plan.price}
+                        </span>
+                        <span className="enterprise-phone">📞</span>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="price-amount">{plan.price}</span>
+                        {plan.originalPrice && (
+                          <span className="price-original">
+                            {plan.originalPrice}
+                          </span>
+                        )}
+                        {plan.period && (
+                          <span className="price-period">{plan.period}</span>
+                        )}
+                      </>
                     )}
                   </div>
-                  <span className={`tier-badge tier-${plan.id}`}>
-                    {plan.tier}
-                  </span>
-                </div>
-                {/* Name + desc */}
-                <div className="plan-header">
-                  <h3 className="plan-name">{plan.name}</h3>
-                  <p className="plan-desc">{plan.desc}</p>
-                </div>
 
-                {/* Price */}
-                <div className="plan-price">
-                  {plan.isEnterprise ? (
-                    <div className="enterprise-price">
-                      <span className="price-amount enterprise-text">
-                        {plan.price}
-                      </span>
-                      <span className="enterprise-phone">📞</span>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="price-amount">{plan.price}</span>
-                      {plan.originalPrice && (
-                        <span className="price-original">
-                          {plan.originalPrice}
-                        </span>
-                      )}
-                      {plan.period && (
-                        <span className="price-period">{plan.period}</span>
-                      )}
-                    </>
+                  {/* Divider */}
+                  <div className="plan-divider" />
+
+                  {/* Features */}
+                  <ul className="plan-features">
+                    {plan.features.map((f, i) => (
+                      <li key={i} className={f.active ? "active" : "inactive"}>
+                        <span className="feat-dot" />
+                        {f.text}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <Link
+                    to={plan.ctaLink}
+                    className={`plan-cta${plan.featured ? " plan-cta-featured" : ""}${plan.isEnterprise ? " plan-cta-enterprise" : ""}`}
+                  >
+                    {plan.isEnterprise && <span className="cta-icon">🏛️</span>}
+                    {plan.cta}
+                  </Link>
+
+                  {plan.featured && (
+                    <p className="plan-note">
+                      ចុចដើម្បីចាប់ផ្តើម — មិនតម្រូវការ Credit Card
+                    </p>
                   )}
-                </div>
-
-                {/* Divider */}
-                <div className="plan-divider" />
-
-                {/* Features */}
-                <ul className="plan-features">
-                  {plan.features.map((f, i) => (
-                    <li key={i} className={f.active ? "active" : "inactive"}>
-                      <span className="feat-dot" />
-                      {f.text}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA */}
-                <Link
-                  to={plan.ctaLink}
-                  className={`plan-cta${plan.featured ? " plan-cta-featured" : ""}${plan.isEnterprise ? " plan-cta-enterprise" : ""}`}
-                >
-                  {plan.isEnterprise && <span className="cta-icon">🏛️</span>}
-                  {plan.cta}
-                </Link>
-
-                {plan.featured && (
-                  <p className="plan-note">
-                    ចុចដើម្បីចាប់ផ្តើម — មិនតម្រូវការ Credit Card
-                  </p>
-                )}
-              </MagicCard>
+                </MagicCard>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {/* Trust bar */}
           <div className="trust-bar">
@@ -629,7 +660,7 @@ const Home = () => {
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }}
+            viewport={{ once: false, amount: 0.2, margin: "-60px" }}
           >
             {faqs.map((item, i) => (
               <motion.div key={i} variants={fadeUp}>

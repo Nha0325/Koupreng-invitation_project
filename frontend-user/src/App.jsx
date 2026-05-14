@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   BrowserRouter as Router,
   Routes,
@@ -156,18 +157,27 @@ const AnimatedRoutes = () => {
     </>
   );
 };
+=======
+import { MotionConfig } from "framer-motion";
+import { useLenis } from "./shared/hooks/useLenis";
+import { usePrefersReducedMotion } from "./shared/hooks/usePrefersReducedMotion";
+import { AuthProvider } from "./shared/AuthContext";
+import AppRoutes from "./routes";
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
 
 const App = () => {
   useLenis();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   return (
-    <AuthProvider>
-      <Router>
-        <div className="app-container">
-          <AnimatedRoutes />
-        </div>
-      </Router>
-    </AuthProvider>
+    <MotionConfig
+      reducedMotion="user"
+      transition={prefersReducedMotion ? { duration: 0 } : undefined}
+    >
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </MotionConfig>
   );
 };
 

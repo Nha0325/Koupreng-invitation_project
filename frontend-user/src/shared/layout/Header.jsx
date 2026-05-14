@@ -12,6 +12,14 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
+<<<<<<< HEAD
+=======
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
   const isActive = (path) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 

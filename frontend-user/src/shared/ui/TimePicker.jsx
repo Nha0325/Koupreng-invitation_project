@@ -35,7 +35,22 @@ const TimePicker = ({ value, onChange, placeholder = "ជ្រើសម៉ោ�
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
+<<<<<<< HEAD
     const selectedTime = open ? draft : parseTimeValue(value);
+=======
+    // Parse incoming value "HH:MM" 24h
+    useEffect(() => {
+        if (!value) return;
+        const [h, m] = value.split(":");
+        const hNum = parseInt(h, 10);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPeriod(hNum >= 12 ? "ល្ងាច" : "ព្រឹក");
+        const h12 = hNum % 12 || 12;
+        setHour(String(h12).padStart(2, "0"));
+        setMinute(m || "00");
+    }, [value]);
+
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
     const displayValue = value
         ? `${selectedTime.hour}:${selectedTime.minute} ${selectedTime.period}`
         : "";

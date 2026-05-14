@@ -1,8 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Montserrat:wght@400;500;700&family=Noto+Sans+Khmer:wght@400;500;700&display=swap');
+/* ─────────────────────────────────────────
+   Web font face imports — wedding invitation experience
+   See .kiro/specs/wedding-invitation-experience/design.md
+   → "Performance Considerations → Fonts"
 
-:root {
-  font-family: 'Noto Sans Khmer', 'DM Sans', sans-serif;
-  --font-dm-sans: 'DM Sans', sans-serif;
-  --font-montserrat: 'Montserrat', sans-serif;
-  --font-noto-sans-khmer: 'Noto Sans Khmer', sans-serif;
-}
+   Each Google Fonts CSS2 URL already sets `font-display: swap`
+   on every `@font-face` it generates, so romantic display text
+   stays legible while fonts are still downloading.
+───────────────────────────────────────── */
+
+/* Cormorant Garamond — serif display, 400/500/600/700 + italic 400 */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+/* Great Vibes — script, single weight */
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+/* DM Sans — sans body, 400/500/600/700 */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+/* Noto Serif Khmer — Khmer serif, 400/500/600/700 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Khmer:wght@400;500;600;700&display=swap');
+
+/* Noto Sans Khmer — Khmer sans, 400/500/600/700 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap');

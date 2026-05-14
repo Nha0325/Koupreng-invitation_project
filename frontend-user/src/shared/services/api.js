@@ -1,12 +1,19 @@
+<<<<<<< HEAD
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 const TOKEN_STORAGE_KEY = "koupreng_access_token";
 const USER_STORAGE_KEY = "koupreng_user";
+=======
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
+<<<<<<< HEAD
     "Content-Type": "application/json",
   },
 });
@@ -59,13 +66,37 @@ export const userService = {
 export const guestService = {
   getGuests: () => api.get("/guests"),
   addGuest: (guest) => api.post("/guests", guest),
+=======
+    'Content-Type': 'application/json',
+  },
+});
+
+// Auth Service
+export const authService = {
+  login: (email, password) => api.post('/auth/login', { email, password }),
+  register: (userData) => api.post('/auth/register', userData),
+  logout: () => api.post('/auth/logout'),
+};
+
+// Guest Service
+export const guestService = {
+  getGuests: () => api.get('/guests'),
+  addGuest: (guest) => api.post('/guests', guest),
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
   updateGuest: (id, guest) => api.put(`/guests/${id}`, guest),
   deleteGuest: (id) => api.delete(`/guests/${id}`),
 };
 
+<<<<<<< HEAD
 export const weddingService = {
   createWedding: (data) => api.post("/weddings", data),
   getWeddings: () => api.get("/weddings"),
+=======
+// Wedding Service
+export const weddingService = {
+  createWedding: (data) => api.post('/weddings', data),
+  getWeddings: () => api.get('/weddings'),
+>>>>>>> 60dfe88 (Debug all Frontend pages.)
   updateWedding: (id, data) => api.put(`/weddings/${id}`, data),
 };
 

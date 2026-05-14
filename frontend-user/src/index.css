@@ -1,9 +1,64 @@
 @import "./assets/fonts/fonts.css";
 @import "tailwindcss";
 
-/* ── Font CSS Variables ── */
+/* ─────────────────────────────────────────
+   Design tokens — wedding invitation experience
+   See .kiro/specs/wedding-invitation-experience/design.md
+   → "Design Tokens & Theming"
+───────────────────────────────────────── */
 :root {
-  /* ── Theme palette ── */
+  /* ── Brand ── */
+  --color-primary: #7033ff;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #c9a84c;
+  /* champagne gold */
+  --color-accent-foreground: #1a1a2e;
+
+  /* ── Surfaces ── */
+  --color-bg: #fdfcff;
+  --color-surface: #ffffff;
+  --color-surface-elevated: rgba(255, 255, 255, 0.72);
+  /* glass */
+  --color-border: #e7e7ee;
+
+  /* ── Text ── */
+  --color-text: #1a1a2e;
+  --color-text-muted: #6b7280;
+
+  /* ── Romantic (invitation only) ── */
+  --color-rose: #f5d6dc;
+  --color-rose-deep: #b87a85;
+  --color-cream: #faf3e7;
+
+  /* ── Typography ── */
+  --font-display: 'Cormorant Garamond', 'Noto Serif Khmer', serif;
+  --font-body: 'DM Sans', 'Noto Sans Khmer', sans-serif;
+  --font-script: 'Great Vibes', cursive;
+
+  /* ── Motion ── */
+  --ease-romantic: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 220ms;
+  --duration-base: 420ms;
+  --duration-slow: 720ms;
+
+  /* ── Shape ── */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* ── Glass ── */
+  --glass-blur: 14px;
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+
+  /* ─────────────────────────────────────────
+     Legacy tokens — still referenced by
+     HomePage.css, Dashboard.css, Aside.css,
+     Header.css. Kept until those files are
+     migrated to the new tokens above.
+  ───────────────────────────────────────── */
   --purple-main: #7c3aed;
   --purple-light: #a78bfa;
   --purple-dark: #5b21b6;
@@ -17,101 +72,46 @@
   --border-soft: #e5e7eb;
   --primary-color: #7c3aed;
 
-  /* Inter → DM Sans (closest available) */
-  --app-planessential-com-inter-medium-font-family: 'DM Sans', sans-serif;
-
-  /* Noto Sans Khmer weights */
-  --app-planessential-com-noto-sans-khmer-bold-font-family: 'Noto Sans Khmer', sans-serif;
-  --app-planessential-com-noto-sans-khmer-medium-font-family: 'Noto Sans Khmer', sans-serif;
-  --app-planessential-com-noto-sans-khmer-regular-font-family: 'Noto Sans Khmer', sans-serif;
-  --app-planessential-com-noto-sans-khmer-regular-underline-font-family: 'Noto Sans Khmer', sans-serif;
-  --app-planessential-com-noto-sans-khmer-semibold-font-family: 'Noto Sans Khmer', sans-serif;
-
-  /* SF Pro → DM Sans fallback */
-  --apple-com-SF-pro-bold-font-family: 'DM Sans', sans-serif;
-  --apple-com-SF-pro-regular-font-family: 'DM Sans', sans-serif;
-  --apple-com-SF-pro-regular-underline-font-family: 'DM Sans', sans-serif;
-  --apple-com-SF-pro-semibold-font-family: 'DM Sans', sans-serif;
-
-  /* Metal → DM Sans fallback */
-  --planessential-com-metal-regular-font-family: 'DM Sans', sans-serif;
-
-  /* Montserrat */
-  --planessential-com-montserrat-bold-font-family: 'Montserrat', sans-serif;
-  --planessential-com-montserrat-medium-font-family: 'Montserrat', sans-serif;
-  --planessential-com-montserrat-regular-font-family: 'Montserrat', sans-serif;
-  --planessential-com-montserrat-regular-strikethrough-font-family: 'Montserrat', sans-serif;
-
-  /* Moulpali → Noto Sans Khmer fallback */
-  --planessential-com-moulpali-regular-font-family: 'Noto Sans Khmer', sans-serif;
-
-  /* Theme colors (light) */
-  --color-primary: #7033ff;
-  --color-primary-foreground: #ffffff;
   --color-secondary: #edf0f4;
   --color-secondary-foreground: #080808;
-  --color-accent: #e2ebff;
-  --color-accent-foreground: #1e69dc;
   --color-background: #fdfdfd;
   --color-foreground: #000000;
   --color-card: #fdfdfd;
   --color-card-foreground: #000000;
-  --color-popover: #fcfcfc;
-  --color-popover-foreground: #000000;
   --color-muted: #f5f5f5;
   --color-muted-foreground: #525252;
   --color-destructive: #e54b4f;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e7e7ee;
-  --color-input: #ebebeb;
-  --color-ring: #000000;
-  --color-chart-1: #4ac885;
-  --color-chart-2: #7033ff;
-  --color-chart-3: #fd822b;
-  --color-chart-4: #3276e4;
-  --color-chart-5: #747474;
   --color-sidebar: #f5f8fb;
-  --color-sidebar-foreground: #000000;
-  --color-sidebar-primary: #000000;
-  --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #ebebeb;
-  --color-sidebar-accent-foreground: #000000;
-  --color-sidebar-border: #ebebeb;
-  --color-sidebar-ring: #000000;
+}
 
-  /* Theme colors (dark) */
-  --color-dark-primary: #8c5cff;
-  --color-dark-primary-foreground: #ffffff;
-  --color-dark-secondary: #2a2c33;
-  --color-dark-secondary-foreground: #f0f0f0;
-  --color-dark-accent: #1e293b;
-  --color-dark-accent-foreground: #79c0ff;
-  --color-dark-background: #1a1b1e;
-  --color-dark-foreground: #f0f0f0;
-  --color-dark-card: #222327;
-  --color-dark-card-foreground: #f0f0f0;
-  --color-dark-popover: #222327;
-  --color-dark-popover-foreground: #f0f0f0;
-  --color-dark-muted: #2a2c33;
-  --color-dark-muted-foreground: #a0a0a0;
-  --color-dark-destructive: #f87171;
-  --color-dark-destructive-foreground: #ffffff;
-  --color-dark-border: #33353a;
-  --color-dark-input: #33353a;
-  --color-dark-ring: #8c5cff;
-  --color-dark-chart-1: #4ade80;
-  --color-dark-chart-2: #8c5cff;
-  --color-dark-chart-3: #fca5a5;
-  --color-dark-chart-4: #5993f4;
-  --color-dark-chart-5: #a0a0a0;
-  --color-dark-sidebar: #161618;
-  --color-dark-sidebar-foreground: #f0f0f0;
-  --color-dark-sidebar-primary: #8c5cff;
-  --color-dark-sidebar-primary-foreground: #ffffff;
-  --color-dark-sidebar-accent: #2a2c33;
-  --color-dark-sidebar-accent-foreground: #8c5cff;
-  --color-dark-sidebar-border: #33353a;
-  --color-dark-sidebar-ring: #8c5cff;
+/* ── Dark mode overrides ── */
+:root[data-theme="dark"] {
+  /* Surfaces */
+  --color-bg: #0f1020;
+  --color-surface: #1a1a2e;
+  --color-surface-elevated: rgba(255, 255, 255, 0.08);
+  --color-border: rgba(255, 255, 255, 0.1);
+
+  /* Text */
+  --color-text: #f5f5f7;
+  --color-text-muted: #a0a0b0;
+
+  /* Glass — re-tinted for dark backgrounds */
+  --glass-bg: rgba(26, 26, 46, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ─────────────────────────────────────────
+   Glass utility
+───────────────────────────────────────── */
+.glass {
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 /* ── Base ── */
@@ -128,7 +128,9 @@ body {
 }
 
 body {
-  font-family: 'Noto Sans Khmer', 'DM Sans', sans-serif;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -145,6 +147,28 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-main);
-  color: var(--text-main);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* ── Dashboard layout with aside ── */
+.app-layout-with-aside {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-layout-with-aside .aside {
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+.app-main-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 100vh;
+  background: var(--color-bg);
 }
