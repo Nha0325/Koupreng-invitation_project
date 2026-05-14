@@ -1,10 +1,3 @@
----
-
-## 🖥️ System Info
-
-![System Info](./frontend/public/neofetch.svg)
----
-
 # Koupreng Invitation Project
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/Nha0325/Koupreng-invitation_project?color=blue)
@@ -62,7 +55,7 @@ ssh -T git@github.com
 ### ៤. Push Code
 
 ```bash
-git push -u origin main
+git push -u Nha0325 main
 ```
 
 ✅ Code ទៅដល់ GitHub ជោគជ័យ **"Everything up-to-date"**
@@ -72,7 +65,7 @@ git push -u origin main
 ## 🚀 Git Workflow — Every Time You Write Code
 
 ```bash
-git add . && git commit -m "Debug all Frontend pages." && git push
+git add . && git commit -m "Debug all Frontend pages." && git push -u origin main
 ```
 
 > 💡 No password needed — SSH handles it automatically!

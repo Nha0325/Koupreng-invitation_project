@@ -34,3 +34,4 @@ Thumbs.db
 # Local runtime
 .run-logs/
 .mysql-data*/
+node_modules

@@ -1,0 +1,2302 @@
+មេរៀន React JSX + Hooks (ភាសាខ្មែរ)
+React គឺអ្វី?
+
+React គឺជា JavaScript Library សម្រាប់បង្កើត UI (User Interface)។
+
+React ប្រើ:
+
+Components
+JSX
+Props
+State
+Hooks
+1. JSX គឺអ្វី?
+
+JSX = JavaScript + HTML
+
+យើងសរសេរ HTML នៅក្នុង JavaScript។
+
+Example JSX
+function App() {
+  return (
+    <div>
+      <h1>Hello React</h1>
+      <p>Welcome JSX</p>
+    </div>
+  );
+}
+JSX Rules
+1. ត្រូវមាន Parent Element មួយ
+
+❌ Wrong
+
+return (
+  <h1>Hello</h1>
+  <p>Text</p>
+)
+
+✅ Correct
+
+return (
+  <div>
+    <h1>Hello</h1>
+    <p>Text</p>
+  </div>
+)
+
+ឬ
+
+return (
+  <>
+    <h1>Hello</h1>
+    <p>Text</p>
+  </>
+)
+
+React Fragment:
+
+<>
+</>
+2. class → className
+
+❌
+
+<div class="box">
+
+✅
+
+<div className="box">
+3. JavaScript ក្នុង JSX
+
+ប្រើ {}
+
+function App() {
+  const name = "Dara";
+
+  return <h1>Hello {name}</h1>;
+}
+2. Component
+
+Component = UI តូចៗ
+
+Example
+function Header() {
+  return <h1>My Website</h1>;
+}
+
+export default Header;
+
+ប្រើ:
+
+<Header />
+3. Props
+
+Props = Data ពី Parent → Child
+
+Example
+function User(props) {
+  return <h1>{props.name}</h1>;
+}
+
+function App() {
+  return <User name="Dara" />;
+}
+4. State
+
+State = Data ដែលអាចផ្លាស់ប្តូរ
+
+React rerender ពេល state ផ្លាស់ប្តូរ។
+
+5. Hooks
+
+Hooks = Functions ពិសេសរបស់ React
+
+Hook ចាប់ផ្តើមដោយ use
+
+Example:
+
+useState()
+useEffect()
+useRef()
+Rules of Hooks
+ត្រូវប្រើ Hook:
+
+✅ Top level only
+
+❌ មិនប្រើក្នុង:
+
+loop
+if
+function inside
+IMPORTANT HOOKS LESSON
+1. useState
+
+ប្រើសម្រាប់:
+
+Counter
+Form
+Toggle
+Input
+Syntax
+const [state, setState] = useState(initialValue);
+Example Counter
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <h1>{count}</h1>
+
+      <button onClick={() => setCount(count + 1)}>
+        Add
+      </button>
+    </div>
+  );
+}
+When to use useState?
+
+ប្រើពេល:
+
+UI data ផ្លាស់ប្តូរ
+rerender screen
+form values
+modal open/close
+loading state
+2. useEffect
+
+ប្រើ Side Effects
+
+Side Effect មាន:
+API fetch
+Timer
+Event listener
+localStorage
+subscribe
+Syntax
+useEffect(() => {
+
+}, []);
+Example API Fetch
+import { useEffect, useState } from "react";
+
+function Users() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then(res => res.json())
+      .then(data => setUsers(data));
+  }, []);
+
+  return (
+    <div>
+      {users.map(user => (
+        <p key={user.id}>{user.name}</p>
+      ))}
+    </div>
+  );
+}
+Dependency Array
+[]
+
+Run only once
+
+useEffect(() => {
+
+}, []);
+[count]
+
+Run when count change
+
+useEffect(() => {
+  console.log(count);
+}, [count]);
+Cleanup Function
+
+ប្រើសម្រាប់ clear:
+
+timer
+listener
+subscription
+useEffect(() => {
+  const timer = setInterval(() => {
+    console.log("run");
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, []);
+When to use useEffect?
+
+✅ API
+✅ Fetch Data
+✅ Timer
+✅ DOM Event
+✅ localStorage
+✅ WebSocket
+
+❌ មិនប្រើសម្រាប់:
+
+normal calculation
+derived state
+3. useRef
+
+ប្រើ:
+
+Access DOM
+Store mutable value
+No rerender
+Example Focus Input
+import { useRef } from "react";
+
+function App() {
+  const inputRef = useRef();
+
+  function focusInput() {
+    inputRef.current.focus();
+  }
+
+  return (
+    <div>
+      <input ref={inputRef} />
+
+      <button onClick={focusInput}>
+        Focus
+      </button>
+    </div>
+  );
+}
+When useRef?
+
+✅ Focus input
+✅ Scroll element
+✅ Video control
+✅ Timer ID
+✅ Previous value
+
+4. useContext
+
+ប្រើ Global Data
+
+ជៀសវាង:
+
+prop drilling
+Example
+Create Context
+import { createContext } from "react";
+
+export const ThemeContext = createContext();
+Provider
+<ThemeContext.Provider value="dark">
+  <App />
+</ThemeContext.Provider>
+Use Context
+import { useContext } from "react";
+
+const theme = useContext(ThemeContext);
+When useContext?
+
+✅ Theme
+✅ User Login
+✅ Language
+✅ Auth
+
+5. useReducer
+
+ប្រើ state logic ស្មុគស្មាញ
+
+Syntax
+const [state, dispatch] = useReducer(reducer, initialState);
+Example
+import { useReducer } from "react";
+
+function reducer(state, action) {
+  switch(action.type) {
+    case "increment":
+      return { count: state.count + 1 };
+
+    case "decrement":
+      return { count: state.count - 1 };
+
+    default:
+      return state;
+  }
+}
+
+function App() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
+
+  return (
+    <div>
+      <h1>{state.count}</h1>
+
+      <button onClick={() => dispatch({ type: "increment" })}>
+        +
+      </button>
+    </div>
+  );
+}
+When useReducer?
+
+✅ Complex state
+✅ Multiple actions
+✅ Shopping cart
+✅ Big forms
+
+useState vs useReducer
+useState	useReducer
+Simple	Complex
+Small state	Big logic
+Easy	Organized
+6. useMemo
+
+Cache calculation
+
+Problem
+
+Heavy calculation rerender every time
+
+Example
+import { useMemo, useState } from "react";
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  const expensive = useMemo(() => {
+    return count * 1000;
+  }, [count]);
+
+  return (
+    <div>
+      <h1>{expensive}</h1>
+    </div>
+  );
+}
+When useMemo?
+
+✅ Expensive calculation
+✅ Filter large list
+✅ Performance optimize
+
+❌ កុំប្រើគ្រប់ទីកន្លែង
+
+7. useCallback
+
+Cache function
+
+Example
+import { useCallback } from "react";
+
+const handleClick = useCallback(() => {
+  console.log("click");
+}, []);
+When useCallback?
+
+✅ Prevent rerender child
+✅ Optimization
+✅ Pass function prop
+
+8. useLayoutEffect
+
+ដូច useEffect តែ run មុន browser paint
+
+When useLayoutEffect?
+
+✅ Measure DOM
+✅ Prevent flicker
+✅ Animation
+
+❌ ប្រើច្រើនអាចយឺត
+
+9. useId
+
+Generate unique id
+
+const id = useId();
+When useId?
+
+✅ Accessibility
+✅ Form labels
+
+10. useTransition
+
+UI មិន lag
+
+const [isPending, startTransition] = useTransition();
+When useTransition?
+
+✅ Search
+✅ Heavy UI update
+✅ Big list rendering
+
+11. useDeferredValue
+
+Delay update
+
+const deferredValue = useDeferredValue(value);
+When useDeferredValue?
+
+✅ Search optimization
+✅ Slow rendering
+
+12. useImperativeHandle
+
+Customize ref
+
+ប្រើជាមួយ:
+
+forwardRef()
+13. useDebugValue
+
+Debug custom hook
+
+Example
+useDebugValue("Online");
+14. useSyncExternalStore
+
+Connect external store
+
+Example:
+
+Redux
+Zustand
+Browser API
+15. useActionState (React 19)
+
+React action state management
+
+When useActionState?
+
+✅ Form action
+✅ Async update
+✅ Server Actions
+
+16. useOptimistic
+
+Optimistic UI
+
+UI update មុន server response
+
+Example
+const [optimistic, setOptimistic] = useOptimistic(data);
+17. Custom Hook
+
+បង្កើត Hook ខ្លួនឯង
+
+Example
+function useCounter() {
+  const [count, setCount] = useState(0);
+
+  function increment() {
+    setCount(c => c + 1);
+  }
+
+  return { count, increment };
+}
+
+ប្រើ:
+
+const { count, increment } = useCounter();
+Hook Flow Understanding
+User Click
+   ↓
+State Change
+   ↓
+Component Rerender
+   ↓
+UI Update
+Most Used Hooks in Real Projects
+Beginner
+useState
+useEffect
+useRef
+Intermediate
+useContext
+useReducer
+useMemo
+useCallback
+Advanced
+useTransition
+useDeferredValue
+useOptimistic
+useActionState
+Best Practice
+
+✅ Keep component small
+✅ Reuse custom hooks
+✅ Avoid unnecessary rerender
+✅ Use useEffect correctly
+✅ Never mutate state directly
+
+Wrong
+state.name = "Dara";
+Correct
+setState({
+  ...state,
+  name: "Dara"
+});
+React Learning Roadmap
+Step 1
+
+Learn:
+
+JSX
+Components
+Props
+State
+Step 2
+
+Learn:
+
+useState
+useEffect
+Event handling
+Step 3
+
+Learn:
+
+API fetch
+Forms
+Lists
+Conditional rendering
+Step 4
+
+Learn:
+
+Context
+Reducer
+Custom Hooks
+Step 5
+
+Learn:
+
+Performance hooks
+React Router
+API libraries
+JSX Conditional Rendering
+{isLogin ? <Home /> : <Login />}
+Render List
+users.map(user => (
+  <p key={user.id}>{user.name}</p>
+))
+Event Handling
+<button onClick={handleClick}>
+  Click
+</button>
+Form Input
+const [name, setName] = useState("");
+
+<input
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+/>
+Final Summary
+Hook	Use For
+useState	state
+useEffect	side effects
+useRef	DOM ref
+useContext	global data
+useReducer	complex state
+useMemo	cache value
+useCallback	cache function
+useTransition	smooth UI
+useOptimistic	optimistic update
+useActionState	async action
+Important React Mental Model
+
+React = UI from State
+
+State Change
+↓
+React rerender
+↓
+UI update
+Practice Projects
+Counter App
+Todo App
+Weather App
+Notes App
+Shopping Cart
+Chat App
+Dashboard
+Recommended Learn Order
+JSX
+Components
+Props
+useState
+Event
+useEffect
+API
+useRef
+useContext
+useReducer
+Custom Hook
+Optimization Hooks
+
+បើអ្នកចង់ ខ្ញុំអាចបន្តបង្រៀន:
+
+React Folder Structure
+Full React Project Khmer
+React + API
+React + Node.js
+React + Spring Boot
+React Router
+Redux Toolkit
+Next.js
+React Interview Questions
+React Exercises Khmer
+Full Hooks Deep Dive
+React 19 New Features
+Vite + React Setup
+Tailwind CSS + React
+=================================================================
+
+Full React Course Khmer 🇰🇭
+From Beginner → Advanced
+
+React + JSX + Hooks + API + Router + Redux + Next.js + Tailwind + Backend
+
+COURSE ROADMAP
+1. JavaScript ES6
+2. React Basics
+3. JSX
+4. Components
+5. Props
+6. State
+7. Hooks
+8. Forms
+9. API Fetch
+10. React Router
+11. Project Structure
+12. Context API
+13. Redux Toolkit
+14. Authentication
+15. Tailwind CSS
+16. React + Node.js
+17. React + Spring Boot
+18. Next.js
+19. React Performance
+20. React 19 Features
+21. Full Projects
+22. Interview Questions
+PART 1 — JavaScript ES6 For React
+
+Before React you MUST know modern JavaScript.
+
+1. let vs const
+let age = 20;
+age = 25;
+
+const name = "Dara";
+Use:
+const → default
+let → change value
+2. Arrow Function
+function add(a, b) {
+  return a + b;
+}
+
+Modern:
+
+const add = (a, b) => a + b;
+3. Template String
+const name = "Dara";
+
+console.log(`Hello ${name}`);
+4. Destructuring
+const user = {
+  name: "Dara",
+  age: 20
+};
+
+const { name, age } = user;
+5. Spread Operator
+const user = {
+  name: "Dara"
+};
+
+const newUser = {
+  ...user,
+  age: 20
+};
+6. map()
+
+VERY IMPORTANT IN REACT
+
+const users = ["A", "B", "C"];
+
+users.map(user => console.log(user));
+PART 2 — React Setup
+Install Node.js
+
+Need:
+
+Node.js
+npm
+Create React App with Vite
+
+Vite
+
+Install
+npm create vite@latest
+
+Choose:
+
+React
+JavaScript
+Run Project
+cd my-app
+npm install
+npm run dev
+Project Structure
+src/
+ ├── components/
+ ├── pages/
+ ├── hooks/
+ ├── services/
+ ├── context/
+ ├── redux/
+ ├── App.jsx
+ └── main.jsx
+PART 3 — JSX
+JSX = HTML inside JavaScript
+function App() {
+  return <h1>Hello React</h1>;
+}
+JSX Rules
+One parent element
+<>
+  <h1>Hello</h1>
+  <p>Text</p>
+</>
+JavaScript inside JSX
+const name = "Dara";
+
+<h1>{name}</h1>
+Conditional Rendering
+{isLogin ? <Home /> : <Login />}
+Render List
+users.map(user => (
+  <p key={user.id}>{user.name}</p>
+))
+PART 4 — Components
+Component = Reusable UI
+function Button() {
+  return <button>Click</button>;
+}
+
+Use:
+
+<Button />
+Props
+function User({ name }) {
+  return <h1>{name}</h1>;
+}
+
+<User name="Dara" />
+PART 5 — useState
+
+MOST IMPORTANT HOOK
+
+React hook:
+useState
+
+What is State?
+
+Data changing in UI
+
+Examples:
+
+counter
+input
+modal
+login
+Syntax
+const [count, setCount] = useState(0);
+Counter Example
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <h1>{count}</h1>
+
+      <button onClick={() => setCount(count + 1)}>
+        Add
+      </button>
+    </div>
+  );
+}
+Form Input
+const [name, setName] = useState("");
+
+<input
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+/>
+PART 6 — Event Handling
+<button onClick={handleClick}>
+  Click
+</button>
+Event Object
+function handleChange(e) {
+  console.log(e.target.value);
+}
+PART 7 — useEffect
+Side Effects
+
+Examples:
+
+API fetch
+timer
+localStorage
+listener
+Syntax
+useEffect(() => {
+
+}, []);
+Fetch API Example
+import { useEffect, useState } from "react";
+
+function Users() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then(res => res.json())
+      .then(data => setUsers(data));
+  }, []);
+
+  return (
+    <div>
+      {users.map(user => (
+        <p key={user.id}>{user.name}</p>
+      ))}
+    </div>
+  );
+}
+Dependency Array
+Run once
+useEffect(() => {
+
+}, []);
+Run when value change
+useEffect(() => {
+
+}, [count]);
+Cleanup
+useEffect(() => {
+  const timer = setInterval(() => {
+    console.log("run");
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, []);
+PART 8 — useRef
+Access DOM
+const ref = useRef();
+Focus Input
+import { useRef } from "react";
+
+function App() {
+  const inputRef = useRef();
+
+  return (
+    <div>
+      <input ref={inputRef} />
+
+      <button onClick={() => inputRef.current.focus()}>
+        Focus
+      </button>
+    </div>
+  );
+}
+PART 9 — useContext
+Global State
+
+Avoid:
+
+prop drilling
+Create Context
+import { createContext } from "react";
+
+export const ThemeContext = createContext();
+Provider
+<ThemeContext.Provider value="dark">
+  <App />
+</ThemeContext.Provider>
+Use Context
+const theme = useContext(ThemeContext);
+PART 10 — useReducer
+
+Complex State Logic
+
+Syntax
+const [state, dispatch] = useReducer(reducer, initialState);
+Example
+function reducer(state, action) {
+  switch(action.type) {
+    case "add":
+      return {
+        count: state.count + 1
+      };
+
+    default:
+      return state;
+  }
+}
+PART 11 — Custom Hook
+Reusable Logic
+function useCounter() {
+  const [count, setCount] = useState(0);
+
+  function increment() {
+    setCount(c => c + 1);
+  }
+
+  return { count, increment };
+}
+PART 12 — React Router
+
+React Router
+
+Install
+npm install react-router-dom
+Setup
+import {
+  BrowserRouter,
+  Routes,
+  Route
+} from "react-router-dom";
+Example
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/about" element={<About />} />
+  </Routes>
+</BrowserRouter>
+Link
+<Link to="/about">
+  About
+</Link>
+useNavigate
+const navigate = useNavigate();
+
+navigate("/home");
+URL Params
+<Route path="/user/:id" />
+
+Get param:
+
+const { id } = useParams();
+PART 13 — API Handling
+Fetch
+fetch(url)
+Axios
+
+Axios
+
+Install:
+
+npm install axios
+Example
+import axios from "axios";
+
+const res = await axios.get("/users");
+API Folder Structure
+services/
+ ├── userService.js
+ ├── authService.js
+Example Service
+import axios from "axios";
+
+export const getUsers = () => {
+  return axios.get("/api/users");
+};
+PART 14 — Authentication
+Login Flow
+Login
+ ↓
+JWT Token
+ ↓
+Store token
+ ↓
+Protected Route
+Store Token
+localStorage.setItem("token", token);
+Protected Route
+if (!token) {
+  return <Navigate to="/login" />;
+}
+PART 15 — Tailwind CSS
+
+Tailwind CSS
+
+Install
+npm install tailwindcss @tailwindcss/vite
+Example
+<button className="bg-blue-500 text-white p-2 rounded">
+  Click
+</button>
+Common Tailwind
+Class	Meaning
+p-4	padding
+m-4	margin
+flex	display flex
+grid	display grid
+text-center	center text
+rounded	border radius
+PART 16 — Redux Toolkit
+
+Redux Toolkit
+
+Install
+npm install @reduxjs/toolkit react-redux
+Store
+import { configureStore } from "@reduxjs/toolkit";
+
+export const store = configureStore({
+  reducer: {}
+});
+Slice
+import { createSlice } from "@reduxjs/toolkit";
+
+const counterSlice = createSlice({
+  name: "counter",
+
+  initialState: {
+    value: 0
+  },
+
+  reducers: {
+    increment: (state) => {
+      state.value += 1;
+    }
+  }
+});
+useSelector
+const count = useSelector(state => state.counter.value);
+useDispatch
+dispatch(increment());
+PART 17 — React Performance
+useMemo
+
+Cache calculation
+
+const value = useMemo(() => {
+  return expensive();
+}, []);
+useCallback
+
+Cache function
+
+const handleClick = useCallback(() => {
+
+}, []);
+React.memo
+
+Prevent rerender
+
+export default React.memo(Component);
+PART 18 — React 19 Hooks
+
+New hooks in React 19:
+
+useActionState
+useOptimistic
+useOptimistic
+
+Fast UI update before server response
+
+const [optimistic, setOptimistic] =
+  useOptimistic(data);
+useActionState
+
+Async action state
+
+const [state, action, pending] =
+  useActionState(fn, initial);
+PART 19 — Next.js
+
+Next.js
+
+Why Next.js?
+
+✅ SSR
+✅ SEO
+✅ Routing
+✅ Fast
+✅ Fullstack
+
+Create Next.js App
+npx create-next-app@latest
+Page Example
+export default function Home() {
+  return <h1>Home</h1>;
+}
+API Route
+export async function GET() {
+  return Response.json({
+    message: "Hello"
+  });
+}
+PART 20 — React + Node.js
+
+Backend:
+Node.js + Express
+
+Express Server
+const express = require("express");
+
+const app = express();
+
+app.get("/users", (req, res) => {
+  res.json([
+    { id: 1, name: "Dara" }
+  ]);
+});
+
+app.listen(5000);
+React Fetch Backend
+useEffect(() => {
+  fetch("http://localhost:5000/users")
+    .then(res => res.json())
+    .then(data => console.log(data));
+}, []);
+PART 21 — React + Spring Boot
+
+Spring Boot
+
+Backend API
+@RestController
+public class UserController {
+
+  @GetMapping("/users")
+  public List<User> getUsers() {
+    return users;
+  }
+}
+React Frontend
+axios.get("http://localhost:8080/users");
+PART 22 — Full Real Project Structure
+src/
+ ├── api/
+ ├── assets/
+ ├── components/
+ ├── pages/
+ ├── hooks/
+ ├── layouts/
+ ├── routes/
+ ├── redux/
+ ├── services/
+ ├── context/
+ ├── utils/
+ └── App.jsx
+PART 23 — Interview Questions
+Q1: Difference between state and props?
+Props	State
+Parent pass	Component own
+Read only	Changeable
+Q2: What is Virtual DOM?
+
+React compares:
+
+Old DOM vs New DOM
+
+Then update only changed parts.
+
+Q3: Why use key in map?
+users.map(user => (
+  <p key={user.id}>{user.name}</p>
+))
+
+Need unique key for performance.
+
+Q4: Difference useEffect vs useLayoutEffect?
+useEffect	useLayoutEffect
+After paint	Before paint
+Normal use	DOM measure
+PART 24 — React Exercises
+Beginner
+Counter App
+Todo App
+Calculator
+Modal
+Accordion
+Intermediate
+Weather App
+CRUD App
+Notes App
+Movie App
+Chat UI
+Advanced
+Ecommerce
+Admin Dashboard
+Realtime Chat
+LMS System
+Banking App
+React Best Practices
+
+✅ Small components
+✅ Reusable hooks
+✅ Clean folder structure
+✅ Separate API logic
+✅ Avoid unnecessary rerender
+✅ Use environment variables
+✅ Never mutate state directly
+
+Wrong
+state.name = "Dara";
+Correct
+setState({
+  ...state,
+  name: "Dara"
+});
+FINAL REACT MENTAL MODEL
+State changes
+     ↓
+React rerender
+     ↓
+Virtual DOM compare
+     ↓
+Update real DOM
+     ↓
+UI updated
+Recommended Learning Order
+Beginner
+JavaScript
+JSX
+Components
+Props
+useState
+Events
+Intermediate
+useEffect
+API
+Forms
+Router
+Context
+Advanced
+Redux
+Custom Hooks
+Performance
+Next.js
+Fullstack React
+Final Advice
+
+Do NOT only read.
+
+Build projects:
+
+Todo
+Weather
+Notes
+Ecommerce
+Dashboard
+Chat App
+
+Practice everyday.
+
+React skill grows by:
+
+Building Projects
+NOT reading only
+====================================================================
+# មេរៀន React JSX + Hooks (ភាសាខ្មែរ)
+
+## React គឺអ្វី?
+
+React គឺជា JavaScript Library សម្រាប់បង្កើត UI (User Interface)។
+
+React ប្រើសម្រាប់:
+
+* Single Page Application
+* Dashboard
+* Admin System
+* Ecommerce
+* Chat App
+* Mobile App (React Native)
+
+React បង្កើតដោយ Facebook (Meta)
+
+---
+
+# JSX គឺអ្វី?
+
+JSX = JavaScript XML
+
+វាអនុញ្ញាតឱ្យយើងសរសេរ HTML នៅក្នុង JavaScript។
+
+Example:
+
+```jsx
+function App() {
+  return (
+    <div>
+      <h1>Hello React</h1>
+    </div>
+  );
+}
+```
+
+---
+
+# JSX Rules
+
+## 1. One Parent Element
+
+❌ Wrong
+
+```jsx
+return (
+  <h1>Hello</h1>
+  <p>Text</p>
+)
+```
+
+✅ Correct
+
+```jsx
+return (
+  <div>
+    <h1>Hello</h1>
+    <p>Text</p>
+  </div>
+)
+```
+
+ឬ Fragment
+
+```jsx
+return (
+  <>
+    <h1>Hello</h1>
+    <p>Text</p>
+  </>
+)
+```
+
+---
+
+## 2. class → className
+
+❌ Wrong
+
+```jsx
+<div class="box">
+```
+
+✅ Correct
+
+```jsx
+<div className="box">
+```
+
+---
+
+## 3. JavaScript Inside JSX
+
+ប្រើ {}
+
+```jsx
+const name = "Dara";
+
+<h1>{name}</h1>
+```
+
+---
+
+## 4. Conditional Rendering
+
+```jsx
+{isLogin ? <Home /> : <Login />}
+```
+
+---
+
+## 5. Render List
+
+```jsx
+users.map(user => (
+  <p key={user.id}>{user.name}</p>
+))
+```
+
+---
+
+# Components
+
+Component = UI តូចៗដែលអាច reuse បាន
+
+Example:
+
+```jsx
+function Header() {
+  return <h1>Header</h1>;
+}
+```
+
+Use:
+
+```jsx
+<Header />
+```
+
+---
+
+# Props
+
+Props = Data ពី Parent → Child
+
+Example:
+
+```jsx
+function User(props) {
+  return <h1>{props.name}</h1>;
+}
+
+<User name="Dara" />
+```
+
+Destructuring:
+
+```jsx
+function User({ name }) {
+  return <h1>{name}</h1>;
+}
+```
+
+---
+
+# State
+
+State = Data ដែលអាចផ្លាស់ប្តូរ
+
+React rerender ពេល state change
+
+---
+
+# Hooks
+
+Hooks = Functions ពិសេសរបស់ React
+
+Hooks ចាប់ផ្តើមដោយ use
+
+Examples:
+
+```jsx
+useState()
+useEffect()
+useRef()
+```
+
+---
+
+# Rules of Hooks
+
+✅ Use at top level
+
+❌ Do NOT use inside:
+
+* if
+* loop
+* nested function
+
+---
+
+# 1. useState
+
+ប្រើសម្រាប់ state management
+
+Syntax:
+
+```jsx
+const [count, setCount] = useState(0);
+```
+
+Example:
+
+```jsx
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <h1>{count}</h1>
+
+      <button onClick={() => setCount(count + 1)}>
+        Add
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+# useState When to Use?
+
+✅ Counter
+✅ Form Input
+✅ Modal Open/Close
+✅ Toggle
+✅ Loading State
+✅ Login State
+
+---
+
+# Updating Object State
+
+```jsx
+const [user, setUser] = useState({
+  name: "Dara",
+  age: 20
+});
+```
+
+Update:
+
+```jsx
+setUser({
+  ...user,
+  age: 21
+});
+```
+
+---
+
+# Updating Array State
+
+```jsx
+const [items, setItems] = useState([]);
+```
+
+Add Item:
+
+```jsx
+setItems([...items, "Book"]);
+```
+
+---
+
+# 2. useEffect
+
+Side Effects:
+
+* API fetch
+* Timer
+* localStorage
+* Event listener
+* WebSocket
+
+Syntax:
+
+```jsx
+useEffect(() => {
+
+}, []);
+```
+
+---
+
+# Dependency Array
+
+## Run Once
+
+```jsx
+useEffect(() => {
+
+}, []);
+```
+
+## Run When Value Change
+
+```jsx
+useEffect(() => {
+  console.log(count);
+}, [count]);
+```
+
+---
+
+# Fetch API Example
+
+```jsx
+import { useEffect, useState } from "react";
+
+function Users() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then(res => res.json())
+      .then(data => setUsers(data));
+  }, []);
+
+  return (
+    <div>
+      {users.map(user => (
+        <p key={user.id}>{user.name}</p>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+# Cleanup Function
+
+```jsx
+useEffect(() => {
+  const timer = setInterval(() => {
+    console.log("hello");
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, []);
+```
+
+---
+
+# useEffect When to Use?
+
+✅ Fetch API
+✅ Timer
+✅ Event Listener
+✅ localStorage
+✅ WebSocket
+
+❌ Do NOT use for normal calculation
+
+---
+
+# 3. useRef
+
+Purpose:
+
+* Access DOM
+* Store mutable value
+* No rerender
+
+Example:
+
+```jsx
+import { useRef } from "react";
+
+function App() {
+  const inputRef = useRef();
+
+  function focusInput() {
+    inputRef.current.focus();
+  }
+
+  return (
+    <div>
+      <input ref={inputRef} />
+
+      <button onClick={focusInput}>
+        Focus
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+# useRef When to Use?
+
+✅ Focus Input
+✅ Scroll Element
+✅ Video Control
+✅ Store Previous Value
+✅ Timer ID
+
+---
+
+# 4. useContext
+
+Global State Management
+
+Avoid prop drilling
+
+---
+
+# Create Context
+
+```jsx
+import { createContext } from "react";
+
+export const ThemeContext = createContext();
+```
+
+---
+
+# Provider
+
+```jsx
+<ThemeContext.Provider value="dark">
+  <App />
+</ThemeContext.Provider>
+```
+
+---
+
+# Use Context
+
+```jsx
+import { useContext } from "react";
+
+const theme = useContext(ThemeContext);
+```
+
+---
+
+# useContext When to Use?
+
+✅ Theme
+✅ Language
+✅ Auth User
+✅ Settings
+
+---
+
+# 5. useReducer
+
+Complex State Logic
+
+Syntax:
+
+```jsx
+const [state, dispatch] = useReducer(reducer, initialState);
+```
+
+---
+
+# Example
+
+```jsx
+import { useReducer } from "react";
+
+function reducer(state, action) {
+  switch(action.type) {
+    case "increment":
+      return {
+        count: state.count + 1
+      };
+
+    case "decrement":
+      return {
+        count: state.count - 1
+      };
+
+    default:
+      return state;
+  }
+}
+
+function App() {
+  const [state, dispatch] = useReducer(reducer, {
+    count: 0
+  });
+
+  return (
+    <div>
+      <h1>{state.count}</h1>
+
+      <button onClick={() => dispatch({ type: "increment" })}>
+        +
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+# useReducer When to Use?
+
+✅ Complex State
+✅ Shopping Cart
+✅ Big Forms
+✅ Multiple Actions
+
+---
+
+# useState vs useReducer
+
+| useState    | useReducer |
+| ----------- | ---------- |
+| Simple      | Complex    |
+| Easy        | Organized  |
+| Small State | Big Logic  |
+
+---
+
+# 6. useMemo
+
+Cache expensive calculations
+
+Example:
+
+```jsx
+import { useMemo } from "react";
+
+const value = useMemo(() => {
+  return expensiveCalculation();
+}, []);
+```
+
+---
+
+# useMemo When to Use?
+
+✅ Heavy Calculation
+✅ Filter Big List
+✅ Performance Optimization
+
+❌ Do NOT use everywhere
+
+---
+
+# 7. useCallback
+
+Cache function reference
+
+Example:
+
+```jsx
+import { useCallback } from "react";
+
+const handleClick = useCallback(() => {
+  console.log("click");
+}, []);
+```
+
+---
+
+# useCallback When to Use?
+
+✅ Prevent child rerender
+✅ Optimization
+✅ Pass function props
+
+---
+
+# 8. useLayoutEffect
+
+Run before browser paint
+
+Use for:
+
+* Measure DOM
+* Prevent flicker
+* Animation
+
+---
+
+# 9. useId
+
+Generate unique ID
+
+```jsx
+const id = useId();
+```
+
+Use for:
+
+* Accessibility
+* Form label
+
+---
+
+# 10. useTransition
+
+Prevent UI lag
+
+```jsx
+const [isPending, startTransition] = useTransition();
+```
+
+Use for:
+
+* Search
+* Big rendering
+* Slow UI updates
+
+---
+
+# 11. useDeferredValue
+
+Delay expensive updates
+
+```jsx
+const deferredValue = useDeferredValue(value);
+```
+
+---
+
+# 12. useImperativeHandle
+
+Customize ref behavior
+
+Use with:
+
+```jsx
+forwardRef()
+```
+
+---
+
+# 13. useDebugValue
+
+Debug custom hook
+
+```jsx
+useDebugValue("Online");
+```
+
+---
+
+# 14. useSyncExternalStore
+
+Connect external store
+
+Examples:
+
+* Redux
+* Zustand
+* Browser API
+
+---
+
+# 15. useActionState (React 19)
+
+Async action state management
+
+```jsx
+const [state, action, pending] =
+  useActionState(fn, initialState);
+```
+
+---
+
+# 16. useOptimistic
+
+Optimistic UI update
+
+Update UI before server response
+
+```jsx
+const [optimistic, setOptimistic] =
+  useOptimistic(data);
+```
+
+---
+
+# 17. Custom Hook
+
+Create reusable logic
+
+Example:
+
+```jsx
+function useCounter() {
+  const [count, setCount] = useState(0);
+
+  function increment() {
+    setCount(c => c + 1);
+  }
+
+  return {
+    count,
+    increment
+  };
+}
+```
+
+Use:
+
+```jsx
+const { count, increment } = useCounter();
+```
+
+---
+
+# Event Handling
+
+```jsx
+<button onClick={handleClick}>
+  Click
+</button>
+```
+
+---
+
+# Form Input Example
+
+```jsx
+const [name, setName] = useState("");
+
+<input
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+/>
+```
+
+---
+
+# React Router
+
+Install:
+
+```bash
+npm install react-router-dom
+```
+
+Example:
+
+```jsx
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/about" element={<About />} />
+  </Routes>
+</BrowserRouter>
+```
+
+---
+
+# Link Navigation
+
+```jsx
+<Link to="/about">
+  About
+</Link>
+```
+
+---
+
+# useNavigate
+
+```jsx
+const navigate = useNavigate();
+
+navigate("/home");
+```
+
+---
+
+# API Fetching
+
+## fetch()
+
+```jsx
+fetch("/users")
+```
+
+---
+
+# Axios
+
+Install:
+
+```bash
+npm install axios
+```
+
+Example:
+
+```jsx
+import axios from "axios";
+
+axios.get("/users");
+```
+
+---
+
+# Tailwind CSS
+
+Install:
+
+```bash
+npm install tailwindcss @tailwindcss/vite
+```
+
+Example:
+
+```jsx
+<button className="bg-blue-500 text-white p-2 rounded">
+  Click
+</button>
+```
+
+---
+
+# Redux Toolkit
+
+Install:
+
+```bash
+npm install @reduxjs/toolkit react-redux
+```
+
+---
+
+# Store Example
+
+```jsx
+import { configureStore } from "@reduxjs/toolkit";
+
+export const store = configureStore({
+  reducer: {}
+});
+```
+
+---
+
+# Next.js
+
+Create App:
+
+```bash
+npx create-next-app@latest
+```
+
+Benefits:
+
+* SSR
+* SEO
+* Fullstack
+* Fast Routing
+
+---
+
+# React Best Practices
+
+✅ Small Components
+✅ Reusable Hooks
+✅ Clean Folder Structure
+✅ Avoid Unnecessary Rerender
+✅ Use Environment Variables
+✅ Separate API Logic
+
+---
+
+# Wrong State Update
+
+```jsx
+state.name = "Dara";
+```
+
+---
+
+# Correct State Update
+
+```jsx
+setState({
+  ...state,
+  name: "Dara"
+});
+```
+
+---
+
+# React Mental Model
+
+```text
+State Change
+    ↓
+React Rerender
+    ↓
+Virtual DOM Compare
+    ↓
+Update Real DOM
+    ↓
+UI Updated
+```
+
+---
+
+# Practice Projects
+
+Beginner:
+
+1. Counter App
+2. Todo App
+3. Calculator
+4. Weather App
+5. Notes App
+
+Intermediate:
+6. CRUD App
+7. Ecommerce
+8. Movie App
+9. Dashboard
+10. Blog System
+
+Advanced:
+11. Realtime Chat
+12. LMS System
+13. Banking App
+14. Admin Panel
+15. Fullstack SaaS
+
+---
+
+# React Learning Order
+
+## Beginner
+
+1. JSX
+2. Components
+3. Props
+4. State
+5. useState
+6. Events
+
+## Intermediate
+
+7. useEffect
+8. API
+9. Forms
+10. Router
+11. Context
+12. Custom Hooks
+
+## Advanced
+
+13. Redux
+14. Performance Hooks
+15. Next.js
+16. Fullstack React
+17. React 19 Features
+
+---
+
+# Final Advice
+
+Do NOT only read.
+
+Build projects everyday.
+
+Best way to learn React:
+
+```text
+Learn
+  ↓
+Build
+  ↓
+Make mistakes
+  ↓
+Fix bugs
+  ↓
+Repeat
+```
+
