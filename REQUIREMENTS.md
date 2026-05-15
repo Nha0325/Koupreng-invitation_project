@@ -34,8 +34,26 @@ Run the setup script:
 .\setup.ps1
 ```
 
-This recreates the local files ignored by Git, including frontend `node_modules/` folders and `service/venv/`. It also downloads backend Maven dependencies.
-If `.env` does not exist, the script copies `.env.example` to `.env`.
+On Windows, this now performs the full first-run setup:
+
+- installs missing system tools with WinGet: JDK 25, Node.js LTS, Python 3.13, MySQL Server, Git, and Postman
+- installs Apache Maven from the official Apache archive when `mvn` is missing
+- recreates ignored local files such as frontend `node_modules/` folders and `service/venv/`
+- downloads backend Maven dependencies
+- creates `.env`, `frontend-user/.env`, and `frontend-admin/.env` from their templates when they do not exist
+- asks for MySQL credentials only when `.env` still contains placeholder values, then creates the local database automatically
+
+If you want to install project dependencies only and keep system tools manual, run:
+
+```powershell
+.\setup.ps1 -SkipToolInstall
+```
+
+If you want to skip automatic database creation:
+
+```powershell
+.\setup.ps1 -SkipDatabaseSetup
+```
 
 If PowerShell blocks the script, run:
 
@@ -63,7 +81,7 @@ To install only part of the project:
 
 ## Required Tools
 
-Install these before running `setup.ps1`:
+`setup.ps1` can install these automatically on Windows when they are missing:
 
 | Tool | Required version |
 | --- | --- |
@@ -74,6 +92,7 @@ Install these before running `setup.ps1`:
 | MySQL Server | 8.0+ recommended |
 | Git | Latest stable |
 | Postman | Latest stable |
+| Apache Maven | Latest stable |
 
 Check versions:
 
@@ -87,7 +106,9 @@ git --version
 mysql --version
 ```
 
-The backend Maven wrapper is already included, so team members do not need to install Maven separately.
+The backend Maven wrapper is already included, so the project can run without global Maven, but the setup script also installs Apache Maven so the machine is fully prepared for Java work.
+
+`setup.ps1` can install MySQL Server and create the database automatically. If `DB_USERNAME` or `DB_PASSWORD` still contains a placeholder value, the script asks for the local MySQL credentials and writes them into `.env` before creating the database.
 
 ## Java 25 Check
 
@@ -110,7 +131,7 @@ $env:Path="$env:JAVA_HOME\bin;$env:Path"
 
 ## MySQL Setup
 
-Create the local database:
+`setup.ps1` creates the local database automatically with:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS koupreng_db

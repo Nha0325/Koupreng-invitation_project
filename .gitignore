@@ -24,7 +24,6 @@ service/.env.*
 
 # IDE
 .idea/
-.vscode/
 *.iml
 
 # OS
