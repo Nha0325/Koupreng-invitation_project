@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       proxy: {
         '/api': {
-          target: backendBaseUrl,
+          target: backendBaseUrl, 
           changeOrigin: true,
         },
       },
