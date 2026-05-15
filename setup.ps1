@@ -316,20 +316,11 @@ function Use-Jdk25 {
     $env:JAVA_HOME = $jdkHome
     $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 
-<<<<<<< HEAD
-    try {
-        $mavenJavaVersion = (& "$env:JAVA_HOME\bin\java.exe" -version 2>&1) -join " "
-    } catch {
-        $mavenJavaVersion = "JDK 25 (version check failed)"
-    }
-    Write-Host "Using JAVA_HOME=$env:JAVA_HOME ($mavenJavaVersion)"
-=======
     $javaVersion = Get-CommandOutput (Join-Path $env:JAVA_HOME "bin\java.exe") @("-version")
     Write-Info "Using JAVA_HOME=$env:JAVA_HOME"
     Write-Info (($javaVersion -split "\r?\n")[0])
 
     return $jdkHome
->>>>>>> d994cd2 (refactor: resolve PSScriptAnalyzer warnings for unapproved verbs and plain text passwords in setup.ps1)
 }
 
 function Initialize-MavenToolchain {
@@ -958,7 +949,6 @@ if (-not $SkipFrontend) {
     Install-NpmDependencies -ProjectPath (Join-Path $ProjectRoot "frontend-user") -Label "frontend-user"
     Install-NpmDependencies -ProjectPath (Join-Path $ProjectRoot "frontend-admin") -Label "frontend-admin"
     Install-NpmDependencies -ProjectPath $ProjectRoot -Label "project root"
->>>>>>> d994cd2 (refactor: resolve PSScriptAnalyzer warnings for unapproved verbs and plain text passwords in setup.ps1)
 }
 
 if (-not $SkipService) {
