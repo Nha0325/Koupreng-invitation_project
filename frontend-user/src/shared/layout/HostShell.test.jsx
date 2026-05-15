@@ -3,44 +3,52 @@ import { render, screen } from "@testing-library/react";
 import { act } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import HostShell from "./HostShell";
+import { AuthContext } from "../../app/auth/AuthContext";
 import { toast } from "../ui/Toaster";
 
-/**
- * HostShell composes existing primitives (Header, Aside, PageTransition,
- * Toaster) and renders an `<Outlet />` for the matched child route. These
- * tests assert the structural composition without re-testing the primitives
- * themselves.
- */
+
 
 function ProtectedChild() {
     return <div data-testid="host-page">host page content</div>;
 }
 
+const fakeAuth = {
+    user: { id: "u1", name: "Demo Host" },
+    token: "tok",
+    status: "authenticated",
+    login: () => { },
+    logout: () => { },
+    refresh: async () => null,
+};
+
 function renderShell(initialEntry = "/app/dashboard") {
     return render(
-        <MemoryRouter initialEntries={[initialEntry]}>
-            <Routes>
-                <Route element={<HostShell />}>
-                    <Route
-                        path="/app/dashboard"
-                        element={<ProtectedChild />}
-                    />
-                </Route>
-            </Routes>
-        </MemoryRouter>,
+        <AuthContext.Provider value={fakeAuth}>
+            <MemoryRouter initialEntries={[initialEntry]}>
+                <Routes>
+                    <Route element={<HostShell />}>
+                        <Route
+                            path="/app/dashboard"
+                            element={<ProtectedChild />}
+                        />
+                    </Route>
+                </Routes>
+            </MemoryRouter>
+        </AuthContext.Provider>,
     );
 }
 
 describe("HostShell", () => {
-    it("renders the Header (logo) and Aside (primary nav landmark)", () => {
+    it("does not render the marketing Header inside the host shell", () => {
         renderShell();
 
-        // Header renders the Koupreng logo link.
+        // The marketing `<Header />` (Koupreng logo + Log in / Get Started CTAs)
+        // must NOT appear once the user is in the authenticated host area.
         expect(
-            screen.getByRole("link", { name: /koupreng/i }),
-        ).toBeInTheDocument();
+            screen.queryByRole("link", { name: /koupreng/i }),
+        ).not.toBeInTheDocument();
 
-        // Aside renders a primary navigation landmark.
+        // Aside still renders a primary navigation landmark.
         expect(
             screen.getByRole("navigation", { name: /primary navigation/i }),
         ).toBeInTheDocument();

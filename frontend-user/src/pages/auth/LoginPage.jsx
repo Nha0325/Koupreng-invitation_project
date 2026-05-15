@@ -1,7 +1,28 @@
 import { useId, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";
+import { useAuth } from "../../app/auth/useAuth";
+import authService from "../../shared/services/authService";
 import "./AuthPage.css";
+
+/**
+ * Resolve the post-login destination.
+ *
+ * `<RequireAuth />` redirects unauthenticated users to `/login?next=<path>`,
+ * url-encoding the original location so nested paths and query strings
+ * survive the round trip. We pull that out here, fall back to the host
+ * dashboard, and refuse to redirect off-site by requiring a leading `/`.
+ */
+function getNextPath(search) {
+  try {
+    const params = new URLSearchParams(search);
+    const next = params.get("next");
+    if (next && next.startsWith("/")) return next;
+  } catch {
+    // ignore malformed query strings; fall through to default
+  }
+  return "/app/dashboard";
+}
 
 const Login = () => {
   const emailId = useId();
@@ -9,12 +30,39 @@ const Login = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, togglePassword] = useToggle();
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/events");
+    if (submitting) return;
+
+    if (!identifier.trim() || !password) {
+      setError("សូមបំពេញគ្រប់ប្រអប់");
+      return;
+    }
+
+    setError("");
+    setSubmitting(true);
+    try {
+      // The form has one input for both email and phone, so we forward the
+      // value through the `email` field and let the in-memory store match
+      // either column.
+      const { accessToken, user } = await authService.login({
+        email: identifier.trim(),
+        password,
+      });
+      login({ accessToken, user });
+      navigate(getNextPath(location.search), { replace: true });
+    } catch (err) {
+      setError(err?.message || "មិនអាចចូលគណនីបានទេ");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -45,6 +93,7 @@ const Login = () => {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="បញ្ចូលលេខទូរស័ព្ទ ឬ អ៊ីមែល"
+              autoComplete="username"
               className="auth-input"
             />
           </div>
@@ -61,6 +110,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="បញ្ចូលលេខសម្ងាត់"
+                autoComplete="current-password"
                 className="auth-input"
               />
               <button
@@ -83,19 +133,21 @@ const Login = () => {
             </div>
           </div>
 
+          {error && <p className="auth-error-msg" role="alert">{error}</p>}
+
           {/* Submit */}
-          <button type="submit" className="auth-submit">
-            ចូលគណនី
+          <button type="submit" className="auth-submit" disabled={submitting}>
+            {submitting ? "កំពុងចូលគណនី..." : "ចូលគណនី"}
           </button>
         </form>
 
         {/* Divider */}
         <p className="auth-divider">ឬ បន្តជាមួយ</p>
 
-        {/* Social buttons */}
+        {/* Social buttons (UI-only placeholders) */}
         <div className="auth-socials">
           {/* Google */}
-          <button type="button" className="auth-social-btn google">
+          <button type="button" className="auth-social-btn google" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -106,7 +158,7 @@ const Login = () => {
           </button>
 
           {/* Telegram */}
-          <button type="button" className="auth-social-btn telegram">
+          <button type="button" className="auth-social-btn telegram" disabled>
             <svg width="16" height="16" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="12" fill="#0088cc" />
               <path d="M17.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.07-.18c-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.2 3.45-.49.34-.94.5-1.35.49-.45-.01-1.32-.26-1.96-.47-.79-.26-1.42-.39-1.37-.83.03-.22.33-.44.91-.68 3.56-1.55 5.94-2.58 7.12-3.07 3.39-1.41 4.1-1.65 4.56-1.66.1 0 .32.02.46.12.12.09.15.22.16.32.01.07.02.16.02.24z" fill="white" />
@@ -126,6 +178,11 @@ const Login = () => {
         <p className="auth-footer-text">
           មិនទាន់មានគណនីមែនទេ?{" "}
           <Link to="/register">ចុះឈ្មោះ</Link>
+        </p>
+
+        {/* Demo hint — UI-only mode */}
+        <p className="auth-footer-text" style={{ marginTop: "10px", opacity: 0.7 }}>
+          Demo: <code>demo@koupreng.com</code> / <code>demo1234</code>
         </p>
       </div>
     </div>

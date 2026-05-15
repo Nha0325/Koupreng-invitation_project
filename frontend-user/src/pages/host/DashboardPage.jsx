@@ -229,12 +229,12 @@ const UpcomingTasksCard = ({ events = [] }) => {
             <div key={i} className="db-list-item">
               <div
                 className={`db-list-item__strip ${t.dotClass?.includes("6b6bc4")
-                    ? "db-strip--purple"
-                    : t.dotClass?.includes("yellow")
-                      ? "db-strip--amber"
-                      : t.dotClass?.includes("green")
-                        ? "db-strip--green"
-                        : "db-strip--purple"
+                  ? "db-strip--purple"
+                  : t.dotClass?.includes("yellow")
+                    ? "db-strip--amber"
+                    : t.dotClass?.includes("green")
+                      ? "db-strip--green"
+                      : "db-strip--purple"
                   }`}
               />
               <div className="db-list-item__avatar db-avatar--task">

@@ -1,32 +1,51 @@
-import client from '../api/client';
+import { TOKEN_STORAGE_KEY } from "../api/client";
+import * as db from "./inMemoryDb";
 
 /**
- * User profile service.
+ * User profile service (UI-only mode).
  *
- * Calls against `/users/me`. Methods unwrap `response.data` so callers
- * receive the profile payload directly. Errors should be funneled through
- * `parseError` from `../api/errors.js` at the UI layer.
+ * Sibling of `authService` — talks to the in-memory store in `./inMemoryDb`
+ * instead of a real backend. Method shapes are preserved so callers
+ * (e.g. `AuthProvider.refresh()`) don't change.
  */
+
+function readToken() {
+    try {
+        if (typeof localStorage !== "undefined") {
+            return localStorage.getItem(TOKEN_STORAGE_KEY);
+        }
+    } catch {
+        // ignore
+    }
+    return null;
+}
+
 const userService = {
     /**
-     * GET `/users/me` — current authenticated user's profile.
+     * "GET /users/me" — current authenticated user's profile.
      *
      * @returns {Promise<object>}
      */
     async getMe() {
-        const response = await client.get('/users/me');
-        return response.data;
+        const token = readToken();
+        const user = db.getUserByToken(token);
+        if (!user) {
+            const err = new Error("មិនបានចូលគណនី");
+            err.code = "UNAUTHENTICATED";
+            throw err;
+        }
+        return user;
     },
 
     /**
-     * PUT `/users/me` — update the authenticated user's profile.
+     * "PUT /users/me" — update the authenticated user's profile.
      *
-     * @param {object} payload
+     * @param {{ name?: string, email?: string, phone?: string }} payload
      * @returns {Promise<object>}
      */
     async updateMe(payload) {
-        const response = await client.put('/users/me', payload);
-        return response.data;
+        const token = readToken();
+        return db.updateUser(token, payload);
     },
 };
 

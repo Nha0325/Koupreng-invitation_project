@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../app/auth/useAuth";
 import "./Aside.css";
 
 /* ── SVG Icons ── */
@@ -70,19 +71,19 @@ const Icons = {
   ),
 };
 
+/**
+ * Primary host nav. Paths are absolute (`/app/*`) to match the routes
+ * declared in `app/router.jsx`. The previous version used unprefixed paths
+ * (`/dashboard`, `/guests`, …) which silently fell through to the marketing
+ * 404 — fixed here so the sidebar actually navigates inside the host shell.
+ */
 const primaryNavItems = [
-  { id: "dashboard", label: "ផ្ទាំងព័ត៌មាន", icon: Icons.dashboard, iconClass: "icon-purple", badge: null, path: "/dashboard" },
-  { id: "guests", label: "បញ្ជីភ្ញៀវ", icon: Icons.guests, iconClass: "icon-purple", badge: "248", path: "/guests" },
-  { id: "expenses", label: "ចំណាយ", icon: Icons.expenses, iconClass: "icon-green", badge: null, path: "/expenses" },
-  { id: "gifts", label: "ចំណងដៃ", icon: Icons.gifts, iconClass: "icon-orange", badge: "12", path: "/gifts" },
-  { id: "templates", label: "គម្រូធៀប", icon: Icons.templates, iconClass: "icon-fuchsia", badge: null, path: "/templates" },
-  { id: "add-template", label: "បន្ថែមគំរូ", icon: Icons.addTemplate, iconClass: "icon-rose", badge: null, path: "/add-template" },
-];
-
-const secondaryNavItems = [
-  { id: "settings", label: "ការកំណត់", icon: Icons.settings, iconClass: "icon-slate", path: "/settings" },
-  { id: "help", label: "ជំនួយ", icon: Icons.help, iconClass: "icon-slate", path: null },
-  { id: "logout", label: "ចាកចេញ", icon: Icons.logout, iconClass: "icon-slate", path: "/login" },
+  { id: "dashboard", label: "ផ្ទាំងព័ត៌មាន", icon: Icons.dashboard, iconClass: "icon-purple", badge: null, path: "/app/dashboard" },
+  { id: "guests", label: "បញ្ជីភ្ញៀវ", icon: Icons.guests, iconClass: "icon-purple", badge: "248", path: "/app/guests" },
+  { id: "expenses", label: "ចំណាយ", icon: Icons.expenses, iconClass: "icon-green", badge: null, path: "/app/expenses" },
+  { id: "gifts", label: "ចំណងដៃ", icon: Icons.gifts, iconClass: "icon-orange", badge: "12", path: "/app/gifts" },
+  { id: "templates", label: "គម្រូធៀប", icon: Icons.templates, iconClass: "icon-fuchsia", badge: null, path: "/app/templates" },
+  { id: "add-template", label: "បន្ថែមគំរូ", icon: Icons.addTemplate, iconClass: "icon-rose", badge: null, path: "/app/templates/new" },
 ];
 
 const NavItem = ({ item, active, onClick }) => {
@@ -103,13 +104,35 @@ const NavItem = ({ item, active, onClick }) => {
       <span className="aside-nav-chevron">{Icons.chevronRight}</span>
     </button>
   );
-}
+};
 
 const Aside = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
+
+  // Secondary nav items are derived inside the component so the logout entry
+  // can capture `logout` and `navigate` from this scope.
+  const secondaryNavItems = [
+    { id: "settings", label: "ការកំណត់", icon: Icons.settings, iconClass: "icon-slate", path: "/app/settings" },
+    { id: "help", label: "ជំនួយ", icon: Icons.help, iconClass: "icon-slate", path: null },
+    {
+      id: "logout",
+      label: "ចាកចេញ",
+      icon: Icons.logout,
+      iconClass: "icon-slate",
+      onClick: () => {
+        logout();
+        navigate("/login", { replace: true });
+      },
+    },
+  ];
 
   const handleNav = (item) => {
+    if (typeof item.onClick === "function") {
+      item.onClick();
+      return;
+    }
     if (item.path) navigate(item.path);
   };
 

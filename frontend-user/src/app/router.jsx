@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "./auth/RequireAuth";
 import HostShell from "../shared/layout/HostShell";
 import MarketingShell from "../shared/layout/MarketingShell";
+import AuthShell from "../shared/layout/AuthShell";
 import InvitationShell from "../shared/layout/InvitationShell";
 import Spinner from "../shared/ui/Spinner";
 
@@ -10,10 +11,11 @@ import Spinner from "../shared/ui/Spinner";
  * Application router.
  *
  * Implements the design's Routing Map exactly. The route tree is built from
- * three layout routes — `<MarketingShell>`, `<RequireAuth><HostShell>`, and
- * `<InvitationShell>` — which give each audience its own chrome (full marketing
- * header, authenticated host shell, or no chrome at all) without each page
- * having to re-declare it.
+ * four layout routes — `<MarketingShell>` (homepage only), `<AuthShell>`
+ * (login / register / password flows / 404), `<RequireAuth><HostShell>`,
+ * and `<InvitationShell>` — which give each audience its own chrome
+ * (marketing header, bare auth canvas, authenticated host shell, or no
+ * chrome at all) without each page having to re-declare it.
  *
  * Every page module is loaded with `React.lazy(...)` and the whole tree is
  * wrapped in a single top-level `<Suspense fallback={<Spinner />}>` so the
@@ -82,9 +84,16 @@ const AppRouter = () => {
         <BrowserRouter>
             <Suspense fallback={<SuspenseFallback />}>
                 <Routes>
-                    {/* ── Marketing / auth (public, header chrome) ── */}
+                    {/* ── Homepage (public, marketing header chrome) ── */}
                     <Route element={<MarketingShell />}>
                         <Route path="/" element={<HomePage />} />
+                    </Route>
+
+                    {/* ── Auth & 404 (public, no header chrome) ──
+                        These pages own their own full-page layouts, so they
+                        skip the marketing `<Header />` to keep the focus on
+                        the form / message. */}
+                    <Route element={<AuthShell />}>
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
                         <Route
@@ -95,8 +104,8 @@ const AppRouter = () => {
                             path="/reset-password"
                             element={<ResetPasswordPage />}
                         />
-                        {/* Catch-all 404 lives inside the marketing shell so
-                            visitors keep the header and can navigate home. */}
+                        {/* Catch-all 404 — header-less so an unknown deep link
+                            never flashes the marketing chrome. */}
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>
 

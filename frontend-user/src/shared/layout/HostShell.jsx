@@ -1,38 +1,21 @@
 import { Outlet } from "react-router-dom";
-import Header from "./Header";
 import Aside from "./Aside";
 import PageTransition from "../ui/PageTransition";
 import Toaster from "../ui/Toaster";
 
 /**
- * HostShell
+ * Authenticated host shell.
  *
- * Authenticated chrome for the Host App (`/app/*`). Composes the existing
- * `<Header />` and `<Aside />` primitives with a scrollable `<main>` that
- * renders the matched child route via react-router's `<Outlet />`, wrapped
- * in `<PageTransition>` so route changes animate.
- *
- * A `<Toaster />` is mounted at the shell level so any host page (or any
- * service called from inside the host tree, e.g. the auth-expired handler)
- * can raise non-blocking feedback without each page wiring its own.
- *
- * Layout structure:
- *   <Header />                                   ← fixed top bar (already self-spacing)
- *   <div class="app-layout-with-aside">          ← flex row
- *     <Aside />                                  ← sticky sidebar
- *     <main class="app-main-content">            ← scrollable region
- *       <PageTransition><Outlet /></PageTransition>
- *     </main>
- *   </div>
- *   <Toaster />                                  ← fixed-position toast portal
- *
- * The component takes no props; the surrounding `<Routes>` feeds the outlet.
- * Task 6.1 will wrap this shell in `<RequireAuth>` for the `/app/*` group.
+ * The marketing `<Header />` is intentionally NOT rendered here: once a user
+ * has logged in and entered `/app/*`, the sidebar (`<Aside />`) is the
+ * primary chrome and the marketing nav (Home / FAQs / Pricing / Get Started)
+ * would be redundant and visually noisy. The auth-aware "Open app" CTA on
+ * the marketing header still lets logged-in users jump back into the app
+ * from public pages.
  */
 const HostShell = () => {
     return (
         <>
-            <Header />
             <div className="app-layout-with-aside">
                 <Aside />
                 <main className="app-main-content">
