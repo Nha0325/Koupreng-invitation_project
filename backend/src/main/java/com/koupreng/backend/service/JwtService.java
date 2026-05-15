@@ -3,7 +3,7 @@ package com.koupreng.backend.service;
 import java.time.Duration;
 import java.time.Instant;
 
-import com.koupreng.backend.entity.AppUser;
+import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.config.AppProperties;
 
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -51,3 +51,4 @@ public class JwtService {
         return accessTokenTtl.toSeconds();
     }
 }
+

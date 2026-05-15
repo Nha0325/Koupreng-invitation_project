@@ -1,4 +1,4 @@
-package com.koupreng.backend.entity;
+package com.koupreng.backend.entity.user;
 
 import java.time.Instant;
 
@@ -14,8 +14,8 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "email_verification_tokens")
-public class EmailVerificationToken {
+@Table(name = "password_reset_tokens")
+public class PasswordResetToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,7 @@ public class EmailVerificationToken {
     private Instant createdAt;
 
     @PrePersist
-    void onCreate() {
+    public void onCreate() {
         createdAt = Instant.now();
     }
 
@@ -82,3 +82,4 @@ public class EmailVerificationToken {
         return createdAt;
     }
 }
+

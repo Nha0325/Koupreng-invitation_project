@@ -2,7 +2,7 @@ package com.koupreng.backend.config;
 
 import java.util.List;
 
-import com.koupreng.backend.entity.AppUser;
+import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.repository.AppUserRepository;
 
 import org.springframework.core.convert.converter.Converter;
@@ -55,3 +55,4 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
         throw new BadCredentialsException("Invalid token");
     }
 }
+

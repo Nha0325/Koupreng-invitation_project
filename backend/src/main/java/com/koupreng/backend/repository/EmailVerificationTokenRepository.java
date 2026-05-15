@@ -3,8 +3,8 @@ package com.koupreng.backend.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.koupreng.backend.entity.AppUser;
-import com.koupreng.backend.entity.EmailVerificationToken;
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.EmailVerificationToken;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,3 +13,4 @@ public interface EmailVerificationTokenRepository extends JpaRepository<EmailVer
 
     List<EmailVerificationToken> findByUserAndUsedAtIsNull(AppUser user);
 }
+

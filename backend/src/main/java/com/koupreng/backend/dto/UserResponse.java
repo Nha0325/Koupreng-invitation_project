@@ -2,8 +2,8 @@ package com.koupreng.backend.dto;
 
 import java.time.Instant;
 
-import com.koupreng.backend.entity.AppUser;
-import com.koupreng.backend.entity.Role;
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.Role;
 
 public record UserResponse(
         Long id,
@@ -26,3 +26,4 @@ public record UserResponse(
         );
     }
 }
+

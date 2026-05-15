@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import com.koupreng.backend.entity.AuthProvider;
+import com.koupreng.backend.entity.user.AuthProvider;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.AppProperties;
 
@@ -100,3 +100,4 @@ public class GoogleIdentityVerifier {
         return value == null || value.isBlank();
     }
 }
+

@@ -25,4 +25,10 @@ class PasswordPolicyTests {
     void rejectsPersonalInfo() {
         assertThrows(ApiException.class, () -> passwordPolicy.validate("JaneDoe!12345", "jane@example.com", "Jane Doe"));
     }
+
+    @Test
+    void rejectsPasswordOver72Bytes() {
+        String longPassword = "a".repeat(73) + "A1!";
+        assertThrows(ApiException.class, () -> passwordPolicy.validate(longPassword, "user@example.com", "Jane Doe"));
+    }
 }

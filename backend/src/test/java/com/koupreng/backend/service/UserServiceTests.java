@@ -12,9 +12,9 @@ import java.util.Optional;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.ChangePasswordRequest;
 import com.koupreng.backend.dto.UpdateProfileRequest;
-import com.koupreng.backend.entity.AppUser;
-import com.koupreng.backend.entity.AuthProvider;
-import com.koupreng.backend.entity.Role;
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.AuthProvider;
+import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.repository.AppUserRepository;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -106,3 +106,4 @@ class UserServiceTests {
         return user;
     }
 }
+

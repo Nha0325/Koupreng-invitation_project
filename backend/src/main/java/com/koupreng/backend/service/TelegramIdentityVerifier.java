@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.AppProperties;
 import com.koupreng.backend.dto.TelegramLoginRequest;
-import com.koupreng.backend.entity.AuthProvider;
+import com.koupreng.backend.entity.user.AuthProvider;
 
 @Service
 public class TelegramIdentityVerifier {
@@ -219,3 +219,4 @@ public class TelegramIdentityVerifier {
         return "Telegram User " + request.id();
     }
 }
+

@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 import com.koupreng.backend.common.ApiException;
-import com.koupreng.backend.entity.AppUser;
+import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.config.AppProperties;
 
 import org.slf4j.Logger;
@@ -81,3 +81,4 @@ public class PasswordResetNotificationService {
         return frontendUrl + separator + "token=" + encodedToken;
     }
 }
+

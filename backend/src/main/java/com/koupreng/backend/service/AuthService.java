@@ -16,11 +16,11 @@ import com.koupreng.backend.dto.ResetPasswordRequest;
 import com.koupreng.backend.dto.TelegramLoginRequest;
 import com.koupreng.backend.dto.UserResponse;
 import com.koupreng.backend.dto.VerifyEmailRequest;
-import com.koupreng.backend.entity.AppUser;
-import com.koupreng.backend.entity.AuthProvider;
-import com.koupreng.backend.entity.EmailVerificationToken;
-import com.koupreng.backend.entity.PasswordResetToken;
-import com.koupreng.backend.entity.Role;
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.AuthProvider;
+import com.koupreng.backend.entity.user.EmailVerificationToken;
+import com.koupreng.backend.entity.user.PasswordResetToken;
+import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.repository.EmailVerificationTokenRepository;
 import com.koupreng.backend.repository.PasswordResetTokenRepository;
@@ -295,7 +295,7 @@ public class AuthService {
         AppUser user = new AppUser();
         user.setEmail(email);
         user.setFullName(safeFullName(identity.fullName(), email));
-        user.setPasswordHash(externalPasswordHash(identity));
+        user.setPasswordHash(externalPasswordHash());
         user.setAuthProvider(identity.provider());
         user.setProviderId(identity.providerId());
         user.setRole(firstUserAdminEnabled && userRepository.count() == 0 ? Role.ADMIN : Role.USER);
@@ -320,10 +320,8 @@ public class AuthService {
         return value.length() <= 120 ? value : value.substring(0, 120);
     }
 
-    private String externalPasswordHash(ExternalAuthIdentity identity) {
-        String randomSecret = generateToken();
-        String marker = "external:%s:%s:%s".formatted(identity.provider(), identity.providerId(), randomSecret);
-        return passwordEncoder.encode(marker);
+    private String externalPasswordHash() {
+        return passwordEncoder.encode("external:" + generateToken());
     }
 
     private ForgotPasswordResponse passwordResetResponse() {
@@ -343,3 +341,4 @@ public class AuthService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
+

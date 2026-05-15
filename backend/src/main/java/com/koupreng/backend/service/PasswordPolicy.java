@@ -2,7 +2,7 @@ package com.koupreng.backend.service;
 
 import java.util.Locale;
 
-import com.koupreng.backend.entity.AppUser;
+import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.common.ApiException;
 
 import org.springframework.http.HttpStatus;
@@ -20,6 +20,10 @@ public class PasswordPolicy {
     public void validate(String password, String email, String fullName) {
         if (password == null || password.length() < MIN_LENGTH) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Password must be at least 12 characters long");
+        }
+
+        if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password cannot be more than 72 bytes");
         }
 
         boolean hasLowercase = false;
@@ -71,3 +75,4 @@ public class PasswordPolicy {
         }
     }
 }
+
