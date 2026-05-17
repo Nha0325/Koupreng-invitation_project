@@ -1,14 +1,7 @@
 import { useState } from "react";
 
 /**
- * useToggle
- * គ្រប់គ្រង boolean state ដូចជា show/hide password
- *
- * @param {boolean} initial - តម្លៃដំបូង (default: false)
- * @returns {[boolean, () => void]} - [value, toggle]
- *
- * @example
- * const [showPassword, togglePassword] = useToggle();
+ * useToggle — manage boolean state (e.g. show/hide password)
  */
 export function useToggle(initial = false) {
     const [value, setValue] = useState(initial);

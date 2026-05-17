@@ -1,12 +1,13 @@
 package com.koupreng.backend.dto;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.entity.user.Role;
 
 public record UserResponse(
-        Long id,
+        UUID id,
         String email,
         String fullName,
         Role role,
@@ -26,4 +27,3 @@ public record UserResponse(
         );
     }
 }
-

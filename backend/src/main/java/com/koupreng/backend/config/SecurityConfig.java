@@ -1,11 +1,6 @@
 package com.koupreng.backend.config;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Set;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.security.ApiRequestLoggingFilter;
@@ -14,25 +9,17 @@ import com.koupreng.backend.security.ClientAddressResolver;
 import com.koupreng.backend.service.RateLimitService;
 import com.koupreng.backend.waf.WafFilter;
 import com.koupreng.backend.waf.WafProperties;
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -40,12 +27,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
-
-    private static final Set<String> UNSAFE_JWT_SECRETS = Set.of(
-            "local-development-jwt-secret-change-me-32-chars",
-            "change_me_to_a_random_secret_with_at_least_32_chars",
-            "replace_with_a_random_64_character_or_longer_secret"
-    );
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -65,9 +46,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))
                         .frameOptions(frame -> frame.deny())
-                        .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
+                        .referrerPolicy(referrer -> referrer.policy(
+                                ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                         .httpStrictTransportSecurity(hsts -> {
                             if (apiSecurityProperties.getHttps().isHstsEnabled()) {
                                 hsts.includeSubDomains(true)
@@ -81,17 +64,8 @@ public class SecurityConfig {
                 .addFilterBefore(apiRequestLoggingFilter, WafFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/api/health").permitAll()
-                        .requestMatchers(
-                                "/api/auth/register",
-                                "/api/auth/login",
-                                "/api/auth/google",
-                                "/api/auth/telegram",
-                                "/api/auth/forgot-password",
-                                "/api/auth/reset-password",
-                                "/api/auth/verify-email",
-                                "/api/auth/resend-verification"
-                        ).permitAll()
-                        .requestMatchers("/api/invitations/templates", "/api/invitations/templates/**").permitAll()
+                        .requestMatchers("/api/invitations/templates",
+                                "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -116,28 +90,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public AppJwtAuthenticationConverter jwtAuthenticationConverter(AppUserRepository userRepository) {
         return new AppJwtAuthenticationConverter(userRepository);
     }
 
-    @Bean
-    public JwtEncoder jwtEncoder(AppProperties appProperties) {
-        return new NimbusJwtEncoder(new ImmutableSecret<>(jwtSecretKey(appProperties.getJwt().getSecret())));
-    }
-
+    /**
+     * Validates Supabase JWTs using Supabase's JWKS endpoint.
+     * The issuer-uri can also drive this via spring.security.oauth2.resourceserver,
+     * but we configure programmatically so we can read from app.supabase.* properties.
+     */
     @Bean
     public JwtDecoder jwtDecoder(AppProperties appProperties) {
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withSecretKey(jwtSecretKey(appProperties.getJwt().getSecret()))
-                .macAlgorithm(MacAlgorithm.HS256)
+        AppProperties.Supabase supabase = appProperties.getSupabase();
+        return NimbusJwtDecoder
+                .withJwkSetUri(supabase.getJwkSetUri())
                 .build();
-        OAuth2TokenValidator<Jwt> validator = JwtValidators.createDefaultWithIssuer(appProperties.getJwt().getIssuer());
-        decoder.setJwtValidator(validator);
-        return decoder;
     }
 
     @Bean
@@ -155,17 +122,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
-    }
-
-    private SecretKey jwtSecretKey(String secret) {
-        if (UNSAFE_JWT_SECRETS.contains(secret)) {
-            throw new IllegalStateException("app.jwt.secret must be replaced with a strong random value");
-        }
-
-        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
-        if (bytes.length < 64) {
-            throw new IllegalStateException("app.jwt.secret must be at least 64 characters for HS256");
-        }
-        return new SecretKeySpec(bytes, "HmacSHA256");
     }
 }

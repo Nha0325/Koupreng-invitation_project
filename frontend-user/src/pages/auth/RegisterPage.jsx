@@ -1,12 +1,9 @@
 import { useId, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";
-import { useAuth } from "../../app/auth/useAuth";
-import authService from "../../shared/services/authService";
 import "./AuthPage.css";
 
-/* ── Eye icon ── */
-const EyeIcon = ({ open }) => {
+function EyeIcon({ open }) {
   return open ? (
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
@@ -19,16 +16,7 @@ const EyeIcon = ({ open }) => {
   );
 }
 
-/**
- * Heuristic to keep one input flexible: if it contains an `@` we treat it as
- * an email, otherwise as a phone number. The same rule lives on the login
- * side, so the two screens always agree on what counts as which.
- */
-function looksLikeEmail(value) {
-  return /\S+@\S+\.\S+/.test(value);
-}
-
-const Register = () => {
+function Register() {
   const nameId = useId();
   const phoneId = useId();
   const passwordId = useId();
@@ -39,48 +27,9 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, togglePassword] = useToggle();
   const [showConfirm, toggleConfirm] = useToggle();
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const navigate = useNavigate();
-  const { login } = useAuth();
 
   const passwordMatch = confirmPassword && password !== confirmPassword;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (submitting) return;
-
-    if (!name.trim() || !phone.trim() || !password) {
-      setError("សូមបំពេញគ្រប់ប្រអប់");
-      return;
-    }
-    if (passwordMatch) {
-      setError("លេខសម្ងាត់មិនត្រូវគ្នា");
-      return;
-    }
-    if (password.length < 6) {
-      setError("លេខសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ ៦ តួ");
-      return;
-    }
-
-    setError("");
-    setSubmitting(true);
-    try {
-      const value = phone.trim();
-      const payload = looksLikeEmail(value)
-        ? { name: name.trim(), email: value, password }
-        : { name: name.trim(), phone: value, password };
-
-      const { accessToken, user } = await authService.register(payload);
-      login({ accessToken, user });
-      navigate("/app/dashboard", { replace: true });
-    } catch (err) {
-      setError(err?.message || "មិនអាចចុះឈ្មោះបានទេ");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const handleSubmit = (e) => e.preventDefault();
 
   return (
     <div className="auth-page">
@@ -106,19 +55,17 @@ const Register = () => {
               id={nameId} type="text" value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"
-              autoComplete="name"
               className="auth-input"
             />
           </div>
 
-          {/* Phone or Email */}
+          {/* Phone */}
           <div className="auth-field">
-            <label htmlFor={phoneId} className="auth-label">លេខទូរស័ព្ទ ឬ អ៊ីមែល</label>
+            <label htmlFor={phoneId} className="auth-label">លេខទូរស័ព្ទ</label>
             <input
-              id={phoneId} type="text" value={phone}
+              id={phoneId} type="tel" value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="0xx xxx xxx ឬ name@example.com"
-              autoComplete="username"
+              placeholder="0xx xxx xxx"
               className="auth-input"
             />
           </div>
@@ -133,7 +80,6 @@ const Register = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="បញ្ចូលលេខសម្ងាត់"
-                autoComplete="new-password"
                 className="auth-input"
               />
               <button type="button" onClick={togglePassword} className="auth-eye-btn" aria-label="Toggle password">
@@ -152,7 +98,6 @@ const Register = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="បញ្ជាក់លេខសម្ងាត់"
-                autoComplete="new-password"
                 className={`auth-input${passwordMatch ? " error" : ""}`}
               />
               <button type="button" onClick={toggleConfirm} className="auth-eye-btn" aria-label="Toggle confirm">
@@ -164,20 +109,18 @@ const Register = () => {
             )}
           </div>
 
-          {error && <p className="auth-error-msg" role="alert">{error}</p>}
-
           {/* Submit */}
-          <button type="submit" className="auth-submit" disabled={submitting}>
-            {submitting ? "កំពុងចុះឈ្មោះ..." : "ចុះឈ្មោះ"}
+          <button type="submit" className="auth-submit">
+            ចុះឈ្មោះ
           </button>
         </form>
 
         {/* Divider */}
         <p className="auth-divider">ឬ បន្តជាមួយ</p>
 
-        {/* Social buttons (UI-only placeholders) */}
+        {/* Social buttons */}
         <div className="auth-socials">
-          <button type="button" className="auth-social-btn google" disabled>
+          <button type="button" className="auth-social-btn google">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -187,7 +130,7 @@ const Register = () => {
             បន្តជាមួយ Google
           </button>
 
-          <button type="button" className="auth-social-btn telegram" disabled>
+          <button type="button" className="auth-social-btn telegram">
             <svg width="16" height="16" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="12" fill="#0088cc" />
               <path d="M17.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.07-.18c-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.2 3.45-.49.34-.94.5-1.35.49-.45-.01-1.32-.26-1.96-.47-.79-.26-1.42-.39-1.37-.83.03-.22.33-.44.91-.68 3.56-1.55 5.94-2.58 7.12-3.07 3.39-1.41 4.1-1.65 4.56-1.66.1 0 .32.02.46.12.12.09.15.22.16.32.01.07.02.16.02.24z" fill="white" />

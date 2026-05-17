@@ -1,178 +1,162 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { RequireAuth } from "./auth/RequireAuth";
-import HostShell from "../shared/layout/HostShell";
-import MarketingShell from "../shared/layout/MarketingShell";
-import AuthShell from "../shared/layout/AuthShell";
-import InvitationShell from "../shared/layout/InvitationShell";
-import Spinner from "../shared/ui/Spinner";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { PageTransition } from "../shared/ui/PageTransition";
 
-/**
- * Application router.
- *
- * Implements the design's Routing Map exactly. The route tree is built from
- * four layout routes — `<MarketingShell>` (homepage only), `<AuthShell>`
- * (login / register / password flows / 404), `<RequireAuth><HostShell>`,
- * and `<InvitationShell>` — which give each audience its own chrome
- * (marketing header, bare auth canvas, authenticated host shell, or no
- * chrome at all) without each page having to re-declare it.
- *
- * Every page module is loaded with `React.lazy(...)` and the whole tree is
- * wrapped in a single top-level `<Suspense fallback={<Spinner />}>` so the
- * initial bundle stays small and route-level chunks are streamed in on demand.
- *
- * Top-level providers (`MotionConfig`, `ThemeProvider`, `AuthProvider`) live
- * in `App.jsx` — this file only owns routing.
- */
+import MarketingShell from "../layouts/MarketingShell";
+import AuthShell from "../layouts/AuthShell";
+import HostShell from "../layouts/HostShell";
 
-/* ───────────────────────────────────────────────────────────────────
- * Lazy page imports
- *
- * Each `lazy(() => import(...))` call produces a separate chunk so the
- * marketing visitor never downloads the host dashboard, and the public
- * invitation never downloads the host shell.
- * ─────────────────────────────────────────────────────────────────── */
+import HomePage from "../pages/marketing/HomePage";
+import PricingPage from "../pages/marketing/PricingPage";
+import VenuesPage from "../pages/marketing/VenuesPage";
+import NotFoundPage from "../pages/marketing/NotFoundPage";
 
-// Marketing / auth
-const HomePage = lazy(() => import("../pages/marketing/HomePage"));
-const NotFoundPage = lazy(() => import("../pages/marketing/NotFoundPage"));
-const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
-const RegisterPage = lazy(() => import("../pages/auth/RegisterPage"));
-const ForgotPasswordPage = lazy(() =>
-    import("../pages/auth/ForgotPasswordPage"),
-);
-const ResetPasswordPage = lazy(() =>
-    import("../pages/auth/ResetPasswordPage"),
-);
+import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 
-// Host (authenticated)
-const DashboardPage = lazy(() => import("../pages/host/DashboardPage"));
-const EventsPage = lazy(() => import("../pages/host/EventsPage"));
-const CreateEventPage = lazy(() => import("../pages/host/CreateEventPage"));
-const GuestsPage = lazy(() => import("../pages/host/GuestsPage"));
-const ExpensesPage = lazy(() => import("../pages/host/ExpensesPage"));
-const WeddingGiftPage = lazy(() => import("../pages/host/WeddingGiftPage"));
-const TemplatePage = lazy(() => import("../pages/host/TemplatePage"));
-const AddTemplatePage = lazy(() => import("../pages/host/AddTemplatePage"));
-const SettingsPage = lazy(() => import("../pages/host/SettingsPage"));
+import EventsPage from "../pages/host/EventsPage";
+import CreateEventPage from "../pages/host/CreateEventPage";
+import DashboardPage from "../pages/host/DashboardPage";
+import GuestsPage from "../pages/host/GuestsPage";
+import ExpensesPage from "../pages/host/ExpensesPage";
+import WeddingGiftPage from "../pages/host/WeddingGiftPage";
+import TemplatesPage from "../pages/host/TemplatesPage";
+import AddTemplatePage from "../pages/host/AddTemplatePage";
 
-// Public invitation
-const InvitationPage = lazy(() =>
-    import("../invitation/pages/InvitationPage"),
-);
+import AdminShell from "../layouts/AdminShell";
+import AdminDashboardPage from "../pages/admin/DashboardPage";
+import AdminUsersPage from "../pages/admin/UsersPage";
+import AdminTemplatesPage from "../pages/admin/TemplatesPage";
 
-/**
- * Centered spinner used as the Suspense fallback while a lazy chunk loads.
- * Mirrors the loader rendered by `<RequireAuth />` so transitions feel
- * consistent across guarded and unguarded routes.
- */
-const SuspenseFallback = () => (
-    <div
-        style={{
-            display: "flex",
-            minHeight: "100dvh",
-            alignItems: "center",
-            justifyContent: "center",
-        }}
-    >
-        <Spinner size={32} aria-label="Loading" />
-    </div>
-);
+export default function AppRouter() {
+  const location = useLocation();
 
-const AppRouter = () => {
-    return (
-        <BrowserRouter>
-            <Suspense fallback={<SuspenseFallback />}>
-                <Routes>
-                    {/* ── Homepage (public, marketing header chrome) ── */}
-                    <Route element={<MarketingShell />}>
-                        <Route path="/" element={<HomePage />} />
-                    </Route>
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Marketing pages: header + footer */}
+        <Route element={<MarketingShell />}>
+          <Route
+            path="/"
+            element={
+              <PageTransition>
+                <HomePage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/pricing"
+            element={
+              <PageTransition>
+                <PricingPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/venues"
+            element={
+              <PageTransition>
+                <VenuesPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/templates"
+            element={
+              <PageTransition>
+                <TemplatesPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <PageTransition>
+                <NotFoundPage />
+              </PageTransition>
+            }
+          />
+        </Route>
 
-                    {/* ── Auth & 404 (public, no header chrome) ──
-                        These pages own their own full-page layouts, so they
-                        skip the marketing `<Header />` to keep the focus on
-                        the form / message. */}
-                    <Route element={<AuthShell />}>
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/register" element={<RegisterPage />} />
-                        <Route
-                            path="/forgot-password"
-                            element={<ForgotPasswordPage />}
-                        />
-                        <Route
-                            path="/reset-password"
-                            element={<ResetPasswordPage />}
-                        />
-                        {/* Catch-all 404 — header-less so an unknown deep link
-                            never flashes the marketing chrome. */}
-                        <Route path="*" element={<NotFoundPage />} />
-                    </Route>
+        {/* Auth pages: minimal shell */}
+        <Route element={<AuthShell />}>
+          <Route
+            path="/login"
+            element={
+              <PageTransition>
+                <LoginPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PageTransition>
+                <RegisterPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PageTransition>
+                <ForgotPasswordPage />
+              </PageTransition>
+            }
+          />
+        </Route>
 
-                    {/* ── Host app (authed, header + aside chrome) ──
-                        `<RequireAuth />` is the outer layout route so its
-                        guard runs before `<HostShell />` ever mounts. */}
-                    <Route element={<RequireAuth />}>
-                        <Route element={<HostShell />}>
-                            {/* `/app` alone redirects to the dashboard so the
-                                bare host root is never a blank page. */}
-                            <Route
-                                path="/app"
-                                element={
-                                    <Navigate to="/app/dashboard" replace />
-                                }
-                            />
-                            <Route
-                                path="/app/dashboard"
-                                element={<DashboardPage />}
-                            />
-                            <Route
-                                path="/app/events"
-                                element={<EventsPage />}
-                            />
-                            <Route
-                                path="/app/events/new"
-                                element={<CreateEventPage />}
-                            />
-                            <Route
-                                path="/app/guests"
-                                element={<GuestsPage />}
-                            />
-                            <Route
-                                path="/app/expenses"
-                                element={<ExpensesPage />}
-                            />
-                            <Route
-                                path="/app/gifts"
-                                element={<WeddingGiftPage />}
-                            />
-                            <Route
-                                path="/app/templates"
-                                element={<TemplatePage />}
-                            />
-                            <Route
-                                path="/app/templates/new"
-                                element={<AddTemplatePage />}
-                            />
-                            <Route
-                                path="/app/settings"
-                                element={<SettingsPage />}
-                            />
-                        </Route>
-                    </Route>
+        {/* Host (logged-in) pages: dashboard sidebar */}
+        <Route element={<HostShell />}>
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/events/create" element={<CreateEventPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/guests" element={<GuestsPage />} />
+          <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/gifts" element={<WeddingGiftPage />} />
+          <Route path="/add-template" element={<AddTemplatePage />} />
+        </Route>
 
-                    {/* ── Public invitation (no auth, no chrome) ── */}
-                    <Route element={<InvitationShell />}>
-                        <Route path="/i/:slug" element={<InvitationPage />} />
-                        <Route
-                            path="/invitation/:slug"
-                            element={<InvitationPage />}
-                        />
-                    </Route>
-                </Routes>
-            </Suspense>
-        </BrowserRouter>
-    );
-};
-
-export default AppRouter;
+        {/* 👑 Admin Routes (ប្រើ Admin Layout + Sidebar ដាច់ដោយឡែក) */}
+        <Route path="/admin" element={<AdminShell />}>
+          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="templates" element={<AdminTemplatesPage />} />
+          <Route
+            path="subscriptions"
+            element={
+              <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 font-bold text-gray-700">
+                💎 គ្រប់គ្រងកញ្ចប់សេវាកម្ម (កំពុងអភិវឌ្ឍ...)
+              </div>
+            }
+          />
+          <Route
+            path="venues"
+            element={
+              <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 font-bold text-gray-700">
+                🏢 គ្រប់គ្រងព័ត៌មានសាលមង្គល (កំពុងអភិវឌ្ឍ...)
+              </div>
+            }
+          />
+          <Route
+            path="transactions"
+            element={
+              <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 font-bold text-gray-700">
+                💵 របាយការណ៍ថវិកាដែលទទួលបាន (កំពុងអភិវឌ្ឍ...)
+              </div>
+            }
+          />
+          <Route
+            path="logs"
+            element={
+              <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100 font-bold text-gray-700">
+                📜 ប្រវត្តិប្រព័ន្ធ System Audit Logs (កំពុងអភិវឌ្ឍ...)
+              </div>
+            }
+          />
+        </Route>
+      </Routes>
+    </AnimatePresence>
+  );
+}

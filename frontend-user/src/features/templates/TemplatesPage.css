@@ -1,0 +1,226 @@
+/* Container & Layout */
+.tp-page {
+    min-height: 100vh;
+    background-color: #FDF8F2;
+    font-family: 'Kantumruy Pro', sans-serif;
+    padding-top: 140px; /* ការពារកុំឱ្យ Header បាំង Content */
+    position: relative;
+}
+
+.tp-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Header Section */
+.tp-header-section {
+    text-align: center;
+    margin-bottom: 70px;
+}
+
+.tp-label {
+    display: block;
+    color: #B0926A;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    margin-bottom: 15px;
+}
+
+.tp-title {
+    font-family: 'Moul', serif;
+    font-size: 3rem;
+    color: #1a1a1a;
+    line-height: 1.6;
+}
+
+.tp-title span {
+    color: #B0926A;
+    margin-left: 15px;
+}
+
+.tp-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.tp-line {
+    height: 1px;
+    width: 60px;
+    background: linear-gradient(to right, transparent, #B0926A);
+}
+
+.tp-line:last-child {
+    background: linear-gradient(to left, transparent, #B0926A);
+}
+
+.tp-diamond {
+    width: 8px;
+    height: 8px;
+    background: #B0926A;
+    transform: rotate(45deg);
+}
+
+/* Grid System - 4 Columns */
+.tp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 40px;
+}
+
+/* Card Styling */
+.tp-card {
+    background: white;
+    border-radius: 40px;
+    padding: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    border: 1px solid rgba(255,255,255,0.8);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.tp-card:hover {
+    transform: translateY(-15px);
+    box-shadow: 0 30px 60px rgba(176, 146, 106, 0.15);
+}
+
+/* Image Container */
+.tp-image-box {
+    position: relative;
+    aspect-ratio: 3.5/4.5;
+    border-radius: 30px;
+    overflow: hidden;
+    background: #f8f8f8;
+}
+
+.tp-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s ease;
+}
+
+.tp-card:hover .tp-main-img {
+    transform: scale(1.1);
+}
+
+/* Overlay & Buttons */
+.tp-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.tp-card:hover .tp-overlay {
+    opacity: 1;
+}
+
+.tp-view-btn {
+    background: white;
+    color: #1a1a1a;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Card Content */
+.tp-card-content {
+    text-align: center;
+    padding: 25px 10px 10px;
+}
+
+.tp-card-name {
+    font-family: 'Moul', serif;
+    font-size: 1.1rem;
+    color: #222;
+    margin-bottom: 8px;
+}
+
+.tp-style-name {
+    display: block;
+    font-size: 10px;
+    color: #B0926A;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 25px;
+}
+
+.tp-action-btn {
+    width: 100%;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    padding: 18px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tp-action-btn:hover {
+    background: #B0926A;
+    box-shadow: 0 10px 20px rgba(176, 146, 106, 0.3);
+}
+
+/* Badge Popular */
+.tp-popular-tag {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    padding: 6px 15px;
+    border-radius: 50px;
+    font-size: 9px;
+    font-weight: 900;
+    color: #B0926A;
+    z-index: 20;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* Footer */
+.tp-footer {
+    margin-top: 100px;
+    padding: 60px;
+    text-align: center;
+    border-top: 1px solid rgba(176, 146, 106, 0.1);
+}
+
+.tp-footer-brand {
+    font-family: 'Moul', serif;
+    color: #B0926A;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.tp-footer-text {
+    font-size: 10px;
+    color: #aaa;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tp-title { font-size: 2rem; }
+    .tp-container { padding: 0 20px; }
+    .tp-page { padding-top: 100px; }
+}

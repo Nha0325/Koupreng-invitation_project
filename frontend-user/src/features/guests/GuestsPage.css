@@ -1,0 +1,266 @@
+/* ── Guests Page ── */
+.gp-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px;
+}
+
+.gp-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.gp-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+}
+
+.gp-subtitle {
+    font-size: 13px;
+    color: #7a8799;
+    margin: 0;
+}
+
+.gp-add-btn {
+    padding: 10px 20px;
+    background: #7033ff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.gp-add-btn:hover {
+    background: #5e28e0;
+}
+
+/* Stats */
+.gp-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.gp-stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border: 1px solid #e7e7ee;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.gp-stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1a1a2e;
+}
+
+.gp-stat-label {
+    font-size: 12px;
+    color: #7a8799;
+}
+
+.stat-confirmed .gp-stat-value {
+    color: #16a34a;
+}
+
+.stat-pending .gp-stat-value {
+    color: #ca8a04;
+}
+
+.stat-rejected .gp-stat-value {
+    color: #dc2626;
+}
+
+/* Filters */
+.gp-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.gp-search {
+    flex: 1;
+    min-width: 200px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1.5px solid #e7e7ee;
+    background: #fff;
+    padding: 0 14px;
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+}
+
+.gp-search:focus {
+    border-color: #7033ff;
+    box-shadow: 0 0 0 3px rgba(112, 51, 255, 0.1);
+}
+
+.gp-filter-group {
+    display: flex;
+    gap: 4px;
+}
+
+.gp-filter-btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e7e7ee;
+    background: #fff;
+    font-size: 12px;
+    color: #525252;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.gp-filter-btn.active {
+    background: #7033ff;
+    color: #fff;
+    border-color: #7033ff;
+}
+
+.gp-filter-btn:hover:not(.active) {
+    border-color: #7033ff;
+    color: #7033ff;
+}
+
+.gp-select {
+    height: 38px;
+    border-radius: 10px;
+    border: 1.5px solid #e7e7ee;
+    background: #fff;
+    padding: 0 12px;
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* Table */
+.gp-table-wrap {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e7e7ee;
+    overflow: hidden;
+}
+
+.gp-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.gp-table thead tr {
+    background: #f5f5f5;
+}
+
+.gp-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #525252;
+    white-space: nowrap;
+}
+
+.gp-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #1a1a2e;
+    border-top: 1px solid #f5f5f5;
+}
+
+.gp-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.gp-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gp-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e2ebff;
+    color: #1e69dc;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.gp-muted {
+    color: #7a8799 !important;
+}
+
+.gp-amount {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.gp-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-confirmed {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.status-pending {
+    background: #fffbeb;
+    color: #ca8a04;
+}
+
+.status-rejected {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.gp-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #7a8799;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.gp-action-btn:hover {
+    background: #f5f5f5;
+}
+
+.gp-empty {
+    padding: 40px;
+    text-align: center;
+    color: #7a8799;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .gp-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

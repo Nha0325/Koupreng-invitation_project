@@ -1,0 +1,226 @@
+/* ── Expenses Page ── */
+.ep-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px;
+}
+
+.ep-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.ep-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+}
+
+.ep-subtitle {
+    font-size: 13px;
+    color: #7a8799;
+    margin: 0;
+}
+
+.ep-add-btn {
+    padding: 10px 20px;
+    background: #7033ff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.ep-add-btn:hover {
+    background: #5e28e0;
+}
+
+/* Budget card */
+.ep-budget-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px 24px;
+    border: 1px solid #e7e7ee;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ep-budget-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.ep-budget-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ep-budget-label {
+    font-size: 12px;
+    color: #7a8799;
+}
+
+.ep-budget-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1a1a2e;
+}
+
+.ep-budget-value.spent {
+    color: #7033ff;
+}
+
+.ep-budget-value.remaining {
+    color: #16a34a;
+}
+
+.ep-progress-track {
+    width: 100%;
+    height: 8px;
+    background: #f5f5f5;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.ep-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7033ff 0%, #a78bfa 100%);
+    transition: width 0.4s;
+}
+
+.ep-progress-note {
+    font-size: 12px;
+    color: #7a8799;
+    margin: 6px 0 0;
+}
+
+/* Filters */
+.ep-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.ep-filter-btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e7e7ee;
+    background: #fff;
+    font-size: 12px;
+    color: #525252;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.ep-filter-btn.active {
+    background: #7033ff;
+    color: #fff;
+    border-color: #7033ff;
+}
+
+.ep-filter-btn:hover:not(.active) {
+    border-color: #7033ff;
+    color: #7033ff;
+}
+
+/* Table */
+.ep-table-wrap {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e7e7ee;
+    overflow: hidden;
+}
+
+.ep-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ep-table thead tr {
+    background: #f5f5f5;
+}
+
+.ep-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #525252;
+}
+
+.ep-table td {
+    padding: 13px 16px;
+    font-size: 13px;
+    color: #1a1a2e;
+    border-top: 1px solid #f5f5f5;
+}
+
+.ep-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.ep-name {
+    font-weight: 600;
+}
+
+.ep-muted {
+    color: #7a8799;
+}
+
+.ep-amount {
+    font-weight: 700;
+    color: #7033ff;
+}
+
+.ep-cat-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #e2ebff;
+    color: #1e69dc;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ep-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.ep-paid {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+.ep-pending {
+    background: #fffbeb;
+    color: #ca8a04;
+}
+
+.ep-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #7a8799;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.ep-action-btn:hover {
+    background: #f5f5f5;
+}

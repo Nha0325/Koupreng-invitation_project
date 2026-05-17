@@ -2,9 +2,7 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 
 /**
- * useLenis
- * Initialize Lenis smooth scroll ហើយ cleanup ដោយស្វ័យប្រវត្តិ
- * នៅពេល component unmount
+ * useLenis — initialize Lenis smooth scroll and clean up on unmount.
  */
 export function useLenis() {
     useEffect(() => {

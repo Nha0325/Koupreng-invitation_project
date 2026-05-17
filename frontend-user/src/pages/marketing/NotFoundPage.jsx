@@ -1,37 +1,16 @@
 import { Link } from "react-router-dom";
 
-const NotFoundPage = () => {
+export default function NotFoundPage() {
     return (
-        <main
-            style={{
-                minHeight: "60vh",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1rem",
-                padding: "2rem",
-                textAlign: "center",
-            }}
-        >
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "3rem", margin: 0 }}>
-                404
-            </h1>
-            <p style={{ color: "var(--color-text-muted)", margin: 0 }}>
-                We could not find the page you were looking for.
-            </p>
+        <div style={{ padding: 80, textAlign: "center", minHeight: "calc(100vh - 200px)" }}>
+            <h1 style={{ fontFamily: "'Moul', serif", fontSize: 48, color: "#7D6443" }}>404</h1>
+            <p style={{ color: "#777", marginTop: 12 }}>មិនមានទំព័រនេះទេ</p>
             <Link
                 to="/"
-                style={{
-                    color: "var(--color-primary)",
-                    textDecoration: "none",
-                    fontWeight: 600,
-                }}
+                style={{ display: "inline-block", marginTop: 20, padding: "10px 24px", background: "#B0926A", color: "white", borderRadius: 30, textDecoration: "none" }}
             >
-                ← Back to home
+                ត្រឡប់ទៅទំព័រដើម
             </Link>
-        </main>
+        </div>
     );
-};
-
-export default NotFoundPage;
+}

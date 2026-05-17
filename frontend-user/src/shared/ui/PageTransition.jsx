@@ -1,21 +1,18 @@
 import { motion } from "framer-motion";
+import { pageTransition } from "../motion/variants";
 
 /**
- * PageTransition
- * Wrap page components ដើម្បីបន្ថែម fade + slide animation
- * នៅពេលប្តូរ route
+ * PageTransition — fades and slides children when the route changes.
  */
-const PageTransition = ({ children }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4, ease: "easeInOut" }}
-    >
-      {children}
-    </motion.div>
-  );
+export function PageTransition({ children }) {
+    return (
+        <motion.div
+            initial={pageTransition.initial}
+            animate={pageTransition.animate}
+            exit={pageTransition.exit}
+            transition={pageTransition.transition}
+        >
+            {children}
+        </motion.div>
+    );
 }
-
-export default PageTransition;

@@ -1,33 +1,24 @@
-// Reusable Framer Motion variants for the wedding invitation experience.
-// See `.kiro/specs/wedding-invitation-experience/design.md` → "Framer Motion Patterns".
-
+/**
+ * Reusable framer-motion variants used across the app.
+ */
 export const fadeUp = {
-    hidden: { opacity: 0, y: 32 },
+    hidden: { opacity: 0, y: 48, scale: 0.97 },
     visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.62, ease: [0.22, 1, 0.36, 1] },
+        scale: 1,
+        transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
     },
 };
 
-export const stagger = (gap = 0.08) => ({
+export const staggerContainer = {
     hidden: {},
-    visible: { transition: { staggerChildren: gap } },
-});
-
-export const heroNames = {
-    hidden: { opacity: 0, letterSpacing: "0.4em", y: 24 },
-    visible: {
-        opacity: 1,
-        letterSpacing: "0.12em",
-        y: 0,
-        transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1] },
-    },
+    visible: { transition: { staggerChildren: 0.12 } },
 };
 
-export const scrollCue = {
-    animate: {
-        y: [0, 10, 0],
-        transition: { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
-    },
+export const pageTransition = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+    transition: { duration: 0.4, ease: "easeInOut" },
 };
