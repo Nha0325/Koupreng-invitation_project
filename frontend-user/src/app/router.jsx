@@ -10,6 +10,8 @@ import HomePage from "../pages/marketing/HomePage";
 import PricingPage from "../pages/marketing/PricingPage";
 import VenuesPage from "../pages/marketing/VenuesPage";
 import NotFoundPage from "../pages/marketing/NotFoundPage";
+import ClassicPreview from "../features/templates/ClassicPreview";
+import PreviewWedding from "../features/templates/PreviewWedding";
 
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
@@ -35,6 +37,15 @@ export default function AppRouter() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        <Route
+          path="/templates/:id/preview"
+          element={
+            <PageTransition>
+              <PreviewWedding />
+            </PageTransition>
+          }
+        />
+
         {/* Marketing pages: header + footer */}
         <Route element={<MarketingShell />}>
           <Route
@@ -66,6 +77,14 @@ export default function AppRouter() {
             element={
               <PageTransition>
                 <TemplatesPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/templates/:id"
+            element={
+              <PageTransition>
+                <ClassicPreview />
               </PageTransition>
             }
           />

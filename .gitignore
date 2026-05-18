@@ -1,4 +1,9 @@
 .kiro
+.vscode
+.github
+.agents
+.cursor
+.windsurf
 .source-ref
 # Environment files (never commit secrets)
 .env
