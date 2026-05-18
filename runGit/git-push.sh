@@ -6,6 +6,10 @@
 # ============================================
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
 echo
 echo "========================================"
 echo "  Git Push Helper (Team)"
@@ -18,6 +22,10 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 BRANCH="$(git branch --show-current)"
+if [[ -z "$BRANCH" ]]; then
+    echo "[ERROR] Could not detect current branch."
+    exit 1
+fi
 echo "Current branch: $BRANCH"
 echo
 
@@ -28,6 +36,7 @@ echo
 HAS_CHANGES=0
 git diff --quiet || HAS_CHANGES=1
 git diff --cached --quiet || HAS_CHANGES=1
+[[ -n "$(git ls-files --others --exclude-standard)" ]] && HAS_CHANGES=1
 
 if [[ "$HAS_CHANGES" == "1" ]]; then
     MSG="${1:-}"
