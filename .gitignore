@@ -16,3 +16,6 @@
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
+
+# runGit
+runGit/github.com_id_ed25519_selena.pub
