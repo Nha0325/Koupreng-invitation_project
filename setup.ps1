@@ -2,7 +2,6 @@
 param(
     [switch]$SkipBackend,
     [switch]$SkipFrontend,
-    [switch]$SkipService,
     [switch]$SkipToolInstall,
     [switch]$SkipDatabaseSetup
 )
@@ -13,7 +12,6 @@ $ProgressPreference = "SilentlyContinue"
 $ToolPackages = [ordered]@{
     JavaJdk25 = "EclipseAdoptium.Temurin.25.JDK"
     NodeJsLts = "OpenJS.NodeJS.LTS"
-    Python313 = "Python.Python.3.13"
     MySqlServer = "Oracle.MySQL"
     Git = "Git.Git"
     Postman = "Postman.Postman"
@@ -221,36 +219,6 @@ function Test-SupportedNodeVersion {
         (($version.Major -eq 22) -and ($version -ge [version]"22.12.0")) -or
         (($version.Major -eq 24) -and ($version -ge [version]"24.15.0"))
     )
-}
-
-function Assert-SupportedPythonVersion {
-    $rawVersion = Get-CommandOutput "python" @("--version")
-    $version = ConvertTo-Version $rawVersion
-
-    if (-not $version) {
-        throw "Could not read the Python version from '$rawVersion'."
-    }
-
-    if ($version -lt [version]"3.11.0") {
-        throw "Python $version is not supported. Install Python 3.11 or newer."
-    }
-
-    Write-Info "Python $version"
-}
-
-function Test-SupportedPythonVersion {
-    $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
-    if (-not $pythonCommand) {
-        return $false
-    }
-
-    $rawVersion = Get-CommandOutput "python" @("--version")
-    $version = ConvertTo-Version $rawVersion
-    if (-not $version) {
-        return $false
-    }
-
-    return $version -ge [version]"3.11.0"
 }
 
 function Get-JavacVersion {
@@ -643,15 +611,6 @@ function Install-NodeJs {
     Install-WinGetPackage -Id $ToolPackages.NodeJsLts -Label "Node.js LTS"
 }
 
-function Install-Python {
-    if (Test-SupportedPythonVersion) {
-        Write-Info "A supported Python version is already installed"
-        return
-    }
-
-    Install-WinGetPackage -Id $ToolPackages.Python313 -Label "Python 3.13"
-}
-
 function Install-MySql {
     $mysqlExecutable = Find-MySqlExecutable
     if ($mysqlExecutable) {
@@ -764,10 +723,6 @@ function Install-DevelopmentTools {
 
     if (-not $SkipFrontend) {
         Install-NodeJs
-    }
-
-    if (-not $SkipService) {
-        Install-Python
     }
 
     Install-Git
@@ -907,11 +862,6 @@ if (-not $SkipFrontend) {
     Write-Info "npm $(Get-CommandOutput "npm" @("--version"))"
 }
 
-if (-not $SkipService) {
-    Test-RequiredCommand python "Install Python 3.11 or newer."
-    Assert-SupportedPythonVersion
-}
-
 if (Get-Command mvn -ErrorAction SilentlyContinue) {
     Write-Info (((Get-CommandOutput "mvn" @("-version")) -split "\r?\n")[0])
 }
@@ -951,32 +901,8 @@ if (-not $SkipFrontend) {
     Install-NpmDependencies -ProjectPath $ProjectRoot -Label "project root"
 }
 
-if (-not $SkipService) {
-    Write-Step "Creating FastAPI virtual environment and installing Python dependencies"
-    Push-Location (Join-Path $ProjectRoot "service")
-    try {
-        if (-not (Test-Path -LiteralPath ".\venv\Scripts\python.exe")) {
-            Invoke-CheckedCommand `
-                -Command { python -m venv venv } `
-                -FailureMessage "Could not create the FastAPI virtual environment."
-        }
-
-        Invoke-CheckedCommand `
-            -Command { .\venv\Scripts\python.exe -m pip install --upgrade pip } `
-            -FailureMessage "Could not upgrade pip inside service\venv."
-        Invoke-CheckedCommand `
-            -Command { .\venv\Scripts\python.exe -m pip install -r requirements.txt } `
-            -FailureMessage "Could not install FastAPI service dependencies."
-    }
-    finally {
-        Pop-Location
-    }
-}
-
 Write-Step "Setup complete"
 Write-Host "Run backend:  cd backend; .\mvnw.cmd spring-boot:run"
 Write-Host "Run user UI:   cd frontend-user; npm run dev"
 Write-Host "Run admin UI:  cd frontend-admin; npm run dev"
-Write-Host "Run service:   cd service; .\venv\Scripts\Activate.ps1; uvicorn service:app --reload --port 8000"
-Write-Host ""
 Write-Host "Before first real run, review .env for JWT, Google, Telegram, and mail values that are still project-specific."

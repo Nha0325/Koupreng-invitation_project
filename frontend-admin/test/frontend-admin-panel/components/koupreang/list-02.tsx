@@ -75,7 +75,7 @@ const TRANSACTIONS: Transaction[] = [
   },
   {
     id: "5",
-    title: "Supabase Subscription",
+    title: "Streaming Subscription",
     amount: "$15.99",
     type: "outgoing",
     category: "entertainment",

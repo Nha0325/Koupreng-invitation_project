@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => {
   const apiUrl = projectEnv.VITE_API_URL
     || rootEnv.VITE_API_URL
     || '/api'
-  const backendBaseUrl = rootEnv.SERVICE_BACKEND_BASE_URL
-    || projectEnv.SERVICE_BACKEND_BASE_URL
+  const backendBaseUrl = rootEnv.BACKEND_BASE_URL
+    || projectEnv.BACKEND_BASE_URL
     || 'http://localhost:8080'
   const googleClientId = projectEnv.VITE_GOOGLE_CLIENT_ID
     || rootEnv.VITE_GOOGLE_CLIENT_ID
@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 5173,
-      allowedHosts: true,
+      allowedHosts: ['.ngrok-free.dev', 'siren-devoutly-probe.ngrok-free.dev'],
       proxy: {
         '/api': {
           target: backendBaseUrl, 

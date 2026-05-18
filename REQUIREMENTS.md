@@ -13,11 +13,9 @@ The project ignores generated and local-only files:
 | `frontend-admin/node_modules/` | admin UI npm packages | Run `npm install` in `frontend-admin/` |
 | `frontend-user/dist/` | user UI build output | Run `npm run build` in `frontend-user/` |
 | `frontend-admin/dist/` | admin UI build output | Run `npm run build` in `frontend-admin/` |
-| `service/venv/` | Python virtual environment | Run `python -m venv venv` and `pip install -r requirements.txt` in `service/` |
-| `service/__pycache__/` | Python cache files | Created automatically by Python |
 | `.env` files | local secrets/config | Copy from `.env.example` and edit locally |
 
-These files should not be committed. They are recreated from committed files like `backend/pom.xml`, frontend `package-lock.json` files, root `requirements.txt`, `service/requirements.txt`, and `.env.example`.
+These files should not be committed. They are recreated from committed files like `backend/pom.xml`, frontend `package-lock.json` files, and `.env.example`.
 
 ## Quick Setup After Clone
 
@@ -36,9 +34,9 @@ Run the setup script:
 
 On Windows, this now performs the full first-run setup:
 
-- installs missing system tools with WinGet: JDK 25, Node.js LTS, Python 3.13, MySQL Server, Git, and Postman
+- installs missing system tools with WinGet: JDK 25, Node.js LTS, MySQL Server, Git, and Postman
 - installs Apache Maven from the official Apache archive when `mvn` is missing
-- recreates ignored local files such as frontend `node_modules/` folders and `service/venv/`
+- recreates ignored local files such as frontend `node_modules/` folders
 - downloads backend Maven dependencies
 - creates `.env`, `frontend-user/.env`, and `frontend-admin/.env` from their templates when they do not exist
 - asks for MySQL credentials only when `.env` still contains placeholder values, then creates the local database automatically
@@ -76,7 +74,6 @@ To install only part of the project:
 ```powershell
 .\setup.ps1 -SkipBackend
 .\setup.ps1 -SkipFrontend
-.\setup.ps1 -SkipService
 ```
 
 ## Required Tools
@@ -88,7 +85,6 @@ To install only part of the project:
 | Java JDK | 25 |
 | Node.js | 20.19+, 22.12+, or 24.15+ |
 | npm | Installed with Node.js |
-| Python | 3.11+ |
 | MySQL Server | 8.0+ recommended |
 | Git | Latest stable |
 | Postman | Latest stable |
@@ -101,7 +97,6 @@ java -version
 javac -version
 node -v
 npm -v
-python --version
 git --version
 mysql --version
 ```
@@ -167,7 +162,7 @@ cd frontend-user
 npm run dev
 ```
 
-The user frontend defaults to `VITE_API_URL=/api`; Vite proxies `/api` to the Spring Boot backend at `http://localhost:8080`. Run the FastAPI service only if you explicitly set `VITE_API_URL=http://localhost:8000/api`.
+Both frontends default to `VITE_API_URL=/api`; their Vite dev servers proxy `/api` to the Spring Boot backend at `http://localhost:8080`.
 
 Admin frontend:
 
@@ -176,22 +171,12 @@ cd frontend-admin
 npm run dev
 ```
 
-FastAPI service:
-
-```powershell
-cd service
-.\venv\Scripts\Activate.ps1
-uvicorn service:app --reload --port 8000
-```
-
 Local URLs:
 
 ```text
 Backend: http://localhost:8080
 User frontend: http://localhost:5173
 Admin frontend: http://localhost:5174
-FastAPI: http://localhost:8000
-FastAPI health: http://localhost:8000/health
 ```
 
 ## Google Login Setup
@@ -277,24 +262,6 @@ npm install
 cd ..
 ```
 
-FastAPI dependencies:
-
-```powershell
-cd service
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-cd ..
-```
-
-From the project root, you can also install the FastAPI dependencies with:
-
-```powershell
-python -m venv service\venv
-.\service\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
 ## Useful Commands
 
 Backend:
@@ -321,12 +288,4 @@ cd frontend-admin
 npm run lint
 npm run build
 npm run preview
-```
-
-FastAPI:
-
-```powershell
-cd service
-.\venv\Scripts\Activate.ps1
-uvicorn service:app --reload --port 8000
 ```

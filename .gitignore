@@ -14,13 +14,10 @@ frontend-admin/*.err
 frontend-user/*.log
 frontend-user/*.err
 
-# FastAPI
+# Local Python artifacts
 service/venv/
 service/__pycache__/
 service/*.pyc
-service/.env
-service/.env.*
-!service/.env.example
 
 # IDE
 .idea/
@@ -39,5 +36,6 @@ Thumbs.db
 .run-logs/
 .mysql-data*/
 node_modules
+supabase/
 
 .kiro/
