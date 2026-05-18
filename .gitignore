@@ -17,5 +17,6 @@
 supabase/.temp/
 supabase/.branches/
 
-# runGit
+# runGit SSH keys
+runGit/github.com_id_ed25519_selena
 runGit/github.com_id_ed25519_selena.pub
