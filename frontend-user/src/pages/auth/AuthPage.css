@@ -150,6 +150,12 @@
     margin: 0;
 }
 
+.auth-success-msg {
+    font-size: 11px;
+    color: #15803d;
+    margin: 0;
+}
+
 /* ── Submit button ── */
 .auth-submit {
     width: 100%;
@@ -191,41 +197,120 @@
 .auth-socials {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 9px;
 }
 
-.auth-social-btn {
+.auth-social-shell {
+    position: relative;
+    min-height: 54px;
+    border-radius: 12px;
+}
+
+.auth-social-visual {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    border: 1px solid rgba(52, 58, 84, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #24263a;
+    padding: 0 14px;
+    box-shadow:
+        0 1px 1px rgba(20, 24, 43, 0.03),
+        0 8px 24px rgba(76, 70, 117, 0.06);
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease,
+        background-color 0.18s ease;
+}
+
+.auth-social-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    border-radius: 999px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    width: 100%;
-    height: 38px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 1px 5px rgba(31, 38, 73, 0.08);
+}
+
+.auth-social-copy {
+    min-width: 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 1px;
+    text-align: left;
+}
+
+.auth-social-copy strong {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.auth-social-copy small {
+    color: #85889a;
+    font-size: 10px;
     font-weight: 600;
-    color: #444;
-    box-shadow: 0 1px 3px rgba(100, 80, 160, 0.09);
-    transition: filter 0.15s, transform 0.1s;
-    font-family: inherit;
+    line-height: 1.2;
 }
 
-.auth-social-btn:hover {
-    filter: brightness(0.96);
+.auth-social-arrow {
+    display: flex;
+    color: #a1a4b4;
+    transition: color 0.18s ease, transform 0.18s ease;
 }
 
-.auth-social-btn:active {
-    transform: scale(0.985);
+.auth-social-provider-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0.01;
+    overflow: hidden;
+    display: flex;
+    border-radius: inherit;
+    justify-content: center;
+    align-items: center;
 }
 
-.auth-social-btn.google {
-    background: rgba(255, 255, 255, 0.72);
+.auth-social-provider-overlay iframe,
+.auth-social-provider-overlay > div {
+    width: 100% !important;
+    min-height: 54px !important;
 }
 
-.auth-social-btn.telegram {
-    background: rgba(230, 226, 252, 0.75);
+.auth-social-shell:hover .auth-social-visual,
+.auth-social-shell:focus-within .auth-social-visual {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(79, 70, 229, 0.24);
+    box-shadow:
+        0 1px 2px rgba(20, 24, 43, 0.04),
+        0 12px 28px rgba(79, 70, 229, 0.12);
+    transform: translateY(-1px);
+}
+
+.auth-social-shell:hover .auth-social-arrow,
+.auth-social-shell:focus-within .auth-social-arrow {
+    color: #4f46e5;
+    transform: translateX(2px);
+}
+
+.auth-social-shell:focus-within .auth-social-visual {
+    outline: 2px solid rgba(79, 70, 229, 0.22);
+    outline-offset: 2px;
+}
+
+.auth-social-visual.google .auth-social-icon {
+    background: #fff;
+}
+
+.auth-social-visual.telegram .auth-social-icon {
+    background: rgba(234, 247, 255, 0.96);
 }
 
 /* ── Footer links ── */

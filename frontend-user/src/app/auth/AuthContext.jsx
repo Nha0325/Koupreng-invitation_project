@@ -77,13 +77,12 @@ export function AuthProvider({ children }) {
      * logout. Safe to call from anywhere (event listeners, UI handlers, etc.).
      */
     const logout = useCallback(() => {
+        const currentToken = readStoredToken();
+        authService.logout(currentToken).catch(() => { });
         clearStoredToken();
         setToken(null);
         setUser(null);
         setStatus("unauthenticated");
-        // Best-effort server-side invalidation. Failures are intentionally swallowed:
-        // the local session is already gone, so the user experience continues.
-        authService.logout().catch(() => { });
     }, []);
 
     /**

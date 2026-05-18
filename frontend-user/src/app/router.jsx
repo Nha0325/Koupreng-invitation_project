@@ -44,6 +44,9 @@ const ForgotPasswordPage = lazy(() =>
 const ResetPasswordPage = lazy(() =>
     import("../pages/auth/ResetPasswordPage"),
 );
+const VerifyEmailPage = lazy(() =>
+    import("../pages/auth/VerifyEmailPage"),
+);
 
 // Host (authenticated)
 const DashboardPage = lazy(() => import("../pages/host/DashboardPage"));
@@ -103,6 +106,10 @@ const AppRouter = () => {
                         <Route
                             path="/reset-password"
                             element={<ResetPasswordPage />}
+                        />
+                        <Route
+                            path="/verify-email"
+                            element={<VerifyEmailPage />}
                         />
                         {/* Catch-all 404 — header-less so an unknown deep link
                             never flashes the marketing chrome. */}

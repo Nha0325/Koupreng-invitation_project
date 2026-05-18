@@ -4,6 +4,14 @@ import tailwindcss from '@tailwindcss/vite'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+const isPlaceholder = (value = '') =>
+  !value
+  || value.startsWith('your-')
+  || value.includes('replace_with')
+
+const firstConfigured = (...values) =>
+  values.find((value) => !isPlaceholder(value)) || ''
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const projectDir = dirname(fileURLToPath(import.meta.url))
@@ -16,17 +24,21 @@ export default defineConfig(({ mode }) => {
   const backendBaseUrl = rootEnv.BACKEND_BASE_URL
     || projectEnv.BACKEND_BASE_URL
     || 'http://localhost:8080'
-  const googleClientId = projectEnv.VITE_GOOGLE_CLIENT_ID
-    || rootEnv.VITE_GOOGLE_CLIENT_ID
-    || (rootEnv.GOOGLE_CLIENT_IDS || '').split(',')[0].trim()
-  const telegramBotUsername = projectEnv.VITE_TELEGRAM_BOT_USERNAME
-    || rootEnv.VITE_TELEGRAM_BOT_USERNAME
-    || rootEnv.TELEGRAM_BOT_USERNAME
-    || ''
-  const telegramClientId = projectEnv.VITE_TELEGRAM_CLIENT_ID
-    || rootEnv.VITE_TELEGRAM_CLIENT_ID
-    || rootEnv.TELEGRAM_CLIENT_ID
-    || ''
+  const googleClientId = firstConfigured(
+    projectEnv.VITE_GOOGLE_CLIENT_ID,
+    rootEnv.VITE_GOOGLE_CLIENT_ID,
+    (rootEnv.GOOGLE_CLIENT_IDS || '').split(',')[0].trim(),
+  )
+  const telegramBotUsername = firstConfigured(
+    projectEnv.VITE_TELEGRAM_BOT_USERNAME,
+    rootEnv.VITE_TELEGRAM_BOT_USERNAME,
+    rootEnv.TELEGRAM_BOT_USERNAME,
+  )
+  const telegramClientId = firstConfigured(
+    projectEnv.VITE_TELEGRAM_CLIENT_ID,
+    rootEnv.VITE_TELEGRAM_CLIENT_ID,
+    rootEnv.TELEGRAM_CLIENT_ID,
+  )
 
   return {
     plugins: [

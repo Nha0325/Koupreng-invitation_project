@@ -1,20 +1,5 @@
 import client from '../api/client';
 
-/**
- * Event service.
- *
- * Wraps the future `/events/*` endpoints. Until the backend ships those
- * routes, this module returns shaped mock data behind a `MOCK` flag so the
- * UI is fully buildable offline.
- *
- * Toggle via `VITE_USE_MOCK`:
- *   - `'true'`  → return mock data, no network calls
- *   - `'false'` → hit the real backend
- *
- * Default is `true` for now since the corresponding Spring Boot controllers
- * do not exist yet (see design.md → "API Integration"). Flip to `'false'`
- * once `/api/events/*` lands.
- */
 const MOCK =
   typeof import.meta !== 'undefined' &&
     import.meta.env &&
@@ -22,12 +7,6 @@ const MOCK =
     ? import.meta.env.VITE_USE_MOCK === 'true'
     : true;
 
-/**
- * One sample wedding event used as the canonical mock payload.
- *
- * Slug, template, gallery, and schedule are intentionally fully shaped so
- * the public invitation route can render end-to-end during local dev.
- */
 const SAMPLE_EVENT = {
   id: 'evt_panha_lyly',
   slug: 'panha-lyly',
