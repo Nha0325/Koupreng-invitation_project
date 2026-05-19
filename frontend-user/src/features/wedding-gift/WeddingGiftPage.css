@@ -1,0 +1,198 @@
+/* ── Wedding Gift Page ── */
+.wg-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px;
+}
+
+.wg-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.wg-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+}
+
+.wg-subtitle {
+    font-size: 13px;
+    color: #7a8799;
+    margin: 0;
+}
+
+.wg-add-btn {
+    padding: 10px 20px;
+    background: #7033ff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.wg-add-btn:hover {
+    background: #5e28e0;
+}
+
+.wg-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.wg-sum-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border: 1px solid #e7e7ee;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.wg-sum-label {
+    font-size: 12px;
+    color: #7a8799;
+}
+
+.wg-sum-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1a1a2e;
+}
+
+.wg-sum-total .wg-sum-value {
+    color: #7033ff;
+}
+
+.wg-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.wg-filter-btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #e7e7ee;
+    background: #fff;
+    font-size: 12px;
+    color: #525252;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.wg-filter-btn.active {
+    background: #7033ff;
+    color: #fff;
+    border-color: #7033ff;
+}
+
+.wg-filter-btn:hover:not(.active) {
+    border-color: #7033ff;
+    color: #7033ff;
+}
+
+.wg-table-wrap {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e7e7ee;
+    overflow: hidden;
+}
+
+.wg-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.wg-table thead tr {
+    background: #f5f5f5;
+}
+
+.wg-table th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #525252;
+}
+
+.wg-table td {
+    padding: 13px 16px;
+    font-size: 13px;
+    color: #1a1a2e;
+    border-top: 1px solid #f5f5f5;
+}
+
+.wg-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.wg-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f3e8ff;
+    color: #7033ff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wg-amount {
+    font-weight: 700;
+    color: #7033ff;
+}
+
+.wg-muted {
+    color: #7a8799;
+}
+
+.wg-method-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #e2ebff;
+    color: #1e69dc;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.wg-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #7a8799;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.wg-action-btn:hover {
+    background: #f5f5f5;
+}
+
+@media (max-width: 768px) {
+    .wg-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/services/guestService.js
- */
 import { api } from "../api/client";
 
 export const guestService = {

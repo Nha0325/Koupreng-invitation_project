@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: hook theme
- * ឯកសារ: src/app/theme/useTheme.js
- * ចាស់: ./hooks/useTheme.js
- */
 import { useContext } from "react";
 import { ThemeContext } from "./ThemeContext";
 

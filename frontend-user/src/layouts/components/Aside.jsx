@@ -1,10 +1,5 @@
-/**
- * កំណត់ចំណាំ: ម៉ឺនុយ sidebar host
- * ឯកសារ: src/layouts/components/Aside.jsx
- * ចាស់: ./components/Aside.jsx
- */
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Aside.css";
 
 /* ── ប្រើប្រាស់ Lucide-style Icons (SVG) ── */
@@ -176,11 +171,6 @@ export default function SidebarContent() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleNav = (path) => {
-    navigate(path);
-    setIsMobileOpen(false);
-  };
-
   return (
     <div className="layout-wrapper">
       {/* ── Mobile Header ── */}
@@ -224,10 +214,11 @@ export default function SidebarContent() {
           <div className="nav-group">
             <p className="group-title">ម៉ឺនុយចម្បង</p>
             {MENU_ITEMS.map((item) => (
-              <button
+              <Link
                 key={item.id}
+                to={item.path}
                 className={`nav-link ${location.pathname === item.path ? "active" : ""}`}
-                onClick={() => handleNav(item.path)}
+                onClick={() => setIsMobileOpen(false)}
               >
                 <div className="link-icon">
                   <item.Icon />
@@ -236,21 +227,22 @@ export default function SidebarContent() {
                 {location.pathname === item.path && (
                   <div className="active-dot" />
                 )}
-              </button>
+              </Link>
             ))}
           </div>
 
           <div className="nav-group mt-auto">
             <p className="group-title">ការកំណត់</p>
-            <button
+            <Link
+              to="/profile"
               className={`nav-link ${location.pathname === "/profile" ? "active" : ""}`}
-              onClick={() => handleNav("/profile")}
+              onClick={() => setIsMobileOpen(false)}
             >
               <div className="link-icon">
                 <Icons.profile />
               </div>
               <span className="link-text">គណនីរបស់ខ្ញុំ</span>
-            </button>
+            </Link>
 
             <button
               className="nav-link logout"

@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: smooth scroll
- * ឯកសារ: src/shared/hooks/useLenis.js
- * ចាស់: ./hooks/useLenis.js
- */
 import { useEffect } from "react";
 import Lenis from "lenis";
 

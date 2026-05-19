@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: hook
- * ឯកសារ: src/shared/hooks/useImageSlider.js
- */
 import { useState, useEffect } from "react";
 
 export function useImageSlider(totalImages, interval = 3000) {

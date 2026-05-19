@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ឺនុយ admin
- * ឯកសារ: src/layouts/components/AdminSidebar.jsx
- * ចាស់: ./components/AdminSidebar.jsx
- */
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 

@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: ចុះឈ្មោះ
- * ឯកសារ: src/pages/auth/RegisterPage.jsx
- * ចាស់: ./pages/Auth/RegisterPage.jsx
- */
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";

@@ -1,0 +1,385 @@
+/* Wedding builder layout — kept simple on purpose. */
+
+.wb-root {
+    display: grid;
+    grid-template-columns: 240px 1fr 360px;
+    gap: 24px;
+    padding: 24px;
+    min-height: calc(100vh - 80px);
+    background: #faf7f2;
+}
+
+.wb-sidebar {
+    background: #ffffff;
+    border: 1px solid #ece6da;
+    border-radius: 12px;
+    padding: 20px;
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+}
+
+.wb-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    color: #7d6443;
+    background: none;
+    border: 1px solid #ece6da;
+    border-radius: 999px;
+    padding: 7px 14px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.wb-back-btn:hover {
+    color: #21180f;
+    border-color: #7d6443;
+    background: #faf6ef;
+}
+
+.wb-sidebar h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #7d6443;
+    letter-spacing: 0.08em;
+}
+
+.wb-sidebar ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wb-step-btn {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #4a3a26;
+    font-family: inherit;
+}
+
+.wb-step-btn:hover {
+    background: #f4ecdf;
+}
+
+.wb-step-btn.is-active {
+    background: #7d6443;
+    color: #fff;
+    font-weight: 600;
+}
+
+.wb-step-btn .wb-step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ece6da;
+    color: #7d6443;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    margin-right: 8px;
+}
+
+.wb-step-btn.is-active .wb-step-num {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.wb-main {
+    background: #ffffff;
+    border: 1px solid #ece6da;
+    border-radius: 12px;
+    padding: 32px;
+    min-height: 600px;
+}
+
+.wb-main h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    color: #2a1f10;
+}
+
+.wb-main .wb-help {
+    color: #7d6443;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.wb-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.wb-field label {
+    font-size: 13px;
+    color: #4a3a26;
+    font-weight: 500;
+}
+
+.wb-field input,
+.wb-field textarea,
+.wb-field select {
+    padding: 10px 12px;
+    border: 1px solid #d8cdb8;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fff;
+}
+
+.wb-field input:focus,
+.wb-field textarea:focus,
+.wb-field select:focus {
+    outline: 2px solid #b0926a;
+    outline-offset: 1px;
+    border-color: #b0926a;
+}
+
+.wb-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.wb-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid #ece6da;
+}
+
+.wb-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #d8cdb8;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    color: #4a3a26;
+}
+
+.wb-btn:hover {
+    background: #f4ecdf;
+}
+
+.wb-btn-primary {
+    background: #7d6443;
+    color: #fff;
+    border-color: #7d6443;
+}
+
+.wb-btn-primary:hover {
+    background: #6a5436;
+}
+
+.wb-preview {
+    background: #ffffff;
+    border: 1px solid #ece6da;
+    border-radius: 12px;
+    padding: 16px;
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+}
+
+.wb-preview h3 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #7d6443;
+    letter-spacing: 0.08em;
+}
+
+.wb-phone {
+    width: 100%;
+    aspect-ratio: 9 / 19;
+    border-radius: 24px;
+    border: 8px solid #2a1f10;
+    overflow: hidden;
+    background: #fbf5ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #7d6443;
+    font-size: 12px;
+    padding: 12px;
+}
+
+.wb-publish-box {
+    margin-top: 16px;
+    padding: 12px;
+    background: #faf3e6;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+    color: #4a3a26;
+}
+
+.wb-publish-box .wb-btn-primary {
+    width: 100%;
+    margin-top: 8px;
+}
+
+@media (max-width: 1024px) {
+    .wb-root {
+        grid-template-columns: 1fr;
+    }
+
+    .wb-sidebar,
+    .wb-preview {
+        position: static;
+    }
+}
+
+/* ── Dropzone ── */
+.wb-dropzone {
+    border: 2px dashed #d8cdb8;
+    border-radius: 12px;
+    padding: 32px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #fdfbf7;
+}
+
+.wb-dropzone:hover,
+.wb-drop-active {
+    border-color: #b0926a;
+    background: #faf3e6;
+}
+
+.wb-dropzone-content p {
+    margin: 8px 0 4px;
+    font-size: 14px;
+    color: #4a3a26;
+}
+
+.wb-dropzone-content small {
+    font-size: 12px;
+    color: #7d6443;
+}
+
+.wb-dropzone-icon {
+    font-size: 28px;
+}
+
+/* ── Gallery grid ── */
+.wb-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.wb-gallery-item {
+    position: relative;
+    border: 1px solid #ece6da;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.wb-gallery-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+}
+
+.wb-gallery-item-info {
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wb-gallery-item-name {
+    font-size: 11px;
+    color: #4a3a26;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wb-gallery-item-badge {
+    font-size: 10px;
+    color: #7d6443;
+}
+
+.wb-gallery-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.wb-gallery-item:hover .wb-gallery-remove {
+    opacity: 1;
+}
+
+
+/* ── Phone preview (live RoyalInvitation in phone frame) ── */
+.wb-phone-preview {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.wb-phone-frame {
+    width: 100%;
+    aspect-ratio: 9 / 19;
+    border-radius: 24px;
+    border: 8px solid #2a1f10;
+    overflow: hidden;
+    background: #fbf5ec;
+    box-shadow: 0 12px 28px rgba(42, 31, 16, 0.18);
+    position: relative;
+}
+
+.wb-phone-scroll {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+}
+
+.wb-phone-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.wb-phone-scroll::-webkit-scrollbar-thumb {
+    background: rgba(125, 100, 67, 0.4);
+    border-radius: 4px;
+}

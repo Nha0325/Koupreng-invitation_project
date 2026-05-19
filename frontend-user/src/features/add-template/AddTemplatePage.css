@@ -1,0 +1,212 @@
+/* ── Add Template Page ── */
+.at-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 28px;
+}
+
+.at-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.at-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 4px;
+}
+
+.at-subtitle {
+    font-size: 13px;
+    color: #7a8799;
+    margin: 0;
+}
+
+.at-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+}
+
+.at-form-card,
+.at-preview-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #e7e7ee;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.at-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.at-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.at-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+}
+
+.at-req {
+    color: #e54b4f;
+    margin-left: 2px;
+}
+
+.at-input,
+.at-select,
+.at-textarea {
+    height: 40px;
+    border-radius: 10px;
+    border: 1.5px solid #ebebeb;
+    background: #fdfdfd;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #333;
+    outline: none;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.at-textarea {
+    height: 90px;
+    padding: 10px 12px;
+    resize: none;
+}
+
+.at-input:focus,
+.at-select:focus,
+.at-textarea:focus {
+    border-color: #7033ff;
+    box-shadow: 0 0 0 3px rgba(112, 51, 255, 0.1);
+}
+
+.at-color-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.at-color-input {
+    width: 44px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1.5px solid #ebebeb;
+    cursor: pointer;
+    padding: 2px;
+}
+
+.at-color-value {
+    font-size: 13px;
+    color: #525252;
+    font-family: monospace;
+}
+
+.at-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.at-btn-cancel {
+    flex: 1;
+    height: 42px;
+    border-radius: 10px;
+    border: 1.5px solid #e7e7ee;
+    background: #fff;
+    color: #525252;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s;
+}
+
+.at-btn-cancel:hover {
+    border-color: #aaa;
+}
+
+.at-btn-submit {
+    flex: 2;
+    height: 42px;
+    border-radius: 10px;
+    border: none;
+    background: #7033ff;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.at-btn-submit:hover {
+    background: #5e28e0;
+}
+
+/* Preview */
+.at-preview-box {
+    border-radius: 14px;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.at-preview-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+}
+
+.at-preview-name {
+    font-size: 16px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.at-preview-style {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.06);
+    color: #525252;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.at-preview-desc {
+    font-size: 12px;
+    color: #7a8799;
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .at-grid {
+        grid-template-columns: 1fr;
+    }
+}

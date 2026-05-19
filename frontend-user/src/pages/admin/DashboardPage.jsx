@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: admin overview
- * ឯកសារ: src/pages/admin/DashboardPage.jsx
- * ចាស់: ./pages/Admin/DashboardPage.jsx
- */
 // # ទំព័រ Overview រួម
 import React from "react";
 

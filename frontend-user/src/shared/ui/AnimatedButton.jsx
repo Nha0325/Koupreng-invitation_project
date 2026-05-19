@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/ui/AnimatedButton.jsx
- */
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 

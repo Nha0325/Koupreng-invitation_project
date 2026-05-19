@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: បារខាងក្រោម
- * ឯកសារ: src/layouts/components/Footer.jsx
- * ចាស់: ./layout/Footer.jsx
- */
 export default function Footer() {
   return (
     <footer

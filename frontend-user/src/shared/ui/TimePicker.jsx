@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/ui/TimePicker.jsx
- */
 import { useState, useRef, useEffect } from "react";
 import { TimePickerDropdown } from "./TimePickerDropdown";
 import "./TimePicker.css";

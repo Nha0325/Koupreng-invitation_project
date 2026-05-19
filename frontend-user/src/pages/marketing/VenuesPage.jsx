@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: សាល
- * ឯកសារ: src/pages/marketing/VenuesPage.jsx
- * ចាស់: ./pages/Home/Venues.jsx
- */
 import React, { useState } from "react";
 import { ScrollReveal } from "../../shared/ui/ScrollReveal";
 import { motion } from "framer-motion";

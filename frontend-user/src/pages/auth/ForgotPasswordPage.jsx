@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: ភ្លេចពាក្យសម្ងាត់
- * ឯកសារ: src/pages/auth/ForgotPasswordPage.jsx
- * ចាស់: ./pages/Auth/ForgotPassword.jsx
- */
 import { useId, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";

@@ -1,9 +1,12 @@
-.kiro
-.vscode
-.github
 .agents
+
+# IDE
 .cursor
+.vscode
 .windsurf
+.kiro
+.github
+
 .source-ref
 # Environment files (never commit secrets)
 .env
@@ -16,7 +19,3 @@
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
-
-# runGit SSH keys
-runGit/github.com_id_ed25519_selena
-runGit/github.com_id_ed25519_selena.pub

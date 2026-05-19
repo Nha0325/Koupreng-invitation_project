@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: hook
- * ឯកសារ: src/shared/hooks/useToggle.js
- */
 import { useState } from "react";
 
 /**

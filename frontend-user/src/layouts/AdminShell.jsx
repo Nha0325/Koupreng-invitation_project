@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: layout admin
- * ឯកសារ: src/layouts/AdminShell.jsx
- * ចាស់: ./layout/AdminLayout.jsx
- */
 import React from "react";
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "./components/AdminSidebar";

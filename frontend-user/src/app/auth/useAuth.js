@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: hook auth
- * ឯកសារ: src/app/auth/useAuth.js
- * ចាស់: ./hooks/useAuth.js
- */
 import { useContext } from "react";
 import { AuthContext } from "./AuthContext";
 

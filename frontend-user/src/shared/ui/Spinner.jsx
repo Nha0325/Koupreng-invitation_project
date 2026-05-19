@@ -1,8 +1,4 @@
 /**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/ui/Spinner.jsx
- */
-/**
  * Spinner — minimal loading indicator.
  */
 export function Spinner({ size = 24, className = "" }) {

@@ -1,12 +1,5 @@
-/**
- * កំណត់ចំណាំ: ចងដៃ
- * ឯកសារ: src/pages/host/WeddingGiftPage.jsx
- * ចាស់: ./pages/Dashboard/WeddingGiftPage.jsx
- */
-import WeddingGiftList from "../../features/wedding-gift/components/WeddingGiftList";
+import WeddingGiftList from "../../features/wedding-gift/WeddingGiftList";
 
 export default function WeddingGiftPage() {
-  return (
-    <WeddingGiftList />
-  );
+    return <WeddingGiftList />;
 }

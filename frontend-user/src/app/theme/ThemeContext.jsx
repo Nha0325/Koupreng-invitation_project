@@ -1,9 +1,4 @@
-/**
- * កំណត់ចំណាំ: theme ភ្លឺ/ងងឹត
- * ឯកសារ: src/app/theme/ThemeContext.jsx
- * ចាស់: ./hooks/ThemeContext.jsx
- */
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 
 export const ThemeContext = createContext(null);
 
@@ -19,7 +14,7 @@ export function ThemeProvider({ children }) {
     }, [theme]);
 
     const toggleTheme = useCallback(() => {
-        setTheme((t) => (t === "light" ? "dark" : "light"));
+        setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"));
     }, []);
 
     return (

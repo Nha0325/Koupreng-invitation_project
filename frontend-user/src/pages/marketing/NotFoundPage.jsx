@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/pages/marketing/NotFoundPage.jsx
- */
 import { Link } from "react-router-dom";
 
 export default function NotFoundPage() {

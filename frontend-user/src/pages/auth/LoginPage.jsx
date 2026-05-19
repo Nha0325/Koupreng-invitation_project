@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: ចូល
- * ឯកសារ: src/pages/auth/LoginPage.jsx
- * ចាស់: ./pages/Auth/LoginPage.jsx
- */
 import { useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";

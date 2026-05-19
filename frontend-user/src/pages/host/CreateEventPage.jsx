@@ -1,10 +1,5 @@
-/**
- * កំណត់ចំណាំ: បង្កើតព្រឹត្តិការណ៍
- * ឯកសារ: src/pages/host/CreateEventPage.jsx
- * ចាស់: ./pages/Events/CreateEventPage.jsx
- */
 import { useNavigate, useSearchParams } from "react-router-dom";
-import CreateEventForm from "../../features/events/components/CreateEventForm";
+import CreateEventForm from "../../features/events/CreateEventForm";
 
 export default function CreateEventPage() {
     const navigate = useNavigate();

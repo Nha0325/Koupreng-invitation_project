@@ -1,0 +1,39 @@
+.rsvp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rsvp-form input,
+.rsvp-form select,
+.rsvp-form textarea {
+    padding: 10px 12px;
+    border: 1px solid #d8cdb8;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.rsvp-form button {
+    padding: 12px 24px;
+    background: #7d6443;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.rsvp-form button:hover {
+    background: #6a5436;
+}
+
+.rsvp-success {
+    padding: 16px;
+    background: #f0f7ed;
+    border: 1px solid #c6e0b9;
+    border-radius: 8px;
+    color: #355c1c;
+    text-align: center;
+}

@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: hook
- * ឯកសារ: src/shared/hooks/usePrefersReducedMotion.js
- */
 import { useEffect, useState } from "react";
 
 /**

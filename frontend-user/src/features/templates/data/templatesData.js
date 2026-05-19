@@ -1,23 +1,27 @@
-/**
- * កំណត់ចំណាំ: ទិន្នន័យគំរូ
- * ឯកសារ: src/features/templates/data/templatesData.js
- * ចាស់: ./data/templatesData.js
- */
+import W01Preview from "../previews/RoyalPreview";
+import W02Preview from "../previews/ModernKhmerPreview";
+import W03Preview from "../previews/LuxuryPreview";
+import W04Preview from "../previews/ClassicPreview";
+import W05Preview from "../previews/RoyalKhmerPreview";
+import W06Preview from "../previews/VintageGoldPreview";
+
 export const TEMPLATES = [
     {
         id: "royal",
-        name: "រាជមង្គលអង្គរ (W01)",
-        style: "Traditional Gold",
+        name: "រាជមង្គល Royal",
+        style: "Classic Royal Elegance",
         popular: true,
         image: "/image/a1.png",
-        groom: "សុវណ្ណ",
-        bride: "សុដាណា",
+        Preview: W01Preview,
+        groom: "បញ្ញា",
+        bride: "ផ្កាយ",
         dateText: "ថ្ងៃសៅរ៍ ១៩ ធ្នូ ២០២៦",
         targetDate: "2026-12-19T17:00:00+07:00",
         ceremonyTime: "០៩:០០",
         receptionTime: "១៧:០០",
-        venueName: "សាលមង្គល រាជវាំង",
-        venueAddress: "ផ្លូវព្រះនរោត្តម ខណ្ឌដូនពេញ\nរាជធានីភ្នំពេញ",
+        venueName: "គេហដ្ឋាន ខេត្តបាត់ដំបង",
+        venueAddress: "ផ្លូវ ៥២០\nក្រុងបាត់ដំបង 02360",
+        mapQuery: "ផ្លូវ ៥២០ ក្រុងបាត់ដំបង 02360 Cambodia",
         bg: "#f6efe4",
         paper: "#fffaf1",
         color: "#c8a35f",
@@ -28,12 +32,13 @@ export const TEMPLATES = [
     },
     {
         id: "garden",
-        name: "បុប្ផាភ្នំពេញ (W02)",
-        style: "Modern Khmer",
-        popular: true,
+        name: "បុប្ផាភ្នំពេញ",
+        style: "Modern Garden",
+        popular: false,
         image: "/image/a2.png",
+        Preview: W02Preview,
         groom: "បញ្ញា",
-        bride: "ច័ន្ទនី",
+        bride: "សុដាណា",
         dateText: "ថ្ងៃអាទិត្យ ២០ ធ្នូ ២០២៦",
         targetDate: "2026-12-20T17:00:00+07:00",
         ceremonyTime: "០៨:៣០",
@@ -50,10 +55,11 @@ export const TEMPLATES = [
     },
     {
         id: "forest",
-        name: "និស្ស័យមង្គល (W03)",
-        style: "Luxury Wedding",
-        popular: false,
-        image: "/image/a7.png",
+        name: "និស្ស័យមង្គល",
+        style: "Forest Luxury",
+        popular: true,
+        image: "/image/a3.png",
+        Preview: W03Preview,
         groom: "រតនា",
         bride: "ស្រីស",
         dateText: "ថ្ងៃសៅរ៍ ០៧ កុម្ភៈ ២០២៦",
@@ -72,10 +78,11 @@ export const TEMPLATES = [
     },
     {
         id: "classic",
-        name: "មង្គលជ័យ (W04)",
-        style: "Classic Style",
+        name: "មង្គលជ័យ",
+        style: "Classic Khmer",
         popular: false,
         image: "/image/a4.png",
+        Preview: W04Preview,
         groom: "ដារា",
         bride: "មាលា",
         dateText: "ថ្ងៃអាទិត្យ ១៥ មីនា ២០២៦",
@@ -94,10 +101,11 @@ export const TEMPLATES = [
     },
     {
         id: "sky",
-        name: "ទេវីសួគ៌ា (W05)",
-        style: "Royal Khmer",
+        name: "ទេវីសួគ៌ា",
+        style: "Royal Blue",
         popular: false,
         image: "/image/a5.png",
+        Preview: W05Preview,
         groom: "វិចិត្រ",
         bride: "ពេជ្រ",
         dateText: "ថ្ងៃសៅរ៍ ២៥ មេសា ២០២៦",
@@ -116,10 +124,11 @@ export const TEMPLATES = [
     },
     {
         id: "vintage",
-        name: "សិរីមង្គល (W06)",
+        name: "សិរីមង្គល",
         style: "Vintage Gold",
         popular: false,
         image: "/image/a6.png",
+        Preview: W06Preview,
         groom: "សិរី",
         bride: "ចន្ធា",
         dateText: "ថ្ងៃអាទិត្យ ១៨ តុលា ២០២៦",

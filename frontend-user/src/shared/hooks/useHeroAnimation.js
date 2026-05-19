@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: hook
- * ឯកសារ: src/shared/hooks/useHeroAnimation.js
- */
 import { useEffect } from "react";
 import { animate, stagger } from "animejs";
 

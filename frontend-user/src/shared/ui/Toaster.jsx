@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/ui/Toaster.jsx
- */
 import { useEffect, useState } from "react";
 
 /**

@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/ui/GlassCard.jsx
- */
 import { motion } from "framer-motion";
 
 /**

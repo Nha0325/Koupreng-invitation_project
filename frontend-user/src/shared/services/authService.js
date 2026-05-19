@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: API auth
- * ឯកសារ: src/shared/services/authService.js
- * ចាស់: ./services/authService.js
- */
 import { api } from "../api/client";
 
 export const authService = {

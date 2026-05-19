@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/ui/ScrollReveal.jsx
- */
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { fadeUp } from "../motion/variants";

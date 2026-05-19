@@ -1,8 +1,4 @@
-/*  * កំណត់ចំណាំ: ស្តាយ CSS
-    * ឯកសារ: src/index.css */
 @import "./assets/fonts/fonts.css";
-/* កំណត់ចំណាំ: ស្តាយ global និង import font របស់គម្រោង
-   ឯកសារ: src/index.css */
 @import "tailwindcss";
 
 /* ── Font CSS Variables ── */

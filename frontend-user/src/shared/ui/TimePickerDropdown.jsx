@@ -1,7 +1,3 @@
-/**
- * កំណត់ចំណាំ: ម៉ូឌុល
- * ឯកសារ: src/shared/ui/TimePickerDropdown.jsx
- */
 const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
 const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 const periods = ["ព្រឹក", "ល្ងាច"];

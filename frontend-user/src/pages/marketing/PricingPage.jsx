@@ -1,8 +1,3 @@
-/**
- * កំណត់ចំណាំ: តម្លៃ
- * ឯកសារ: src/pages/marketing/PricingPage.jsx
- * ចាស់: ./pages/Home/Pricing.jsx
- */
 import React from "react";
 import { ScrollReveal } from "../../shared/ui/ScrollReveal";
 import { MagicCard } from "../../shared/ui/MagicCard";
