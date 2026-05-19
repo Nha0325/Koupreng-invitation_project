@@ -1,74 +1,112 @@
 @echo off
-REM git-recover.bat - Emergency git recovery for stuck rebase/merge/cherry-pick.
-REM Usage: scripts\git-recover.bat [--hard]
-REM   --hard   Also reset working tree to HEAD (discards uncommitted changes)
+setlocal enabledelayedexpansion
+chcp 65001 >nul
 
-setlocal
+REM ============================================
+REM  Git Recover Helper (Windows)
+REM  Aborts stuck rebase/merge/cherry-pick/revert
+REM  Shows reflog so you can restore lost commits
+REM
+REM  Usage:
+REM    git-recover.bat           Abort gracefully
+REM    git-recover.bat --hard    Abort + reset working tree (DESTRUCTIVE)
+REM ============================================
 
-REM Move to repo root
+echo.
+echo ========================================
+echo   Git Recover Helper
+echo ========================================
+echo.
+
+REM --- Must be inside a git repo ---
+git rev-parse --is-inside-work-tree >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Not a git repository.
+    pause
+    exit /b 1
+)
+
+REM --- Move to repo root ---
 for /f "delims=" %%i in ('git rev-parse --show-toplevel') do cd /d "%%i"
+for /f "delims=" %%g in ('git rev-parse --git-dir') do set "GIT_DIR=%%g"
 
-echo ==^> Current branch and status:
+echo --- Current state ---
 git status --short --branch
 echo.
 
-REM Detect and abort any in-progress operation
-for /f "delims=" %%g in ('git rev-parse --git-dir') do set GIT_DIR=%%g
+REM --- Detect and abort any in-progress operation ---
+set "ABORTED="
 
-if exist "%GIT_DIR%\rebase-merge" (
-    echo ==^> Rebase in progress. Aborting...
+if exist "!GIT_DIR!\rebase-merge" (
+    echo [1/3] Rebase in progress. Aborting...
     git rebase --abort
-    echo     Done.
+    set "ABORTED=rebase"
     goto :after_abort
 )
-if exist "%GIT_DIR%\rebase-apply" (
-    echo ==^> Rebase in progress. Aborting...
+if exist "!GIT_DIR!\rebase-apply" (
+    echo [1/3] Rebase in progress. Aborting...
     git rebase --abort
-    echo     Done.
+    set "ABORTED=rebase"
     goto :after_abort
 )
-if exist "%GIT_DIR%\MERGE_HEAD" (
-    echo ==^> Merge in progress. Aborting...
+if exist "!GIT_DIR!\MERGE_HEAD" (
+    echo [1/3] Merge in progress. Aborting...
     git merge --abort
-    echo     Done.
+    set "ABORTED=merge"
     goto :after_abort
 )
-if exist "%GIT_DIR%\CHERRY_PICK_HEAD" (
-    echo ==^> Cherry-pick in progress. Aborting...
+if exist "!GIT_DIR!\CHERRY_PICK_HEAD" (
+    echo [1/3] Cherry-pick in progress. Aborting...
     git cherry-pick --abort
-    echo     Done.
+    set "ABORTED=cherry-pick"
     goto :after_abort
 )
-if exist "%GIT_DIR%\REVERT_HEAD" (
-    echo ==^> Revert in progress. Aborting...
+if exist "!GIT_DIR!\REVERT_HEAD" (
+    echo [1/3] Revert in progress. Aborting...
     git revert --abort
-    echo     Done.
+    set "ABORTED=revert"
     goto :after_abort
 )
-echo ==^> No in-progress operation detected.
+echo [1/3] No in-progress operation detected.
 
 :after_abort
-
-REM Optional hard reset
-if "%1"=="--hard" (
-    echo.
-    echo ==^> --hard flag detected. Resetting working tree to HEAD...
-    git reset --hard HEAD
-    git clean -fd
-    echo     Working tree reset.
+if defined ABORTED (
+    echo       Successfully aborted !ABORTED!.
 )
 
+REM --- Optional hard reset ---
+if "%1"=="--hard" (
+    echo.
+    echo [2/3] --hard flag: resetting working tree to HEAD...
+    echo       WARNING: This discards uncommitted changes!
+    set /p CONFIRM="      Continue? (y/N): "
+    if /i "!CONFIRM!"=="y" (
+        git reset --hard HEAD
+        git clean -fd
+        echo       Working tree reset.
+    ) else (
+        echo       Skipped hard reset.
+    )
+) else (
+    echo [2/3] Skipped hard reset ^(use --hard to discard uncommitted changes^).
+)
+
+REM --- Show reflog ---
 echo.
-echo ==^> Recent reflog (last 10 entries):
-git reflog -10
+echo [3/3] Recent reflog (last 15 entries):
+echo.
+git reflog -15
 
 echo.
-echo ==^> Final status:
-git status --short --branch
-
+echo ========================================
+echo   Recovery complete
+echo ========================================
 echo.
-echo Recovery complete.
-echo If you lost a commit, find it in the reflog above and run:
-echo   git reset --hard ^<commit-hash^>
-
+echo If you lost a commit, find its hash above and run:
+echo     git reset --hard ^<commit-hash^>
+echo.
+echo TIP: Before pushing your code, ALWAYS pull team's latest:
+echo     scripts\git-pull.bat
+echo.
+pause
 endlocal
