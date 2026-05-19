@@ -1,128 +1,108 @@
-# 🤝 Team Git Helper Scripts
+# 🤝 Git Helper Scripts — Team Safe Workflow
 
-Scripts ដើម្បី​​​ pull/push code ​ជាមួយ​ team ដោយ​មិន​បាត់​ការ​ផ្លាស់ប្ដូរ​​ និង​មិន​ឱ្យ code ជាន់​គ្នា។
-
-> 💡 ស្រាប់​បាន​ដោះស្រាយ​បញ្ហា​ធ្ងន់ៗ​ដូចជា merge conflicts, lost changes, និង stuck rebase។
+Scripts ងាយ​ៗ​សម្រាប់​​ pull និង push code ​ដោយ **មិន​ឱ្យ​ code ជាន់​គ្នា**​​ ​ពេល​ team ច្រើន​នាក់​ធ្វើ​ការ​ព្រម​គ្នា។
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start — តែ 2 commands
 
-| ស្ថានភាព​របស់​អ្នក | Command |
-|---|---|
-| 🌅 ​​ចាប់ផ្ដើម​ថ្ងៃ​ការងារ | `./scripts/git-pull.sh` |
-| 🚀 រួច​ហើយ​ ត្រូវ push | `./scripts/git-push.sh` |
-| 🆘 Git ជាប់ មិន​ដឹង​ធ្វើ​ម៉េច | `./scripts/git-recover.sh` |
+| ​​​​​​​​​​​​​​​​​​​ស្ថាន​ភាព | Command | មុខងារ |
+|---|---|---|
+| 🚀 ត្រៀម push code | `./scripts/git-safe.sh "your message"` | Pull team → commit → push (safe) |
+| 🆘 Git ​ជាប់ មិន​ដឹង​​​​ធ្វើ​ម៉េច | `./scripts/git-recover.sh` | Abort ​​​rebase/merge ​​​​​​​​​​​ដែល​ជាប់ |
 
-Windows: ​ប្តូរ​ `./scripts/xxx.sh` ទៅ `scripts\xxx.bat`។
+Windows: ​ប្រើ `scripts\git-safe.bat` និង `scripts\git-recover.bat`
 
 ---
 
-## � `git-pull` — ទាញ​ code ពី team
+## 📋 ​​​សារ​​​​ Team Leader
 
-ទាញ​ commits ថ្មី​ៗ​ពី remote ដោយ​មិន​បាត់​ការ​ផ្លាស់ប្ដូរ​ uncommitted របស់​អ្នក។
+> 🔴 BEFORE you write any new code or push anything to GitHub, you MUST pull the latest code! If you push old code without pulling first, it will cause massive merge conflicts and break the new architecture.
 
-### Run
+Script `git-safe.sh` ​ធ្វើ​សារ​នេះ​​ស្វ័យ​ប្រវត្តិ ✅
 
+---
+
+## 🛡️ `git-safe` — Pull មុន​​​​​ Push
+
+Script ​នេះ​​ធ្វើ​៥​ជំហាន​ដោយ​ស្វ័យ​ប្រវត្តិ​៖
+
+```
+[1/5] git stash         (រក្សា​ការ​ផ្លាស់​ប្ដូរ​បច្ចុប្បន្ន)
+[2/5] git pull          (ទាញ​ team's code មុន ← សំខាន់!)
+[3/5] git stash pop     (យក​ការ​ផ្លាស់​ប្ដូរ​ត្រឡប់)
+[4/5] git add + commit  (commit code ​​​​​​​​​​​របស់​អ្នក)
+[5/5] git push          (Push ទៅ remote)
+```
+
+### Run​​
+
+**Linux / Mac / Git Bash:**
 ```bash
-./scripts/git-pull.sh        # Linux / Mac / Git Bash
-scripts\git-pull.bat         # Windows
+./scripts/git-safe.sh                    # សួរ commit message
+./scripts/git-safe.sh "fix login bug"    # ​​ផ្ដល់​​ message ផ្ទាល់
 ```
 
-### វា​ធ្វើ​អ្វី?
-
-```
-[1/3] Stash → ការ​ផ្លាស់ប្ដូរ​ uncommitted ទុក​ដោយ​សុវត្ថិភាព
-[2/3] Pull  → ទាញ commits ថ្មី​ពី origin
-[3/3] Pop   → យក stash ត្រឡប់​មក​ដាក់​ជា​ដដែល
+**Windows:**
+```bat
+scripts\git-safe.bat
+scripts\git-safe.bat "fix login bug"
 ```
 
-### ឧទាហរណ៍
+### ឧទាហរណ៍ Output
 
-```bash
-$ ./scripts/git-pull.sh
-
+```
 ========================================
-  Git Pull Helper (Team)
+  Git Safe — Pull then Push
 ========================================
 
 Current branch: main
 
 --- Local changes ---
  M src/App.jsx
-?? src/NewFile.jsx
+?? src/NewFeature.jsx
 
-[1/3] Stashing local changes (including untracked)...
-[2/3] Pulling latest from origin/main...
-[3/3] Restoring stashed changes...
+[1/5] git stash ...
+[2/5] git pull origin main ...
+[3/5] git stash pop ...
+[4/5] git add . + git commit -m "fix login bug" ...
+[5/5] git push origin main ...
 
 ========================================
-  Done. Up to date with origin/main
+  Done — Synced + Pushed safely
 ========================================
 ```
 
 ---
 
-## 📤 `git-push` — Commit + Push ​​មាន​សុវត្ថិភាព
+## 🆘 `git-recover` — ស្ដារ​ពេល git ជាប់
 
-Commit ការ​ផ្លាស់ប្ដូរ​ + sync ​ជាមួយ remote + push ​ក្នុង command តែ​មួយ។
+ប្រើ​ពេល rebase/merge/cherry-pick ​ជាប់​ ឬ​មាន error ​ប្លែក​ៗ​​៖
 
-### Run
-
+**Linux / Mac:**
 ```bash
-# សួរ commit message
-./scripts/git-push.sh
-
-# ឬ​​ផ្ដល់​ message ផ្ទាល់
-./scripts/git-push.sh "fix login bug"
-
-# Windows
-scripts\git-push.bat
+./scripts/git-recover.sh           # Abort gracefully
+./scripts/git-recover.sh --hard    # Abort + លុប uncommitted changes
 ```
 
-### វា​ធ្វើ​អ្វី?
-
-```
-[1/4] Stage    → git add -A
-[2/4] Commit   → git commit -m "..."
-[3/4] Rebase   → git pull --rebase origin <branch>  ← ការពារ​ជាន់​គ្នា
-[4/4] Push     → git push origin <branch>
-```
-
-### ហេតុ​អ្វី​ប្រើ `--rebase` មិន​មែន merge?
-
-| Merge | Rebase |
-|---|---|
-| បង្កើត commit "Merge branch..." បន្ថែម | History ​​មួយ​បន្ទាត់​ត្រង់ |
-| History ច្រវាក់ ឃើញ​មិនច្បាស់ | Commits តម្រៀប​តាម​លំដាប់ |
-| ❌ ច្រលំ​នៅ​ពេល​ team ធំ | ✅ ស្អាត​​ ងាយ​អាន |
-
----
-
-## 🆘 `git-recover` — ស្ដារ​ពី​ Git ជាប់
-
-ពេល rebase/merge/cherry-pick ​ជាប់​ ឬ​ក៏​បាត់ commit ដោយ​ចៃ​ដន្យ។
-
-### Run
-
-```bash
-./scripts/git-recover.sh           # Abort + show reflog
-./scripts/git-recover.sh --hard    # Abort + លុប uncommitted ផង
-
-# Windows
+**Windows:**
+```bat
 scripts\git-recover.bat
 scripts\git-recover.bat --hard
 ```
 
-### ស្ដារ commit ដែល​បាត់
+វា​​ធ្វើ​៖
+1. ​Detect និង abort គ្រប់ in-progress operations (rebase, merge, cherry-pick, revert)
+2. បង្ហាញ​ **reflog** 15 entries ចុង​ក្រោយ​ — ​ស្វែង​រក commit ដែល​បាត់
+3. ផ្ដល់​ command សម្រាប់​ស្ដារ commit ​បាត់
 
-Script បង្ហាញ **reflog** (ប្រវត្តិ​ HEAD) — ​សូម​រក commit hash:
+### ស្ដារ commit ​បាត់​ដោយ​ចៃ​ដន្យ
 
 ```
-==> Recent reflog (last 10 entries):
+==> Recent reflog (last 15 entries):
 abc1234 HEAD@{0}: rebase (abort): returning to refs/heads/main
 def5678 HEAD@{1}: rebase (start): checkout origin/main
-9ab0cde HEAD@{2}: commit: បន្ថែម login form    ← commit ដែល​បាត់!
+9ab0cde HEAD@{2}: commit: បន្ថែម login form    ← commit ដែល​បាត់
 ```
 
 ស្ដារ​៖
@@ -132,104 +112,71 @@ git reset --hard 9ab0cde
 
 ---
 
-## 🌿 Workflow ​សម្រាប់ Team
-
-### ✅ ​ត្រឹម​ត្រូវ — Feature Branch Flow
+## 🌿 ​Workflow ​ត្រឹម​ត្រូវ​សម្រាប់ Team
 
 ```bash
-# ចាប់ផ្ដើម​ថ្ងៃ
-./scripts/git-pull.sh
-
-# បង្កើត branch ​សម្រាប់ feature ថ្មី
-git checkout -b feature/add-rsvp-form
-
-# ធ្វើការ​​ ​​​​​​​បន្ទាប់​​មក push
-./scripts/git-push.sh "add RSVP form validation"
-
-# បើក Pull Request នៅ GitHub
-gh pr create --title "Add RSVP form" --body "..."
+# រាល់​ពេល​ត្រូវ push ឬ​ ​ចាប់​ផ្ដើម​ធ្វើ​ការ
+./scripts/git-safe.sh "describe what you changed"
 ```
 
-### ❌ មិន​ត្រឹម​ត្រូវ — ធ្វើ​ផ្ទាល់​នៅ​ main
+ឬ​បើ​​​ចង់​ប្រើ raw commands តាម​សារ team leader៖
 
 ```bash
-# ❌ កុំ​ធ្វើ​បែប​នេះ
-git checkout main
-# ...edit files...
-git commit -m "fix"
-git push origin main      ← ច្រលំ​ជាមួយ team
+# 1. Pull team's latest
+git stash
+git pull origin main
+git stash pop
+
+# 2. Push code របស់​អ្នក
+git add .
+git commit -m "your message"
+git push
 ```
+
+ទាំង​ 2 ​​មាន​លទ្ធផល​ដូច​គ្នា — script ​គ្រាន់​តែ​ស្វ័យ​ប្រវត្តិ​​ ​​​​​​​​​​​​​​​មិន​ភ្លេច​ជំហាន​ណា​មួយ។
 
 ---
 
-## 📋 ការ​ប្រៀបធៀប
+## ⚠️ ច្បាប់​សំខាន់
 
-| ស្ថានភាព | កុំ​ធ្វើ ❌ | ​ត្រូវ​ធ្វើ ✅ |
-|---|---|---|
-| Pull ពេល​មាន uncommitted changes | `git pull` (ទទួល​ error) | `./scripts/git-pull.sh` |
-| Push ពេល team push រួច​ហើយ | `git push -f` (បំផ្លាញ team) | `./scripts/git-push.sh` |
-| Rebase ​ជាប់ មិន​ដឹង​ធ្វើ​ម៉េច | លុប `.git/` (បាត់​អ​ស់) | `./scripts/git-recover.sh` |
-| ធ្វើ​ការ​លើ feature ធំ | Commit ផ្ទាល់​នៅ main | Branch ​ដាច់​ដោយ​ឡែក |
+| ✅ ត្រូវ​ធ្វើ | ❌ កុំ​ធ្វើ |
+|---|---|
+| Pull មុន push រាល់​ពេល | Push ដោយ​មិន pull មុន |
+| ប្រើ commit message ច្បាស់ៗ | "update", "fix", "msg" |
+| Commit ​តូចៗ​ច្រើន​ដង | Commit ​​​ធំៗ​មួយ​ដង |
+| ​ចែ​​ក​​ដាន​ជូន team បើ មាន conflict | លាក់​​ ​​​បន្ត​ធ្វើ​ការ​​​​​​​​ |
+| ​ប្រើ `git-recover.sh` ​ពេល​ជាប់ | ប្រើ​ `git push -f` ​​​​បង្ខំ |
 
 ---
 
-## � Troubleshooting
+## 🛠️ ​​ការ​ដំឡើង​លើក​ដំបូង (Linux/Mac)
 
-### `Permission denied: ./scripts/git-pull.sh`
-
-ធ្វើ​ឱ្យ scripts អាច​ដំណើរ​ការ​បាន (តែ​ម្ដង​គត់):
+ធ្វើ​ឱ្យ scripts អាច​ដំណើរ​ការ​បាន​៖
 ```bash
 chmod +x scripts/*.sh
 ```
 
-### `[CONFLICT] Stash pop has conflicts`
+---
 
-មាន​ការ​ផ្លាស់​ប្ដូរ​ដូច​គ្នា​ទាំង local និង​ team:
-```bash
-git status                # មើល​ឯកសារ​ដែល conflict
-# ...កែ​ដោយ​ដៃ​ក្នុង​​ editor...
-git add <files>
-git stash drop            # លុប​ stash ចាស់
-```
+## 🐛 Troubleshooting
 
-### `[CONFLICT] Rebase has conflicts`
-
-```bash
-# Option 1: ​​​​​​​​​​​បន្ត
-# ...កែ conflicts...
-git add <files>
-git rebase --continue
-
-# Option 2: ​​បោះបង់​​​
-./scripts/git-recover.sh
-```
-
-### បាត់​ commit ​​​​​​​​​​​​ដោយ​ចៃ​ដន្យ
-
-```bash
-./scripts/git-recover.sh
-# រក commit hash ក្នុង reflog
-git reset --hard <commit-hash>
-```
+| បញ្ហា | ដំណោះ​ស្រាយ |
+|---|---|
+| `Permission denied` លើ `.sh` | `chmod +x scripts/*.sh` |
+| `[CONFLICT] Stash pop has conflicts` | កែ​​ → `git add <files>` → `git stash drop` |
+| `Pull failed` (auth error) | ពិនិត្យ SSH key ឬ token |
+| Rebase/merge ​ជាប់ | `./scripts/git-recover.sh` |
+| ​បាត់ commit ​​​ដោយ​ចៃ​ដន្យ | `./scripts/git-recover.sh` ​​​ → ​ស្ដារ​ពី​ reflog |
 
 ---
 
-## 📚 ច្បាប់​​៥​យ៉ាង​សម្រាប់ Team
+## 📁 ឯកសារ​ក្នុង scripts/
 
-1. 🌿 **Branch ថ្មី​សម្រាប់ feature ថ្មី** — កុំ​ធ្វើ​ផ្ទាល់​នៅ main
-2. 🔄 **Pull មុន​ចាប់​ផ្ដើម** ​រាល់​ថ្ងៃ — សម្រាប់​សុខភាព​ team
-3. 💬 **Commit messages ច្បាស់​​លាស់** — "fix login bug" មិន​មែន "update"
-4. 🚫 **កុំ​ force push** លើ shared branches — បំផ្លាញ​ team
-5. 💾 **Commit ច្រើន​​ដង​​​​ ​តូចៗ** — ងាយ​ revert និង​ debug
-
----
-
-## 🔒 ការ​ដំឡើង​លើក​ដំបូង
-
-```bash
-# 1. ធ្វើ​ឱ្យ scripts អាច​ដំណើរ​ការ
-chmod +x scripts/*.sh
-
-# 2. បាន​ហើយ! ​​ប្រើ​​ភ្លាម
-./scripts/git-pull.sh
+```
+scripts/
+├── git-safe.sh       (Linux/Mac/Git Bash)  ← Pull + Push safely
+├── git-safe.bat      (Windows)             ← Pull + Push safely
+├── git-recover.sh    (Linux/Mac/Git Bash)  ← Recover stuck git
+├── git-recover.bat   (Windows)             ← Recover stuck git
+└── README.md         (this file)
 ```
