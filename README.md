@@ -91,10 +91,38 @@ npm run dev
 
 ### 4. Backend (Spring Boot)
 
+Use the safe team push script instead of running `git add && git commit && git push` manually.
+
+Run this from the project folder in PowerShell:
+
 ```bash
+<<<<<<< Updated upstream
 cd backend
 ./mvnw spring-boot:run
 # → http://localhost:8080
+=======
+.\git-push.ps1 "your commit message"
+```
+
+If PowerShell blocks the script because of execution policy, run:
+
+```bash
+powershell -ExecutionPolicy Bypass -File .\git-push.ps1 "your commit message"
+```
+
+If you do not pass a message, the script will ask for one in the terminal.
+
+The script checks GitHub first, temporarily stashes uncommitted local work when it needs to pull collaborator code, applies the stash back, commits your current changes, and then pushes. If the same lines were changed by two people, it stops and asks you to resolve the conflict so nobody's code is overwritten automatically.
+
+> 💡 No password needed — SSH handles it automatically!
+
+---
+
+## 🎨 Run Tailwind CSS
+
+```bash
+npx @tailwindcss/cli -i ./src/assets/style/input.css -o ./src/assets/style/output.css --watch
+>>>>>>> Stashed changes
 ```
 
 ---

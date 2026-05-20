@@ -17,5 +17,6 @@
 !**/.env.example
 
 # Supabase CLI local state
+supabase
 supabase/.temp/
 supabase/.branches/
