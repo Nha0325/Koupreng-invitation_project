@@ -1,8 +1,10 @@
 package com.koupreng.backend.config;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.repository.AppUserRepository;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,10 +14,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.koupreng.backend.entity.user.AppUser;
-import com.koupreng.backend.entity.user.AuthProvider;
-import com.koupreng.backend.entity.user.Role;
-import com.koupreng.backend.repository.AppUserRepository;
 public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
 
     private final AppUserRepository userRepository;
@@ -29,40 +27,17 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
     public JwtAuthenticationToken convert(Jwt jwt) {
         UUID userId = parseUserId(jwt.getSubject());
         AppUser user = userRepository.findById(userId)
-                .orElseGet(() -> provisionUser(jwt, userId));
+                .orElseThrow(() -> new BadCredentialsException("Authentication required"));
 
         if (!user.isEnabled()) {
             throw new BadCredentialsException("Account is disabled");
         }
+        validateTokenVersion(jwt, user);
 
         List<GrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
         );
-        return new JwtAuthenticationToken(jwt, authorities, user.getEmail());
-    }
-
-    private AppUser provisionUser(Jwt jwt, UUID userId) {
-        AppUser user = new AppUser();
-        user.setId(userId);
-        user.setEmail(safeString(jwt.getClaimAsString("email")));
-
-        String fullName = readFullName(jwt);
-        if (fullName == null || fullName.isBlank()) {
-            String email = user.getEmail();
-            fullName = email == null ? "User" : email.split("@")[0];
-        }
-        user.setFullName(fullName);
-
-        user.setAuthProvider(readProvider(jwt));
-        user.setProviderId(readProviderId(jwt));
-        user.setRole(Role.USER);
-        user.setEnabled(true);
-
-        Instant now = Instant.now();
-        // PrePersist sets these too, but explicit assignment avoids null in tests
-        user.setCreatedAt(now);
-        user.setUpdatedAt(now);
-        return userRepository.save(user);
+        return new JwtAuthenticationToken(jwt, authorities, user.getId().toString());
     }
 
     private UUID parseUserId(String subject) {
@@ -76,48 +51,10 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
         }
     }
 
-    private String readFullName(Jwt jwt) {
-        Object userMetadata = jwt.getClaim("user_metadata");
-        if (userMetadata instanceof java.util.Map<?, ?> map) {
-            Object value = map.get("full_name");
-            if (value instanceof String name && !name.isBlank()) {
-                return name;
-            }
-            value = map.get("name");
-            if (value instanceof String name && !name.isBlank()) {
-                return name;
-            }
+    private void validateTokenVersion(Jwt jwt, AppUser user) {
+        Object value = jwt.getClaim("token_version");
+        if (!(value instanceof Number version) || version.intValue() != user.getTokenVersion()) {
+            throw new BadCredentialsException("Authentication required");
         }
-        return null;
-    }
-
-    private AuthProvider readProvider(Jwt jwt) {
-        Object appMetadata = jwt.getClaim("app_metadata");
-        if (appMetadata instanceof java.util.Map<?, ?> map) {
-            Object provider = map.get("provider");
-            if (provider instanceof String value) {
-                return switch (value.toLowerCase()) {
-                    case "google" -> AuthProvider.GOOGLE;
-                    case "telegram" -> AuthProvider.TELEGRAM;
-                    default -> AuthProvider.LOCAL;
-                };
-            }
-        }
-        return AuthProvider.LOCAL;
-    }
-
-    private String readProviderId(Jwt jwt) {
-        Object appMetadata = jwt.getClaim("app_metadata");
-        if (appMetadata instanceof java.util.Map<?, ?> map) {
-            Object value = map.get("provider_id");
-            if (value instanceof String s && !s.isBlank()) {
-                return s;
-            }
-        }
-        return null;
-    }
-
-    private String safeString(String value) {
-        return value == null ? "" : value;
     }
 }

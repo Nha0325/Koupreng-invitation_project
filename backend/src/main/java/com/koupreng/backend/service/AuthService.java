@@ -1,0 +1,189 @@
+package com.koupreng.backend.service;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
+
+import com.koupreng.backend.common.ApiException;
+import com.koupreng.backend.config.AppProperties;
+import com.koupreng.backend.dto.AuthResponse;
+import com.koupreng.backend.dto.GoogleLoginRequest;
+import com.koupreng.backend.dto.LoginRequest;
+import com.koupreng.backend.dto.RegisterRequest;
+import com.koupreng.backend.dto.TelegramLoginRequest;
+import com.koupreng.backend.dto.UserResponse;
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.AuthProvider;
+import com.koupreng.backend.entity.user.Role;
+import com.koupreng.backend.repository.AppUserRepository;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AuthService {
+
+    private final AppUserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtEncoder jwtEncoder;
+    private final AppProperties appProperties;
+    private final GoogleIdentityVerifier googleIdentityVerifier;
+    private final TelegramIdentityVerifier telegramIdentityVerifier;
+
+    public AuthService(
+            AppUserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtEncoder jwtEncoder,
+            AppProperties appProperties,
+            GoogleIdentityVerifier googleIdentityVerifier,
+            TelegramIdentityVerifier telegramIdentityVerifier
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtEncoder = jwtEncoder;
+        this.appProperties = appProperties;
+        this.googleIdentityVerifier = googleIdentityVerifier;
+        this.telegramIdentityVerifier = telegramIdentityVerifier;
+    }
+
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
+        String fullName = request.fullName().trim();
+        String email = normalizeEmail(request.email());
+        String phone = normalizePhone(request.phone());
+
+        if (email == null && phone == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Phone or email is required");
+        }
+        if (email != null && userRepository.existsByEmailIgnoreCase(email)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Email is already registered");
+        }
+        if (phone != null && userRepository.existsByPhone(phone)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Phone number is already registered");
+        }
+
+        AppUser user = new AppUser();
+        user.setId(UUID.randomUUID());
+        user.setEmail(email);
+        user.setPhone(phone);
+        user.setFullName(fullName);
+        user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setAuthProvider(AuthProvider.LOCAL);
+        user.setRole(shouldPromoteFirstUser() ? Role.ADMIN : Role.USER);
+        user.setEnabled(true);
+
+        return issueToken(userRepository.save(user));
+    }
+
+    @Transactional(readOnly = true)
+    public AuthResponse login(LoginRequest request) {
+        AppUser user = findByIdentifier(request.identifier())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+
+        if (!user.isEnabled()) {
+            throw new BadCredentialsException("Account is disabled");
+        }
+        if (user.getPasswordHash() == null
+                || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
+
+        return issueToken(user);
+    }
+
+    @Transactional
+    public AuthResponse loginWithGoogle(GoogleLoginRequest request) {
+        return issueToken(upsertExternalUser(googleIdentityVerifier.verify(request.idToken())));
+    }
+
+    @Transactional
+    public AuthResponse loginWithTelegram(TelegramLoginRequest request) {
+        return issueToken(upsertExternalUser(telegramIdentityVerifier.verify(request)));
+    }
+
+    private Optional<AppUser> findByIdentifier(String rawIdentifier) {
+        String identifier = rawIdentifier == null ? "" : rawIdentifier.trim();
+        String email = normalizeEmail(identifier);
+        String phone = normalizePhone(identifier);
+
+        Optional<AppUser> byEmail = email == null
+                ? Optional.empty()
+                : userRepository.findByEmailIgnoreCase(email);
+        if (byEmail.isPresent()) {
+            return byEmail;
+        }
+        return phone == null ? Optional.empty() : userRepository.findByPhone(phone);
+    }
+
+    private AuthResponse issueToken(AppUser user) {
+        Instant issuedAt = Instant.now();
+        Instant expiresAt = issuedAt.plus(appProperties.getJwt().getAccessTokenMinutes(), ChronoUnit.MINUTES);
+
+        JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
+                .issuer(appProperties.getJwt().getIssuer())
+                .issuedAt(issuedAt)
+                .expiresAt(expiresAt)
+                .subject(user.getId().toString())
+                .claim("full_name", user.getFullName())
+                .claim("role", user.getRole().name())
+                .claim("token_version", user.getTokenVersion());
+
+        if (user.getEmail() != null) {
+            claims.claim("email", user.getEmail());
+        }
+        if (user.getPhone() != null) {
+            claims.claim("phone", user.getPhone());
+        }
+
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
+        String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims.build())).getTokenValue();
+        return AuthResponse.bearer(token, expiresAt, UserResponse.from(user));
+    }
+
+    private boolean shouldPromoteFirstUser() {
+        return appProperties.getAuth().isFirstUserAdminEnabled() && userRepository.count() == 0;
+    }
+
+    private AppUser upsertExternalUser(ExternalAuthIdentity identity) {
+        AppUser user = userRepository
+                .findByAuthProviderAndProviderId(identity.provider(), identity.providerId())
+                .or(() -> userRepository.findByEmailIgnoreCase(identity.email()))
+                .orElseGet(() -> {
+                    AppUser newUser = new AppUser();
+                    newUser.setId(UUID.randomUUID());
+                    newUser.setRole(shouldPromoteFirstUser() ? Role.ADMIN : Role.USER);
+                    newUser.setEnabled(true);
+                    return newUser;
+                });
+
+        user.setAuthProvider(identity.provider());
+        user.setProviderId(identity.providerId());
+        user.setEmail(normalizeEmail(identity.email()));
+        user.setFullName(identity.fullName().trim());
+        return userRepository.save(user);
+    }
+
+    private String normalizeEmail(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizePhone(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.replaceAll("\\s+", "");
+    }
+}

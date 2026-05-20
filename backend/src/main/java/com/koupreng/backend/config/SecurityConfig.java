@@ -1,21 +1,10 @@
 package com.koupreng.backend.config;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-import org.springframework.security.web.util.matcher.AnyRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.security.ApiRequestLoggingFilter;
@@ -24,6 +13,28 @@ import com.koupreng.backend.security.ClientAddressResolver;
 import com.koupreng.backend.service.RateLimitService;
 import com.koupreng.backend.waf.WafFilter;
 import com.koupreng.backend.waf.WafProperties;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
@@ -63,7 +74,10 @@ public class SecurityConfig {
                 .addFilterBefore(wafFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(apiRequestLoggingFilter, WafFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/", "/api/health").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout",
+                                "/api/auth/google", "/api/auth/telegram").permitAll()
                         .requestMatchers("/api/invitations/templates",
                                 "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()
@@ -95,14 +109,23 @@ public class SecurityConfig {
     }
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public JwtEncoder jwtEncoder(AppProperties appProperties) {
+        return new NimbusJwtEncoder(new ImmutableSecret<>(jwtSecretKey(appProperties)));
+    }
+
+    @Bean
     public JwtDecoder jwtDecoder(AppProperties appProperties) {
-        AppProperties.Supabase supabase = appProperties.getSupabase();
-        if (supabase.getJwkSetUri() == null || supabase.getJwkSetUri().isBlank()) {
-            return JwtDecoders.fromIssuerLocation(supabase.getIssuer());
-        }
-        return NimbusJwtDecoder
-                .withJwkSetUri(supabase.getJwkSetUri())
+        NimbusJwtDecoder decoder = NimbusJwtDecoder
+                .withSecretKey(jwtSecretKey(appProperties))
+                .macAlgorithm(MacAlgorithm.HS256)
                 .build();
+        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(appProperties.getJwt().getIssuer()));
+        return decoder;
     }
 
     @Bean
@@ -120,5 +143,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
+    }
+
+    private SecretKey jwtSecretKey(AppProperties appProperties) {
+        byte[] secret = appProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
+        return new SecretKeySpec(secret, "HmacSHA256");
     }
 }

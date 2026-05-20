@@ -1,19 +1,27 @@
 import { createContext, useCallback, useState } from "react";
+import { clearStoredAuth, readStoredAuth, writeStoredAuth } from "../../shared/services/authStorage";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authState, setAuthState] = useState(() => readStoredAuth());
+    const user = authState?.user || null;
+    const isAuthenticated = Boolean(authState?.accessToken && user);
 
-    const login = useCallback((userData) => {
-        setUser(userData);
-        setIsAuthenticated(true);
+    const login = useCallback((authData) => {
+        const nextState = {
+            accessToken: authData.accessToken,
+            tokenType: authData.tokenType || "Bearer",
+            expiresAt: authData.expiresAt,
+            user: authData.user,
+        };
+        writeStoredAuth(nextState);
+        setAuthState(nextState);
     }, []);
 
     const logout = useCallback(() => {
-        setUser(null);
-        setIsAuthenticated(false);
+        clearStoredAuth();
+        setAuthState(null);
     }, []);
 
     return (

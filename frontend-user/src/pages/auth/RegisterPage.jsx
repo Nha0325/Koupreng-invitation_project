@@ -1,6 +1,9 @@
 import { useId, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../app/auth/useAuth";
 import { useToggle } from "../../shared/hooks/useToggle";
+import authService from "../../shared/services/authService";
+import SocialAuthButtons from "./SocialAuthButtons";
 import "./AuthPage.css";
 
 function EyeIcon({ open }) {
@@ -27,9 +30,40 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, togglePassword] = useToggle();
   const [showConfirm, toggleConfirm] = useToggle();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const passwordMatch = confirmPassword && password !== confirmPassword;
-  const handleSubmit = (e) => e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!name.trim() || !phone.trim() || !password) {
+      setError("Please fill in your name, phone number, and password.");
+      return;
+    }
+    if (passwordMatch) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const authData = await authService.register({
+        fullName: name.trim(),
+        phone: phone.trim(),
+        password,
+      });
+      login(authData);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -46,6 +80,8 @@ function Register() {
           <p className="auth-subtitle">ចាប់ផ្តើមរៀបចំពិធីមង្គលការជាមួយ Koupreng</p>
         </div>
 
+        {error && <p className="auth-error">{error}</p>}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="auth-form">
           {/* Name */}
@@ -56,6 +92,7 @@ function Register() {
               onChange={(e) => setName(e.target.value)}
               placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"
               className="auth-input"
+              required
             />
           </div>
 
@@ -67,6 +104,7 @@ function Register() {
               onChange={(e) => setPhone(e.target.value)}
               placeholder="0xx xxx xxx"
               className="auth-input"
+              required
             />
           </div>
 
@@ -81,6 +119,7 @@ function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="បញ្ចូលលេខសម្ងាត់"
                 className="auth-input"
+                required
               />
               <button type="button" onClick={togglePassword} className="auth-eye-btn" aria-label="Toggle password">
                 <EyeIcon open={showPassword} />
@@ -99,6 +138,7 @@ function Register() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="បញ្ជាក់លេខសម្ងាត់"
                 className={`auth-input${passwordMatch ? " error" : ""}`}
+                required
               />
               <button type="button" onClick={toggleConfirm} className="auth-eye-btn" aria-label="Toggle confirm">
                 <EyeIcon open={showConfirm} />
@@ -110,8 +150,8 @@ function Register() {
           </div>
 
           {/* Submit */}
-          <button type="submit" className="auth-submit">
-            ចុះឈ្មោះ
+          <button type="submit" className="auth-submit" disabled={loading || Boolean(passwordMatch)}>
+            {loading ? "កំពុងចុះឈ្មោះ..." : "ចុះឈ្មោះ"}
           </button>
         </form>
 
@@ -119,25 +159,7 @@ function Register() {
         <p className="auth-divider">ឬ បន្តជាមួយ</p>
 
         {/* Social buttons */}
-        <div className="auth-socials">
-          <button type="button" className="auth-social-btn google">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-            </svg>
-            បន្តជាមួយ Google
-          </button>
-
-          <button type="button" className="auth-social-btn telegram">
-            <svg width="16" height="16" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="12" fill="#0088cc" />
-              <path d="M17.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.07-.18c-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.2 3.45-.49.34-.94.5-1.35.49-.45-.01-1.32-.26-1.96-.47-.79-.26-1.42-.39-1.37-.83.03-.22.33-.44.91-.68 3.56-1.55 5.94-2.58 7.12-3.07 3.39-1.41 4.1-1.65 4.56-1.66.1 0 .32.02.46.12.12.09.15.22.16.32.01.07.02.16.02.24z" fill="white" />
-            </svg>
-            បន្តជាមួយ Telegram
-          </button>
-        </div>
+        <SocialAuthButtons />
 
         {/* Login link */}
         <p className="auth-footer-text" style={{ marginTop: "14px" }}>

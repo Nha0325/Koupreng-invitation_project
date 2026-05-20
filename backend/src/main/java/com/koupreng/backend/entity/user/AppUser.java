@@ -13,9 +13,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 /**
- * Profile row mirrored from Supabase Auth.
- * The id is the same UUID as auth.users(id) and is created automatically
- * by the on_auth_user_created trigger when a user signs up via Supabase.
+ * Application user stored locally in MySQL.
  */
 @Entity
 @Table(name = "app_users")
@@ -25,22 +23,27 @@ public class AppUser {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(unique = true, length = 255)
     private String email;
+
+    @Column(unique = true, length = 30)
+    private String phone;
 
     @Column(nullable = false, name = "full_name", length = 120)
     private String fullName;
 
+    @Column(name = "password_hash", length = 100)
+    private String passwordHash;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "auth_provider", length = 20, nullable = false,
-            columnDefinition = "auth_provider")
+    @Column(name = "auth_provider", length = 20, nullable = false)
     private AuthProvider authProvider = AuthProvider.LOCAL;
 
     @Column(name = "provider_id", length = 255)
     private String providerId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, columnDefinition = "user_role")
+    @Column(nullable = false, length = 20)
     private Role role = Role.USER;
 
     @Column(nullable = false)
@@ -58,6 +61,9 @@ public class AppUser {
     @PrePersist
     public void onCreate() {
         Instant now = Instant.now();
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
         if (createdAt == null) {
             createdAt = now;
         }
@@ -85,12 +91,28 @@ public class AppUser {
         this.email = email;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public String getFullName() {
         return fullName;
     }
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public AuthProvider getAuthProvider() {

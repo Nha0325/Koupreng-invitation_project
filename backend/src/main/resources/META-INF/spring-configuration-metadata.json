@@ -1,0 +1,289 @@
+{
+  "groups": [
+    {
+      "name": "app.jwt",
+      "type": "com.koupreng.backend.config.JwtProperties",
+      "sourceType": "com.koupreng.backend.config.JwtProperties"
+    },
+    {
+      "name": "app.auth",
+      "type": "com.koupreng.backend.config.AuthProperties",
+      "sourceType": "com.koupreng.backend.config.AuthProperties"
+    },
+    {
+      "name": "app.oauth",
+      "type": "com.koupreng.backend.config.OAuthProperties",
+      "sourceType": "com.koupreng.backend.config.OAuthProperties"
+    },
+    {
+      "name": "app.security",
+      "type": "com.koupreng.backend.config.SecurityProperties",
+      "sourceType": "com.koupreng.backend.config.SecurityProperties"
+    },
+    {
+      "name": "app.rate-limit",
+      "type": "com.koupreng.backend.config.RateLimitProperties",
+      "sourceType": "com.koupreng.backend.config.RateLimitProperties"
+    },
+    {
+      "name": "app.waf",
+      "type": "com.koupreng.backend.config.WafProperties",
+      "sourceType": "com.koupreng.backend.config.WafProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "app.jwt.issuer",
+      "type": "java.lang.String",
+      "description": "JWT issuer identifier.",
+      "defaultValue": "koupreng-backend"
+    },
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "description": "JWT signing secret key."
+    },
+    {
+      "name": "app.jwt.access-token-minutes",
+      "type": "java.lang.Integer",
+      "description": "JWT access token expiration time in minutes.",
+      "defaultValue": 60
+    },
+    {
+      "name": "app.auth.first-user-admin-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable first user as admin during registration.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.oauth.google.client-ids",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of Google OAuth 2.0 client IDs."
+    },
+    {
+      "name": "app.oauth.google.jwk-set-uri",
+      "type": "java.lang.String",
+      "description": "Google's JWKS URI for token verification.",
+      "defaultValue": "https://www.googleapis.com/oauth2/v3/certs"
+    },
+    {
+      "name": "app.oauth.telegram.bot-token",
+      "type": "java.lang.String",
+      "description": "Telegram bot token for authentication."
+    },
+    {
+      "name": "app.oauth.telegram.auth-max-age-seconds",
+      "type": "java.lang.Long",
+      "description": "Telegram authentication maximum age in seconds.",
+      "defaultValue": 86400
+    },
+    {
+      "name": "app.oauth.telegram.email-domain",
+      "type": "java.lang.String",
+      "description": "Email domain suffix for Telegram users.",
+      "defaultValue": "telegram.local"
+    },
+    {
+      "name": "app.oauth.telegram.client-id",
+      "type": "java.lang.String",
+      "description": "Telegram OIDC client ID."
+    },
+    {
+      "name": "app.oauth.telegram.jwk-set-uri",
+      "type": "java.lang.String",
+      "description": "Telegram's JWKS URI for token verification.",
+      "defaultValue": "https://oauth.telegram.org/.well-known/jwks.json"
+    },
+    {
+      "name": "app.security.cors.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable CORS support.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.security.cors.allowed-origins",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of allowed CORS origins."
+    },
+    {
+      "name": "app.security.cors.allowed-methods",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of allowed HTTP methods.",
+      "defaultValue": "GET,POST,PATCH,PUT,DELETE,OPTIONS"
+    },
+    {
+      "name": "app.security.cors.allowed-headers",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of allowed request headers.",
+      "defaultValue": "Authorization,Content-Type,X-Requested-With,X-Request-Id"
+    },
+    {
+      "name": "app.security.cors.exposed-headers",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of exposed response headers.",
+      "defaultValue": "X-Request-Id"
+    },
+    {
+      "name": "app.security.cors.max-age-seconds",
+      "type": "java.lang.Long",
+      "description": "CORS preflight cache duration in seconds.",
+      "defaultValue": 1800
+    },
+    {
+      "name": "app.security.https.required",
+      "type": "java.lang.Boolean",
+      "description": "Require HTTPS for all requests.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.security.https.hsts-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable HTTP Strict Transport Security (HSTS).",
+      "defaultValue": true
+    },
+    {
+      "name": "app.security.https.hsts-max-age-seconds",
+      "type": "java.lang.Long",
+      "description": "HSTS max-age directive in seconds.",
+      "defaultValue": 31536000
+    },
+    {
+      "name": "app.security.logging.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable API request/response logging.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.security.logging.include-query-string",
+      "type": "java.lang.Boolean",
+      "description": "Include query strings in API logs.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.security.logging.include-health-checks",
+      "type": "java.lang.Boolean",
+      "description": "Include health check endpoints in API logs.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.security.upload.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable file upload validation.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.security.upload.max-file-size-bytes",
+      "type": "java.lang.Long",
+      "description": "Maximum allowed file size in bytes.",
+      "defaultValue": 5242880
+    },
+    {
+      "name": "app.security.upload.max-files",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of files per upload.",
+      "defaultValue": 5
+    },
+    {
+      "name": "app.security.upload.allowed-content-types",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of allowed MIME types.",
+      "defaultValue": "image/jpeg,image/png,image/webp,application/pdf"
+    },
+    {
+      "name": "app.security.upload.allowed-extensions",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of allowed file extensions.",
+      "defaultValue": ".jpg,.jpeg,.png,.webp,.pdf"
+    },
+    {
+      "name": "app.security.upload.verify-signatures",
+      "type": "java.lang.Boolean",
+      "description": "Verify file signatures/magic bytes.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.security.client-address.forwarded-headers-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Extract client address from X-Forwarded-For headers.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.rate-limit.backend",
+      "type": "java.lang.String",
+      "description": "Rate limiting backend (redis, memory, etc).",
+      "defaultValue": "redis"
+    },
+    {
+      "name": "app.rate-limit.redis-key-prefix",
+      "type": "java.lang.String",
+      "description": "Redis key prefix for rate limit data.",
+      "defaultValue": "koupreng:rate-limit:"
+    },
+    {
+      "name": "app.rate-limit.fail-closed",
+      "type": "java.lang.Boolean",
+      "description": "Fail closed (block requests) on rate limit check failure.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.waf.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable Web Application Firewall (WAF).",
+      "defaultValue": true
+    },
+    {
+      "name": "app.waf.audit-only",
+      "type": "java.lang.Boolean",
+      "description": "WAF audit mode (log only, don't block).",
+      "defaultValue": false
+    },
+    {
+      "name": "app.waf.protected-path-prefixes",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of path prefixes to protect with WAF.",
+      "defaultValue": "/api"
+    },
+    {
+      "name": "app.waf.allowed-methods",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of allowed HTTP methods.",
+      "defaultValue": "GET,POST,PATCH,PUT,DELETE,OPTIONS"
+    },
+    {
+      "name": "app.waf.max-uri-length",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed URI length in bytes.",
+      "defaultValue": 2048
+    },
+    {
+      "name": "app.waf.max-query-length",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed query string length in bytes.",
+      "defaultValue": 2048
+    },
+    {
+      "name": "app.waf.max-body-bytes",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed request body size in bytes.",
+      "defaultValue": 65536
+    },
+    {
+      "name": "app.waf.max-header-value-length",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed header value length in bytes.",
+      "defaultValue": 4096
+    },
+    {
+      "name": "app.waf.max-header-count",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed number of headers per request.",
+      "defaultValue": 80
+    },
+    {
+      "name": "app.waf.max-requests-per-minute",
+      "type": "java.lang.Integer",
+      "description": "Maximum requests per minute per IP.",
+      "defaultValue": 120
+    }
+  ]
+}

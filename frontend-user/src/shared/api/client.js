@@ -2,15 +2,18 @@
  * Single HTTP client for the app. Wraps fetch with JSON handling and base URL.
  * All `*Service` modules in shared/services/ should go through this.
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
 import { ApiError } from "./errors";
+import { getAccessToken } from "../services/authStorage";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
 async function request(path, { method = "GET", body, headers = {}, ...rest } = {}) {
+    const token = getAccessToken();
     const res = await fetch(`${API_BASE_URL}${path}`, {
         method,
         headers: {
             "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...headers,
         },
         body: body !== undefined ? JSON.stringify(body) : undefined,

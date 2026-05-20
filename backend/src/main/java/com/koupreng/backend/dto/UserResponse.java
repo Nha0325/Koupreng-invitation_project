@@ -9,6 +9,7 @@ import com.koupreng.backend.entity.user.Role;
 public record UserResponse(
         UUID id,
         String email,
+        String phone,
         String fullName,
         Role role,
         boolean enabled,
@@ -19,6 +20,7 @@ public record UserResponse(
         return new UserResponse(
                 user.getId(),
                 user.getEmail(),
+                user.getPhone(),
                 user.getFullName(),
                 user.getRole(),
                 user.isEnabled(),

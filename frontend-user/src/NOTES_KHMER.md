@@ -12,7 +12,7 @@ src/
 ├── assets/           → រូបភាព, ពុម្ពអក្សរ, តន្ត្រី
 ├── features/         → មុខងារនីមួយៗ (templates, wedding-builder, wedding-site, ...)
 ├── layouts/          → Shell (រចនាបទ) សម្រាប់ផ្នែកនីមួយៗ (Auth, Admin, Host, Marketing)
-├── lib/              → libraries ខាងក្រៅ (supabase)
+├── shared/api/       → API client ទៅកាន់ Spring backend
 ├── mocks/            → ទិន្នន័យសាកល្បង (in-memory DB)
 ├── pages/            → ទំព័រនីមួយៗដែលភ្ជាប់ទៅ Router
 ├── services/         → រក្សាទុកទិន្នន័យ (localStorage / IndexedDB)

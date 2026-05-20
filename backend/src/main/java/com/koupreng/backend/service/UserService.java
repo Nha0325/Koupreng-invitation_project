@@ -64,7 +64,13 @@ public class UserService {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadCredentialsException("Authentication required");
         }
-        return userRepository.findByEmailIgnoreCase(authentication.getName())
-                .orElseThrow(() -> new BadCredentialsException("Authentication required"));
+        String principal = authentication.getName();
+        try {
+            return userRepository.findById(UUID.fromString(principal))
+                    .orElseThrow(() -> new BadCredentialsException("Authentication required"));
+        } catch (IllegalArgumentException ex) {
+            return userRepository.findByEmailIgnoreCase(principal)
+                    .orElseThrow(() -> new BadCredentialsException("Authentication required"));
+        }
     }
 }
