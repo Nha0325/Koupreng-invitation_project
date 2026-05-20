@@ -1,6 +1,5 @@
 package com.koupreng.backend.config;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -72,8 +71,6 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
         user.setRole(Role.USER);
         user.setEnabled(true);
 
-        Instant now = Instant.now();
-        // PrePersist sets these too, but explicit assignment avoids null in tests
         return userRepository.save(user);
     }
 
