@@ -85,12 +85,45 @@ public class AppProperties {
 
         private boolean firstUserAdminEnabled = false;
 
+        @Min(1)
+        private int maxLoginAttemptsPerMinute = 10;
+
+        @Min(1)
+        private int maxRegisterAttemptsPerMinute = 5;
+
+        @Min(1)
+        private int maxSocialLoginAttemptsPerMinute = 20;
+
         public boolean isFirstUserAdminEnabled() {
             return firstUserAdminEnabled;
         }
 
         public void setFirstUserAdminEnabled(boolean firstUserAdminEnabled) {
             this.firstUserAdminEnabled = firstUserAdminEnabled;
+        }
+
+        public int getMaxLoginAttemptsPerMinute() {
+            return maxLoginAttemptsPerMinute;
+        }
+
+        public void setMaxLoginAttemptsPerMinute(int maxLoginAttemptsPerMinute) {
+            this.maxLoginAttemptsPerMinute = maxLoginAttemptsPerMinute;
+        }
+
+        public int getMaxRegisterAttemptsPerMinute() {
+            return maxRegisterAttemptsPerMinute;
+        }
+
+        public void setMaxRegisterAttemptsPerMinute(int maxRegisterAttemptsPerMinute) {
+            this.maxRegisterAttemptsPerMinute = maxRegisterAttemptsPerMinute;
+        }
+
+        public int getMaxSocialLoginAttemptsPerMinute() {
+            return maxSocialLoginAttemptsPerMinute;
+        }
+
+        public void setMaxSocialLoginAttemptsPerMinute(int maxSocialLoginAttemptsPerMinute) {
+            this.maxSocialLoginAttemptsPerMinute = maxSocialLoginAttemptsPerMinute;
         }
     }
 

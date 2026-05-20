@@ -1,12 +1,13 @@
 package com.koupreng.backend.entity.user;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -16,12 +17,16 @@ import jakarta.persistence.Table;
  * Application user stored locally in MySQL.
  */
 @Entity
-@Table(name = "app_users")
+@Table(name = "users")
 public class AppUser {
 
+    public static final String STATUS_ACTIVE = "ACTIVE";
+    public static final String STATUS_DISABLED = "DISABLED";
+
     @Id
-    @Column(nullable = false, updatable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private Long id;
 
     @Column(unique = true, length = 255)
     private String email;
@@ -36,18 +41,11 @@ public class AppUser {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "auth_provider", length = 20, nullable = false)
-    private AuthProvider authProvider = AuthProvider.LOCAL;
-
-    @Column(name = "provider_id", length = 255)
-    private String providerId;
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role = Role.USER;
 
-    @Column(nullable = false)
-    private boolean enabled = true;
+    @Column(nullable = false, length = 20)
+    private String status = STATUS_ACTIVE;
 
     @Column(nullable = false, name = "token_version")
     private int tokenVersion = 0;
@@ -61,11 +59,11 @@ public class AppUser {
     @PrePersist
     public void onCreate() {
         Instant now = Instant.now();
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
         if (createdAt == null) {
             createdAt = now;
+        }
+        if (status == null || status.isBlank()) {
+            status = STATUS_ACTIVE;
         }
         updatedAt = now;
     }
@@ -75,11 +73,11 @@ public class AppUser {
         updatedAt = Instant.now();
     }
 
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -115,22 +113,6 @@ public class AppUser {
         this.passwordHash = passwordHash;
     }
 
-    public AuthProvider getAuthProvider() {
-        return authProvider == null ? AuthProvider.LOCAL : authProvider;
-    }
-
-    public void setAuthProvider(AuthProvider authProvider) {
-        this.authProvider = authProvider;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
-    }
-
     public Role getRole() {
         return role;
     }
@@ -139,12 +121,16 @@ public class AppUser {
         this.role = role;
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public String getStatus() {
+        return status;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public boolean isActive() {
+        return STATUS_ACTIVE.equalsIgnoreCase(status);
     }
 
     public int getTokenVersion() {

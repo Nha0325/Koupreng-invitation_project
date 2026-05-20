@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.koupreng.backend.repository.AppUserRepository;
+import com.koupreng.backend.security.AuthRateLimitFilter;
 import com.koupreng.backend.security.ApiRequestLoggingFilter;
 import com.koupreng.backend.security.ApiSecurityProperties;
 import com.koupreng.backend.security.ClientAddressResolver;
@@ -45,11 +46,17 @@ public class SecurityConfig {
             AppJwtAuthenticationConverter jwtAuthenticationConverter,
             WafProperties wafProperties,
             ApiSecurityProperties apiSecurityProperties,
+            AppProperties appProperties,
             CorsConfigurationSource corsConfigurationSource,
             RateLimitService rateLimitService,
             ClientAddressResolver clientAddressResolver
     ) throws Exception {
         WafFilter wafFilter = new WafFilter(wafProperties, rateLimitService, clientAddressResolver);
+        AuthRateLimitFilter authRateLimitFilter = new AuthRateLimitFilter(
+                appProperties.getAuth(),
+                rateLimitService,
+                clientAddressResolver
+        );
         ApiRequestLoggingFilter apiRequestLoggingFilter =
                 new ApiRequestLoggingFilter(apiSecurityProperties.getLogging());
 
@@ -72,11 +79,12 @@ public class SecurityConfig {
                         })
                 )
                 .addFilterBefore(wafFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(authRateLimitFilter, WafFilter.class)
                 .addFilterBefore(apiRequestLoggingFilter, WafFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/", "/api/health").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout",
+                        .requestMatchers("/api/auth/login", "/api/auth/register",
                                 "/api/auth/google", "/api/auth/telegram").permitAll()
                         .requestMatchers("/api/invitations/templates",
                                 "/api/invitations/templates/**").permitAll()

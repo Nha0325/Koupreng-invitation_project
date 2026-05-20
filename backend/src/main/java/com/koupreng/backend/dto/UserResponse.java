@@ -1,18 +1,17 @@
 package com.koupreng.backend.dto;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.entity.user.Role;
 
 public record UserResponse(
-        UUID id,
+        Long id,
         String email,
         String phone,
         String fullName,
         Role role,
-        boolean enabled,
+        String status,
         Instant createdAt,
         Instant updatedAt
 ) {
@@ -23,7 +22,7 @@ public record UserResponse(
                 user.getPhone(),
                 user.getFullName(),
                 user.getRole(),
-                user.isEnabled(),
+                user.getStatus(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );

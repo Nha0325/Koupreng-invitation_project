@@ -10,6 +10,7 @@ import com.koupreng.backend.dto.RegisterRequest;
 import com.koupreng.backend.dto.TelegramLoginRequest;
 import com.koupreng.backend.service.AuthService;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,7 +49,8 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public MessageResponse logout() {
+    public MessageResponse logout(Authentication authentication) {
+        authService.logout(authentication);
         return new MessageResponse("Logged out");
     }
 }

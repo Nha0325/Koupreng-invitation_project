@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.AppProperties;
@@ -15,12 +14,12 @@ import com.koupreng.backend.dto.RegisterRequest;
 import com.koupreng.backend.dto.TelegramLoginRequest;
 import com.koupreng.backend.dto.UserResponse;
 import com.koupreng.backend.entity.user.AppUser;
-import com.koupreng.backend.entity.user.AuthProvider;
 import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.repository.AppUserRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
@@ -73,14 +72,12 @@ public class AuthService {
         }
 
         AppUser user = new AppUser();
-        user.setId(UUID.randomUUID());
         user.setEmail(email);
         user.setPhone(phone);
         user.setFullName(fullName);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setAuthProvider(AuthProvider.LOCAL);
         user.setRole(shouldPromoteFirstUser() ? Role.ADMIN : Role.USER);
-        user.setEnabled(true);
+        user.setStatus(AppUser.STATUS_ACTIVE);
 
         return issueToken(userRepository.save(user));
     }
@@ -90,7 +87,7 @@ public class AuthService {
         AppUser user = findByIdentifier(request.identifier())
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
 
-        if (!user.isEnabled()) {
+        if (!user.isActive()) {
             throw new BadCredentialsException("Account is disabled");
         }
         if (user.getPasswordHash() == null
@@ -109,6 +106,12 @@ public class AuthService {
     @Transactional
     public AuthResponse loginWithTelegram(TelegramLoginRequest request) {
         return issueToken(upsertExternalUser(telegramIdentityVerifier.verify(request)));
+    }
+
+    @Transactional
+    public void logout(Authentication authentication) {
+        AppUser user = currentUser(authentication);
+        user.incrementTokenVersion();
     }
 
     private Optional<AppUser> findByIdentifier(String rawIdentifier) {
@@ -136,6 +139,7 @@ public class AuthService {
                 .subject(user.getId().toString())
                 .claim("full_name", user.getFullName())
                 .claim("role", user.getRole().name())
+                .claim("status", user.getStatus())
                 .claim("token_version", user.getTokenVersion());
 
         if (user.getEmail() != null) {
@@ -155,22 +159,32 @@ public class AuthService {
     }
 
     private AppUser upsertExternalUser(ExternalAuthIdentity identity) {
-        AppUser user = userRepository
-                .findByAuthProviderAndProviderId(identity.provider(), identity.providerId())
-                .or(() -> userRepository.findByEmailIgnoreCase(identity.email()))
+        String email = normalizeEmail(identity.email());
+        AppUser user = userRepository.findByEmailIgnoreCase(email)
                 .orElseGet(() -> {
                     AppUser newUser = new AppUser();
-                    newUser.setId(UUID.randomUUID());
                     newUser.setRole(shouldPromoteFirstUser() ? Role.ADMIN : Role.USER);
-                    newUser.setEnabled(true);
+                    newUser.setStatus(AppUser.STATUS_ACTIVE);
                     return newUser;
                 });
 
-        user.setAuthProvider(identity.provider());
-        user.setProviderId(identity.providerId());
-        user.setEmail(normalizeEmail(identity.email()));
+        user.setEmail(email);
         user.setFullName(identity.fullName().trim());
         return userRepository.save(user);
+    }
+
+    private AppUser currentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadCredentialsException("Authentication required");
+        }
+        String principal = authentication.getName();
+        try {
+            return userRepository.findById(Long.valueOf(principal))
+                    .orElseThrow(() -> new BadCredentialsException("Authentication required"));
+        } catch (NumberFormatException ex) {
+            return userRepository.findByEmailIgnoreCase(principal)
+                    .orElseThrow(() -> new BadCredentialsException("Authentication required"));
+        }
     }
 
     private String normalizeEmail(String value) {

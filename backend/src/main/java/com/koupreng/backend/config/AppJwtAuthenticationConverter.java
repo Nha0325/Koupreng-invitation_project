@@ -1,7 +1,6 @@
 package com.koupreng.backend.config;
 
 import java.util.List;
-import java.util.UUID;
 
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.repository.AppUserRepository;
@@ -25,11 +24,11 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
     @Override
     @Transactional
     public JwtAuthenticationToken convert(Jwt jwt) {
-        UUID userId = parseUserId(jwt.getSubject());
+        Long userId = parseUserId(jwt.getSubject());
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new BadCredentialsException("Authentication required"));
 
-        if (!user.isEnabled()) {
+        if (!user.isActive()) {
             throw new BadCredentialsException("Account is disabled");
         }
         validateTokenVersion(jwt, user);
@@ -40,14 +39,14 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
         return new JwtAuthenticationToken(jwt, authorities, user.getId().toString());
     }
 
-    private UUID parseUserId(String subject) {
+    private Long parseUserId(String subject) {
         if (subject == null || subject.isBlank()) {
             throw new BadCredentialsException("Token is missing subject");
         }
         try {
-            return UUID.fromString(subject);
-        } catch (IllegalArgumentException ex) {
-            throw new BadCredentialsException("Token subject is not a valid UUID");
+            return Long.valueOf(subject);
+        } catch (NumberFormatException ex) {
+            throw new BadCredentialsException("Token subject is not a valid user id");
         }
     }
 

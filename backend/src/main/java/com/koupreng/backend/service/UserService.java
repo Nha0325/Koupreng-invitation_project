@@ -1,7 +1,6 @@
 package com.koupreng.backend.service;
 
 import java.util.List;
-import java.util.UUID;
 
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.UpdateProfileRequest;
@@ -45,7 +44,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateRole(UUID userId, Role role) {
+    public UserResponse updateRole(Long userId, Role role) {
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
 
@@ -66,9 +65,9 @@ public class UserService {
         }
         String principal = authentication.getName();
         try {
-            return userRepository.findById(UUID.fromString(principal))
+            return userRepository.findById(Long.valueOf(principal))
                     .orElseThrow(() -> new BadCredentialsException("Authentication required"));
-        } catch (IllegalArgumentException ex) {
+        } catch (NumberFormatException ex) {
             return userRepository.findByEmailIgnoreCase(principal)
                     .orElseThrow(() -> new BadCredentialsException("Authentication required"));
         }

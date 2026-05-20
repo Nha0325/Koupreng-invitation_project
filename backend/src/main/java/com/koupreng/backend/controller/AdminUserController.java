@@ -1,7 +1,6 @@
 package com.koupreng.backend.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import jakarta.validation.Valid;
 
@@ -35,7 +34,7 @@ public class AdminUserController {
 
     @PatchMapping("/{userId}/role")
     public UserResponse updateRole(
-            @PathVariable UUID userId,
+            @PathVariable Long userId,
             @Valid @RequestBody UpdateRoleRequest request
     ) {
         return userService.updateRole(userId, request.role());

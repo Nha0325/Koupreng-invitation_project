@@ -1,5 +1,6 @@
 import { createContext, useCallback, useState } from "react";
 import { clearStoredAuth, readStoredAuth, writeStoredAuth } from "../../shared/services/authStorage";
+import { authService } from "../../shared/services/authService";
 
 export const AuthContext = createContext(null);
 
@@ -19,9 +20,15 @@ export function AuthProvider({ children }) {
         setAuthState(nextState);
     }, []);
 
-    const logout = useCallback(() => {
-        clearStoredAuth();
-        setAuthState(null);
+    const logout = useCallback(async () => {
+        try {
+            await authService.logout();
+        } catch {
+            // Clear local auth even if the token is already expired or the network is unavailable.
+        } finally {
+            clearStoredAuth();
+            setAuthState(null);
+        }
     }, []);
 
     return (
