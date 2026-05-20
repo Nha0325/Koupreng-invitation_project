@@ -1,12 +1,8 @@
 package com.koupreng.backend.config;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-
-import com.koupreng.backend.entity.user.AppUser;
-import com.koupreng.backend.entity.user.AuthProvider;
-import com.koupreng.backend.entity.user.Role;
-import com.koupreng.backend.repository.AppUserRepository;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,19 +12,10 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Maps a verified Supabase JWT to an authenticated principal backed by app_users.
- *
- * The Supabase access token contains:
- *   sub  -> auth.users.id (UUID)
- *   email
- *   role -> "authenticated" / "service_role"
- *   app_metadata.provider -> "email" | "google" | "telegram" | ...
- *   user_metadata.full_name (optional)
- *
- * If the matching app_users row hasn't been created yet by the SQL trigger
- * (or the user signed up via the admin API and bypassed it), we lazily create one.
- */
+import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.AuthProvider;
+import com.koupreng.backend.entity.user.Role;
+import com.koupreng.backend.repository.AppUserRepository;
 public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
 
     private final AppUserRepository userRepository;
@@ -71,6 +58,10 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
         user.setRole(Role.USER);
         user.setEnabled(true);
 
+        Instant now = Instant.now();
+        // PrePersist sets these too, but explicit assignment avoids null in tests
+        user.setCreatedAt(now);
+        user.setUpdatedAt(now);
         return userRepository.save(user);
     }
 

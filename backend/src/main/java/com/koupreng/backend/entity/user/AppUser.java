@@ -56,7 +56,7 @@ public class AppUser {
     private Instant updatedAt;
 
     @PrePersist
-    void onCreate() {
+    public void onCreate() {
         Instant now = Instant.now();
         if (createdAt == null) {
             createdAt = now;
@@ -65,7 +65,7 @@ public class AppUser {
     }
 
     @PreUpdate
-    void onUpdate() {
+    public void onUpdate() {
         updatedAt = Instant.now();
     }
 
@@ -137,7 +137,15 @@ public class AppUser {
         return createdAt;
     }
 
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

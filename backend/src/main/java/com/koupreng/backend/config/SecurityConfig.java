@@ -2,19 +2,12 @@ package com.koupreng.backend.config;
 
 import java.util.List;
 
-import com.koupreng.backend.repository.AppUserRepository;
-import com.koupreng.backend.security.ApiRequestLoggingFilter;
-import com.koupreng.backend.security.ApiSecurityProperties;
-import com.koupreng.backend.security.ClientAddressResolver;
-import com.koupreng.backend.service.RateLimitService;
-import com.koupreng.backend.waf.WafFilter;
-import com.koupreng.backend.waf.WafProperties;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,6 +16,14 @@ import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.koupreng.backend.repository.AppUserRepository;
+import com.koupreng.backend.security.ApiRequestLoggingFilter;
+import com.koupreng.backend.security.ApiSecurityProperties;
+import com.koupreng.backend.security.ClientAddressResolver;
+import com.koupreng.backend.service.RateLimitService;
+import com.koupreng.backend.waf.WafFilter;
+import com.koupreng.backend.waf.WafProperties;
 
 @Configuration
 public class SecurityConfig {
@@ -93,14 +94,12 @@ public class SecurityConfig {
         return new AppJwtAuthenticationConverter(userRepository);
     }
 
-    /**
-     * Validates Supabase JWTs using Supabase's JWKS endpoint.
-     * The issuer-uri can also drive this via spring.security.oauth2.resourceserver,
-     * but we configure programmatically so we can read from app.supabase.* properties.
-     */
     @Bean
     public JwtDecoder jwtDecoder(AppProperties appProperties) {
         AppProperties.Supabase supabase = appProperties.getSupabase();
+        if (supabase.getJwkSetUri() == null || supabase.getJwkSetUri().isBlank()) {
+            return JwtDecoders.fromIssuerLocation(supabase.getIssuer());
+        }
         return NimbusJwtDecoder
                 .withJwkSetUri(supabase.getJwkSetUri())
                 .build();
