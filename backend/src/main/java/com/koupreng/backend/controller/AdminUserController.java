@@ -8,6 +8,7 @@ import com.koupreng.backend.dto.UpdateRoleRequest;
 import com.koupreng.backend.dto.UserResponse;
 import com.koupreng.backend.service.UserService;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Validated
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/admin/users")
 public class AdminUserController {
 
