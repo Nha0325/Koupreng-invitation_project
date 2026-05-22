@@ -1,11 +1,6 @@
 #!/usr/bin/env pwsh
 [CmdletBinding()]
-param(
-    [Parameter(Position = 0)]
-    [string]$Message,
-
-    [switch]$AllowMain
-)
+param()
 
 $ErrorActionPreference = "Stop"
 
@@ -76,16 +71,23 @@ function Test-OriginBranchExists {
     }
 }
 
+function Write-UnfinishedGitHelp {
+    Write-Host ""
+    Write-Host "A rebase or merge is already in progress." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "git status"
+    Write-Host "git rebase --continue"
+    Write-Host "git rebase --abort"
+    Write-Host "git merge --abort"
+}
+
 function Write-PullConflictHelp {
     Write-Host ""
     Write-Host "Pull stopped because collaborator code conflicts with your local work." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Fix:"
     Write-Host "git status"
-    Write-Host "Open conflicted files and fix conflict markers:"
-    Write-Host "<<<<<<<"
-    Write-Host "======="
-    Write-Host ">>>>>>>"
+    Write-Host "Edit conflicted files"
     Write-Host "git add ."
     Write-Host "git rebase --continue"
     Write-Host ""
@@ -95,23 +97,24 @@ function Write-PullConflictHelp {
 
 function Write-StashConflictHelp {
     Write-Host ""
-    Write-Host "Your saved local changes conflicted after pull." -ForegroundColor Yellow
+    Write-Host "Your saved local changes conflicted with the latest code." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Fix:"
     Write-Host "git status"
     Write-Host "Edit conflicted files"
     Write-Host "git add ."
-    Write-Host 'git commit -m "resolve conflict"'
+    Write-Host 'git commit -m "resolve local conflict"'
     Write-Host ""
-    Write-Host "Your stash was kept as a backup."
-    Write-Host "Check it with:"
+    Write-Host "Your stash is kept as backup."
+    Write-Host ""
+    Write-Host "Check:"
     Write-Host "git stash list"
     Write-Host ""
-    Write-Host "Drop it only after you verify everything:"
+    Write-Host "Drop after verification:"
     Write-Host 'git stash drop stash@{0}'
 }
 
-function Invoke-SafeRebasePull {
+function Invoke-SafePull {
     param(
         [string]$Branch,
         [string]$PullMode,
@@ -123,13 +126,12 @@ function Invoke-SafeRebasePull {
     $stashRef = "stash@{0}"
 
     if (Test-LocalChanges) {
-        $stashMessage = "safe-push auto-stash before pulling $Branch $(Get-Date -Format s)"
+        $stashMessage = "safe-pull auto-stash $Branch $(Get-Date -Format s)"
         Write-Host "Saving uncommitted changes in a temporary stash."
         Invoke-Git stash push --include-untracked -m $stashMessage
         $stashCreated = $true
     }
 
-    Write-Host "Pulling latest code with rebase."
     if ($PullMode -eq "upstream") {
         & git pull --rebase
     }
@@ -161,81 +163,60 @@ function Invoke-SafeRebasePull {
 }
 
 Write-Host ""
-Write-Host "Safe Team Git Push"
+Write-Host "Safe Team Git Pull"
 Write-Host ""
 
-Write-Host "[1/6] Checking repository"
+Write-Host "[1/4] Checking repository"
 & git rev-parse --is-inside-work-tree *> $null
 if ($LASTEXITCODE -ne 0) {
     Stop-Script "Not inside a Git repository."
 }
 
-if ((Test-GitPathExists "rebase-merge") -or (Test-GitPathExists "rebase-apply")) {
-    Stop-Script "A rebase is already in progress. Run git status, then git rebase --continue or git rebase --abort."
+if ((Test-GitPathExists "rebase-merge") -or (Test-GitPathExists "rebase-apply") -or (Test-GitPathExists "MERGE_HEAD")) {
+    Write-UnfinishedGitHelp
+    exit 1
 }
 
-if (Test-GitPathExists "MERGE_HEAD") {
-    Stop-Script "A merge is already in progress. Run git status, then finish the merge or use git merge --abort."
-}
-
-Write-Host ""
-Write-Host "[2/6] Checking branch"
 $branch = Get-GitOutput branch --show-current
 if ([string]::IsNullOrWhiteSpace($branch)) {
-    Stop-Script "You are in detached HEAD mode. Checkout a branch before pushing."
-}
-
-if ((($branch -eq "main") -or ($branch -eq "master")) -and -not $AllowMain) {
-    Stop-Script "Do not push directly to main. Create a feature branch first:`ngit checkout -b feature/your-work-name`n`nIf user intentionally needs emergency push:`n.\git-push.ps1 ""hotfix message"" -AllowMain"
+    Stop-Script "You are in detached HEAD mode. Checkout a branch before pulling."
 }
 
 Write-Host "Current branch: $branch"
 
-if ([string]::IsNullOrWhiteSpace($Message)) {
-    $Message = Read-Host "Commit message"
-}
-
-if ([string]::IsNullOrWhiteSpace($Message)) {
-    Stop-Script "Commit message cannot be empty. Usage: .\git-push.ps1 ""update login page"""
-}
-
 Write-Host ""
-Write-Host "[3/6] Fetching latest code"
+Write-Host "[2/4] Fetching latest code"
 Invoke-Git fetch origin --prune
 
 Write-Host ""
-Write-Host "[4/6] Pulling latest code safely"
+Write-Host "[3/4] Selecting pull target"
 $upstream = Get-GitOutput rev-parse --abbrev-ref --symbolic-full-name "@{u}"
 if (-not [string]::IsNullOrWhiteSpace($upstream)) {
     Write-Host "Pull target: $upstream"
-    Invoke-SafeRebasePull -Branch $branch -PullMode "upstream"
+    $pullMode = "upstream"
+    $remote = $null
+    $remoteBranch = $null
 }
 elseif (Test-OriginBranchExists $branch) {
     Write-Host "Pull target: origin/$branch"
-    Invoke-SafeRebasePull -Branch $branch -PullMode "explicit" -Remote "origin" -RemoteBranch $branch
+    $pullMode = "explicit"
+    $remote = "origin"
+    $remoteBranch = $branch
 }
 elseif (Test-OriginBranchExists "main") {
-    Write-Host "No upstream branch yet. Updating this branch on top of origin/main."
-    Invoke-SafeRebasePull -Branch $branch -PullMode "explicit" -Remote "origin" -RemoteBranch "main"
+    Write-Host "No upstream branch yet. Pulling origin/main to update this branch base."
+    $pullMode = "explicit"
+    $remote = "origin"
+    $remoteBranch = "main"
 }
 else {
-    Write-Host "No upstream or origin/main branch found. Skipping pull for this new branch."
+    Stop-Script "No upstream branch, origin/$branch, or origin/main was found."
 }
 
 Write-Host ""
-Write-Host "[5/6] Creating commit"
-if (Test-LocalChanges) {
-    Invoke-Git add -A
-    Invoke-Git commit -m $Message
-}
-else {
-    Write-Host "No local file changes to commit."
-}
+Write-Host "[4/4] Pulling latest code safely"
+Invoke-SafePull -Branch $branch -PullMode $pullMode -Remote $remote -RemoteBranch $remoteBranch
 
 Write-Host ""
-Write-Host "[6/6] Pushing branch"
-Invoke-Git push -u origin $branch
-
-Write-Host ""
-Write-Host "Pushed successfully to origin/$branch"
-Write-Host "Next step: open a Pull Request to main on GitHub."
+Write-Host "Pull completed successfully."
+Write-Host "Your branch is up to date."

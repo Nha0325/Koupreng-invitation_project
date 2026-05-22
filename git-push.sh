@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+cd "$SCRIPT_DIR"
+
+ALLOW_MAIN=0
+MESSAGE=""
+
+usage() {
+    cat <<'EOF'
+Usage:
+  ./git-push.sh "commit message"
+  ./git-push.sh "hotfix message" --allow-main
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --allow-main) ALLOW_MAIN=1 ;;
+        --help)
+            usage
+            exit 0
+            ;;
+        *)
+            if [ -z "$MESSAGE" ]; then
+                MESSAGE="$1"
+            else
+                MESSAGE="$MESSAGE $1"
+            fi
+            ;;
+    esac
+    shift
+done
+
+fail() {
+    printf '\n%s\n' "$1" >&2
+    exit 1
+}
+
+git_path_exists() {
+    local path_name="$1"
+    local git_path
+    git_path="$(git rev-parse --git-path "$path_name" 2>/dev/null || true)"
+    [ -n "$git_path" ] && [ -e "$git_path" ]
+}
+
+has_local_changes() {
+    [ -n "$(git status --porcelain)" ]
+}
+
+origin_branch_exists() {
+    local branch="$1"
+    git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1
+}
+
+show_unfinished_help() {
+    cat >&2 <<'EOF'
+
+A rebase or merge is already in progress.
+
+git status
+git rebase --continue
+git rebase --abort
+git merge --abort
+EOF
+}
+
+show_pull_conflict_help() {
+    cat >&2 <<'EOF'
+
+Pull stopped because collaborator code conflicts with your local work.
+
+Fix:
+git status
+Edit conflicted files
+git add .
+git rebase --continue
+
+Cancel:
+git rebase --abort
+EOF
+}
+
+show_stash_conflict_help() {
+    cat >&2 <<'EOF'
+
+Your saved local changes conflicted with the latest code.
+
+Fix:
+git status
+Edit conflicted files
+git add .
+git commit -m "resolve local conflict"
+
+Your stash is kept as backup.
+
+Check:
+git stash list
+
+Drop after verification:
+git stash drop stash@{0}
+EOF
+}
+
+safe_pull_before_push() {
+    local pull_mode="$1"
+    local remote="${2:-}"
+    local remote_branch="${3:-}"
+    local stash_created=0
+    local stash_ref='stash@{0}'
+
+    if has_local_changes; then
+        git stash push --include-untracked -m "safe-push auto-stash ${branch} $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        stash_created=1
+    fi
+
+    if [ "$pull_mode" = "upstream" ]; then
+        if ! git pull --rebase; then
+            show_pull_conflict_help
+            if [ "$stash_created" -eq 1 ]; then
+                printf '\nYour uncommitted changes are still saved in the auto-stash.\nCheck it with:\ngit stash list\n' >&2
+            fi
+            exit 1
+        fi
+    else
+        if ! git pull --rebase "$remote" "$remote_branch"; then
+            show_pull_conflict_help
+            if [ "$stash_created" -eq 1 ]; then
+                printf '\nYour uncommitted changes are still saved in the auto-stash.\nCheck it with:\ngit stash list\n' >&2
+            fi
+            exit 1
+        fi
+    fi
+
+    if [ "$stash_created" -eq 1 ]; then
+        if ! git stash apply "$stash_ref"; then
+            show_stash_conflict_help
+            exit 1
+        fi
+        git stash drop "$stash_ref"
+    fi
+}
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "Not inside a Git repository."
+
+if git_path_exists rebase-merge || git_path_exists rebase-apply || git_path_exists MERGE_HEAD; then
+    show_unfinished_help
+    exit 1
+fi
+
+branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+[ -n "$branch" ] || fail "You are in detached HEAD mode. Checkout a branch before pushing."
+
+if { [ "$branch" = "main" ] || [ "$branch" = "master" ]; } && [ "$ALLOW_MAIN" -ne 1 ]; then
+    cat >&2 <<'EOF'
+
+Do not push directly to main. Create a feature branch first:
+git checkout -b feature/your-work-name
+EOF
+    exit 1
+fi
+
+if [ -z "$MESSAGE" ]; then
+    read -rp "Commit message: " MESSAGE
+fi
+
+[ -n "$MESSAGE" ] || fail "Commit message cannot be empty. Usage: ./git-push.sh \"update login page\""
+
+git fetch origin --prune
+
+upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)"
+had_upstream=0
+if [ -n "$upstream" ]; then
+    had_upstream=1
+    printf 'Pull target: %s\n' "$upstream"
+    safe_pull_before_push upstream
+elif origin_branch_exists "$branch"; then
+    printf 'Pull target: origin/%s\n' "$branch"
+    safe_pull_before_push explicit origin "$branch"
+elif origin_branch_exists main; then
+    printf 'No upstream branch yet. Pulling origin/main to update this branch base.\n'
+    safe_pull_before_push explicit origin main
+else
+    printf 'No upstream or origin/main branch found. Skipping pull for this new branch.\n'
+fi
+
+if has_local_changes; then
+    git add -A
+    git commit -m "$MESSAGE"
+else
+    printf 'Nothing to commit.\n'
+fi
+
+if [ "$had_upstream" -eq 1 ]; then
+    git push origin "$branch"
+else
+    git push -u origin "$branch"
+fi
+
+printf '\nPushed successfully to origin/%s\n' "$branch"
+printf 'Next step: open a Pull Request to main on GitHub.\n'

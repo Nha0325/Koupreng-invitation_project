@@ -53,4 +53,4 @@ WAF_AUDIT_ONLY=false
 - `monitoring/prometheus.yml`: Prometheus scrape example for `/actuator/prometheus`.
 - `database/mysql-least-privilege.sql`: app, migration, and backup database users with SSL required.
 - `backup/mysql-backup.ps1`: MySQL dump backup with retention cleanup.
-- `backup/postgres-backup.ps1`: PostgreSQL/Supabase backup helper if this project is deployed on Postgres later.
+- `backup/postgres-backup.ps1`: legacy backup helper retained for reference only; the current project database is MySQL.

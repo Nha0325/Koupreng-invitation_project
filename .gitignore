@@ -2,21 +2,34 @@
 
 # IDE
 .cursor
-.vscode
 .windsurf
 .kiro
 .github
+.idea/
+.vscode/
 
 .source-ref
-# Environment files (never commit secrets)
+
+# Environment files - never commit secrets
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
+backend/.env
+frontend-user/.env.local
+frontend-admin/.env.local
 **/.env
-**/.env.*
+**/.env.local
+**/.env.*.local
+!.env.example
 !**/.env.example
 
-# Supabase CLI local state
-supabase
-supabase/.temp/
-supabase/.branches/
+# Dependencies and build output
+node_modules/
+**/node_modules/
+target/
+**/target/
+dist/
+**/dist/
+
+# Logs
+*.log
