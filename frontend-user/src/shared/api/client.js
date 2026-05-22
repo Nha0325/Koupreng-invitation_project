@@ -1,7 +1,3 @@
-/**
- * Single HTTP client for the app. Wraps fetch with JSON handling and base URL.
- * All `*Service` modules in shared/services/ should go through this.
- */
 import { ApiError } from "./errors";
 import { getAccessToken } from "../services/authStorage";
 
