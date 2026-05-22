@@ -62,7 +62,13 @@ function Get-CommandOutput {
         [string[]]$Arguments = @()
     )
 
-    return (& $Command @Arguments 2>&1 | Out-String).Trim()
+    try {
+        $output = & $Command @Arguments 2>&1
+        return ($output | Out-String).Trim()
+    }
+    catch {
+        return ($output | Out-String).Trim()
+    }
 }
 
 function Invoke-CheckedCommand {
