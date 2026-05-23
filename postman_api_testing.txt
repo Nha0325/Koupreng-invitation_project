@@ -1,0 +1,102 @@
+# Koupreng Invitation Project - Backend APIs for Postman
+
+Note: Assuming your Spring Boot application is running locally on the default port, your Base URL will be http://localhost:8080.
+
+================================================================================
+1. Public Endpoints (No Authentication Required)
+================================================================================
+
+Health Check
+- Method: GET
+- URL: /api/health (or /)
+- Body: None
+
+Register a New User
+- Method: POST
+- URL: /api/auth/register
+- Body (JSON):
+{
+  "fullname": "John Doe",
+  "email": "john.doe@example.com",
+  "phone": "+1234567890",
+  "password": "SecurePassword123!"
+}
+
+Login
+- Method: POST
+- URL: /api/auth/login
+- Body (JSON):
+{
+  "identifier": "john.doe@example.com",
+  "password": "SecurePassword123!"
+}
+(Note: identifier can be either the user's email or phone number)
+
+Google Login
+- Method: POST
+- URL: /api/auth/google
+- Body (JSON):
+{
+  "idToken": "eyJhbGciOiJSUzI1NiIs..."
+}
+
+Telegram Login
+- Method: POST
+- URL: /api/auth/telegram
+- Body (JSON):
+{
+  "idToken": "optional_token_if_used",
+  "id": 123456789,
+  "first_name": "John",
+  "last_name": "Doe",
+  "username": "johndoe",
+  "photo_url": "https://t.me/i/userpic/320/johndoe.jpg",
+  "auth_date": 1699999999,
+  "hash": "abc123def456..."
+}
+
+
+================================================================================
+2. User Endpoints (Require Authentication)
+================================================================================
+For all of these endpoints, you need to add an Authorization header in Postman:
+* Key: Authorization
+* Value: Bearer <your_jwt_token_here>
+
+Get Current User Profile
+- Method: GET
+- URL: /api/users/me
+- Body: None
+
+Update Current User Profile
+- Method: PATCH
+- URL: /api/users/me
+- Body (JSON):
+{
+  "fullName": "Johnathan Doe"
+}
+
+Logout
+- Method: POST
+- URL: /api/auth/logout
+- Body: None
+
+
+================================================================================
+3. Admin Endpoints (Require Admin Role Authentication)
+================================================================================
+These endpoints also require the "Authorization: Bearer <your_jwt_token>" header, and the authenticated user must have the ADMIN role.
+
+List All Users
+- Method: GET
+- URL: /api/admin/users
+- Body: None
+
+Update a User's Role
+- Method: PATCH
+- URL: /api/admin/users/{userId}/role (Replace {userId} with the actual ID, e.g., /api/admin/users/1/role)
+- Body (JSON):
+{
+  "role": "ADMIN" 
+}
+(Note: Valid options for role are "USER" or "ADMIN")
