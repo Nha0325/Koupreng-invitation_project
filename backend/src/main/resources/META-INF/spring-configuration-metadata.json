@@ -11,6 +11,11 @@
       "sourceType": "com.koupreng.backend.config.AuthProperties"
     },
     {
+      "name": "app.auth.cookie",
+      "type": "com.koupreng.backend.config.AuthCookieProperties",
+      "sourceType": "com.koupreng.backend.config.AuthCookieProperties"
+    },
+    {
       "name": "app.oauth",
       "type": "com.koupreng.backend.config.OAuthProperties",
       "sourceType": "com.koupreng.backend.config.OAuthProperties"
@@ -47,7 +52,43 @@
       "name": "app.jwt.access-token-minutes",
       "type": "java.lang.Integer",
       "description": "JWT access token expiration time in minutes.",
-      "defaultValue": 60
+      "defaultValue": 15
+    },
+    {
+      "name": "app.auth.cookie.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Set JWT access tokens in an HttpOnly cookie in addition to the JSON response.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.auth.cookie.name",
+      "type": "java.lang.String",
+      "description": "Auth cookie name.",
+      "defaultValue": "koupreng_access_token"
+    },
+    {
+      "name": "app.auth.cookie.secure",
+      "type": "java.lang.Boolean",
+      "description": "Add the Secure attribute to the auth cookie.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.auth.cookie.http-only",
+      "type": "java.lang.Boolean",
+      "description": "Add the HttpOnly attribute to the auth cookie.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.auth.cookie.same-site",
+      "type": "java.lang.String",
+      "description": "Auth cookie SameSite policy.",
+      "defaultValue": "Lax"
+    },
+    {
+      "name": "app.auth.cookie.max-age-seconds",
+      "type": "java.lang.Long",
+      "description": "Maximum auth cookie lifetime in seconds.",
+      "defaultValue": 900
     },
     {
       "name": "app.auth.first-user-admin-enabled",
@@ -122,6 +163,12 @@
       "type": "java.lang.String",
       "description": "Comma-separated list of exposed response headers.",
       "defaultValue": "X-Request-Id"
+    },
+    {
+      "name": "app.security.cors.allow-credentials",
+      "type": "java.lang.Boolean",
+      "description": "Allow cross-origin requests to include credentials such as cookies.",
+      "defaultValue": false
     },
     {
       "name": "app.security.cors.max-age-seconds",

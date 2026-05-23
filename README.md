@@ -252,18 +252,20 @@ http://localhost:5174
 
 ## Frontend Environment
 
-Use `VITE_API_URL` for both frontends.
+Use `VITE_API_URL` for both frontends. Use `VITE_AUTH_STORAGE=localStorage` for the default development flow, or `VITE_AUTH_STORAGE=cookie` when the backend is configured to set HttpOnly auth cookies.
 
 `frontend-user/.env.local`:
 
 ```env
 VITE_API_URL=http://localhost:8080/api
+VITE_AUTH_STORAGE=localStorage
 ```
 
 `frontend-admin/.env.local`:
 
 ```env
 VITE_API_URL=http://localhost:8080/api
+VITE_AUTH_STORAGE=localStorage
 ```
 
 Do not use `VITE_API_BASE_URL`.
@@ -279,12 +281,20 @@ DB_PASSWORD=change_me
 
 JWT_ISSUER=koupreng-backend
 JWT_SECRET=change_this_to_a_random_64_character_or_longer_secret
-JWT_ACCESS_TOKEN_MINUTES=60
+JWT_ACCESS_TOKEN_MINUTES=15
+
+AUTH_COOKIE_ENABLED=false
+AUTH_COOKIE_NAME=koupreng_access_token
+AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_HTTP_ONLY=true
+AUTH_COOKIE_SAME_SITE=Lax
+AUTH_COOKIE_MAX_AGE_SECONDS=900
 
 FIRST_USER_ADMIN_ENABLED=false
 
 CORS_ENABLED=true
 CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174
+CORS_ALLOW_CREDENTIALS=false
 
 HTTPS_REQUIRED=false
 HSTS_ENABLED=true
@@ -307,6 +317,70 @@ WAF_AUDIT_ONLY=false
 ```
 
 The backend also supports additional upload, logging, mail, WAF, and rate limit settings in `application.properties`. Keep local secrets in `.env`, not in committed files.
+
+Generate a local JWT secret before starting the backend. The example placeholder is intentionally rejected at startup.
+
+OpenSSL:
+
+```bash
+openssl rand -base64 64
+```
+
+Windows PowerShell:
+
+```powershell
+[Convert]::ToBase64String((1..64 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+
+For production, use a short access token lifetime such as 15 minutes.
+
+## Postman Authentication Testing
+
+Login:
+
+```http
+POST http://localhost:8080/api/auth/login
+```
+
+Body:
+
+```json
+{
+  "identifier": "user@example.com",
+  "password": "password123"
+}
+```
+
+Bearer token mode:
+- Keep `AUTH_COOKIE_ENABLED=false`.
+- Copy `accessToken` from the JSON response.
+- Send protected requests with `Authorization: Bearer <token>`.
+
+Cookie mode:
+- Set `AUTH_COOKIE_ENABLED=true`.
+- For local HTTP testing, keep `AUTH_COOKIE_SECURE=false`; for production HTTPS, set it to `true`.
+- Postman should save the `koupreng_access_token` cookie from the login response automatically.
+- Send protected requests with the saved cookie.
+
+Protected profile test:
+
+```http
+GET http://localhost:8080/api/users/me
+```
+
+Admin test:
+
+```http
+GET http://localhost:8080/api/admin/users
+```
+
+Logout:
+
+```http
+POST http://localhost:8080/api/auth/logout
+```
+
+Logout increments `token_version`, so older JWTs fail after logout. When cookie mode is enabled, logout also clears the auth cookie.
 
 ## Team Git Workflow
 
@@ -374,8 +448,12 @@ For production:
 - Do not use default JWT secret.
 - Set `JWT_SECRET` from server environment.
 - Use a random 64+ character JWT secret.
+- Keep `JWT_ACCESS_TOKEN_MINUTES` short, for example `15`.
 - Set `HTTPS_REQUIRED=true` behind real HTTPS/proxy.
-- Use exact production CORS origin only.
+- Use exact production CORS origins only.
+- For cookie auth, set `AUTH_COOKIE_ENABLED=true`, `AUTH_COOKIE_SECURE=true`, `AUTH_COOKIE_HTTP_ONLY=true`, and `AUTH_COOKIE_SAME_SITE=Lax` or `Strict`.
+- For cookie auth, set `CORS_ALLOW_CREDENTIALS=true` and keep `CORS_ALLOWED_ORIGINS` as exact origins such as `https://koupreng.com` and `https://admin.koupreng.com`.
+- Do not use `*` in `CORS_ALLOWED_ORIGINS` when credentials are enabled.
 - Use `JPA_DDL_AUTO=validate`.
 - Use `FLYWAY_ENABLED=true` after migrations are ready.
 - Never commit production `.env` files.
@@ -386,6 +464,11 @@ For production:
 - Host routes should be protected by `RequireAuth`.
 - Admin routes should be protected by `RequireAdmin`.
 - Backend already protects `/api/admin/**` with `ADMIN` role.
+- Avoid `dangerouslySetInnerHTML` unless the content is sanitized.
+- Sanitize user-generated invitation content before rendering it.
+- Add a Content Security Policy before production.
+- Do not store long-lived tokens in `localStorage`.
+- Do not log JWT tokens in browser console or backend logs.
 - Before production, avoid storing JWT in `localStorage`. Prefer HttpOnly Secure SameSite cookies or another hardened token strategy.
 
 ## Troubleshooting

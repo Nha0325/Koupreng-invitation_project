@@ -10,6 +10,8 @@ import com.koupreng.backend.config.AppProperties.RateLimit.Backend;
 import com.koupreng.backend.security.ApiSecurityProperties;
 import com.koupreng.backend.waf.WafProperties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
@@ -18,9 +20,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProductionSecurityValidator implements ApplicationRunner {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductionSecurityValidator.class);
     private static final int MIN_PRODUCTION_JWT_SECRET_LENGTH = 64;
     private static final Set<String> PLACEHOLDER_JWT_SECRETS = Set.of(
-            "replace_with_a_random_64_character_or_longer_secret"
+            "replace_with_a_random_64_character_or_longer_secret",
+            "change_this_to_a_random_64_character_or_longer_secret",
+            "change_me"
     );
 
     private final Environment environment;
@@ -42,6 +47,7 @@ public class ProductionSecurityValidator implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        validateJwtSecretAtStartup();
         if (isProductionProfile()) {
             validateProductionConfiguration();
         }
@@ -53,6 +59,7 @@ public class ProductionSecurityValidator implements ApplicationRunner {
         validateJwt(failures);
         validateHttps(failures);
         validateCors(failures);
+        validateAuthCookie(failures);
         validateWaf(failures);
         validateRateLimiting(failures);
         validateDatabase(failures);
@@ -73,17 +80,38 @@ public class ProductionSecurityValidator implements ApplicationRunner {
 
     private void validateJwt(List<String> failures) {
         String secret = nullToEmpty(appProperties.getJwt().getSecret());
-        String normalizedSecret = secret.trim().toLowerCase(Locale.ROOT);
 
         if (secret.length() < MIN_PRODUCTION_JWT_SECRET_LENGTH) {
             failures.add("JWT_SECRET must be at least 64 characters in production");
         }
-        if (PLACEHOLDER_JWT_SECRETS.contains(secret)
-                || normalizedSecret.contains("replace_with")
-                || normalizedSecret.contains("change_me")
-                || normalizedSecret.contains("change_this")) {
+        if (isPlaceholderJwtSecret(secret)) {
             failures.add("JWT_SECRET must not use the example placeholder value");
         }
+    }
+
+    private void validateJwtSecretAtStartup() {
+        String secret = nullToEmpty(appProperties.getJwt().getSecret());
+        if (secret.isBlank()) {
+            throw new IllegalStateException(
+                    "JWT_SECRET must be configured. Generate one with: openssl rand -base64 64"
+            );
+        }
+        if (isPlaceholderJwtSecret(secret)) {
+            throw new IllegalStateException(
+                    "JWT_SECRET must not use the example placeholder value. Generate one with: openssl rand -base64 64"
+            );
+        }
+        if (!isProductionProfile() && secret.length() < MIN_PRODUCTION_JWT_SECRET_LENGTH) {
+            LOGGER.warn("JWT_SECRET is shorter than 64 characters. Use a 64+ character secret outside local development.");
+        }
+    }
+
+    private boolean isPlaceholderJwtSecret(String secret) {
+        String normalizedSecret = nullToEmpty(secret).trim().toLowerCase(Locale.ROOT);
+        return PLACEHOLDER_JWT_SECRETS.contains(normalizedSecret)
+                || normalizedSecret.contains("replace_with")
+                || normalizedSecret.contains("change_me")
+                || normalizedSecret.contains("change_this");
     }
 
     private void validateHttps(List<String> failures) {
@@ -120,6 +148,30 @@ public class ProductionSecurityValidator implements ApplicationRunner {
             } else if (!normalizedOrigin.startsWith("https://")) {
                 failures.add("CORS_ALLOWED_ORIGINS entries must use https in production: " + origin);
             }
+        }
+
+        if (cors.isAllowCredentials() && cors.getAllowedOrigins().contains("*")) {
+            failures.add("CORS_ALLOW_CREDENTIALS must not be true when CORS_ALLOWED_ORIGINS contains wildcard origins");
+        }
+    }
+
+    private void validateAuthCookie(List<String> failures) {
+        AppProperties.Auth.Cookie cookie = appProperties.getAuth().getCookie();
+        if (!cookie.isEnabled()) {
+            return;
+        }
+
+        if (!cookie.isSecure()) {
+            failures.add("AUTH_COOKIE_SECURE must be true in production when cookie auth is enabled");
+        }
+        if (!cookie.isHttpOnly()) {
+            failures.add("AUTH_COOKIE_HTTP_ONLY must be true in production when cookie auth is enabled");
+        }
+        if (!Set.of("Lax", "Strict").contains(cookie.getSameSite())) {
+            failures.add("AUTH_COOKIE_SAME_SITE must be Lax or Strict in production");
+        }
+        if (!apiSecurityProperties.getCors().isAllowCredentials()) {
+            failures.add("CORS_ALLOW_CREDENTIALS must be true in production when cookie auth is enabled");
         }
     }
 

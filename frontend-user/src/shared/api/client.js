@@ -1,19 +1,21 @@
 import { ApiError } from "./errors";
-import { getAccessToken } from "../services/authStorage";
+import { getAccessToken, isCookieAuthStorage } from "../services/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
-async function request(path, { method = "GET", body, headers = {}, auth = true, ...rest } = {}) {
+async function request(path, { method = "GET", body, headers = {}, auth = true, credentials, ...rest } = {}) {
     const token = getAccessToken();
+    const useCookieAuth = isCookieAuthStorage();
     const res = await fetch(`${API_BASE_URL}${path}`, {
         method,
         headers: {
             "Content-Type": "application/json",
-            ...(auth && token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(!useCookieAuth && auth && token ? { Authorization: `Bearer ${token}` } : {}),
             ...headers,
         },
         body: body !== undefined ? JSON.stringify(body) : undefined,
         ...rest,
+        credentials: useCookieAuth ? "include" : credentials,
     });
 
     let data = null;

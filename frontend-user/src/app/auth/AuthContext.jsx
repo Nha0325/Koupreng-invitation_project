@@ -1,21 +1,33 @@
-import { createContext, useCallback, useState } from "react";
-import { clearStoredAuth, readStoredAuth, writeStoredAuth } from "../../shared/services/authStorage";
+import { useCallback, useState } from "react";
+import {
+    clearStoredAuth,
+    isCookieAuthStorage,
+    readStoredAuth,
+    writeStoredAuth,
+} from "../../shared/services/authStorage";
 import { authService } from "../../shared/services/authService";
-
-export const AuthContext = createContext(null);
+import { AuthContext } from "./AuthContextObject";
 
 export function AuthProvider({ children }) {
     const [authState, setAuthState] = useState(() => readStoredAuth());
     const user = authState?.user || null;
-    const isAuthenticated = Boolean(authState?.accessToken && user);
+    const isAuthenticated = isCookieAuthStorage()
+        ? Boolean(user)
+        : Boolean(authState?.accessToken && user);
 
     const login = useCallback((authData) => {
-        const nextState = {
-            accessToken: authData.accessToken,
-            tokenType: authData.tokenType || "Bearer",
-            expiresAt: authData.expiresAt,
-            user: authData.user,
-        };
+        const nextState = isCookieAuthStorage()
+            ? {
+                storage: "cookie",
+                expiresAt: authData.expiresAt,
+                user: authData.user,
+            }
+            : {
+                accessToken: authData.accessToken,
+                tokenType: authData.tokenType || "Bearer",
+                expiresAt: authData.expiresAt,
+                user: authData.user,
+            };
         writeStoredAuth(nextState);
         setAuthState(nextState);
     }, []);

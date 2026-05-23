@@ -1,4 +1,9 @@
 const AUTH_STORAGE_KEY = "koupreng.auth";
+const AUTH_STORAGE_MODE = (import.meta.env.VITE_AUTH_STORAGE || "localStorage").trim().toLowerCase();
+
+export function isCookieAuthStorage() {
+    return AUTH_STORAGE_MODE === "cookie";
+}
 
 function canUseStorage() {
     return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -15,6 +20,21 @@ export function readStoredAuth() {
             return null;
         }
         const parsed = JSON.parse(raw);
+        if (isCookieAuthStorage()) {
+            if (!parsed?.user) {
+                window.localStorage.removeItem(AUTH_STORAGE_KEY);
+                return null;
+            }
+            const sanitized = {
+                storage: "cookie",
+                expiresAt: parsed.expiresAt,
+                user: parsed.user,
+            };
+            if (parsed.accessToken) {
+                window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sanitized));
+            }
+            return sanitized;
+        }
         return parsed?.accessToken ? parsed : null;
     } catch {
         return null;
@@ -26,7 +46,15 @@ export function writeStoredAuth(authData) {
         return;
     }
 
-    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    const storedAuth = isCookieAuthStorage()
+        ? {
+            storage: "cookie",
+            expiresAt: authData.expiresAt,
+            user: authData.user,
+        }
+        : authData;
+
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(storedAuth));
 }
 
 export function clearStoredAuth() {
@@ -38,5 +66,8 @@ export function clearStoredAuth() {
 }
 
 export function getAccessToken() {
+    if (isCookieAuthStorage()) {
+        return null;
+    }
     return readStoredAuth()?.accessToken || null;
 }

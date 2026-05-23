@@ -7,6 +7,7 @@ This repo now has application controls plus repeatable server-side setup files.
 - WAF: `backend/src/main/java/com/koupreng/backend/waf/WafFilter.java`
 - HTTPS/HSTS enforcement: `HTTPS_REQUIRED`, `HSTS_ENABLED`, and Spring Security redirects
 - JWT: signed local JWTs with issuer validation and token version invalidation
+- Optional auth cookie mode: HttpOnly Secure SameSite JWT cookie plus Bearer header compatibility
 - RBAC: `/api/admin/**` and admin controllers require `ROLE_ADMIN`
 - Rate limiting: WAF per-IP limiting plus auth endpoint limiting
 - Input validation: Jakarta validation on DTOs and file upload signature checks
@@ -35,7 +36,14 @@ DB_URL=jdbc:mysql://db.example.com:3306/koupreng_db?sslMode=VERIFY_IDENTITY&serv
 DB_USERNAME=koupreng_app
 DB_PASSWORD=change-this
 JWT_SECRET=change-this-to-a-random-64-plus-character-secret
+JWT_ACCESS_TOKEN_MINUTES=15
+AUTH_COOKIE_ENABLED=true
+AUTH_COOKIE_SECURE=true
+AUTH_COOKIE_HTTP_ONLY=true
+AUTH_COOKIE_SAME_SITE=Lax
+AUTH_COOKIE_MAX_AGE_SECONDS=900
 CORS_ALLOWED_ORIGINS=https://koupreng.example.com,https://admin.koupreng.example.com
+CORS_ALLOW_CREDENTIALS=true
 HTTPS_REQUIRED=true
 HSTS_ENABLED=true
 CLIENT_ADDRESS_FORWARDED_HEADERS_ENABLED=true

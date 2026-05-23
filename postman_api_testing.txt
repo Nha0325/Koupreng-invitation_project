@@ -59,9 +59,14 @@ Telegram Login
 ================================================================================
 2. User Endpoints (Require Authentication)
 ================================================================================
+Bearer token mode:
 For all of these endpoints, you need to add an Authorization header in Postman:
 * Key: Authorization
 * Value: Bearer <your_jwt_token_here>
+
+Cookie mode:
+If AUTH_COOKIE_ENABLED=true, Postman should save the auth cookie from login automatically.
+For protected APIs, send the saved koupreng_access_token cookie. Authorization headers still work and take priority.
 
 Get Current User Profile
 - Method: GET
@@ -80,12 +85,13 @@ Logout
 - Method: POST
 - URL: /api/auth/logout
 - Body: None
+- Notes: Logout increments token_version so old JWTs fail. If cookie mode is enabled, logout also clears the auth cookie.
 
 
 ================================================================================
 3. Admin Endpoints (Require Admin Role Authentication)
 ================================================================================
-These endpoints also require the "Authorization: Bearer <your_jwt_token>" header, and the authenticated user must have the ADMIN role.
+These endpoints require either the "Authorization: Bearer <your_jwt_token>" header or the saved auth cookie, and the authenticated user must have the ADMIN role.
 
 List All Users
 - Method: GET
