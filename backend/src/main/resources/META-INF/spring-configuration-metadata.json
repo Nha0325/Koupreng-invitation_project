@@ -97,6 +97,24 @@
       "defaultValue": false
     },
     {
+      "name": "app.auth.max-login-attempts-per-minute",
+      "type": "java.lang.Integer",
+      "description": "Maximum password login attempts allowed per minute.",
+      "defaultValue": 10
+    },
+    {
+      "name": "app.auth.max-register-attempts-per-minute",
+      "type": "java.lang.Integer",
+      "description": "Maximum registration attempts allowed per minute.",
+      "defaultValue": 5
+    },
+    {
+      "name": "app.auth.max-social-login-attempts-per-minute",
+      "type": "java.lang.Integer",
+      "description": "Maximum social login attempts allowed per minute.",
+      "defaultValue": 20
+    },
+    {
       "name": "app.oauth.google.client-ids",
       "type": "java.lang.String",
       "description": "Comma-separated list of Google OAuth 2.0 client IDs."
