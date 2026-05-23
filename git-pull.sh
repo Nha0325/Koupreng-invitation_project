@@ -4,6 +4,9 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$SCRIPT_DIR"
 
+TARGET_REMOTE="origin"
+TARGET_BRANCH="main"
+
 fail() {
     printf '\n%s\n' "$1" >&2
     exit 1
@@ -123,21 +126,15 @@ fi
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
 [ -n "$branch" ] || fail "You are in detached HEAD mode. Checkout a branch before pulling."
 
-git fetch origin --prune
+printf 'Safe Team Git Pull\n'
+printf 'Current branch: %s\n' "$branch"
+printf 'Target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
 
-upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)"
-if [ -n "$upstream" ]; then
-    printf 'Pull target: %s\n' "$upstream"
-    safe_pull upstream
-elif origin_branch_exists "$branch"; then
-    printf 'Pull target: origin/%s\n' "$branch"
-    safe_pull explicit origin "$branch"
-elif origin_branch_exists main; then
-    printf 'No upstream branch yet. Pulling origin/main to update this branch base.\n'
-    safe_pull explicit origin main
-else
-    fail "No upstream branch, origin/$branch, or origin/main was found."
-fi
+git fetch "$TARGET_REMOTE" --prune
+origin_branch_exists "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
+
+printf 'Pull target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
+safe_pull explicit "$TARGET_REMOTE" "$TARGET_BRANCH"
 
 printf '\nPull completed successfully.\n'
-printf 'Your branch is up to date.\n'
+printf 'Your current branch has the latest %s/%s code.\n' "$TARGET_REMOTE" "$TARGET_BRANCH"

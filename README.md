@@ -81,11 +81,7 @@ Push safely:
 powershell -ExecutionPolicy Bypass -File .\git-push.ps1 "my commit message"
 ```
 
-Emergency main push only if the project lead approves:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\git-push.ps1 "hotfix message" -AllowMain
-```
+The push script always rebases on `origin/main`, commits your local changes, and pushes to `origin/main`.
 
 ### Linux/macOS
 
@@ -113,11 +109,7 @@ Push safely:
 ./git-push.sh "my commit message"
 ```
 
-Emergency main push only if the project lead approves:
-
-```bash
-./git-push.sh "hotfix message" --allow-main
-```
+The push script always rebases on `origin/main`, commits your local changes, and pushes to `origin/main`.
 
 ### Manual Start Commands
 
@@ -161,8 +153,8 @@ DB_PASSWORD=change_me
 Each teammate should:
 - Install MySQL Server.
 - Create database `koupreng_db`.
-- Copy `backend/.env.example` to `backend/.env`.
-- Update `backend/.env` with their local MySQL username and password.
+- Copy `.env.example` to `.env` in the project root.
+- Update root `.env` with their local MySQL username and password.
 - Start the backend.
 
 ## Run The Project
@@ -174,25 +166,21 @@ git clone https://github.com/Nha0325/Koupreng-invitation_project.git
 cd Koupreng-invitation_project
 ```
 
-Create a feature branch before coding:
-
-```bash
-git checkout -b feature/my-work
-```
+Run `git-pull` before coding so your local work starts from the latest `origin/main`.
 
 ### Backend
 
 ```bash
-cd backend
 cp .env.example .env
+cd backend
 ./mvnw spring-boot:run
 ```
 
 Windows PowerShell:
 
 ```powershell
-cd backend
 Copy-Item .env.example .env
+cd backend
 .\mvnw spring-boot:run
 ```
 
@@ -207,7 +195,6 @@ http://localhost:8080
 ```bash
 cd frontend-user
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
@@ -216,7 +203,6 @@ Windows PowerShell:
 ```powershell
 cd frontend-user
 npm install
-Copy-Item .env.example .env.local
 npm run dev
 ```
 
@@ -231,7 +217,6 @@ http://localhost:5173
 ```bash
 cd frontend-admin
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
@@ -240,7 +225,6 @@ Windows PowerShell:
 ```powershell
 cd frontend-admin
 npm install
-Copy-Item .env.example .env.local
 npm run dev
 ```
 
@@ -250,29 +234,21 @@ Admin frontend URL:
 http://localhost:5174
 ```
 
-## Frontend Environment
+## Environment
 
-Use `VITE_API_URL` for both frontends. Use `VITE_AUTH_STORAGE=localStorage` for the default development flow, or `VITE_AUTH_STORAGE=cookie` when the backend is configured to set HttpOnly auth cookies.
+Use one root `.env` for normal local development. The backend reads `../.env` when run from `backend/`, and both Vite frontends read the project root env through their Vite config.
 
-`frontend-user/.env.local`:
-
-```env
-VITE_API_URL=http://localhost:8080/api
-VITE_AUTH_STORAGE=localStorage
+```bash
+cp .env.example .env
 ```
 
-`frontend-admin/.env.local`:
+Windows PowerShell:
 
-```env
-VITE_API_URL=http://localhost:8080/api
-VITE_AUTH_STORAGE=localStorage
+```powershell
+Copy-Item .env.example .env
 ```
 
-Do not use `VITE_API_BASE_URL`.
-
-## Backend Environment
-
-Copy `backend/.env.example` to `backend/.env`, then edit local values:
+Edit root `.env`:
 
 ```env
 DB_URL=jdbc:mysql://localhost:3306/koupreng_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Phnom_Penh&allowPublicKeyRetrieval=true
@@ -296,6 +272,10 @@ CORS_ENABLED=true
 CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174
 CORS_ALLOW_CREDENTIALS=false
 
+BACKEND_BASE_URL=http://localhost:8080
+VITE_API_URL=/api
+VITE_AUTH_STORAGE=localStorage
+
 HTTPS_REQUIRED=false
 HSTS_ENABLED=true
 
@@ -316,7 +296,15 @@ WAF_ENABLED=true
 WAF_AUDIT_ONLY=false
 ```
 
-The backend also supports additional upload, logging, mail, WAF, and rate limit settings in `application.properties`. Keep local secrets in `.env`, not in committed files.
+Do not use `VITE_API_BASE_URL`.
+
+Security boundary:
+- Backend secrets are variables like `DB_PASSWORD`, `JWT_SECRET`, `TELEGRAM_BOT_TOKEN`, and mail credentials.
+- Browser-visible frontend values must be prefixed with `VITE_`.
+- Never put secrets in `VITE_*` variables because Vite can expose them to browser JavaScript.
+- `backend/.env`, `frontend-user/.env.local`, and `frontend-admin/.env.local` are optional advanced overrides only. Do not create them unless you intentionally need per-app overrides.
+
+The backend also supports additional upload, logging, mail, WAF, and rate limit settings in `application.properties`. Keep local secrets in root `.env`, not in committed files.
 
 Generate a local JWT secret before starting the backend. The example placeholder is intentionally rejected at startup.
 
@@ -393,13 +381,7 @@ git clone https://github.com/Nha0325/Koupreng-invitation_project.git
 cd Koupreng-invitation_project
 ```
 
-2. Create feature branch:
-
-```bash
-git checkout -b feature/my-work
-```
-
-3. Pull before coding.
+2. Pull from `origin/main` before coding.
 
 Windows:
 
@@ -413,9 +395,9 @@ Linux/macOS:
 ./git-pull.sh
 ```
 
-4. Code your task.
+3. Code your task.
 
-5. Push safely.
+4. Push safely to `origin/main`.
 
 Windows:
 
@@ -429,12 +411,9 @@ Linux/macOS:
 ./git-push.sh "my commit message"
 ```
 
-6. Open Pull Request to `main`.
-
 Team rules:
-- Do not push directly to `main`.
-- Always create a feature branch.
-- Always pull before coding.
+- Use `git-pull` before coding.
+- Use `git-push` to rebase on `origin/main`, commit, and push to `origin/main`.
 - Never commit `.env` files.
 - Never commit secrets like DB password, JWT secret, Telegram bot token, Google OAuth secrets, ABA PayWay credentials, or merchant credentials.
 - Do not force push.

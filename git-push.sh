@@ -4,20 +4,19 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$SCRIPT_DIR"
 
-ALLOW_MAIN=0
 MESSAGE=""
+TARGET_REMOTE="origin"
+TARGET_BRANCH="main"
 
 usage() {
     cat <<'EOF'
 Usage:
   ./git-push.sh "commit message"
-  ./git-push.sh "hotfix message" --allow-main
 EOF
 }
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --allow-main) ALLOW_MAIN=1 ;;
         --help)
             usage
             exit 0
@@ -152,38 +151,21 @@ fi
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
 [ -n "$branch" ] || fail "You are in detached HEAD mode. Checkout a branch before pushing."
 
-if { [ "$branch" = "main" ] || [ "$branch" = "master" ]; } && [ "$ALLOW_MAIN" -ne 1 ]; then
-    cat >&2 <<'EOF'
-
-Do not push directly to main. Create a feature branch first:
-git checkout -b feature/your-work-name
-EOF
-    exit 1
-fi
-
 if [ -z "$MESSAGE" ]; then
     read -rp "Commit message: " MESSAGE
 fi
 
 [ -n "$MESSAGE" ] || fail "Commit message cannot be empty. Usage: ./git-push.sh \"update login page\""
 
-git fetch origin --prune
+printf 'Safe Team Git Push\n'
+printf 'Current branch: %s\n' "$branch"
+printf 'Target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
 
-upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)"
-had_upstream=0
-if [ -n "$upstream" ]; then
-    had_upstream=1
-    printf 'Pull target: %s\n' "$upstream"
-    safe_pull_before_push upstream
-elif origin_branch_exists "$branch"; then
-    printf 'Pull target: origin/%s\n' "$branch"
-    safe_pull_before_push explicit origin "$branch"
-elif origin_branch_exists main; then
-    printf 'No upstream branch yet. Pulling origin/main to update this branch base.\n'
-    safe_pull_before_push explicit origin main
-else
-    printf 'No upstream or origin/main branch found. Skipping pull for this new branch.\n'
-fi
+git fetch "$TARGET_REMOTE" --prune
+origin_branch_exists "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
+
+printf 'Pull target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
+safe_pull_before_push explicit "$TARGET_REMOTE" "$TARGET_BRANCH"
 
 if has_local_changes; then
     git add -A
@@ -192,11 +174,6 @@ else
     printf 'Nothing to commit.\n'
 fi
 
-if [ "$had_upstream" -eq 1 ]; then
-    git push origin "$branch"
-else
-    git push -u origin "$branch"
-fi
+git push "$TARGET_REMOTE" "HEAD:$TARGET_BRANCH"
 
-printf '\nPushed successfully to origin/%s\n' "$branch"
-printf 'Next step: open a Pull Request to main on GitHub.\n'
+printf '\nPushed successfully to %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"

@@ -2,12 +2,12 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [string]$Message,
-
-    [switch]$AllowMain
+    [string]$Message
 )
 
 $ErrorActionPreference = "Stop"
+$TargetRemote = "origin"
+$TargetBranch = "main"
 
 function Stop-Script {
     param([string]$Text)
@@ -162,6 +162,7 @@ function Invoke-SafeRebasePull {
 
 Write-Host ""
 Write-Host "Safe Team Git Push"
+Write-Host "Target: $TargetRemote/$TargetBranch"
 Write-Host ""
 
 Write-Host "[1/6] Checking repository"
@@ -185,10 +186,6 @@ if ([string]::IsNullOrWhiteSpace($branch)) {
     Stop-Script "You are in detached HEAD mode. Checkout a branch before pushing."
 }
 
-if ((($branch -eq "main") -or ($branch -eq "master")) -and -not $AllowMain) {
-    Stop-Script "Do not push directly to main. Create a feature branch first:`ngit checkout -b feature/your-work-name`n`nIf user intentionally needs emergency push:`n.\git-push.ps1 ""hotfix message"" -AllowMain"
-}
-
 Write-Host "Current branch: $branch"
 
 if ([string]::IsNullOrWhiteSpace($Message)) {
@@ -201,26 +198,16 @@ if ([string]::IsNullOrWhiteSpace($Message)) {
 
 Write-Host ""
 Write-Host "[3/6] Fetching latest code"
-Invoke-Git fetch origin --prune
+Invoke-Git fetch $TargetRemote --prune
+
+if (-not (Test-OriginBranchExists $TargetBranch)) {
+    Stop-Script "$TargetRemote/$TargetBranch was not found."
+}
 
 Write-Host ""
-Write-Host "[4/6] Pulling latest code safely"
-$upstream = Get-GitOutput rev-parse --abbrev-ref --symbolic-full-name "@{u}"
-if (-not [string]::IsNullOrWhiteSpace($upstream)) {
-    Write-Host "Pull target: $upstream"
-    Invoke-SafeRebasePull -Branch $branch -PullMode "upstream"
-}
-elseif (Test-OriginBranchExists $branch) {
-    Write-Host "Pull target: origin/$branch"
-    Invoke-SafeRebasePull -Branch $branch -PullMode "explicit" -Remote "origin" -RemoteBranch $branch
-}
-elseif (Test-OriginBranchExists "main") {
-    Write-Host "No upstream branch yet. Updating this branch on top of origin/main."
-    Invoke-SafeRebasePull -Branch $branch -PullMode "explicit" -Remote "origin" -RemoteBranch "main"
-}
-else {
-    Write-Host "No upstream or origin/main branch found. Skipping pull for this new branch."
-}
+Write-Host "[4/6] Pulling latest $TargetRemote/$TargetBranch safely"
+Write-Host "Pull target: $TargetRemote/$TargetBranch"
+Invoke-SafeRebasePull -Branch $branch -PullMode "explicit" -Remote $TargetRemote -RemoteBranch $TargetBranch
 
 Write-Host ""
 Write-Host "[5/6] Creating commit"
@@ -233,9 +220,8 @@ else {
 }
 
 Write-Host ""
-Write-Host "[6/6] Pushing branch"
-Invoke-Git push -u origin $branch
+Write-Host "[6/6] Pushing to $TargetRemote/$TargetBranch"
+Invoke-Git push $TargetRemote "HEAD:$TargetBranch"
 
 Write-Host ""
-Write-Host "Pushed successfully to origin/$branch"
-Write-Host "Next step: open a Pull Request to main on GitHub."
+Write-Host "Pushed successfully to $TargetRemote/$TargetBranch"

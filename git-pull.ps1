@@ -3,6 +3,8 @@
 param()
 
 $ErrorActionPreference = "Stop"
+$TargetRemote = "origin"
+$TargetBranch = "main"
 
 function Stop-Script {
     param([string]$Text)
@@ -164,6 +166,7 @@ function Invoke-SafePull {
 
 Write-Host ""
 Write-Host "Safe Team Git Pull"
+Write-Host "Target: $TargetRemote/$TargetBranch"
 Write-Host ""
 
 Write-Host "[1/4] Checking repository"
@@ -186,37 +189,19 @@ Write-Host "Current branch: $branch"
 
 Write-Host ""
 Write-Host "[2/4] Fetching latest code"
-Invoke-Git fetch origin --prune
+Invoke-Git fetch $TargetRemote --prune
 
 Write-Host ""
 Write-Host "[3/4] Selecting pull target"
-$upstream = Get-GitOutput rev-parse --abbrev-ref --symbolic-full-name "@{u}"
-if (-not [string]::IsNullOrWhiteSpace($upstream)) {
-    Write-Host "Pull target: $upstream"
-    $pullMode = "upstream"
-    $remote = $null
-    $remoteBranch = $null
+if (-not (Test-OriginBranchExists $TargetBranch)) {
+    Stop-Script "$TargetRemote/$TargetBranch was not found."
 }
-elseif (Test-OriginBranchExists $branch) {
-    Write-Host "Pull target: origin/$branch"
-    $pullMode = "explicit"
-    $remote = "origin"
-    $remoteBranch = $branch
-}
-elseif (Test-OriginBranchExists "main") {
-    Write-Host "No upstream branch yet. Pulling origin/main to update this branch base."
-    $pullMode = "explicit"
-    $remote = "origin"
-    $remoteBranch = "main"
-}
-else {
-    Stop-Script "No upstream branch, origin/$branch, or origin/main was found."
-}
+Write-Host "Pull target: $TargetRemote/$TargetBranch"
 
 Write-Host ""
 Write-Host "[4/4] Pulling latest code safely"
-Invoke-SafePull -Branch $branch -PullMode $pullMode -Remote $remote -RemoteBranch $remoteBranch
+Invoke-SafePull -Branch $branch -PullMode "explicit" -Remote $TargetRemote -RemoteBranch $TargetBranch
 
 Write-Host ""
 Write-Host "Pull completed successfully."
-Write-Host "Your branch is up to date."
+Write-Host "Your current branch has the latest $TargetRemote/$TargetBranch code."
