@@ -76,6 +76,8 @@ public class ApiSecurityProperties {
 
         private Set<String> exposedHeaders = new LinkedHashSet<>(Set.of("X-Request-Id"));
 
+        private boolean allowCredentials;
+
         @Min(0)
         private long maxAgeSeconds = 1800;
 
@@ -117,6 +119,14 @@ public class ApiSecurityProperties {
 
         public void setExposedHeaders(Set<String> exposedHeaders) {
             this.exposedHeaders = normalizeValues(exposedHeaders, false);
+        }
+
+        public boolean isAllowCredentials() {
+            return allowCredentials;
+        }
+
+        public void setAllowCredentials(boolean allowCredentials) {
+            this.allowCredentials = allowCredentials;
         }
 
         public long getMaxAgeSeconds() {

@@ -1,5 +1,6 @@
 import { Route } from "react-router-dom";
 
+import PaymentStatusPage from "../../features/payments/PaymentStatusPage";
 import WeddingSite from "../../features/wedding-site/WeddingSite";
 import CreateWeddingPage from "../../pages/CreateWeddingPage";
 import PublicInvitationPage from "../../pages/PublicInvitationPage";
@@ -27,7 +28,9 @@ export function builderRoutes() {
         }
       />
       <Route path="/preview/:draftId" element={<WeddingPreviewPage />} />
+      <Route path="/payments/:orderCode/status" element={<PaymentStatusPage />} />
       <Route path="/w/:slug" element={<PublicInvitationPage />} />
+      <Route path="/i/:slug" element={<PublicInvitationPage />} />
     </>
   );
 }

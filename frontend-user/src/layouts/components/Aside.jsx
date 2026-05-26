@@ -34,6 +34,18 @@ const MENU_ITEMS = [
     ),
   },
   {
+    label: "ធៀបការរបស់ខ្ញុំ",
+    path: "/dashboard/invitations",
+    icon: (
+      <Icon>
+        <path d="M4 4h16v16H4z" />
+        <path d="M8 8h8" />
+        <path d="M8 12h8" />
+        <path d="M8 16h5" />
+      </Icon>
+    ),
+  },
+  {
     label: "បញ្ជីភ្ញៀវ",
     path: "/guests",
     icon: (
@@ -50,6 +62,18 @@ const MENU_ITEMS = [
     icon: (
       <Icon>
         <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </Icon>
+    ),
+  },
+  {
+    label: "គំរូដែលបានទិញ",
+    path: "/dashboard/templates/paid",
+    icon: (
+      <Icon>
+        <path d="M4 5h16v14H4z" />
+        <path d="M8 9h8" />
+        <path d="M8 13h5" />
+        <path d="M17 15l1 1 2-3" />
       </Icon>
     ),
   },

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import "../../features/wedding-site/wedding-site.css";
 import RoyalInvitation from "../../features/wedding-site/RoyalInvitation";
+import BuyTemplateButton from "../../features/payments/BuyTemplateButton";
 import { getTemplateById } from "../../features/templates/data/templatesData";
 import useCountdown from "../../features/wedding-site/hooks/useCountdown";
 import { Breadcrumb } from "../../shared/ui/Breadcrumb";
@@ -191,7 +192,8 @@ export default function TemplateDemoPage() {
                     </div>
 
                     <div className="tpl-demo-phone-actions">
-                        <Link to={useTemplateLink} className="tpl-btn-primary">
+                        <BuyTemplateButton templateId={tpl.id} />
+                        <Link to={useTemplateLink} className="tpl-btn-outline">
                             ប្រើគំរូនេះ
                         </Link>
                         <Link to={`/templates/${tpl.id}/preview`} className="tpl-btn-outline">

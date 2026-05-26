@@ -14,7 +14,7 @@ import vdoFinca from "../../../assets/vdo-open-then-show-wedding/theme-finca.mov
 
 // Music for each template (background music when invitation opens)
 import musicInstrumental from "../../../assets/music/Instrumental Wedding Music (VioSounds Cover).m4a";
-import musicThousandYears from "../../../assets/music/A Thousand Years - Christina Perri | Romantic Instrumental Wedding Music (VioSounds Cover).mp3";
+const musicThousandYears = musicInstrumental;
 import musicThae from "../../../assets/music/Tena - ថែ Thae.mp3";
 import musicSneha from "../../../assets/music/2MDIE - SNEHA ft. TEY (DJ Chee remix).mp3";
 import musicDrunk2 from "../../../assets/music/YENGKY - DRUNK 2 (យប់ម៉ោងបី) FT KINGTONG [ OFFICIAL MUSIC VIDEO ].mp3";

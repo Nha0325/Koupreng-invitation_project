@@ -1,6 +1,7 @@
 import { Route } from "react-router-dom";
 
 import MarketingShell from "../../layouts/MarketingShell";
+import TemplateCheckoutPage from "../../features/payments/TemplateCheckoutPage";
 import HomePage from "../../pages/marketing/HomePage";
 import PricingPage from "../../pages/marketing/PricingPage";
 import TemplateDemoPage from "../../pages/marketing/TemplateDemoPage";
@@ -12,6 +13,7 @@ export function marketingRoutes() {
     <Route element={<MarketingShell />}>
       <Route path="/" element={<HomePage />} />
       <Route path="/templates" element={<TemplatesPage />} />
+      <Route path="/templates/:templateId/checkout" element={<TemplateCheckoutPage />} />
       <Route path="/templates/:id" element={<TemplateDemoPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/venues" element={<VenuesPage />} />

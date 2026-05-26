@@ -6,14 +6,15 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
 async function request(path, { method = "GET", body, headers = {}, auth = true, credentials, ...rest } = {}) {
     const token = getAccessToken();
     const useCookieAuth = isCookieAuthStorage();
+    const isFormData = body instanceof FormData;
     const res = await fetch(`${API_BASE_URL}${path}`, {
         method,
         headers: {
-            "Content-Type": "application/json",
+            ...(!isFormData ? { "Content-Type": "application/json" } : {}),
             ...(!useCookieAuth && auth && token ? { Authorization: `Bearer ${token}` } : {}),
             ...headers,
         },
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
         ...rest,
         credentials: useCookieAuth ? "include" : credentials,
     });

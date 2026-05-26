@@ -22,3 +22,25 @@ frontend-admin/.env.local
 **/.env.*.local
 !.env.example
 !**/.env.example
+
+# Dependencies and build output
+node_modules/
+**/node_modules/
+target/
+**/target/
+dist/
+**/dist/
+
+# Logs
+*.log
+logs/
+
+# Local media uploads
+uploads/
+backend/uploads/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+telegram-bot/.venv/

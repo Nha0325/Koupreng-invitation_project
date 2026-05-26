@@ -8,8 +8,12 @@ import com.koupreng.backend.dto.LoginRequest;
 import com.koupreng.backend.dto.MessageResponse;
 import com.koupreng.backend.dto.RegisterRequest;
 import com.koupreng.backend.dto.TelegramLoginRequest;
+import com.koupreng.backend.security.AuthCookieService;
 import com.koupreng.backend.service.AuthService;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,34 +27,48 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final AuthCookieService authCookieService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, AuthCookieService authCookieService) {
         this.authService = authService;
+        this.authCookieService = authCookieService;
     }
 
     @PostMapping("/register")
-    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return withAuthCookie(authService.register(request));
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        return withAuthCookie(authService.login(request));
     }
 
     @PostMapping("/google")
-    public AuthResponse loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
-        return authService.loginWithGoogle(request);
+    public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+        return withAuthCookie(authService.loginWithGoogle(request));
     }
 
     @PostMapping("/telegram")
-    public AuthResponse loginWithTelegram(@Valid @RequestBody TelegramLoginRequest request) {
-        return authService.loginWithTelegram(request);
+    public ResponseEntity<AuthResponse> loginWithTelegram(@Valid @RequestBody TelegramLoginRequest request) {
+        return withAuthCookie(authService.loginWithTelegram(request));
     }
 
     @PostMapping("/logout")
-    public MessageResponse logout(Authentication authentication) {
+    public ResponseEntity<MessageResponse> logout(Authentication authentication) {
         authService.logout(authentication);
-        return new MessageResponse("Logged out");
+        ResponseEntity.BodyBuilder response = ResponseEntity.ok();
+        authCookieService.clearAuthCookie()
+                .map(ResponseCookie::toString)
+                .ifPresent(cookie -> response.header(HttpHeaders.SET_COOKIE, cookie));
+        return response.body(new MessageResponse("Logged out"));
+    }
+
+    private ResponseEntity<AuthResponse> withAuthCookie(AuthResponse authResponse) {
+        ResponseEntity.BodyBuilder response = ResponseEntity.ok();
+        authCookieService.createAuthCookie(authResponse)
+                .map(ResponseCookie::toString)
+                .ifPresent(cookie -> response.header(HttpHeaders.SET_COOKIE, cookie));
+        return response.body(authResponse);
     }
 }

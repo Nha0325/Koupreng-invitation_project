@@ -1,99 +1,64 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useLocation, useParams } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import InvitationDisplay from "../features/invitations/InvitationDisplay";
+import PublicRsvpForm from "../features/invitations/PublicRsvpForm";
+import "../features/invitations/InvitationPages.css";
+import { invitationService } from "../shared/services/invitationService";
+import { mediaService } from "../shared/services/mediaService";
 
-import WeddingSite from "../features/wedding-site/WeddingSite";
-import { getTemplateById } from "../features/templates/data/templatesData";
-import { useWeddingStore } from "../stores/useWeddingStore";
-import { loadGallery } from "../services/galleryStorage";
-
-
-/**
- * PublicInvitationPage — public wedding invitation viewer.
- * Mounted on /w/:slug.
- *
- * Looks up a draft by its slug from localStorage. If none is found
- * it falls back to the slug as a templateId for demo purposes.
- */
 export default function PublicInvitationPage() {
     const { slug } = useParams();
-    const location = useLocation();
-
-    const draft = useWeddingStore((state) => state.draft);
-    const loadDraftBySlug = useWeddingStore((state) => state.loadDraftBySlug);
-    const loading = useWeddingStore((state) => state.loading);
-    const [gallery, setGallery] = useState(null);
-    const activeDraft = draft?.slug === slug ? draft : null;
-    const shouldBackToDashboard = location.state?.backTo === "/dashboard";
-    const backProps = shouldBackToDashboard
-        ? { showBack: true, backTo: "/dashboard", backLabel: "← ផ្ទាំងគ្រប់គ្រង" }
-        : { showBack: false };
+    const [searchParams] = useSearchParams();
+    const inviteToken = searchParams.get("token");
+    const [invitation, setInvitation] = useState(null);
+    const [media, setMedia] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        if (!slug) {
-            setGallery([]);
-            return;
-        }
-
-        setGallery(null);
-        const loadedDraft = loadDraftBySlug(slug);
-
-        if (!loadedDraft?.id) {
-            setGallery([]);
-            return;
-        }
-
-        loadGallery(loadedDraft.id)
-            .then(setGallery)
-            .catch(() => setGallery([]));
-    }, [slug, loadDraftBySlug]);
-
-    const tpl = useMemo(() => {
-        if (!activeDraft?.id || gallery === null) return null;
-
-        const baseTpl = getTemplateById(activeDraft.templateId);
-        const event = activeDraft.event || {};
-        const couple = activeDraft.couple || {};
-        const classNames = ["tpl-gallery-a", "tpl-gallery-b", "tpl-gallery-c", "tpl-gallery-d"];
-        const storyImages = gallery.length > 0
-            ? gallery.map((item, i) => ({
-                id: item.id,
-                src: item.preview,
-                alt: item.name,
-                type: item.type,
-                className: classNames[i % classNames.length],
-            }))
-            : baseTpl.storyImages;
-
-        return {
-            ...baseTpl,
-            groom: couple.groom || baseTpl.groom,
-            bride: couple.bride || baseTpl.bride,
-            dateText: event.date || baseTpl.dateText,
-            ceremonyTime: event.ceremonyTime || baseTpl.ceremonyTime,
-            receptionTime: event.receptionTime || baseTpl.receptionTime,
-            venueName: event.venueName || baseTpl.venueName,
-            venueAddress: event.venueAddress || baseTpl.venueAddress,
-            story: activeDraft.story || baseTpl.story,
-            storyImages,
-            dressCode: activeDraft.dressCode || baseTpl.dressCode,
-            music: activeDraft.music || baseTpl.music,
-            openingVideo: activeDraft.openingVideo || baseTpl.openingVideo,
+        let active = true;
+        Promise.all([
+            invitationService.publicBySlug(slug),
+            mediaService.publicBySlug(slug).catch(() => null),
+        ])
+            .then(([invitationData, mediaData]) => {
+                if (active) {
+                    setInvitation(invitationData);
+                    setMedia(mediaData);
+                    setError("");
+                }
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.status === 403 ? "This invitation requires a password." : "Invitation not available.");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoading(false);
+                }
+            });
+        return () => {
+            active = false;
         };
-    }, [activeDraft, gallery]);
+    }, [slug]);
 
-    if (loading || (activeDraft?.id && gallery === null)) {
+    if (loading) {
+        return <div className="public-state">Loading invitation...</div>;
+    }
+
+    if (error || !invitation) {
         return (
-            <div style={{ padding: 80, textAlign: "center", color: "#7d6443" }}>
-                កំពុងផ្ទុក...
-            </div>
-         );
+            <main className="public-state">
+                <h1>Invitation not available</h1>
+                <p>{error || "This invitation may be unpublished or unavailable."}</p>
+            </main>
+        );
     }
 
-    if (!activeDraft?.id) {
-        const fallbackTpl = getTemplateById(slug);
-        return <WeddingSite tpl={fallbackTpl} {...backProps} />;
-    }
-
-    return <WeddingSite tpl={tpl} {...backProps} />;
+    return (
+        <InvitationDisplay invitation={invitation} media={media}>
+            <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
+        </InvitationDisplay>
+    );
 }
