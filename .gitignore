@@ -22,18 +22,3 @@ frontend-admin/.env.local
 **/.env.*.local
 !.env.example
 !**/.env.example
-
-# Dependencies and build output
-node_modules/
-**/node_modules/
-target/
-**/target/
-dist/
-**/dist/
-
-# Logs
-*.log
-
-# Excluded from push
-ops/backup/
-frontend-admin/
