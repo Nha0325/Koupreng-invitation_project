@@ -89,6 +89,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/", "/api/health").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**",
                                 "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
@@ -98,6 +99,7 @@ public class SecurityConfig {
                                 "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()
                         .requestMatchers("/api/v1/public/invitations/**").permitAll()
+                        .requestMatchers("/api/v1/admin/template-payments/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

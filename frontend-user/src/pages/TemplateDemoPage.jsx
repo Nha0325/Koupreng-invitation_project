@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import "../features/wedding-site/wedding-site.css";
 import RoyalInvitation from "../features/wedding-site/RoyalInvitation";
 import { getTemplateById } from "../features/templates/data/templatesData";
+import BuyTemplateButton from "../features/payments/BuyTemplateButton";
 import useCountdown from "../features/wedding-site/hooks/useCountdown";
 import heroPhoneVideo from "../assets/music/hero-phone.webm";
 
@@ -211,7 +212,8 @@ export default function TemplateDemoPage() {
                     </div>
 
                     <div className="tpl-demo-actions">
-                        <Link to={`/templates/${tpl.id}/preview`} className="tpl-btn-primary">
+                        <BuyTemplateButton templateId={tpl.id} />
+                        <Link to={`/templates/${tpl.id}/preview`} className="tpl-btn-outline">
                             មើលការអញ្ជើញពេញលេញ →
                         </Link>
                         <Link to={`/create/wedding?template=${tpl.id}`} className="tpl-btn-outline">

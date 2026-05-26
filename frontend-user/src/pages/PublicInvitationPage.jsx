@@ -4,21 +4,27 @@ import InvitationDisplay from "../features/invitations/InvitationDisplay";
 import PublicRsvpForm from "../features/invitations/PublicRsvpForm";
 import "../features/invitations/InvitationPages.css";
 import { invitationService } from "../shared/services/invitationService";
+import { mediaService } from "../shared/services/mediaService";
 
 export default function PublicInvitationPage() {
     const { slug } = useParams();
     const [searchParams] = useSearchParams();
     const inviteToken = searchParams.get("token");
     const [invitation, setInvitation] = useState(null);
+    const [media, setMedia] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
         let active = true;
-        invitationService.publicBySlug(slug)
-            .then((data) => {
+        Promise.all([
+            invitationService.publicBySlug(slug),
+            mediaService.publicBySlug(slug).catch(() => null),
+        ])
+            .then(([invitationData, mediaData]) => {
                 if (active) {
-                    setInvitation(data);
+                    setInvitation(invitationData);
+                    setMedia(mediaData);
                     setError("");
                 }
             })
@@ -51,7 +57,7 @@ export default function PublicInvitationPage() {
     }
 
     return (
-        <InvitationDisplay invitation={invitation}>
+        <InvitationDisplay invitation={invitation} media={media}>
             <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
         </InvitationDisplay>
     );

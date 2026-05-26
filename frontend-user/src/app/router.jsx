@@ -28,6 +28,10 @@ import InvitationCreatePage from "../pages/host/InvitationCreatePage";
 import InvitationEditPage from "../pages/host/InvitationEditPage";
 import InvitationPreviewPage from "../pages/host/InvitationPreviewPage";
 import InvitationGuestsPage from "../pages/host/InvitationGuestsPage";
+import InvitationMediaPage from "../pages/host/InvitationMediaPage";
+import TemplateCheckoutPage from "../features/payments/TemplateCheckoutPage";
+import PaymentStatusPage from "../features/payments/PaymentStatusPage";
+import PaidTemplatesPage from "../features/payments/PaidTemplatesPage";
 
 import CreateWeddingPage from "../pages/CreateWeddingPage";
 import PublicInvitationPage from "../pages/PublicInvitationPage";
@@ -45,6 +49,7 @@ export default function AppRouter() {
       <Route path="/templates/:id/preview" element={<WeddingPage />} />
       <Route path="/w/:slug" element={<PublicInvitationPage />} />
       <Route path="/i/:slug" element={<PublicInvitationPage />} />
+      <Route path="/payments/:orderCode/status" element={<PaymentStatusPage />} />
       <Route path="/preview/:draftId" element={<WeddingPreviewPage />} />
       <Route path="/create/wedding" element={<CreateWeddingPage />} />
       <Route path="/create/wedding/:draftId" element={<CreateWeddingPage />} />
@@ -55,6 +60,7 @@ export default function AppRouter() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/venues" element={<VenuesPage />} />
         <Route path="/templates" element={<TemplatesPage />} />
+        <Route path="/templates/:templateId/checkout" element={<TemplateCheckoutPage />} />
         <Route path="/templates/:id" element={<DemoPage />} />
       </Route>
 
@@ -75,6 +81,8 @@ export default function AppRouter() {
         <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
         <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
         <Route path="/dashboard/invitations/:id/guests" element={<InvitationGuestsPage />} />
+        <Route path="/dashboard/invitations/:id/media" element={<InvitationMediaPage />} />
+        <Route path="/dashboard/templates/paid" element={<PaidTemplatesPage />} />
         <Route path="/guests" element={<GuestsPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
         <Route path="/gifts" element={<WeddingGiftPage />} />

@@ -33,3 +33,13 @@ dist/
 
 # Logs
 *.log
+
+# Local media uploads
+uploads/
+backend/uploads/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+telegram-bot/.venv/

@@ -158,6 +158,9 @@ export default function InvitationsList() {
                             <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/guests`)}>
                                 Guests
                             </button>
+                            <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/media`)}>
+                                Media
+                            </button>
                             {invitation.status === "PUBLISHED" ? (
                                 <button type="button" disabled={busyId === invitation.id} onClick={() => unpublish(invitation)}>
                                     Unpublish

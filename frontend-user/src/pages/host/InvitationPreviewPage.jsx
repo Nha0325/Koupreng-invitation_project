@@ -3,20 +3,26 @@ import { useNavigate, useParams } from "react-router-dom";
 import InvitationDisplay from "../../features/invitations/InvitationDisplay";
 import "../../features/invitations/InvitationPages.css";
 import { invitationService } from "../../shared/services/invitationService";
+import { mediaService } from "../../shared/services/mediaService";
 
 export default function InvitationPreviewPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [invitation, setInvitation] = useState(null);
+    const [media, setMedia] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
         let active = true;
-        invitationService.preview(id)
-            .then((data) => {
+        Promise.all([
+            invitationService.preview(id),
+            mediaService.list(id).catch(() => null),
+        ])
+            .then(([invitationData, mediaData]) => {
                 if (active) {
-                    setInvitation(data);
+                    setInvitation(invitationData);
+                    setMedia(mediaData);
                     setError("");
                 }
             })
@@ -49,11 +55,14 @@ export default function InvitationPreviewPage() {
                 <button type="button" className="inv-secondary-btn" onClick={() => navigate(`/dashboard/invitations/${id}/edit`)}>
                     Edit
                 </button>
+                <button type="button" className="inv-secondary-btn" onClick={() => navigate(`/dashboard/invitations/${id}/media`)}>
+                    Media
+                </button>
                 <button type="button" className="inv-secondary-btn" onClick={() => navigate("/dashboard/invitations")}>
                     My Invitations
                 </button>
             </div>
-            <InvitationDisplay invitation={invitation} preview />
+            <InvitationDisplay invitation={invitation} media={media} preview />
         </div>
     );
 }

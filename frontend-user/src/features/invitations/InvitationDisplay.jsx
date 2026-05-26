@@ -11,15 +11,17 @@ function displayNames(invitation) {
     return invitation.title;
 }
 
-export default function InvitationDisplay({ invitation, preview = false, children }) {
+export default function InvitationDisplay({ invitation, media, preview = false, children }) {
     const mapHref = invitation.googleMapUrl || "";
     const dateText = formatDate(invitation.eventDate);
     const timeText = formatTime(invitation.eventTime);
+    const coverUrl = media?.coverImage?.fileUrl || "/image/a1.png";
+    const galleryImages = media?.galleryImages || [];
 
     return (
         <main className="pub-invitation">
             <section className="pub-hero">
-                <img className="pub-hero-image" src="/image/a1.png" alt="" />
+                <img className="pub-hero-image" src={coverUrl} alt="" />
                 <div className="pub-hero-copy">
                     {preview && <span className="pub-preview-pill">Preview</span>}
                     <p className="pub-kicker">{EVENT_TYPE_LABELS[invitation.eventType] || "Invitation"}</p>
@@ -59,6 +61,27 @@ export default function InvitationDisplay({ invitation, preview = false, childre
                     <strong>{invitation.rsvpDeadline ? formatDate(invitation.rsvpDeadline) : "No deadline set"}</strong>
                 </article>
             </section>
+
+            {(galleryImages.length > 0 || media?.video || media?.backgroundMusic) && (
+                <section className="pub-section pub-media-section">
+                    {galleryImages.length > 0 && (
+                        <div className="pub-gallery">
+                            {galleryImages.map((item) => (
+                                <img key={item.id} src={item.fileUrl} alt={item.originalFilename || "Invitation gallery"} />
+                            ))}
+                        </div>
+                    )}
+                    {media?.video && (
+                        <video className="pub-video" src={media.video.fileUrl} controls />
+                    )}
+                    {media?.backgroundMusic && (
+                        <div className="pub-audio">
+                            <span>Background music</span>
+                            <audio src={media.backgroundMusic.fileUrl} controls />
+                        </div>
+                    )}
+                </section>
+            )}
 
             {children && (
                 <section className="pub-section pub-rsvp-section">

@@ -93,6 +93,24 @@ const Icons = {
       <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
     </svg>
   ),
+  paidTemplates: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 5h16v14H4z"></path>
+      <path d="M8 9h8"></path>
+      <path d="M8 13h5"></path>
+      <path d="M17 15l1 1 2-3"></path>
+    </svg>
+  ),
   profile: () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -185,6 +203,12 @@ const MENU_ITEMS = [
     label: "គម្រោងថវិកា",
     path: "/expenses",
     Icon: Icons.expenses,
+  },
+  {
+    id: "paidTemplates",
+    label: "គំរូដែលបានទិញ",
+    path: "/dashboard/templates/paid",
+    Icon: Icons.paidTemplates,
   },
   { id: "gifts", label: "ចងដៃមង្គល", path: "/gifts", Icon: Icons.gifts },
 ];

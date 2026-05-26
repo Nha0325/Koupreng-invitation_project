@@ -1,0 +1,20 @@
+package com.koupreng.backend.repository;
+
+import com.koupreng.backend.entity.payment.UserTemplateAccess;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface UserTemplateAccessRepository extends JpaRepository<UserTemplateAccess, Long> {
+
+    boolean existsByUserIdAndTemplateIdAndActiveTrue(Long userId, Long templateId);
+
+    boolean existsByUserIdAndTemplateIdAndOrderIdAndActiveTrue(Long userId, Long templateId, Long orderId);
+
+    Optional<UserTemplateAccess> findByUserIdAndTemplateIdAndActiveTrue(Long userId, Long templateId);
+
+    List<UserTemplateAccess> findByUserIdAndActiveTrue(Long userId);
+}

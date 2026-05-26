@@ -11,6 +11,10 @@ export const ROUTES = {
     createWedding: "/create/wedding",
     createWeddingDraft: (draftId) => `/create/wedding/${draftId}`,
     weddingPreview: (draftId) => `/preview/${draftId}`,
+    invitationMedia: (id) => `/dashboard/invitations/${id}/media`,
+    templateCheckout: (templateId) => `/templates/${templateId}/checkout`,
+    paymentStatus: (orderCode) => `/payments/${orderCode}/status`,
+    paidTemplates: "/dashboard/templates/paid",
     publicInvitation: (slug) => `/i/${slug}`,
     legacyPublicInvitation: (slug) => `/w/${slug}`,
 };

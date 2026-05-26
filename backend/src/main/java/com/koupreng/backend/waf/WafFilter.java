@@ -129,7 +129,7 @@ public class WafFilter extends OncePerRequestFilter {
         }
 
         long contentLength = request.getContentLengthLong();
-        if (contentLength > properties.getMaxBodyBytes()) {
+        if (!isMultipartContent(request.getContentType()) && contentLength > properties.getMaxBodyBytes()) {
             return WafDecision.block(HttpStatus.CONTENT_TOO_LARGE, "body-too-large");
         }
 
@@ -282,6 +282,18 @@ public class WafFilter extends OncePerRequestFilter {
                     || MediaType.APPLICATION_FORM_URLENCODED.includes(mediaType);
         } catch (RuntimeException exception) {
             return true;
+        }
+    }
+
+    private boolean isMultipartContent(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            return false;
+        }
+        try {
+            MediaType mediaType = MediaType.parseMediaType(contentType);
+            return "multipart".equalsIgnoreCase(mediaType.getType());
+        } catch (RuntimeException exception) {
+            return false;
         }
     }
 
