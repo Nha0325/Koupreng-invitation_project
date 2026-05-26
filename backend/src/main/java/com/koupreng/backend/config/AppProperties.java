@@ -6,7 +6,6 @@ import java.util.List;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
@@ -55,7 +54,7 @@ public class AppProperties {
         private String secret;
 
         @Positive
-        private long accessTokenMinutes = 15;
+        private long accessTokenMinutes = 60;
 
         public String getIssuer() {
             return issuer;
@@ -84,9 +83,6 @@ public class AppProperties {
 
     public static class Auth {
 
-        @Valid
-        private final Cookie cookie = new Cookie();
-
         private boolean firstUserAdminEnabled = false;
 
         @Min(1)
@@ -97,10 +93,6 @@ public class AppProperties {
 
         @Min(1)
         private int maxSocialLoginAttemptsPerMinute = 20;
-
-        public Cookie getCookie() {
-            return cookie;
-        }
 
         public boolean isFirstUserAdminEnabled() {
             return firstUserAdminEnabled;
@@ -132,79 +124,6 @@ public class AppProperties {
 
         public void setMaxSocialLoginAttemptsPerMinute(int maxSocialLoginAttemptsPerMinute) {
             this.maxSocialLoginAttemptsPerMinute = maxSocialLoginAttemptsPerMinute;
-        }
-
-        public static class Cookie {
-
-            private boolean enabled;
-
-            @NotBlank
-            @Pattern(regexp = "^[A-Za-z0-9_-]+$")
-            private String name = "koupreng_access_token";
-
-            private boolean secure;
-
-            private boolean httpOnly = true;
-
-            @NotBlank
-            @Pattern(regexp = "(?i)lax|strict|none")
-            private String sameSite = "Lax";
-
-            @Min(0)
-            private long maxAgeSeconds = 900;
-
-            public boolean isEnabled() {
-                return enabled;
-            }
-
-            public void setEnabled(boolean enabled) {
-                this.enabled = enabled;
-            }
-
-            public String getName() {
-                return name;
-            }
-
-            public void setName(String name) {
-                this.name = name;
-            }
-
-            public boolean isSecure() {
-                return secure;
-            }
-
-            public void setSecure(boolean secure) {
-                this.secure = secure;
-            }
-
-            public boolean isHttpOnly() {
-                return httpOnly;
-            }
-
-            public void setHttpOnly(boolean httpOnly) {
-                this.httpOnly = httpOnly;
-            }
-
-            public String getSameSite() {
-                return sameSite;
-            }
-
-            public void setSameSite(String sameSite) {
-                if (sameSite == null || sameSite.isBlank()) {
-                    this.sameSite = sameSite;
-                    return;
-                }
-                String normalized = sameSite.trim();
-                this.sameSite = normalized.substring(0, 1).toUpperCase() + normalized.substring(1).toLowerCase();
-            }
-
-            public long getMaxAgeSeconds() {
-                return maxAgeSeconds;
-            }
-
-            public void setMaxAgeSeconds(long maxAgeSeconds) {
-                this.maxAgeSeconds = maxAgeSeconds;
-            }
         }
     }
 

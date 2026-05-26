@@ -33,3 +33,7 @@ dist/
 
 # Logs
 *.log
+
+# Excluded from push
+ops/backup/
+frontend-admin/

@@ -11,7 +11,6 @@ import com.koupreng.backend.security.AuthRateLimitFilter;
 import com.koupreng.backend.security.ApiRequestLoggingFilter;
 import com.koupreng.backend.security.ApiSecurityProperties;
 import com.koupreng.backend.security.ClientAddressResolver;
-import com.koupreng.backend.security.CookieBearerTokenResolver;
 import com.koupreng.backend.service.RateLimitService;
 import com.koupreng.backend.waf.WafFilter;
 import com.koupreng.backend.waf.WafProperties;
@@ -31,7 +30,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
@@ -52,7 +50,6 @@ public class SecurityConfig {
             ApiSecurityProperties apiSecurityProperties,
             AppProperties appProperties,
             CorsConfigurationSource corsConfigurationSource,
-            BearerTokenResolver bearerTokenResolver,
             RateLimitService rateLimitService,
             ClientAddressResolver clientAddressResolver
     ) throws Exception {
@@ -101,7 +98,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .bearerTokenResolver(bearerTokenResolver)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                 )
                 .formLogin(form -> form.disable())
@@ -146,26 +142,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public BearerTokenResolver bearerTokenResolver(AppProperties appProperties) {
-        return new CookieBearerTokenResolver(appProperties.getAuth().getCookie());
-    }
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSource(ApiSecurityProperties apiSecurityProperties) {
         ApiSecurityProperties.Cors corsProperties = apiSecurityProperties.getCors();
-
-        if (corsProperties.isAllowCredentials() && corsProperties.getAllowedOrigins().contains("*")) {
-            throw new IllegalStateException(
-                    "CORS_ALLOW_CREDENTIALS cannot be true when CORS_ALLOWED_ORIGINS contains *"
-            );
-        }
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.copyOf(corsProperties.getAllowedOrigins()));
         configuration.setAllowedMethods(List.copyOf(corsProperties.getAllowedMethods()));
         configuration.setAllowedHeaders(List.copyOf(corsProperties.getAllowedHeaders()));
         configuration.setExposedHeaders(List.copyOf(corsProperties.getExposedHeaders()));
-        configuration.setAllowCredentials(corsProperties.isAllowCredentials());
+        configuration.setAllowCredentials(false);
         configuration.setMaxAge(corsProperties.getMaxAgeSeconds());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
