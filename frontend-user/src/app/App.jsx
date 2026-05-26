@@ -3,6 +3,7 @@ import { AuthProvider } from "./auth/AuthContext";
 import { ThemeProvider } from "./theme/ThemeContext";
 import AppRouter from "./router";
 import ScrollToTop from "./ScrollToTop";
+import Toaster from "../shared/ui/Toaster";
 
 function App() {
     return (
@@ -12,6 +13,7 @@ function App() {
                     <ScrollToTop />
                     <div className="app-container">
                         <AppRouter />
+                        <Toaster />
                     </div>
                 </Router>
             </AuthProvider>

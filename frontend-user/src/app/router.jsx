@@ -23,6 +23,11 @@ import ExpensesPage from "../pages/host/ExpensesPage";
 import WeddingGiftPage from "../pages/host/WeddingGiftPage";
 import TemplatesPage from "../pages/marketing/TemplatesPage";
 import AddTemplatePage from "../pages/host/AddTemplatePage";
+import MyInvitationsPage from "../pages/host/MyInvitationsPage";
+import InvitationCreatePage from "../pages/host/InvitationCreatePage";
+import InvitationEditPage from "../pages/host/InvitationEditPage";
+import InvitationPreviewPage from "../pages/host/InvitationPreviewPage";
+import InvitationGuestsPage from "../pages/host/InvitationGuestsPage";
 
 import CreateWeddingPage from "../pages/CreateWeddingPage";
 import PublicInvitationPage from "../pages/PublicInvitationPage";
@@ -39,6 +44,7 @@ export default function AppRouter() {
       {/* Standalone full-screen pages (no shell) */}
       <Route path="/templates/:id/preview" element={<WeddingPage />} />
       <Route path="/w/:slug" element={<PublicInvitationPage />} />
+      <Route path="/i/:slug" element={<PublicInvitationPage />} />
       <Route path="/preview/:draftId" element={<WeddingPreviewPage />} />
       <Route path="/create/wedding" element={<CreateWeddingPage />} />
       <Route path="/create/wedding/:draftId" element={<CreateWeddingPage />} />
@@ -64,6 +70,11 @@ export default function AppRouter() {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/create" element={<CreateEventPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard/invitations" element={<MyInvitationsPage />} />
+        <Route path="/dashboard/invitations/new" element={<InvitationCreatePage />} />
+        <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
+        <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
+        <Route path="/dashboard/invitations/:id/guests" element={<InvitationGuestsPage />} />
         <Route path="/guests" element={<GuestsPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
         <Route path="/gifts" element={<WeddingGiftPage />} />

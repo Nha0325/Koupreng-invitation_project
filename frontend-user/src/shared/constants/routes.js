@@ -11,7 +11,8 @@ export const ROUTES = {
     createWedding: "/create/wedding",
     createWeddingDraft: (draftId) => `/create/wedding/${draftId}`,
     weddingPreview: (draftId) => `/preview/${draftId}`,
-    publicInvitation: (slug) => `/w/${slug}`,
+    publicInvitation: (slug) => `/i/${slug}`,
+    legacyPublicInvitation: (slug) => `/w/${slug}`,
 };
 
 export default ROUTES;

@@ -1,5 +1,6 @@
 package com.koupreng.backend.entity.invitation;
 
+import com.koupreng.backend.enums.RsvpStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.Instant;
@@ -21,8 +22,9 @@ public class Rsvp {
     @JoinColumn(name = "guest_id")
     private Guest guest;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "response_status", length = 50)
-    private String responseStatus;
+    private RsvpStatus responseStatus;
 
     @Column(name = "attendee_count")
     private Integer attendeeCount;
@@ -32,4 +34,10 @@ public class Rsvp {
 
     @Column(name = "responded_at")
     private Instant respondedAt;
+
+    @PrePersist
+    @PreUpdate
+    protected void onRespond() {
+        respondedAt = Instant.now();
+    }
 }

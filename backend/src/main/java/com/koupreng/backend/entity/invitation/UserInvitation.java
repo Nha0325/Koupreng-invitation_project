@@ -1,6 +1,8 @@
 package com.koupreng.backend.entity.invitation;
 
 import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.enums.InvitationStatus;
+import com.koupreng.backend.enums.InvitationVisibility;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.Instant;
@@ -67,8 +69,9 @@ public class UserInvitation {
     @Column(name = "language_mode", length = 20)
     private String languageMode;
 
-    @Column(length = 20)
-    private String visibility;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private InvitationVisibility visibility = InvitationVisibility.PUBLIC;
 
     @Column(name = "access_password")
     private String accessPassword;
@@ -76,8 +79,15 @@ public class UserInvitation {
     @Column(name = "rsvp_deadline")
     private LocalDate rsvpDeadline;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    private InvitationStatus status = InvitationStatus.DRAFT;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
+
+    @Column(name = "published_at")
+    private Instant publishedAt;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -87,6 +97,12 @@ public class UserInvitation {
 
     @PrePersist
     protected void onCreate() {
+        if (status == null) {
+            status = InvitationStatus.DRAFT;
+        }
+        if (visibility == null) {
+            visibility = InvitationVisibility.PUBLIC;
+        }
         createdAt = Instant.now();
         updatedAt = Instant.now();
     }

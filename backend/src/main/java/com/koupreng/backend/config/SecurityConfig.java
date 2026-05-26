@@ -97,6 +97,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/invitations/templates",
                                 "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()
+                        .requestMatchers("/api/v1/public/invitations/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

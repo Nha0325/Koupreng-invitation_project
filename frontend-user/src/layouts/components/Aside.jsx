@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Aside.css";
 
@@ -20,6 +20,24 @@ const Icons = {
       <rect x="14" y="3" width="7" height="7"></rect>
       <rect x="14" y="14" width="7" height="7"></rect>
       <rect x="3" y="14" width="7" height="7"></rect>
+    </svg>
+  ),
+  invitations: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 4h16v16H4z"></path>
+      <path d="M8 8h8"></path>
+      <path d="M8 12h8"></path>
+      <path d="M8 16h5"></path>
     </svg>
   ),
   guests: () => (
@@ -151,6 +169,12 @@ const MENU_ITEMS = [
     Icon: Icons.dashboard,
   },
   {
+    id: "invitations",
+    label: "ធៀបការរបស់ខ្ញុំ",
+    path: "/dashboard/invitations",
+    Icon: Icons.invitations,
+  },
+  {
     id: "guests",
     label: "បញ្ជីភ្ញៀវកិត្តិយស",
     path: "/guests",
@@ -213,22 +237,27 @@ export default function SidebarContent() {
         <div className="sidebar-scroll">
           <div className="nav-group">
             <p className="group-title">ម៉ឺនុយចម្បង</p>
-            {MENU_ITEMS.map((item) => (
-              <Link
-                key={item.id}
-                to={item.path}
-                className={`nav-link ${location.pathname === item.path ? "active" : ""}`}
-                onClick={() => setIsMobileOpen(false)}
-              >
-                <div className="link-icon">
-                  <item.Icon />
-                </div>
-                <span className="link-text">{item.label}</span>
-                {location.pathname === item.path && (
-                  <div className="active-dot" />
-                )}
-              </Link>
-            ))}
+            {MENU_ITEMS.map((item) => {
+              const isActive = item.path === "/dashboard"
+                ? location.pathname === item.path
+                : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  className={`nav-link ${isActive ? "active" : ""}`}
+                  onClick={() => setIsMobileOpen(false)}
+                >
+                  <div className="link-icon">
+                    <item.Icon />
+                  </div>
+                  <span className="link-text">{item.label}</span>
+                  {isActive && (
+                    <div className="active-dot" />
+                  )}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="nav-group mt-auto">
