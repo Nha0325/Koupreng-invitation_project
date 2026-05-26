@@ -1,89 +1,135 @@
-import { useEffect, useMemo } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+
 import "./builder.css";
-import BuilderSidebar from "./components/BuilderSidebar";
+
 import PhonePreview from "./components/PhonePreview";
-import PublishBox from "./components/PublishBox";
 import StepNavigation from "./components/StepNavigation";
-import useWeddingBuilder from "./hooks/useWeddingBuilder";
+import { Breadcrumb } from "../../shared/ui/Breadcrumb";
 
-import SelectTemplateStep from "./steps/SelectTemplateStep";
-import CoupleInfoStep from "./steps/CoupleInfoStep";
-import EventInfoStep from "./steps/EventInfoStep";
-import StoryGalleryStep from "./steps/StoryGalleryStep";
-import RsvpSettingsStep from "./steps/RsvpSettingsStep";
-import ReviewPublishStep from "./steps/ReviewPublishStep";
+import { BUILDER_STEPS } from "./config/builderSteps";
+import { useWeddingStore } from "../../stores/useWeddingStore";
 
-const STEP_LABELS = [
-    "ជ្រើសរើសគំរូ",
-    "ព័ត៌មានគូរ",
-    "ព័ត៌មានពិធី",
-    "រឿង / រូបភាព",
-    "ការកំណត់ RSVP",
-    "ត្រួតពិនិត្យ និងបោះផ្សាយ",
-];
-
-/**
- * CreateWedding — top-level wedding builder screen.
- * Mounted on /create/wedding and /create/wedding/:draftId.
- *
- * Loads (or creates) a draft from localStorage and walks the user
- * through 6 steps. The draft is auto-saved on every change.
- */
 export default function CreateWedding() {
     const { draftId } = useParams();
+    const location = useLocation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const initialTemplateId = searchParams.get("template") || undefined;
+    const initialTemplateId = searchParams.get("template") || "royal";
+    const initialized = useRef(false);
+    const [publishedDraft, setPublishedDraft] = useState(null);
 
-    const builder = useWeddingBuilder(draftId, { initialTemplateId });
-    const { draft, step, update, updateField, next, prev, goTo } = builder;
+    const draft = useWeddingStore((state) => state.draft);
+    const step = useWeddingStore((state) => state.step);
+    const setStep = useWeddingStore((state) => state.setStep);
+    const next = useWeddingStore((state) => state.next);
+    const prev = useWeddingStore((state) => state.prev);
+    const startDraft = useWeddingStore((state) => state.startDraft);
+    const loadDraft = useWeddingStore((state) => state.loadDraft);
+    const update = useWeddingStore((state) => state.update);
+    const updateField = useWeddingStore((state) => state.updateField);
+    const publishDraft = useWeddingStore((state) => state.publishDraft);
 
-    // Make the URL reflect the draft id so refresh keeps the same draft.
     useEffect(() => {
-        if (draft?.id && !draftId) {
-            navigate(`/create/wedding/${draft.id}`, { replace: true });
+        if (initialized.current) return;
+        initialized.current = true;
+
+        if (draftId) {
+            loadDraft(draftId);
+        } else {
+            const newDraft = startDraft({ templateId: initialTemplateId });
+            navigate(`/create/wedding/${newDraft.id}`, { replace: true });
         }
-    }, [draft?.id, draftId, navigate]);
+    }, [draftId, initialTemplateId, loadDraft, navigate, startDraft]);
+
+    const CurrentStep = BUILDER_STEPS[step]?.Component;
+    const progress = Math.round(((step + 1) / BUILDER_STEPS.length) * 100);
+    const shouldBackToDashboard = location.state?.backTo === "/dashboard";
+    const breadcrumbStart = shouldBackToDashboard
+        ? { label: "ផ្ទាំងគ្រប់គ្រង", to: "/dashboard" }
+        : { label: "គំរូសន្លឹកការ", to: "/templates" };
+
+    const handlePublish = useCallback(() => {
+        const saved = publishDraft();
+        setPublishedDraft(saved);
+        return saved;
+    }, [publishDraft]);
 
     const stepEl = useMemo(() => {
-        const props = { draft, update, updateField };
-        switch (step) {
-            case 0: return <SelectTemplateStep {...props} />;
-            case 1: return <CoupleInfoStep {...props} />;
-            case 2: return <EventInfoStep {...props} />;
-            case 3: return <StoryGalleryStep {...props} />;
-            case 4: return <RsvpSettingsStep {...props} />;
-            case 5: return <ReviewPublishStep {...props} />;
-            default: return null;
-        }
-    }, [step, draft, update, updateField]);
+        if (!CurrentStep || !draft) return null;
+
+        return (
+            <CurrentStep
+                draft={draft}
+                update={update}
+                updateField={updateField}
+                onPublish={handlePublish}
+                publishedDraft={publishedDraft}
+            />
+        );
+    }, [CurrentStep, draft, handlePublish, publishedDraft, update, updateField]);
+
+    if (!draft) {
+        return (
+            <div className="wb-root">
+                <div style={{ padding: 40, textAlign: "center", color: "#7d6443" }}>
+                    កំពុងផ្ទុក...
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="wb-root">
-            <BuilderSidebar
-                steps={STEP_LABELS}
-                currentStep={step}
-                onSelect={goTo}
-            />
+            {/* Breadcrumb */}
+            <div className="wb-breadcrumb">
+                <Breadcrumb
+                    items={[
+                        breadcrumbStart,
+                        { label: "បង្កើតសន្លឹកការ" },
+                    ]}
+                />
+            </div>
 
+            {/* Step Sidebar */}
+            <aside className="wb-sidebar">
+                <h3>ដំណាក់កាល</h3>
+                <div className="wb-progress" aria-label={`Progress ${progress}%`}>
+                    <div className="wb-progress-bar" style={{ width: `${progress}%` }} />
+                </div>
+                <ol>
+                    {BUILDER_STEPS.map((s, index) => (
+                        <li key={s.id}>
+                            <button
+                                type="button"
+                                className={`wb-step-btn${index === step ? " is-active" : ""}`}
+                                onClick={() => setStep(index)}
+                            >
+                                <span className="wb-step-num">{index + 1}</span>
+                                {s.label}
+                            </button>
+                        </li>
+                    ))}
+                </ol>
+            </aside>
+
+            {/* Main Form */}
             <main className="wb-main">
                 {stepEl}
+
                 <StepNavigation
                     onPrev={prev}
                     onNext={next}
                     isFirst={step === 0}
-                    isLast={step === STEP_LABELS.length - 1}
+                    isLast={step === BUILDER_STEPS.length - 1}
                 />
             </main>
 
-            <div>
-                <div className="wb-preview">
-                    <h3>ការបង្ហាញ</h3>
-                    <PhonePreview draft={draft} />
-                    <PublishBox draft={draft} />
-                </div>
-            </div>
+            {/* Phone Preview */}
+            <aside className="wb-preview">
+                <h3>ការបង្ហាញ</h3>
+                <PhonePreview draft={draft} />
+            </aside>
         </div>
     );
 }

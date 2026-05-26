@@ -1,5 +1,6 @@
 .dcp-wrap {
     width: 100%;
+    min-width: 0;
 }
 
 /* ── Tabs ── */
@@ -39,7 +40,7 @@
 /* ── Combo grid ── */
 .dcp-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
     gap: 10px;
 }
 
@@ -115,6 +116,7 @@
 
 .dcp-name-input {
     flex: 1;
+    min-width: 0;
     height: 40px;
     padding: 0 14px;
     border: 1.5px solid #d8cdb8;
@@ -128,4 +130,10 @@
     outline: 2px solid #b0926a;
     outline-offset: 1px;
     border-color: #b0926a;
+}
+
+@media (max-width: 640px) {
+    .dcp-grid {
+        grid-template-columns: 1fr;
+    }
 }

@@ -14,7 +14,6 @@ export default function PhonePreview({ draft }) {
 
     useEffect(() => {
         if (!draft?.id) {
-            setGallery([]);
             return;
         }
 
@@ -78,7 +77,22 @@ export default function PhonePreview({ draft }) {
         storyImages,
         dressCode: draft?.dressCode,
         music: draft?.music,
+        openingVideo: draft?.openingVideo || baseTpl.openingVideo,
     };
+
+    if (!draft?.id) {
+        return (
+            <div className="wb-phone-preview">
+                <div className="wb-phone-frame">
+                    <div className="wb-phone-scroll">
+                        <div style={{ padding: 24, textAlign: "center", color: "#7d6443", fontSize: 12 }}>
+                            កំពុងផ្ទុក...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="wb-phone-preview">

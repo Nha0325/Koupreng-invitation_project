@@ -1,3 +1,5 @@
+import { DEFAULT_OPENING_VIDEO } from "../shared/data/openingVideos";
+
 /**
  * weddingStorage — minimal localStorage-based draft store for the
  * wedding builder. No backend yet. Drafts are keyed by draftId.
@@ -8,7 +10,8 @@
  *   templateId: string,
  *   slug: string,
  *   couple: { groom, bride },
- *   event: { date, ceremonyTime, receptionTime, venueName, venueAddress },
+ *   event: { date, ceremonyTime, receptionTime, venueName, venueAddress, mapLink },
+ *   contact: { phone },
  *   story: string,
  *   gallery: string[],
  *   rsvp: { enabled, deadline },
@@ -81,11 +84,24 @@ export function createDraft(initial = {}) {
             receptionTime: "",
             venueName: "",
             venueAddress: "",
+            mapLink: "",
             ...initial.event,
         },
+        contact: { phone: "", ...initial.contact },
         story: initial.story || "",
         gallery: initial.gallery || [],
+        openingVideo: initial.openingVideo || DEFAULT_OPENING_VIDEO,
         rsvp: { enabled: true, deadline: "", ...initial.rsvp },
+        extras: {
+            playlistLink: "",
+            videoLink: "",
+            giftInfo: "",
+            accommodationInfo: "",
+            transportationNote: "",
+            guestNote: "",
+            languageNote: "",
+            ...initial.extras,
+        },
         ...initial,
     });
 }

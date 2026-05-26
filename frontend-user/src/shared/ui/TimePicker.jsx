@@ -1,10 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useRef, useEffect } from "react";
 import { TimePickerDropdown } from "./TimePickerDropdown";
 import "./TimePicker.css";
-
-const hours = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
-const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
-const periods = ["ព្រឹក", "ល្ងាច"];
 
 /**
  * TimePicker — Khmer-language 12h time picker that emits a 24h "HH:MM" string.

@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ScrollReveal } from "../../shared/ui/ScrollReveal";
@@ -195,7 +194,7 @@ export default function Home() {
 
       <style>{`
         /* --- Styles បន្ថែមសម្រាប់ Section ថ្មី --- */
-        .khmer-theme { background: #FCF8F2; }
+        .khmer-theme { width: 100%; min-width: 0; overflow-x: hidden; background: #FCF8F2; }
         
         .how-it-works { padding: 80px 0; max-width: 1200px; margin: 0 auto; text-align: center; }
         .steps-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; padding: 40px 20px; }
@@ -214,14 +213,14 @@ export default function Home() {
         .footer-bottom { text-align: center; margin-top: 60px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: #666; font-family: 'Kantumruy Pro'; font-size: 13px; }
 
         /* --- រក្សារចនាបថចាស់ដែលបងមាន --- */
-        .hero-modern { height: 100vh; background-size: cover; background-position: center; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; }
-        .overlay-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(252,248,242,0.4) 0%, rgba(252,248,242,1) 100%); }
-        .hero-content { position: relative; z-index: 10; max-width: 800px; }
-        .khmer-title { font-family: 'Moul', serif; padding-top: 15px; font-size: clamp(32px, 8vw, 50px); color: #333; line-height: 1.3; }
+        .hero-modern { width: 100%; min-width: 0; min-height: 100svh; height: auto; background-size: cover; background-position: center; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; padding: 120px 16px 64px; overflow: hidden; }
+        .overlay-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(252, 248, 242, 0.4) 0%, rgba(252, 248, 242, 1) 1000%); }
+        .hero-content { position: relative; z-index: 10; width: min(100%, 800px); min-width: 0; }
+        .khmer-title { font-family: 'Moul', serif; padding-top: 15px; font-size: clamp(30px, 8vw, 50px); color: #333; line-height: 1.3; overflow-wrap: anywhere; }
         .gold-gradient { background: linear-gradient(90deg, #B0926A, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .khmer-sub { font-family: 'Kantumruy Pro', sans-serif; font-size: 16px; color: #B0926A; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
-        .khmer-p { font-family: 'Kantumruy Pro', sans-serif; font-size: 16px; color: #555; line-height: 1.8; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto; }
-        .hero-btns { display: flex; gap: 15px; justify-content: center; margin-top: 30px; }
+        .khmer-p { font-family: 'Kantumruy Pro', sans-serif; font-size: 16px; color: #555; line-height: 1.8; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto; overflow-wrap: anywhere; }
+        .hero-btns { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
         .btn-main-gold { display: inline-block; background: linear-gradient(135deg, #B0926A, #D4AF37); color: #fff; padding: 12px 30px; border-radius: 30px; font-family: 'Kantumruy Pro'; font-weight: 700; text-decoration: none; transition: 0.3s; box-shadow: 0 4px 15px rgba(176,146,106,0.3); }
         .btn-main-gold:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(176,146,106,0.4); }
         .btn-outline { border: 2px solid #B0926A; color: #B0926A; padding: 12px 30px; border-radius: 30px; font-family: 'Kantumruy Pro'; font-weight: 700; text-decoration: none; transition: 0.3s; }
@@ -240,6 +239,12 @@ export default function Home() {
         .card-feats li { font-family: 'Kantumruy Pro'; padding: 8px 0; color: #555; border-bottom: 1px solid #f5f5f5; }
         .card-btn { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white; font-family: 'Kantumruy Pro'; font-weight: 700; cursor: pointer; }
         .card-btn.gold { background: #B0926A; color: white; border: none; }
+        @media (max-width: 560px) {
+          .hero-modern { min-height: 100svh; padding: 104px 18px 56px; background-position: center top; }
+          .khmer-title { font-size: clamp(28px, 9vw, 36px); }
+          .khmer-p { font-size: 14px; line-height: 1.75; }
+          .btn-main-gold, .btn-outline { padding: 11px 22px; font-size: 14px; }
+        }
       `}</style>
     </div>
   );

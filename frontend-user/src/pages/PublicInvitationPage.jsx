@@ -1,9 +1,12 @@
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { getDraftBySlug } from "../services/weddingStorage";
-import { loadGallery } from "../services/galleryStorage";
-import { getTemplateById } from "../features/templates/data/templatesData";
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useLocation, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+
 import WeddingSite from "../features/wedding-site/WeddingSite";
+import { getTemplateById } from "../features/templates/data/templatesData";
+import { useWeddingStore } from "../stores/useWeddingStore";
+import { loadGallery } from "../services/galleryStorage";
+
 
 /**
  * PublicInvitationPage — public wedding invitation viewer.
@@ -14,31 +17,45 @@ import WeddingSite from "../features/wedding-site/WeddingSite";
  */
 export default function PublicInvitationPage() {
     const { slug } = useParams();
-    const draft = getDraftBySlug(slug);
+    const location = useLocation();
+
+    const draft = useWeddingStore((state) => state.draft);
+    const loadDraftBySlug = useWeddingStore((state) => state.loadDraftBySlug);
+    const loading = useWeddingStore((state) => state.loading);
     const [gallery, setGallery] = useState(null);
+    const activeDraft = draft?.slug === slug ? draft : null;
+    const shouldBackToDashboard = location.state?.backTo === "/dashboard";
+    const backProps = shouldBackToDashboard
+        ? { showBack: true, backTo: "/dashboard", backLabel: "← ផ្ទាំងគ្រប់គ្រង" }
+        : { showBack: false };
 
     useEffect(() => {
-        if (draft?.id) {
-            loadGallery(draft.id)
-                .then(setGallery)
-                .catch(() => setGallery([]));
-        } else {
+        if (!slug) {
             setGallery([]);
+            return;
         }
-    }, [draft?.id]);
 
-    if (draft && gallery === null) {
-        return (
-            <div style={{ padding: 80, textAlign: "center", color: "#7d6443" }}>
-                កំពុងផ្ទុក...
-            </div>
-        );
-    }
+        setGallery(null);
+        const loadedDraft = loadDraftBySlug(slug);
 
-    if (draft) {
-        const baseTpl = getTemplateById(draft.templateId);
+        if (!loadedDraft?.id) {
+            setGallery([]);
+            return;
+        }
+
+        loadGallery(loadedDraft.id)
+            .then(setGallery)
+            .catch(() => setGallery([]));
+    }, [slug, loadDraftBySlug]);
+
+    const tpl = useMemo(() => {
+        if (!activeDraft?.id || gallery === null) return null;
+
+        const baseTpl = getTemplateById(activeDraft.templateId);
+        const event = activeDraft.event || {};
+        const couple = activeDraft.couple || {};
         const classNames = ["tpl-gallery-a", "tpl-gallery-b", "tpl-gallery-c", "tpl-gallery-d"];
-        const storyImages = (gallery && gallery.length > 0)
+        const storyImages = gallery.length > 0
             ? gallery.map((item, i) => ({
                 id: item.id,
                 src: item.preview,
@@ -48,24 +65,35 @@ export default function PublicInvitationPage() {
             }))
             : baseTpl.storyImages;
 
-        const tpl = {
+        return {
             ...baseTpl,
-            groom: draft.couple.groom || baseTpl.groom,
-            bride: draft.couple.bride || baseTpl.bride,
-            dateText: draft.event.date || baseTpl.dateText,
-            ceremonyTime: draft.event.ceremonyTime || baseTpl.ceremonyTime,
-            receptionTime: draft.event.receptionTime || baseTpl.receptionTime,
-            venueName: draft.event.venueName || baseTpl.venueName,
-            venueAddress: draft.event.venueAddress || baseTpl.venueAddress,
-            story: draft.story || baseTpl.story,
+            groom: couple.groom || baseTpl.groom,
+            bride: couple.bride || baseTpl.bride,
+            dateText: event.date || baseTpl.dateText,
+            ceremonyTime: event.ceremonyTime || baseTpl.ceremonyTime,
+            receptionTime: event.receptionTime || baseTpl.receptionTime,
+            venueName: event.venueName || baseTpl.venueName,
+            venueAddress: event.venueAddress || baseTpl.venueAddress,
+            story: activeDraft.story || baseTpl.story,
             storyImages,
-            dressCode: draft.dressCode,
-            music: draft.music,
+            dressCode: activeDraft.dressCode || baseTpl.dressCode,
+            music: activeDraft.music || baseTpl.music,
+            openingVideo: activeDraft.openingVideo || baseTpl.openingVideo,
         };
-        return <WeddingSite tpl={tpl} showBack={false} />;
+    }, [activeDraft, gallery]);
+
+    if (loading || (activeDraft?.id && gallery === null)) {
+        return (
+            <div style={{ padding: 80, textAlign: "center", color: "#7d6443" }}>
+                កំពុងផ្ទុក...
+            </div>
+         );
     }
 
-    // Fallback: treat slug as a template id for demo.
-    const tpl = getTemplateById(slug);
-    return <WeddingSite tpl={tpl} showBack={false} />;
+    if (!activeDraft?.id) {
+        const fallbackTpl = getTemplateById(slug);
+        return <WeddingSite tpl={fallbackTpl} {...backProps} />;
+    }
+
+    return <WeddingSite tpl={tpl} {...backProps} />;
 }

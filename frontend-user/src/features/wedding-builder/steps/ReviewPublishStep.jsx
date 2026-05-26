@@ -1,101 +1,120 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { getTemplateById } from "../../templates/data/templatesData";
 
-export default function ReviewPublishStep({ draft, update }) {
-    const navigate = useNavigate();
+export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) {
+    const [copied, setCopied] = useState(false);
+    const template = getTemplateById(draft?.templateId);
+    const couple = draft?.couple || {};
+    const event = draft?.event || {};
+    const rsvp = draft?.rsvp || {};
+    const contact = draft?.contact || {};
+    const openingVideo = draft?.openingVideo;
+    const activeDraft = publishedDraft || draft;
+    const isPublished = Boolean(activeDraft?.publishedAt || publishedDraft);
+    const publicPath = activeDraft?.slug ? `/w/${activeDraft.slug}` : "";
 
-    const slugify = (s) =>
-        (s || "")
-            .toString()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-zA-Z0-9\s-]/g, "")
-            .trim()
-            .replace(/\s+/g, "-")
-            .toLowerCase()
-            .slice(0, 40);
+    const handleCopy = async () => {
+        if (!publicPath) return;
 
-    const ensureSlug = () => {
-        if (draft.slug) return draft.slug;
-        const auto =
-            slugify(`${draft.couple.groom}-${draft.couple.bride}`) ||
-            draft.id.replace("wed-", "");
-        update({ slug: auto });
-        return auto;
-    };
-
-    const onPreview = () => navigate(`/preview/${draft.id}`);
-    const onPublish = () => {
-        const slug = ensureSlug();
-        navigate(`/w/${slug}`);
+        try {
+            await navigator.clipboard.writeText(`${window.location.origin}${publicPath}`);
+            setCopied(true);
+        } catch {
+            setCopied(false);
+        }
     };
 
     return (
         <div>
-            <h2>6. ត្រួតពិនិត្យ និងបោះផ្សាយ</h2>
-            <p className="wb-help">ពិនិត្យព័ត៌មានរបស់អ្នកមុនបោះផ្សាយ។</p>
+            <h2>5. ពិនិត្យមើល និងបោះផ្សាយ</h2>
+            <p className="wb-help">ពិនិត្យព័ត៌មានទាំងអស់ មុនបោះផ្សាយសន្លឹកការទៅភ្ញៀវ។</p>
 
-            <div className="wb-field">
-                <label htmlFor="slug">តំណផ្ទាល់ខ្លួន (slug)</label>
-                <input
-                    id="slug"
-                    type="text"
-                    value={draft.slug}
-                    onChange={(e) =>
-                        update({ slug: slugify(e.target.value) })
-                    }
-                    placeholder="panha-phkay"
-                />
-                {draft.slug && (
-                    <small style={{ color: "#7d6443" }}>
-                        URL: /w/{draft.slug}
-                    </small>
-                )}
+            {isPublished && (
+                <section className="wb-success" aria-live="polite">
+                    <span className="wb-success-badge">Published</span>
+                    <h3>សន្លឹកការរបស់អ្នកត្រូវបានបោះផ្សាយ</h3>
+                    <p>អ្នកអាចទៅផ្ទាំងគ្រប់គ្រង មើលជាមុន ចម្លងតំណភ្ជាប់ ឬគ្រប់គ្រងភ្ញៀវ។</p>
+                    <div className="wb-success-actions">
+                        <Link to="/dashboard" className="wb-btn wb-btn-primary">
+                            ទៅផ្ទាំងគ្រប់គ្រង
+                        </Link>
+                        <Link to={`/preview/${activeDraft.id}`} className="wb-btn">
+                            មើលជាមុន
+                        </Link>
+                        <button type="button" className="wb-btn" onClick={handleCopy} disabled={!publicPath}>
+                            {copied ? "បានចម្លង" : "ចម្លងតំណភ្ជាប់"}
+                        </button>
+                        <Link to="/guests" className="wb-btn">
+                            គ្រប់គ្រងភ្ញៀវ
+                        </Link>
+                    </div>
+                </section>
+            )}
+
+            <div className="wb-review-list">
+                <div className="wb-field">
+                    <label>គំរូដែលបានជ្រើស</label>
+                    <div className="wb-review-template">
+                        {template?.image && (
+                            <img src={template.image} alt={template.name} />
+                        )}
+                        <div>
+                            <div className="wb-review-title">{template?.name || draft?.templateId}</div>
+                            <div className="wb-review-muted">{template?.style}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="wb-field">
+                    <label>គូស្វាមីភរិយា</label>
+                    <p className="wb-review-text">
+                        {couple.groom || "-"} & {couple.bride || "-"}
+                    </p>
+                </div>
+
+                <div className="wb-field">
+                    <label>ព័ត៌មានពិធី</label>
+                    <div className="wb-review-lines">
+                        <div>📅 {event.date || "មិនទាន់បំពេញ"}</div>
+                        <div>⏰ ពិធី: {event.ceremonyTime || "-"} | ពិសា: {event.receptionTime || "-"}</div>
+                        <div>📍 {event.venueName || "-"}</div>
+                        <div className="wb-review-muted">{event.venueAddress || ""}</div>
+                        {event.mapLink && <div>Map: {event.mapLink}</div>}
+                    </div>
+                </div>
+
+                <div className="wb-field">
+                    <label>RSVP</label>
+                    <p className="wb-review-text">
+                        {rsvp.enabled ? `បើក - ផុតកំណត់: ${rsvp.deadline || "មិនទាន់កំណត់"}` : "បិទ"}
+                    </p>
+                </div>
+
+                <div className="wb-field">
+                    <label>វីដេអូបើកសន្លឹកការ</label>
+                    <p className="wb-review-text">{openingVideo?.name || "វីដេអូ 1"}</p>
+                </div>
+
+                <div className="wb-field">
+                    <label>លេខទូរស័ព្ទទំនាក់ទំនង</label>
+                    <p className="wb-review-text">{contact.phone || "មិនទាន់បំពេញ"}</p>
+                </div>
             </div>
 
-            <div
-                style={{
-                    background: "#faf3e6",
-                    padding: 16,
-                    borderRadius: 8,
-                    fontSize: 14,
-                    lineHeight: 1.7,
-                }}
-            >
-                <div>
-                    <strong>គំរូ:</strong> {draft.templateId}
+            {!isPublished && (
+                <div className="wb-publish-actions">
+                    <button type="button" className="wb-btn wb-btn-primary" onClick={onPublish}>
+                        បោះផ្សាយសន្លឹកការ
+                    </button>
+                    <Link to={`/preview/${draft.id}`} className="wb-btn">
+                        មើលជាមុន
+                    </Link>
+                    <Link to="/dashboard" className="wb-btn">
+                        ទៅផ្ទាំងគ្រប់គ្រង
+                    </Link>
                 </div>
-                <div>
-                    <strong>គូរ:</strong> {draft.couple.groom || "—"} &{" "}
-                    {draft.couple.bride || "—"}
-                </div>
-                <div>
-                    <strong>កាលបរិច្ឆេទ:</strong> {draft.event.date || "—"}
-                </div>
-                <div>
-                    <strong>ទីកន្លែង:</strong> {draft.event.venueName || "—"}
-                </div>
-                <div>
-                    <strong>RSVP:</strong>{" "}
-                    {draft.rsvp.enabled ? "បើក" : "បិទ"}
-                </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-                <button
-                    type="button"
-                    className="wb-btn"
-                    onClick={onPreview}
-                >
-                    មើលជាមុន
-                </button>
-                <button
-                    type="button"
-                    className="wb-btn wb-btn-primary"
-                    onClick={onPublish}
-                >
-                    បោះផ្សាយ
-                </button>
-            </div>
+            )}
         </div>
     );
 }

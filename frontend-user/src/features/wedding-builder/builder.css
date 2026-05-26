@@ -2,11 +2,12 @@
 
 .wb-root {
     display: grid;
-    grid-template-columns: 240px 1fr 360px;
+    grid-template-columns: 200px 1fr 360px;
     gap: 24px;
     padding: 24px;
     min-height: calc(100vh - 80px);
     background: #faf7f2;
+    overflow-x: hidden;
 }
 
 .wb-sidebar {
@@ -17,6 +18,58 @@
     height: fit-content;
     position: sticky;
     top: 24px;
+}
+
+.wb-breadcrumb {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding: 14px 18px;
+    background: #ffffff;
+    border: 1px solid #ece6da;
+    border-radius: 12px;
+}
+
+.wb-breadcrumb .kp-breadcrumb {
+    max-width: none;
+    margin: 0;
+}
+
+.wb-breadcrumb .kp-breadcrumb-list {
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.wb-breadcrumb .kp-breadcrumb-list::-webkit-scrollbar {
+    display: none;
+}
+
+.wb-breadcrumb .kp-breadcrumb-link,
+.wb-breadcrumb .kp-breadcrumb-current {
+    font-family: "Kantumruy Pro", "Noto Sans Khmer", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-shadow: none;
+    white-space: nowrap;
+}
+
+.wb-breadcrumb .kp-breadcrumb-link {
+    color: #7f8aa0;
+}
+
+.wb-breadcrumb .kp-breadcrumb-link:hover {
+    color: #7d6443;
+}
+
+.wb-breadcrumb .kp-breadcrumb-current {
+    color: #7d6443;
+}
+
+.wb-breadcrumb .kp-breadcrumb-separator {
+    color: #b0926a;
+    font-size: 18px;
 }
 
 .wb-back-btn {
@@ -56,6 +109,22 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+.wb-progress {
+    width: 100%;
+    height: 7px;
+    margin: 0 0 16px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #efe5d7;
+}
+
+.wb-progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #b0926a, #7d6443);
+    transition: width 0.25s ease;
 }
 
 .wb-step-btn {
@@ -105,6 +174,8 @@
     border-radius: 12px;
     padding: 32px;
     min-height: 600px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .wb-main h2 {
@@ -119,11 +190,43 @@
     font-size: 14px;
 }
 
+.wb-section,
+.wb-advanced,
+.wb-success {
+    border: 1px solid #ece6da;
+    border-radius: 12px;
+    background: #fffdf9;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.wb-section-head {
+    margin-bottom: 14px;
+}
+
+.wb-section-kicker {
+    display: block;
+    margin-bottom: 4px;
+    color: #b0926a;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.wb-section h3,
+.wb-success h3 {
+    margin: 0;
+    color: #2a1f10;
+    font-size: 17px;
+}
+
 .wb-field {
     display: flex;
     flex-direction: column;
     gap: 6px;
     margin-bottom: 16px;
+    min-width: 0;
 }
 
 .wb-field label {
@@ -135,6 +238,8 @@
 .wb-field input,
 .wb-field textarea,
 .wb-field select {
+    width: 100%;
+    min-width: 0;
     padding: 10px 12px;
     border: 1px solid #d8cdb8;
     border-radius: 8px;
@@ -151,21 +256,148 @@
     border-color: #b0926a;
 }
 
+.wb-toggle-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    border: 1px solid #ece6da;
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.wb-toggle-row input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: #7d6443;
+}
+
+.wb-toggle-row span {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.wb-toggle-row strong {
+    font-size: 14px;
+    color: #2a1f10;
+}
+
+.wb-toggle-row small {
+    color: #7d6443;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.wb-advanced {
+    padding: 0;
+    overflow: hidden;
+}
+
+.wb-advanced summary {
+    cursor: pointer;
+    padding: 16px 18px;
+    color: #2a1f10;
+    font-weight: 700;
+}
+
+.wb-advanced-body {
+    padding: 0 18px 18px;
+}
+
+.wb-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wb-review-template {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.wb-review-template img {
+    width: 54px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.wb-review-title {
+    font-weight: 700;
+    color: #2a1f10;
+}
+
+.wb-review-muted,
+.wb-review-lines {
+    color: #665843;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.wb-review-text {
+    margin: 0;
+    color: #2a1f10;
+    font-size: 14px;
+}
+
+.wb-publish-actions,
+.wb-success-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.wb-success {
+    background: #f7fff8;
+    border-color: #cfe9d4;
+}
+
+.wb-success-badge {
+    display: inline-flex;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #dff3e3;
+    color: #25613c;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.wb-success p {
+    margin: 8px 0 0;
+    color: #4d6a53;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
 .wb-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+    min-width: 0;
 }
 
 .wb-nav {
     display: flex;
     justify-content: space-between;
+    gap: 12px;
     margin-top: 32px;
     padding-top: 20px;
     border-top: 1px solid #ece6da;
 }
 
 .wb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 10px 20px;
     border-radius: 8px;
     border: 1px solid #d8cdb8;
@@ -174,10 +406,16 @@
     font-size: 14px;
     font-family: inherit;
     color: #4a3a26;
+    text-decoration: none;
 }
 
 .wb-btn:hover {
     background: #f4ecdf;
+}
+
+.wb-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .wb-btn-primary {
@@ -191,13 +429,18 @@
 }
 
 .wb-preview {
+    align-self: start;
     background: #ffffff;
     border: 1px solid #ece6da;
     border-radius: 12px;
     padding: 16px;
-    height: fit-content;
     position: sticky;
-    top: 24px;
+    top: 16px;
+    z-index: 5;
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .wb-preview h3 {
@@ -247,6 +490,21 @@
     .wb-sidebar,
     .wb-preview {
         position: static;
+    }
+
+    .wb-breadcrumb {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .wb-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .wb-nav {
+        align-items: center;
     }
 }
 
@@ -352,12 +610,17 @@
 /* ── Phone preview (live RoyalInvitation in phone frame) ── */
 .wb-phone-preview {
     width: 100%;
+    min-height: 0;
     display: flex;
+    flex: 1 1 auto;
     justify-content: center;
 }
 
 .wb-phone-frame {
-    width: 100%;
+    width: auto;
+    max-width: 100%;
+    height: min(680px, calc(100vh - 102px));
+    height: min(680px, calc(100svh - 102px - env(safe-area-inset-bottom, 0px)));
     aspect-ratio: 9 / 19;
     border-radius: 24px;
     border: 8px solid #2a1f10;
@@ -365,6 +628,7 @@
     background: #fbf5ec;
     box-shadow: 0 12px 28px rgba(42, 31, 16, 0.18);
     position: relative;
+    transform: translateZ(0);
 }
 
 .wb-phone-scroll {

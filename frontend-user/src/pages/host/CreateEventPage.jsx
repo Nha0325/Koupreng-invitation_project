@@ -1,15 +1,18 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
+
 import CreateEventForm from "../../features/events/CreateEventForm";
 
-export default function CreateEventPage() {
-    const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+const CreateEventPage = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-    return (
-        <CreateEventForm
-            onBack={() => navigate("/events")}
-            onCreated={() => navigate("/dashboard")}
-            initialTemplateId={searchParams.get("template")}
-        />
-    );
-}
+  return (
+    <CreateEventForm 
+      onBack={() => navigate("/dashboard/events")}
+      onCreated={() => navigate("/dashboard")}
+      initialTemplateId={searchParams.get("template")}
+    />
+  );
+};
+
+export default CreateEventPage

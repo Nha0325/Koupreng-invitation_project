@@ -1,11 +1,32 @@
 /* Container & Layout */
 .tp-page {
     min-height: 100vh;
-    background-color: #FDF8F2;
+    background-color: #fffcf7;
     font-family: 'Kantumruy Pro', sans-serif;
     padding-top: 140px;
     /* ការពារកុំឱ្យ Header បាំង Content */
     position: relative;
+    overflow: hidden;
+}
+
+.tp-bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.tp-bg-image {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+
+.tp-bg-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(252, 248, 242, 0.4) 0%, rgba(252, 248, 242, 1) 1000%);
 }
 
 .tp-container {
@@ -69,11 +90,23 @@
     transform: rotate(45deg);
 }
 
-/* Grid System - 4 Columns */
+/* Grid System - 3 Columns */
 .tp-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 40px;
+}
+
+@media (max-width: 1024px) {
+    .tp-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .tp-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Card Styling */
@@ -108,6 +141,50 @@
     height: 100%;
     object-fit: cover;
     transition: transform 1.2s ease;
+}
+
+.tp-media-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tp-media-frame .tp-main-img {
+    display: block;
+}
+
+.tp-image-box-collage {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    background: #fffaf3;
+}
+
+.tp-image-box-collage .tp-media-frame {
+    border-radius: 24px;
+}
+
+.tp-image-box-collage .tp-main-img {
+    min-width: 0;
+    min-height: 0;
+}
+
+.tp-media-count {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(33, 24, 15, 0.58);
+    color: #fffaf3;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0;
 }
 
 .tp-card:hover .tp-main-img {
@@ -167,8 +244,24 @@
     margin-bottom: 25px;
 }
 
+.tp-card-benefit {
+    min-height: 42px;
+    margin: -12px 0 18px;
+    color: #5f5447;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.tp-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
 .tp-action-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     background: #1a1a1a;
     color: white;
@@ -183,9 +276,116 @@
     text-align: center;
 }
 
+.tp-detail-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border: 1px solid rgba(176, 146, 106, 0.35);
+    background: #fffaf3;
+    color: #7d6443;
+    padding: 18px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
 .tp-action-btn:hover {
     background: #B0926A;
     box-shadow: 0 10px 20px rgba(176, 146, 106, 0.3);
+}
+
+.tp-detail-btn:hover {
+    border-color: #B0926A;
+    background: #fff3dd;
+}
+
+.tp-custom-card {
+    border: 1px solid rgba(43, 87, 75, 0.16);
+}
+
+.tp-custom-box {
+    background:
+        radial-gradient(circle at 18% 16%, rgba(176, 146, 106, 0.28), transparent 26%),
+        linear-gradient(145deg, #eef7f1 0%, #fffaf1 52%, #e8f0ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tp-custom-mark {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1f5c4a;
+    box-shadow: 0 14px 30px rgba(31, 92, 74, 0.22);
+}
+
+.tp-custom-mark span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: 20px;
+    height: 3px;
+    border-radius: 99px;
+    background: #ffffff;
+    transform: translate(-50%, -50%);
+}
+
+.tp-custom-mark span:last-child {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.tp-custom-preview {
+    width: min(68%, 230px);
+    aspect-ratio: 3.5 / 4.5;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(31, 92, 74, 0.12);
+    box-shadow: 0 26px 55px rgba(46, 64, 54, 0.16);
+    padding: 34px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    transition: transform 1.2s ease;
+}
+
+.tp-card:hover .tp-custom-preview {
+    transform: scale(1.06);
+}
+
+.tp-custom-preview div {
+    height: 12px;
+    border-radius: 99px;
+    background: rgba(31, 92, 74, 0.18);
+}
+
+.tp-custom-preview div:first-child {
+    width: 72%;
+    height: 18px;
+    background: rgba(176, 146, 106, 0.52);
+}
+
+.tp-custom-preview div:nth-child(2) {
+    width: 92%;
+}
+
+.tp-custom-preview div:last-child {
+    width: 58%;
+}
+
+.tp-custom-action,
+.tp-custom-action:hover {
+    background: #1f5c4a;
+    box-shadow: 0 10px 20px rgba(31, 92, 74, 0.22);
 }
 
 /* Badge Popular */
@@ -202,6 +402,113 @@
     color: #B0926A;
     z-index: 20;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Category Filter Bar ─── */
+.tp-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 50px;
+}
+
+.tp-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 50px;
+    border: 1.5px solid rgba(176, 146, 106, 0.35);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    color: #666;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tp-filter-btn:hover {
+    border-color: #B0926A;
+    color: #B0926A;
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(176, 146, 106, 0.15);
+}
+
+.tp-filter-btn--active {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(26, 26, 26, 0.2);
+}
+
+.tp-filter-btn--active:hover {
+    background: #B0926A;
+    border-color: #B0926A;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(176, 146, 106, 0.3);
+}
+
+.tp-filter-label {
+    text-transform: uppercase;
+}
+
+.tp-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 50px;
+    background: rgba(176, 146, 106, 0.15);
+    color: inherit;
+    font-size: 10px;
+    font-weight: 900;
+    transition: background 0.3s ease;
+}
+
+.tp-filter-btn--active .tp-filter-count {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Category Badge (inside card) ─── */
+.tp-category-badge {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    padding: 5px 13px;
+    border-radius: 50px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    z-index: 20;
+    backdrop-filter: blur(6px);
+}
+
+.tp-category-badge--ancient {
+    background: rgba(176, 146, 106, 0.15);
+    color: #8B6914;
+    border: 1px solid rgba(176, 146, 106, 0.4);
+}
+
+.tp-category-badge--modern {
+    background: rgba(139, 92, 246, 0.12);
+    color: #6d28d9;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.tp-category-badge--contemporary {
+    background: rgba(16, 185, 129, 0.12);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 /* Footer */
@@ -238,5 +545,9 @@
 
     .tp-page {
         padding-top: 100px;
+    }
+
+    .tp-card-actions {
+        grid-template-columns: 1fr;
     }
 }

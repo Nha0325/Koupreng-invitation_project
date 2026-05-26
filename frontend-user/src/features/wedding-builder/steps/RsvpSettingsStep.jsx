@@ -1,41 +1,39 @@
+/**
+ * RsvpSettingsStep — Step 5: ការកំណត់ RSVP
+ * Enable/disable RSVP + deadline
+ */
 import { DatePicker } from "../../../shared/ui/DatePicker";
 
 export default function RsvpSettingsStep({ draft, updateField }) {
+    const rsvp = draft?.rsvp || { enabled: true, deadline: "" };
+
     return (
         <div>
             <h2>5. ការកំណត់ RSVP</h2>
-            <p className="wb-help">បើក/បិទផ្នែក RSVP និងកំណត់ថ្ងៃផុតកំណត់។</p>
+            <p className="wb-help">កំណត់ការឆ្លើយតបពីភ្ញៀវ។</p>
 
             <div className="wb-field">
-                <label>
+                <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <input
                         type="checkbox"
-                        checked={draft.rsvp.enabled}
-                        onChange={(e) =>
-                            updateField("rsvp", { enabled: e.target.checked })
-                        }
-                        style={{ marginRight: 8 }}
+                        checked={rsvp.enabled}
+                        onChange={(e) => updateField("rsvp", { enabled: e.target.checked })}
+                        style={{ width: 18, height: 18 }}
                     />
-                    បើកការទទួល RSVP
+                    បើកការឆ្លើយតប RSVP
                 </label>
             </div>
 
-            <div className="wb-field">
-                <label>ថ្ងៃផុតកំណត់ឆ្លើយតប</label>
-                {draft.rsvp.enabled ? (
+            {rsvp.enabled && (
+                <div className="wb-field">
+                    <label>ថ្ងៃផុតកំណត់ RSVP</label>
                     <DatePicker
-                        value={draft.rsvp.deadline}
-                        onChange={(val) => updateField("rsvp", { deadline: val })}
-                        placeholder="ជ្រើសថ្ងៃផុតកំណត់"
+                        value={rsvp.deadline || ""}
+                        onChange={(value) => updateField("rsvp", { deadline: value })}
+                        placeholder="ជ្រើសថ្ងៃផុតកំណត់ RSVP"
                     />
-                ) : (
-                    <DatePicker
-                        value={draft.rsvp.deadline}
-                        onChange={() => { }}
-                        placeholder="ជ្រើសថ្ងៃផុតកំណត់"
-                    />
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

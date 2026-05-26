@@ -218,23 +218,11 @@
     font-size: 13px;
     font-weight: 600;
     color: #333;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
-}
-
-.auth-social-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(176, 146, 106, 0.25);
 }
 
 .auth-social-btn:active:not(:disabled) {
     transform: translateY(0);
-}
-
-.auth-social-btn.google {
-    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .auth-social-btn.telegram {
@@ -243,9 +231,6 @@
     box-shadow: 0 2px 8px rgba(0, 136, 204, 0.3);
 }
 
-.auth-social-btn.telegram:hover:not(:disabled) {
-    box-shadow: 0 6px 20px rgba(0, 136, 204, 0.4);
-}
 
 .auth-social-btn:disabled {
     opacity: 0.6;
@@ -257,16 +242,6 @@
     width: 100%;
     min-height: 44px;
     border-radius: 12px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.auth-social-widget:hover:not(.loading) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(176, 146, 106, 0.25);
 }
 
 .auth-social-widget.telegram {

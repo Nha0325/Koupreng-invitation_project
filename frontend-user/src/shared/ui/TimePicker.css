@@ -5,11 +5,13 @@
 .tp-wrap {
     position: relative;
     width: 100%;
+    min-width: 0;
 }
 
 /* ── Trigger button ── */
 .tp-trigger {
     width: 100%;
+    min-width: 0;
     height: 42px;
     border-radius: 10px;
     border: 1.5px solid #ebebeb;
@@ -42,12 +44,20 @@
 .tp-placeholder {
     font-size: 13px;
     color: #aaa;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .tp-value {
     font-size: 13px;
     color: #333;
     font-weight: 500;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ── Dropdown ── */
@@ -62,6 +72,13 @@
     padding: 16px 16px 14px;
     min-width: 280px;
     animation: tp-fade-in 0.15s ease;
+}
+
+@media (max-width: 640px) {
+    .tp-dropdown {
+        min-width: 100%;
+        max-width: calc(100vw - 96px);
+    }
 }
 
 @keyframes tp-fade-in {

@@ -1,22 +1,22 @@
 import { BrowserRouter as Router } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthContext";
-import { ThemeProvider } from "./theme/ThemeContext";
 import AppRouter from "./router";
 import ScrollToTop from "./ScrollToTop";
+import SiteAnimations from "../shared/animations/SiteAnimations";
 
+/**
+ * App — root component.
+ * No more Context providers needed — auth/theme are Zustand stores now.
+ */
 function App() {
-    return (
-        <ThemeProvider>
-            <AuthProvider>
-                <Router>
-                    <ScrollToTop />
-                    <div className="app-container">
-                        <AppRouter />
-                    </div>
-                </Router>
-            </AuthProvider>
-        </ThemeProvider>
-    );
+  return (
+    <Router>
+      <ScrollToTop />
+      <SiteAnimations />
+      <div className="app-container">
+        <AppRouter />
+      </div>
+    </Router>
+  );
 }
 
 export default App;

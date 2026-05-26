@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "../rsvp.css";
-import { addRsvp } from "../../../services/rsvpStorage";
+import { addRsvp } from "../../../services/rsvpService";
 import RsvpSuccess from "./RsvpSuccess";
 
 /**

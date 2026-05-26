@@ -1,15 +1,16 @@
-import { TimePicker } from "../../../shared/ui/TimePicker";
 import { DatePicker } from "../../../shared/ui/DatePicker";
-import { VenuePicker } from "../../../shared/ui/VenuePicker";
 import { DressCodePicker } from "../../../shared/ui/DressCodePicker";
 import { MusicPicker } from "../../../shared/ui/MusicPicker";
+import { TimePicker } from "../../../shared/ui/TimePicker";
+import { VenuePicker } from "../../../shared/ui/VenuePicker";
 import { DRESS_CODE_COMBOS } from "../../../shared/data/dressCodeColors";
 import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
 
 export default function EventInfoStep({ draft, updateField, update }) {
-    const e = draft.event;
-    const dressCode = draft.dressCode || DRESS_CODE_COMBOS[0];
-    const music = draft.music || MUSIC_TRACKS[0];
+    const event = draft?.event || {};
+    const dressCode = draft?.dressCode || DRESS_CODE_COMBOS[0];
+    const music = draft?.music || MUSIC_TRACKS[0];
+
     return (
         <div>
             <h2>3. ព័ត៌មានពិធី</h2>
@@ -19,16 +20,17 @@ export default function EventInfoStep({ draft, updateField, update }) {
                 <div className="wb-field">
                     <label>កាលបរិច្ឆេទ</label>
                     <DatePicker
-                        value={e.date}
-                        onChange={(val) => updateField("event", { date: val })}
+                        value={event.date || ""}
+                        onChange={(value) => updateField("event", { date: value })}
                         placeholder="ជ្រើសកាលបរិច្ឆេទ"
                     />
                 </div>
+
                 <div className="wb-field">
                     <label>ពេលវេលាពិធី</label>
                     <TimePicker
-                        value={e.ceremonyTime}
-                        onChange={(val) => updateField("event", { ceremonyTime: val })}
+                        value={event.ceremonyTime || ""}
+                        onChange={(value) => updateField("event", { ceremonyTime: value })}
                         placeholder="ជ្រើសម៉ោងពិធី"
                     />
                 </div>
@@ -37,18 +39,23 @@ export default function EventInfoStep({ draft, updateField, update }) {
             <div className="wb-field">
                 <label>ពេលវេលាពិសាភោជនាហារ</label>
                 <TimePicker
-                    value={e.receptionTime}
-                    onChange={(val) => updateField("event", { receptionTime: val })}
+                    value={event.receptionTime || ""}
+                    onChange={(value) => updateField("event", { receptionTime: value })}
                     placeholder="ជ្រើសម៉ោងពិសាភោជនាហារ"
                 />
             </div>
 
-            <div className="wb-fields">
+            <div className="wb-field">
                 <label>ឈ្មោះទីកន្លែង</label>
                 <VenuePicker
-                    value={e.venueName}
-                    onChange={(val) => updateField("event", { venueName: val })}
-                    onSelect={(venue) => updateField("event", { venueName: venue.name, venueAddress: venue.address })}
+                    value={event.venueName || ""}
+                    onChange={(value) => updateField("event", { venueName: value })}
+                    onSelect={(venue) =>
+                        updateField("event", {
+                            venueName: venue.name,
+                            venueAddress: venue.address,
+                        })
+                    }
                     placeholder="សាលមង្គល..."
                 />
             </div>
@@ -58,10 +65,8 @@ export default function EventInfoStep({ draft, updateField, update }) {
                 <textarea
                     id="addr"
                     rows={3}
-                    value={e.venueAddress}
-                    onChange={(ev) =>
-                        updateField("event", { venueAddress: ev.target.value })
-                    }
+                    value={event.venueAddress || ""}
+                    onChange={(ev) => updateField("event", { venueAddress: ev.target.value })}
                     placeholder="ផ្លូវ ៥២០ ក្រុងបាត់ដំបង..."
                 />
             </div>

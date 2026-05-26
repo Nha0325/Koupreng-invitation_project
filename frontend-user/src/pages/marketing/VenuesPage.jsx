@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { ScrollReveal } from "../../shared/ui/ScrollReveal";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -49,7 +49,7 @@ const venues = [
   },
 ];
 
-export default function Venues() {
+const VenuesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredVenues = venues.filter(
@@ -156,7 +156,7 @@ export default function Venues() {
       <style>{`
         .venues-page-wrapper {
           min-height: 100vh;
-          background-color: #FDF8F2;
+          background-color: #fffcf7;
           font-family: 'Kantumruy Pro', sans-serif;
           position: relative;
         }
@@ -173,12 +173,11 @@ export default function Venues() {
           height: 100%;
           background-size: cover;
           background-position: center;
-          opacity: 0.15; /* ឱ្យវាស្រទន់ដូច Homepage */
         }
         .bg-gradient-cover {
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, rgba(253, 248, 242, 0.7) 0%, #FDF8F2 100%);
+          background: linear-gradient(to bottom, rgba(252, 248, 242, 0.4) 0%, rgba(252, 248, 242, 1) 1000%);
         }
 
         .venues-content {
@@ -341,4 +340,6 @@ export default function Venues() {
       `}</style>
     </div>
   );
-}
+};
+
+export default VenuesPage;

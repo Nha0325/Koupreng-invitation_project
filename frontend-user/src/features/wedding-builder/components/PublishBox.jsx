@@ -1,23 +1,23 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useWeddingStore } from "../../../stores/useWeddingStore";
 
-/**
- * Right-side preview/publish call-to-action box.
- */
 export default function PublishBox({ draft }) {
-    const canPreview = !!draft.id;
+    const navigate = useNavigate();
+    const publishDraft = useWeddingStore((state) => state.publishDraft);
+
+    if (!draft?.id) return null;
+
+    const handlePublish = () => {
+        publishDraft();
+        navigate("/dashboard");
+    };
 
     return (
         <div className="wb-publish-box">
-            <div>រក្សាទុកដោយស្វ័យប្រវត្តិ</div>
-            {canPreview ? (
-                <Link to={`/preview/${draft.id}`} className="wb-btn wb-btn-primary">
-                    មើលជាមុន
-                </Link>
-            ) : (
-                <span className="wb-btn wb-btn-primary" aria-disabled="true" style={{ pointerEvents: "none", opacity: 0.5 }}>
-                    មើលជាមុន
-                </span>
-            )}
+            <p>បោះផ្សាយសន្លឹកការរបស់អ្នក ហើយទៅផ្ទាំងគ្រប់គ្រង។</p>
+            <button type="button" className="wb-btn wb-btn-primary" onClick={handlePublish}>
+                បោះផ្សាយ
+            </button>
         </div>
     );
 }

@@ -1,5 +1,7 @@
-import EventsList from "../../features/events/EventsList";
+import EventsFeaturePage from "../../features/events/EventsPage";
 
-export default function EventsPage() {
-    return <EventsList />;
-}
+const EventsPage = () => {
+  return <EventsFeaturePage />;
+};
+
+export default EventsPage;

@@ -1,6 +1,3 @@
-// # ទំព័រ Overview រួម
-import React from "react";
-
 export default function DashboardPage() {
   // ទិន្នន័យតេស្តសាកល្បង (Mock Data)
   const stats = [

@@ -1,5 +1,7 @@
 import GuestsList from "../../features/guests/GuestsList";
 
-export default function GuestsPage() {
-    return <GuestsList />;
-}
+const GuestsPage = () => {
+  return <GuestsList />;
+};
+
+export default GuestsPage;

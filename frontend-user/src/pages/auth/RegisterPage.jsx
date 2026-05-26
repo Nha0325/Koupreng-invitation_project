@@ -1,8 +1,8 @@
 import { useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../app/auth/useAuth";
-import { useToggle } from "../../shared/hooks/useToggle";
-import authService from "../../shared/services/authService";
+import { useAuth } from "./context/useAuth";
+import { useToggle } from "../../shared/utils/hooks/useToggle";
+import authService from "../../services/remote/authService";
 import SocialAuthButtons from "./SocialAuthButtons";
 import "./AuthPage.css";
 

@@ -1,10 +1,37 @@
 import { useId, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../app/auth/useAuth";
-import { useToggle } from "../../shared/hooks/useToggle";
-import authService from "../../shared/services/authService";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "./context/useAuth";
+import { useToggle } from "../../shared/utils/hooks/useToggle";
 import SocialAuthButtons from "./SocialAuthButtons";
 import "./AuthPage.css";
+
+function createSampleAuthData(identifier) {
+  const account = identifier.trim() || "sample@koupreng.local";
+  const isEmail = account.includes("@");
+
+  return {
+    accessToken: "sample-local-login",
+    tokenType: "Bearer",
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    user: {
+      id: "sample-user",
+      name: "Sample User",
+      email: isEmail ? account : "sample@koupreng.local",
+      phone: isEmail ? "012345678" : account,
+      role: "host",
+    },
+  };
+}
+
+function getSafeRedirect(searchParams) {
+  const redirect = searchParams.get("next") || searchParams.get("redirect");
+
+  if (!redirect || !redirect.startsWith("/") || redirect.startsWith("//")) {
+    return "/dashboard";
+  }
+
+  return redirect;
+}
 
 function Login() {
   const emailId = useId();
@@ -12,33 +39,16 @@ function Login() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, togglePassword] = useToggle();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
+  const redirectTo = getSafeRedirect(searchParams);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError("");
-    const cleanIdentifier = identifier.trim();
-
-    if (!cleanIdentifier || !password) {
-      setError("Please enter your phone/email and password.");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const authData = await authService.login(cleanIdentifier, password);
-      login(authData);
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    login(createSampleAuthData(identifier));
+    navigate(redirectTo, { replace: true });
   };
 
   return (
@@ -56,9 +66,6 @@ function Login() {
           <p className="auth-subtitle">ចូលទៅកាន់គណនី Koupreng របស់អ្នក</p>
         </div>
 
-        {/* Error message */}
-        {error && <p className="auth-error">{error}</p>}
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="auth-form">
           {/* Email / Phone */}
@@ -73,7 +80,6 @@ function Login() {
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="បញ្ចូលលេខទូរស័ព្ទ ឬ អ៊ីមែល"
               className="auth-input"
-              required
             />
           </div>
 
@@ -90,7 +96,6 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="បញ្ចូលលេខសម្ងាត់"
                 className="auth-input"
-                required
               />
               <button
                 type="button"
@@ -142,8 +147,8 @@ function Login() {
           </div>
 
           {/* Submit */}
-          <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "កំពុងចូល..." : "ចូលគណនី"}
+          <button type="submit" className="auth-submit">
+            ចូលគណនី
           </button>
         </form>
 

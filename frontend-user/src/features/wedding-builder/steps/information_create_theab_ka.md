@@ -1,169 +1,122 @@
 # 📅 ដំណាក់កាល "ព័ត៌មានពិធី" (EventInfoStep)
 
-## 📍 ទិដ្ឋភាពទូទៅ
+## ទីតាំងក្នុង Builder Flow
 
-ឯកសារនេះពន្យល់ពី **ដំណាក់កាលទី ៣** នៃ Wedding Builder — អ្នកប្រើបំពេញ:
-- 📆 កាលបរិច្ឆេទ
-- ⏰ ម៉ោងពិធី និងម៉ោងពិសាភោជនាហារ
-- 🏛️ ឈ្មោះសាល
-- 📍 អាសយដ្ឋាន
+- Step index: **2** (ទីបី) ក្នុង `BUILDER_STEPS`
+- ID: `event`
+- Label: `ព័ត៌មានពិធី`
+- File: `steps/EventInfoStep.jsx`
+- CSS: `steps/EventInfoStep.css`
 
----
+## UI Design — Card-Based Layout
 
-## 📂 ឯកសារពាក់ព័ន្ធ
-
-| ឯកសារ | មុខងារ |
-|--------|--------|
-| `EventInfoStep.jsx` | UI ដំណាក់កាល |
-| `shared/ui/DatePicker.jsx` | Picker កាលបរិច្ឆេទខ្មែរ |
-| `shared/ui/TimePicker.jsx` | Picker ម៉ោងខ្មែរ |
-| `shared/ui/VenuePicker.jsx` | Autocomplete សាលមង្គល |
-
----
-
-## 🧩 ការបំបែករបស់ `EventInfoStep.jsx`
-
-```jsx
-export default function EventInfoStep({ draft, updateField }) {
-    const e = draft.event;  // shortcut ទៅ event object
-    return (
-        <div>
-            <h2>3. ព័ត៌មានពិធី</h2>
-            <p className="wb-help">បំពេញកាលបរិច្ឆេទ ពេលវេលា និងទីកន្លែង។</p>
-            ...
-        </div>
-    );
-}
-```
-
-**Props**:
-- `draft` — draft បច្ចុប្បន្ន
-- `updateField(section, patch)` — function update
-
----
-
-## 📝 Field នីមួយៗ
-
-### 1. កាលបរិច្ឆេទ (DatePicker)
-
-```jsx
-<DatePicker
-    value={e.date}                           // "2026-12-19"
-    onChange={(val) => updateField("event", { date: val })}
-    placeholder="ជ្រើសកាលបរិច្ឆេទ"
-/>
-```
-
-**របៀបដំណើរការ DatePicker**:
-- បង្ហាញប្រតិទិនជាភាសាខ្មែរ
-- ខែ: មករា, កុម្ភៈ, មីនា, មេសា, ឧសភា, មិថុនា, កក្កដា, សីហា, កញ្ញា, តុលា, វិច្ឆិកា, ធ្នូ
-- ថ្ងៃ: អា, ច, អ, ព, ព្រ, សុ, ស (អាទិត្យ → សៅរ៍)
-- ប្រគល់ string ទម្រង់ `"YYYY-MM-DD"`
-- មានប៊ូតុង "ថ្ងៃនេះ" និង "បោះបង់"
-
----
-
-### 2. ពេលវេលាពិធី (TimePicker)
-
-```jsx
-<TimePicker
-    value={e.ceremonyTime}
-    onChange={(val) => updateField("event", { ceremonyTime: val })}
-    placeholder="ជ្រើសម៉ោងពិធី"
-/>
-```
-
-មាន ២ field:
-- `ceremonyTime` — ម៉ោងពិធីសូត្រមន្ត
-- `receptionTime` — ម៉ោងពិសាភោជនាហារ
-
----
-
-### 3. ឈ្មោះសាល (VenuePicker)
-
-```jsx
-<VenuePicker
-    value={e.venueName}
-    onChange={(val) => updateField("event", { venueName: val })}
-    onSelect={(venue) => updateField("event", {
-        venueName: venue.name,
-        venueAddress: venue.address  // បំពេញ address ស្វ័យប្រវត្តិ!
-    })}
-    placeholder="សាលមង្គល..."
-/>
-```
-
-**របៀបដំណើរការ VenuePicker**:
-1. មានបញ្ជី venues នៅកម្ពុជា ~25+ កន្លែង (បាត់ដំបង, ភ្នំពេញ, សៀមរាប, ...)
-2. អ្នកប្រើវាយឈ្មោះ → ស្រាវជ្រាវ name/city/address
-3. បង្ហាញ suggestions ទម្រង់ dropdown (max 8)
-4. ចុចលើ suggestion → បំពេញ name **និង** address ស្វ័យប្រវត្តិ
-
-**ឧទាហរណ៍ venue**:
-```js
-{
-    name: "សាលមង្គលការ កោះពេជ្រ",
-    address: "ផ្លូវ ៣៧៦ សង្កាត់បឹងកេងកង ភ្នំពេញ",
-    city: "ភ្នំពេញ"
-}
-```
-
----
-
-### 4. អាសយដ្ឋាន (textarea)
-
-```jsx
-<textarea
-    rows={3}
-    value={e.venueAddress}
-    onChange={(ev) => updateField("event", { venueAddress: ev.target.value })}
-    placeholder="ផ្លូវ ៥២០ ក្រុងបាត់ដំបង..."
-/>
-```
-
-- បើជ្រើសរើស venue ពី VenuePicker → field នេះបំពេញដោយស្វ័យប្រវត្តិ
-- អ្នកប្រើនៅអាចកែបាន
-
----
-
-## 🔁 លំហូរទិន្នន័យ
+### រចនាសម្ព័ន្ធ (Structure)
 
 ```
-អ្នកប្រើបំពេញ field
-   ↓
-updateField("event", { ... })
-   ↓
-useWeddingBuilder ប្តូរ state draft
-   ↓
-useEffect → saveDraft(draft) → localStorage
-   ↓
-PhonePreview re-render → បង្ហាញ live
+┌─────────────────────────────────────┐
+│  ព័ត៌មានពិធី (Header)               │
+│  បំពេញព័ត៌មានអំពីកាលបរិច្ឆេទ...     │
+├─────────────────────────────────────┤
+│  📅 កាលបរិច្ឆេទ និងពេលវេលា         │
+│  ┌───────────────────────────────┐  │
+│  │ កាលបរិច្ឆេទពិធី [DatePicker] │  │
+│  │ ម៉ោងពិធី    │ ម៉ោងពិសា      │  │
+│  └───────────────────────────────┘  │
+├─────────────────────────────────────┤
+│  📍 ទីកន្លែងពិធី                    │
+│  ┌───────────────────────────────┐  │
+│  │ ឈ្មោះទីកន្លែង [VenuePicker]   │  │
+│  │ អាសយដ្ឋាន [textarea]         │  │
+│  └───────────────────────────────┘  │
+├─────────────────────────────────────┤
+│  👗 ពណ៌ Dress Code                  │
+│  ┌───────────────────────────────┐  │
+│  │ [DressCodePicker - swatches]  │  │
+│  └───────────────────────────────┘  │
+├─────────────────────────────────────┤
+│  🎵 តន្ត្រី Background               │
+│  ┌───────────────────────────────┐  │
+│  │ [MusicPicker - track list]    │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
 ```
 
----
+### Design Tokens
 
-## 💡 Tips ការបំពេញ
+| Token | Value | Usage |
+|-------|-------|-------|
+| Card bg | `#ffffff` | Card background |
+| Card border | `#ece6da` | Default border |
+| Card border hover | `#d8cdb8` | Hover state |
+| Card radius | `16px` | Border radius |
+| Card shadow hover | `0 8px 24px rgba(176,146,106,0.08)` | Hover shadow |
+| Icon bg | `#faf3e6` | Icon container |
+| Label color | `#4a3a26` | Field labels |
+| Hint color | `#9a8a6e` | Helper text |
+| Error color | `#c0392b` | Validation errors |
+| Focus ring | `#b0926a` | Input focus |
+| Input bg | `#fdfbf7` | Textarea background |
 
-| Field | ទម្រង់ | ឧទាហរណ៍ |
-|-------|--------|---------|
-| `date` | YYYY-MM-DD | "2026-12-19" |
-| `ceremonyTime` | HH:MM | "09:00" |
-| `receptionTime` | HH:MM | "17:00" |
-| `venueName` | text | "សាលមង្គលការ កោះពេជ្រ" |
-| `venueAddress` | multiline text | "ផ្លូវ ៣៧៦\nភ្នំពេញ" |
+## Props
 
----
+| Prop | Type | Description |
+|------|------|-------------|
+| `draft` | object | Draft state ពី useWeddingStore |
+| `updateField` | function | `updateField(section, partialObj)` — update nested field |
+| `update` | function | `update(partialDraft)` — update top-level draft fields |
 
-## 🎨 ស្រាល់ Validation
+## Cards & Fields
 
-បច្ចុប្បន្ន **គ្មាន validation**។ ដើម្បីបន្ថែម:
+### Card 1: កាលបរិច្ឆេទ និងពេលវេលា
+| Field | Component | Path | Placeholder |
+|-------|-----------|------|-------------|
+| កាលបរិច្ឆេទពិធី | DatePicker | `draft.event.date` | ជ្រើសកាលបរិច្ឆេទ |
+| ម៉ោងពិធី | TimePicker | `draft.event.ceremonyTime` | ជ្រើសម៉ោងពិធី |
+| ម៉ោងពិសាភោជនាហារ | TimePicker | `draft.event.receptionTime` | ជ្រើសម៉ោងពិសាភោជនាហារ |
 
-```jsx
-const isValid = e.date && e.ceremonyTime && e.venueName;
+### Card 2: ទីកន្លែងពិធី
+| Field | Component | Path | Notes |
+|-------|-----------|------|-------|
+| ឈ្មោះទីកន្លែង | VenuePicker | `draft.event.venueName` | onSelect auto-fills address |
+| អាសយដ្ឋាន | textarea | `draft.event.venueAddress` | Editable after auto-fill |
 
-{!isValid && (
-    <p className="wb-error">សូមបំពេញកាលបរិច្ឆេទ ម៉ោង និងសាល</p>
-)}
+### Card 3: ពណ៌ Dress Code
+| Field | Component | Path | Default |
+|-------|-----------|------|---------|
+| Dress Code | DressCodePicker | `draft.dressCode` | DRESS_CODE_COMBOS[0] |
+
+### Card 4: តន្ត្រី Background
+| Field | Component | Path | Default |
+|-------|-----------|------|---------|
+| Music | MusicPicker | `draft.music` | MUSIC_TRACKS[0] |
+
+## Validation Rules
+
+| Field | Rule |
+|-------|------|
+| Date | Required — must be a future date |
+| Ceremony Time | Required |
+| Reception Time | Required — should be after ceremony time |
+| Venue Name | Required — min 2 characters |
+| Venue Address | Optional but recommended |
+| Dress Code | Always has default — no validation needed |
+| Music | Always has default — no validation needed |
+
+## Dependencies
+
+```
+shared/ui/TimePicker
+shared/ui/DatePicker
+shared/ui/VenuePicker
+shared/ui/DressCodePicker
+shared/ui/MusicPicker
+shared/data/dressCodeColors → DRESS_CODE_COMBOS
+shared/data/musicTracks → MUSIC_TRACKS
 ```
 
-ឬប្រើ library ដូចជា `react-hook-form` ឬ `zod`។
+## Live Preview Behavior
+
+- Date/Time changes → update countdown timer in phone preview
+- Venue changes → update venue section in invitation
+- Dress Code → update dress code color display in invitation
+- Music → stored for playback when invitation opens (no autoplay in builder)

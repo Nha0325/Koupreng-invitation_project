@@ -1,6 +1,6 @@
 import { useId, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { useToggle } from "../../shared/hooks/useToggle";
+import { useToggle } from "../../shared/utils/hooks/useToggle";
 import "./AuthPage.css";
 
 /* ── Eye icon ── */

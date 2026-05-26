@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../app/auth/useAuth";
-import authService from "../../shared/services/authService";
+import { useAuth } from "./context/useAuth";
+import authService from "../../services/remote/authService";
 
 const GOOGLE_SCRIPT_ID = "google-identity-services-script";
 const TELEGRAM_OIDC_ORIGIN = "https://oauth.telegram.org";
@@ -9,7 +9,8 @@ const TELEGRAM_LEGACY_SCRIPT_SRC = "https://telegram.org/js/telegram-widget.js?2
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 const telegramClientId = import.meta.env.VITE_TELEGRAM_CLIENT_ID || "";
-const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
+const rawTelegramBot = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
+const telegramBotUsername = rawTelegramBot === "your_bot_username" ? "" : rawTelegramBot;
 
 function GoogleIcon() {
   return (

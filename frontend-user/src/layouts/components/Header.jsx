@@ -1,13 +1,32 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../app/auth/useAuth";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../pages/auth/context/useAuth";
 import logo from "../../assets/logo.png";
+
+const PUBLIC_NAV_ITEMS = [
+  { label: "ទំព័រដើម", path: "/" },
+  { label: "គំរូសន្លឹកការ", path: "/templates" },
+  { label: "តម្លៃ", path: "/pricing" },
+  { label: "ទីកន្លែង", path: "/venues" },
+];
+
+const DASHBOARD_NAV_ITEMS = [
+  { label: "គំរូសន្លឹកការ", path: "/templates" },
+  { label: "ផ្ទាំងគ្រប់គ្រង", path: "/dashboard" },
+  { label: "បង្កើតសន្លឹកការ", path: "/create/wedding" },
+  { label: "បញ្ជីភ្ញៀវ", path: "/guests" },
+  { label: "គម្រោងថវិកា", path: "/expenses" },
+  { label: "ចងដៃមង្គល", path: "/gifts" },
+];
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const navItems = isAuthenticated ? DASHBOARD_NAV_ITEMS : PUBLIC_NAV_ITEMS;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -24,6 +43,19 @@ export default function Header() {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "unset";
   }, [isMobileMenuOpen]);
 
+  const isActivePath = (path) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   return (
     <>
       <style>{`
@@ -32,9 +64,12 @@ export default function Header() {
         .logo-box { display: flex; align-items: center; gap: 12px; text-decoration: none; }
         .logo-text { font-family: 'Moul', serif; color: #7D6443; font-size: 22px; }
         .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-link { font-family: 'Kantumruy Pro', sans-serif; text-decoration: none; color: #333; font-weight: 700; font-size: 14px; transition: 0.3s; }
-        .nav-link:hover { color: #B0926A; }
+        .nav-link { font-family: 'Kantumruy Pro', sans-serif; text-decoration: none; color: #333; font-weight: 700; font-size: 14px; transition: 0.3s; background: none; border: 0; cursor: pointer; padding: 0; }
+        .nav-link:hover, .nav-link.active { color: #B0926A; }
+        .user-actions { display: flex; align-items: center; gap: 12px; }
         .user-profile-circle { width: 40px; height: 40px; border-radius: 50%; background: #B0926A; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; text-decoration: none; }
+        .logout-nav-btn { color: #8a3434; }
+        .logout-nav-btn:hover { color: #c24141; }
         .cta-gold { background: linear-gradient(135deg, #B0926A 0%, #7D6443 100%); color: white; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(176, 146, 106, 0.3); }
         .burger-menu { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; z-index: 3001; }
         .burger-menu span { width: 25px; height: 3px; background-color: #7D6443; border-radius: 2px; transition: 0.3s; }
@@ -43,6 +78,11 @@ export default function Header() {
           .nav-links, .desktop-actions { display: none; } 
           .burger-menu { display: flex; }
           .mobile-nav { display: ${isMobileMenuOpen ? "flex" : "none"}; }
+        }
+        @media (max-width: 560px) {
+          .header-wrapper { padding: ${scrolled ? "8px 0" : "16px 0"}; }
+          .header-container { width: calc(100% - 32px); max-width: none; height: 62px; padding: 0 18px; }
+          .logo-box img { height: 72px !important; }
         }
       `}</style>
 
@@ -62,44 +102,31 @@ export default function Header() {
           </Link>
 
           <nav className="nav-links">
-            <Link className="nav-link" to="/">
-              ទំព័រដើម
-            </Link>
-            <Link className="nav-link" to="/templates">
-              គំរូសន្លឹកការ
-            </Link>
-            <Link className="nav-link" to="/pricing">
-              តម្លៃ
-            </Link>
-            <Link className="nav-link" to="/venues">
-              ទីកន្លែង
-            </Link>
-            {isAuthenticated && (
-              <>
-                <div
-                  style={{
-                    width: "1px",
-                    height: "20px",
-                    background: "#ddd",
-                    margin: "0 10px",
-                  }}
-                ></div>
-                <Link
-                  className="nav-link"
-                  to="/dashboard"
-                  style={{ color: "#B0926A" }}
-                >
-                  ផ្ទាំងគ្រប់គ្រង
-                </Link>
-              </>
-            )}
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                className={`nav-link ${isActivePath(item.path) ? "active" : ""}`}
+                to={item.path}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
           <div className="desktop-actions">
             {isAuthenticated ? (
-              <Link to="/profile" className="user-profile-circle">
-                V
-              </Link>
+              <div className="user-actions">
+                <button
+                  type="button"
+                  className="nav-link logout-nav-btn"
+                  onClick={handleLogout}
+                >
+                  ចាកចេញ
+                </button>
+                <Link to="/dashboard" className="user-profile-circle">
+                  V
+                </Link>
+              </div>
             ) : (
               <div
                 style={{ display: "flex", alignItems: "center", gap: "15px" }}
@@ -138,42 +165,27 @@ export default function Header() {
       </div>
 
       <nav className="mobile-nav">
-        <Link
-          className="nav-link"
-          to="/"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          ទំព័រដើម
-        </Link>
-        <Link
-          className="nav-link"
-          to="/templates"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          គំរូសន្លឹកការ
-        </Link>
-        <Link
-          className="nav-link"
-          to="/pricing"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          តម្លៃ
-        </Link>
-        <Link
-          className="nav-link"
-          to="/venues"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          ទីកន្លែង
-        </Link>
-        {isAuthenticated ? (
+        {navItems.map((item) => (
           <Link
-            className="nav-link"
-            to="/dashboard"
+            key={item.path}
+            className={`nav-link ${isActivePath(item.path) ? "active" : ""}`}
+            to={item.path}
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            ផ្ទាំងគ្រប់គ្រង
+            {item.label}
           </Link>
+        ))}
+        {isAuthenticated ? (
+          <button
+            type="button"
+            className="nav-link logout-nav-btn"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              handleLogout();
+            }}
+          >
+            ចាកចេញ
+          </button>
         ) : (
           <>
             <Link

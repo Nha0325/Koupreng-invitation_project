@@ -1,11 +1,9 @@
-import React from "react";
 import { ScrollReveal } from "../../shared/ui/ScrollReveal";
-import { MagicCard } from "../../shared/ui/MagicCard";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 // Import Background
-import heroBg from "../../assets/icons/background.png";
+import heroBg from "../../assets/images/background.png";
 
 const plans = [
   {
@@ -54,7 +52,7 @@ const plans = [
   },
 ];
 
-export default function Pricing() {
+const PricingPage = () => {
   return (
     <div className="khmer-modern-theme">
       <section
@@ -147,7 +145,7 @@ export default function Pricing() {
         .glass-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(180deg, rgba(252,248,242,0.6) 0%, rgba(252,248,242,0.95) 100%);
+          background: linear-gradient(to bottom, rgba(252, 248, 242, 0.4) 0%, rgba(252, 248, 242, 1) 1000%);
         }
 
         .container { position: relative; z-index: 10; max-width: 1100px; margin: 0 auto; }
@@ -229,4 +227,6 @@ export default function Pricing() {
       `}</style>
     </div>
   );
-}
+};
+
+export default PricingPage;

@@ -19,5 +19,6 @@ export default function StepNavigation({ onPrev, onNext, isFirst, isLast }) {
                 </button>
             )}
         </div>
+        // <> </>
     );
 }

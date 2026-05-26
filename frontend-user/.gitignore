@@ -1,3 +1,46 @@
+│  │  │
+│  │  ├─ utils/
+│  │  │  └─ buildInvitationData.js
+│  │  │
+│  │  ├─ CreateWedding.jsx
+│  │  └─ builder.css             COPY FROM GIT
+│  │
+│  ├─ wedding-site/              COPY FROM GIT
+│  ├─ rsvp/
+│  ├─ guests/
+│  └─ dashboard/
+│
+├─ stores/
+│  ├─ useWeddingStore.js
+│  ├─ useUiStore.js
+│  └─ useAuthStore.js
+│
+├─ services/
+│  ├─ weddingStorage.js
+│  ├─ invitationService.js
+│  └─ rsvpService.js
+│
+├─ shared/
+│  ├─ ui/                        COPY FROM GIT
+│  ├─ motion/                    COPY FROM GIT
+│  └─ utils/
+│     └─ slugify.js
+│
+├─ assets/                       COPY FROM GIT
+├─ main.jsx
+└─ index.css
+
+
+
+
+
+
+
+
+
+
+
+
 # Logs
 logs
 *.log
@@ -9,7 +52,6 @@ lerna-debug.log*
 
 node_modules
 dist
-lib
 dist-ssr
 *.local
 
