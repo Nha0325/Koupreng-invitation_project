@@ -7,6 +7,7 @@ import com.koupreng.backend.entity.invitation.EventType;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.enums.InvitationStatus;
+import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,63 @@ class InvitationServiceTests {
     }
 
     @Test
+    void updateInvitationChangesEditableFields() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = invitation(fixture.owner);
+        InvitationRequest request = request("Updated invitation");
+        request.setVenueName("Updated Hall");
+        request.setEventType(EventType.OTHER);
+        when(fixture.invitationRepository.findByIdAndDeletedFalse(10L)).thenReturn(Optional.of(invitation));
+
+        InvitationResponse response = fixture.service.update(fixture.authentication, 10L, request);
+
+        assertEquals("Updated invitation", response.getTitle());
+        assertEquals("Updated Hall", response.getVenueName());
+        assertEquals(EventType.OTHER, response.getEventType());
+    }
+
+    @Test
+    void unpublishPublishedInvitationSucceeds() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        when(fixture.invitationRepository.findByIdAndDeletedFalse(10L)).thenReturn(Optional.of(invitation));
+
+        InvitationResponse response = fixture.service.unpublish(fixture.authentication, 10L);
+
+        assertEquals(InvitationStatus.UNPUBLISHED, response.getStatus());
+    }
+
+    @Test
+    void publicSlugReturnsPublishedPublicInvitation() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PUBLIC);
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+
+        InvitationResponse response = fixture.service.publicBySlug("draft-invitation");
+
+        assertEquals(InvitationStatus.PUBLISHED, response.getStatus());
+        assertEquals("draft-invitation", response.getSlug());
+    }
+
+    @Test
+    void publicSlugRejectsUnpublishedInvitation() {
+        Fixture fixture = fixture();
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.empty());
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.publicBySlug("draft-invitation")
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+    }
+
+    @Test
     void nonOwnerCannotUpdateInvitation() {
         Fixture fixture = fixture();
         AppUser otherUser = user(2L);
@@ -78,6 +136,21 @@ class InvitationServiceTests {
         ApiException exception = assertThrows(
                 ApiException.class,
                 () -> fixture.service.update(fixture.authentication, 10L, request("Updated"))
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    }
+
+    @Test
+    void nonOwnerCannotDeleteInvitation() {
+        Fixture fixture = fixture();
+        AppUser otherUser = user(2L);
+        when(fixture.currentUserService.currentUser(fixture.authentication)).thenReturn(otherUser);
+        when(fixture.invitationRepository.findByIdAndDeletedFalse(10L)).thenReturn(Optional.of(validInvitation(fixture.owner)));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.delete(fixture.authentication, 10L)
         );
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
