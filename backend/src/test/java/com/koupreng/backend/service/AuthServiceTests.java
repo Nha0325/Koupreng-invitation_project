@@ -3,14 +3,18 @@ package com.koupreng.backend.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
 import com.koupreng.backend.config.AppProperties;
 import com.koupreng.backend.dto.AuthResponse;
+import com.koupreng.backend.dto.GoogleLoginRequest;
 import com.koupreng.backend.dto.LoginRequest;
+import com.koupreng.backend.dto.TelegramLoginRequest;
 import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.user.AuthProvider;
 import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.repository.AppUserRepository;
 
@@ -25,17 +29,14 @@ class AuthServiceTests {
 
     @Test
     void loginReturnsBearerToken() {
-        AppUserRepository userRepository = mock(AppUserRepository.class);
-        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        JwtEncoder jwtEncoder = mock(JwtEncoder.class);
-        AuthService authService = authService(userRepository, passwordEncoder, jwtEncoder);
+        Fixture fixture = fixture();
         AppUser user = activeUser();
 
-        when(userRepository.findByEmailIgnoreCase("user@example.com")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("password123", user.getPasswordHash())).thenReturn(true);
-        when(jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(jwt("jwt-token"));
+        when(fixture.userRepository.findByEmailIgnoreCase("user@example.com")).thenReturn(Optional.of(user));
+        when(fixture.passwordEncoder.matches("password123", user.getPasswordHash())).thenReturn(true);
+        when(fixture.jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(jwt("jwt-token"));
 
-        AuthResponse response = authService.login(new LoginRequest("user@example.com", "password123"));
+        AuthResponse response = fixture.authService.login(new LoginRequest("user@example.com", "password123"));
 
         assertEquals("jwt-token", response.accessToken());
         assertEquals("Bearer", response.tokenType());
@@ -44,35 +45,99 @@ class AuthServiceTests {
 
     @Test
     void logoutIncrementsTokenVersion() {
-        AppUserRepository userRepository = mock(AppUserRepository.class);
-        AuthService authService = authService(userRepository, mock(PasswordEncoder.class), mock(JwtEncoder.class));
+        Fixture fixture = fixture();
         AppUser user = activeUser();
         Authentication authentication = mock(Authentication.class);
 
         when(authentication.isAuthenticated()).thenReturn(true);
         when(authentication.getName()).thenReturn("1");
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(fixture.userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        authService.logout(authentication);
+        fixture.authService.logout(authentication);
 
         assertEquals(1, user.getTokenVersion());
     }
 
-    private AuthService authService(
-            AppUserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JwtEncoder jwtEncoder
-    ) {
+    @Test
+    void loginWithGoogleCreatesExternalUserAndIssuesToken() {
+        Fixture fixture = fixture();
+        when(fixture.googleIdentityVerifier.verify("google-token")).thenReturn(new ExternalAuthIdentity(
+                AuthProvider.GOOGLE,
+                "google-123",
+                "User@Example.com",
+                "Google User"
+        ));
+        when(fixture.userRepository.findByEmailIgnoreCase("user@example.com")).thenReturn(Optional.empty());
+        when(fixture.userRepository.save(any(AppUser.class))).thenAnswer(invocation -> {
+            AppUser user = invocation.getArgument(0);
+            user.setId(10L);
+            return user;
+        });
+        when(fixture.jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(jwt("google-jwt"));
+
+        AuthResponse response = fixture.authService.loginWithGoogle(new GoogleLoginRequest("google-token"));
+
+        assertEquals("google-jwt", response.accessToken());
+        assertEquals("user@example.com", response.user().email());
+        assertEquals("Google User", response.user().fullName());
+        verify(fixture.userRepository).save(any(AppUser.class));
+    }
+
+    @Test
+    void loginWithTelegramReusesExternalUserAndIssuesToken() {
+        Fixture fixture = fixture();
+        AppUser existing = activeUser();
+        existing.setEmail("telegram-42@telegram.local");
+        when(fixture.telegramIdentityVerifier.verify(any(TelegramLoginRequest.class))).thenReturn(new ExternalAuthIdentity(
+                AuthProvider.TELEGRAM,
+                "42",
+                "telegram-42@telegram.local",
+                "Telegram User"
+        ));
+        when(fixture.userRepository.findByEmailIgnoreCase("telegram-42@telegram.local")).thenReturn(Optional.of(existing));
+        when(fixture.userRepository.save(existing)).thenReturn(existing);
+        when(fixture.jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(jwt("telegram-jwt"));
+
+        AuthResponse response = fixture.authService.loginWithTelegram(new TelegramLoginRequest(
+                null,
+                42L,
+                "Telegram",
+                "User",
+                "telegram_user",
+                null,
+                1_700_000_000L,
+                "hash"
+        ));
+
+        assertEquals("telegram-jwt", response.accessToken());
+        assertEquals("Telegram User", response.user().fullName());
+        verify(fixture.userRepository).save(existing);
+    }
+
+    private Fixture fixture() {
+        AppUserRepository userRepository = mock(AppUserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        JwtEncoder jwtEncoder = mock(JwtEncoder.class);
+        GoogleIdentityVerifier googleIdentityVerifier = mock(GoogleIdentityVerifier.class);
+        TelegramIdentityVerifier telegramIdentityVerifier = mock(TelegramIdentityVerifier.class);
         AppProperties appProperties = new AppProperties();
         appProperties.getJwt().setIssuer("koupreng-backend");
         appProperties.getJwt().setSecret("local_test_jwt_secret_64_characters_or_longer_for_auth_service_tests_123456");
-        return new AuthService(
+        AuthService authService = new AuthService(
                 userRepository,
                 passwordEncoder,
                 jwtEncoder,
                 appProperties,
-                mock(GoogleIdentityVerifier.class),
-                mock(TelegramIdentityVerifier.class)
+                googleIdentityVerifier,
+                telegramIdentityVerifier
+        );
+        return new Fixture(
+                authService,
+                userRepository,
+                passwordEncoder,
+                jwtEncoder,
+                googleIdentityVerifier,
+                telegramIdentityVerifier
         );
     }
 
@@ -93,5 +158,15 @@ class AuthServiceTests {
                 .subject("1")
                 .claim("token_version", 0)
                 .build();
+    }
+
+    private record Fixture(
+            AuthService authService,
+            AppUserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtEncoder jwtEncoder,
+            GoogleIdentityVerifier googleIdentityVerifier,
+            TelegramIdentityVerifier telegramIdentityVerifier
+    ) {
     }
 }

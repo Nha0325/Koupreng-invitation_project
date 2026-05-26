@@ -134,14 +134,9 @@
 }
 
 .payment-status.pending,
-.payment-status.waiting_manual_confirmation {
+.payment-status.checkout_created {
     color: #78601c;
     background: #fff5d6;
-}
-
-.payment-status.paid_pending_review {
-    color: #23506b;
-    background: #e1f1ff;
 }
 
 .payment-status.paid {
@@ -149,6 +144,8 @@
     background: #ddf8ea;
 }
 
+.payment-status.failed,
+.payment-status.cancelled,
 .payment-status.rejected,
 .payment-status.expired {
     color: #9f1d2f;
@@ -180,6 +177,11 @@
     font-weight: 900;
 }
 
+.payment-code-box small {
+    color: #607084;
+    font-weight: 800;
+}
+
 .payment-instructions {
     display: grid;
     gap: 8px;
@@ -206,6 +208,15 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.payment-post-form {
+    display: inline-flex;
+}
+
+.payment-status-panel {
+    display: grid;
+    gap: 12px;
 }
 
 .payment-status-note {

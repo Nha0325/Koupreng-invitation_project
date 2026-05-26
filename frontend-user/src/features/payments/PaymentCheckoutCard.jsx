@@ -1,22 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { paymentService } from "./paymentService";
 import { statusMessage } from "./paymentStatus";
 import { toast } from "../../shared/ui/toast";
 import "./PaymentPages.css";
 
-export default function PaymentInstructionCard({ order, onStatusChange }) {
+export default function PaymentCheckoutCard({ order, onStatusChange }) {
     const navigate = useNavigate();
     const [checking, setChecking] = useState(false);
-
-    const copyOrderCode = async () => {
-        try {
-            await navigator.clipboard.writeText(order.orderCode);
-            toast("Order code copied");
-        } catch {
-            toast("Copy failed. Please select and copy the order code manually.");
-        }
-    };
+    const fields = order?.checkoutFormFields || {};
+    const canContinue = Boolean(order?.checkoutUrl && Object.keys(fields).length > 0);
 
     const checkStatus = async () => {
         setChecking(true);
@@ -24,7 +17,7 @@ export default function PaymentInstructionCard({ order, onStatusChange }) {
             const latest = await paymentService.getTemplateOrder(order.orderCode);
             onStatusChange?.(latest);
             if (latest.status === "PAID") {
-                toast("Payment confirmed. Template unlocked.");
+                toast("Payment verified. Template unlocked.");
             }
         } catch (err) {
             toast(err.message || "Could not check payment status");
@@ -45,35 +38,38 @@ export default function PaymentInstructionCard({ order, onStatusChange }) {
             </div>
 
             <div className="payment-code-box">
-                <span>Order Code</span>
+                <span>Order</span>
                 <code>{order.orderCode}</code>
-                <button type="button" className="payment-secondary-btn" onClick={copyOrderCode}>
-                    Copy Order Code
-                </button>
+                <small>Transaction {order.transactionId}</small>
             </div>
 
             <div className="payment-instructions">
-                <p>Please copy this Order Code and paste it into ABA payment note before confirming payment.</p>
-                <p>សូមចម្លងលេខ Order Code នេះ ហើយដាក់ក្នុង Note របស់ ABA មុនពេលបង់ប្រាក់។</p>
-                <p className="payment-warning">Do not close this page before copying your Order Code.</p>
-                <p className="payment-muted">Payment will be approved after admin verification.</p>
+                <p>{statusMessage(order.status)}</p>
                 {order.expiresAt && <p className="payment-muted">Expires: {new Date(order.expiresAt).toLocaleString()}</p>}
             </div>
 
             <div className="payment-actions">
-                <button type="button" className="payment-primary-btn" onClick={() => { window.location.href = order.paymentLink; }}>
-                    Pay with ABA
-                </button>
+                {canContinue && (
+                    <form action={order.checkoutUrl} method="POST" className="payment-post-form">
+                        {Object.entries(fields).map(([name, value]) => (
+                            <input key={name} type="hidden" name={name} value={value ?? ""} />
+                        ))}
+                        <button type="submit" className="payment-primary-btn">
+                            Continue to ABA PayWay
+                        </button>
+                    </form>
+                )}
                 <button type="button" className="payment-secondary-btn" disabled={checking} onClick={checkStatus}>
-                    {checking ? "Checking..." : "Check Payment Status"}
+                    {checking ? "Checking..." : "Check Status"}
                 </button>
                 <button type="button" className="payment-secondary-btn" onClick={() => navigate(`/payments/${order.orderCode}/status`)}>
-                    Open Status Page
+                    Open Status
                 </button>
-            </div>
-
-            <div className="payment-status-note">
-                {order.status === "PAID" ? "✅ " : ""}{statusMessage(order.status)}
+                {order.status === "PAID" && (
+                    <Link to="/dashboard/templates/paid" className="payment-secondary-btn link-button">
+                        View Paid Templates
+                    </Link>
+                )}
             </div>
         </section>
     );

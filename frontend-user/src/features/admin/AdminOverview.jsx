@@ -1,5 +1,4 @@
 // # UI បង្ហាញលេខស្ថិតិ និងក្រាហ្វិក
-import React from "react";
 
 export default function AdminOverview() {
   const mockWeddings = [

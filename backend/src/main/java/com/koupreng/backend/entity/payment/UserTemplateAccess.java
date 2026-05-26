@@ -34,8 +34,8 @@ public class UserTemplateAccess {
     private Long templateId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private TemplateOrder order;
+    @JoinColumn(name = "template_payment_order_id", nullable = false)
+    private TemplatePaymentOrder order;
 
     @Column(name = "access_type", nullable = false, length = 50)
     private String accessType = ACCESS_TYPE_PURCHASED;

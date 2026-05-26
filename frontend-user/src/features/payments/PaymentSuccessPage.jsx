@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import PaymentCheckoutCard from "./PaymentCheckoutCard";
-import { statusMessage } from "./paymentStatus";
+import { Link, useSearchParams } from "react-router-dom";
 import { paymentService } from "./paymentService";
+import { statusMessage } from "./paymentStatus";
 import "./PaymentPages.css";
 
-export default function PaymentStatusPage() {
-    const { orderCode } = useParams();
+export default function PaymentSuccessPage() {
+    const [searchParams] = useSearchParams();
+    const orderCode = searchParams.get("orderCode") || "";
     const [order, setOrder] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
+        if (!orderCode) {
+            return;
+        }
         let active = true;
         paymentService.getTemplateOrder(orderCode)
             .then((data) => {
@@ -24,11 +26,6 @@ export default function PaymentStatusPage() {
                 if (active) {
                     setError(err.message || "Could not load payment status");
                 }
-            })
-            .finally(() => {
-                if (active) {
-                    setLoading(false);
-                }
             });
         return () => {
             active = false;
@@ -38,14 +35,24 @@ export default function PaymentStatusPage() {
     return (
         <main className="payment-page">
             <section className="payment-hero">
-                <span className="payment-eyebrow">Payment status</span>
-                <h1>{orderCode}</h1>
-                <p>{order ? statusMessage(order.status) : "Checking your payment order."}</p>
+                <span className="payment-eyebrow">Payment return</span>
+                <h1>Payment is being verified. Please wait.</h1>
+                <p>{order ? statusMessage(order.status) : "Backend callback verification is required before access unlocks."}</p>
             </section>
 
-            {loading && <div className="payment-card">Loading payment status...</div>}
             {error && <div className="payment-error">{error}</div>}
-            {order && <PaymentCheckoutCard order={order} onStatusChange={setOrder} />}
+            {order && (
+                <section className="payment-card payment-status-panel">
+                    <span className={`payment-status ${order.status?.toLowerCase() || "pending"}`}>
+                        {order.status}
+                    </span>
+                    <h2>{order.templateName}</h2>
+                    <p>{order.orderCode}</p>
+                    <Link className="payment-secondary-btn link-button" to={`/payments/${order.orderCode}/status`}>
+                        Open Status
+                    </Link>
+                </section>
+            )}
 
             <div className="payment-footer-links">
                 <Link to="/dashboard/templates/paid">View paid templates</Link>

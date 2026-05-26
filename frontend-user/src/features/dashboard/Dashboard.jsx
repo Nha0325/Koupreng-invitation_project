@@ -54,7 +54,7 @@ function SummaryCards() {
             {summaryCards.map((card, i) => (
                 <article
                     key={i}
-                    className={`flex-1 min-w-0 h-[142px] flex flex-col justify-between items-start p-5 bg-white rounded-2xl border border-solid ${card.borderClass} ${card.shadowClass}`}
+                    className={`flex-1 min-w-0 h-35.5 flex flex-col justify-between items-start p-5 bg-white rounded-2xl border border-solid ${card.borderClass} ${card.shadowClass}`}
                 >
                     {/* Top row */}
                     <div className="flex items-center justify-between w-full">
@@ -110,7 +110,6 @@ function DonutChart({ segments, total }) {
     const cy = size / 2;
     const circumference = 2 * Math.PI * r;
 
-    let offset = 0;
     const colors = ["#16a34a", "#ca8a04", "#dc2626"];
 
     return (
@@ -118,10 +117,12 @@ function DonutChart({ segments, total }) {
             <div className="relative" style={{ width: size, height: size }}>
                 <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
                     {segments.map((seg, i) => {
+                        const offset = segments
+                            .slice(0, i)
+                            .reduce((sum, item) => sum + item.pct, 0);
                         const dash = (seg.pct / 100) * circumference;
                         const gap = circumference - dash;
                         const rotation = (offset / 100) * 360 - 90;
-                        offset += seg.pct;
                         return (
                             <circle
                                 key={i}
@@ -340,7 +341,7 @@ function UserManagementSection() {
                     >
                         {/* Name */}
                         <div className="flex items-center gap-2 self-center">
-                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0">
                                 {g.name.charAt(0)}
                             </div>
                             <span className="text-sm text-slate-800 truncate">{g.name}</span>
@@ -398,12 +399,12 @@ function UserManagementSection() {
                                 key={i}
                                 className="flex items-center gap-3 p-3 bg-[#f8f8fd] rounded-xl"
                             >
-                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${t.dotClass}`} />
+                                <div className={`w-2 h-2 rounded-full shrink-0 ${t.dotClass}`} />
                                 <div className="flex flex-col flex-1 min-w-0">
                                     <span className="text-sm text-slate-800 truncate">{t.title}</span>
                                     <span className="text-xs text-[#7a8799]">{t.time}</span>
                                 </div>
-                                <svg width="7" height="12" fill="none" viewBox="0 0 7 12" stroke="currentColor" className="text-[#7a8799] flex-shrink-0">
+                                <svg width="7" height="12" fill="none" viewBox="0 0 7 12" stroke="currentColor" className="text-[#7a8799] shrink-0">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M1 1l5 5-5 5" />
                                 </svg>
                             </div>

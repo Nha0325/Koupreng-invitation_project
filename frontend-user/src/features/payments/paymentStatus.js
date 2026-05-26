@@ -1,8 +1,9 @@
 const STATUS_TEXT = {
-    PENDING: "Payment is still pending.",
-    WAITING_MANUAL_CONFIRMATION: "Payment is waiting for manual confirmation.",
-    PAID_PENDING_REVIEW: "Payment detected and waiting for admin review.",
-    PAID: "Payment confirmed. Template unlocked.",
+    PENDING: "Payment order created.",
+    CHECKOUT_CREATED: "Checkout created. Waiting for PayWay verification.",
+    PAID: "Payment verified. Template unlocked.",
+    FAILED: "Payment failed.",
+    CANCELLED: "Payment was cancelled or not completed.",
     REJECTED: "Payment was rejected. Please contact support.",
     EXPIRED: "This payment order has expired. Please create a new order.",
 };

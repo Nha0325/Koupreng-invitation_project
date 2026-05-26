@@ -12,6 +12,9 @@
 
 # Environment files - never commit secrets
 .credential_info.txt
+credential_info.txt
+*.pem
+*.key
 .env
 .env.local
 .env.*.local

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoCalendar, IoCamera, IoChatbubbleEllipses, IoHome, IoLocationSharp, IoQrCode } from "react-icons/io5";
+import { IoCalendar, IoCamera, IoHome, IoLocationSharp } from "react-icons/io5";
 import defaultMusicUrl from "../../assets/music/Instrumental Wedding Music (VioSounds Cover).m4a";
 
 // ─── Default Data ───────────────────────────────────────────────────────────
@@ -98,16 +98,6 @@ const quickNavItems = [
     { target: "gallery", label: "រូបភាព", Icon: IoCamera },
     // { target: "qr", label: "QR Code", Icon: IoQrCode },
 ];
-
-const qrPatternCells = new Set([
-    0, 1, 2, 3, 4, 6,
-    7, 11, 13,
-    14, 16, 17, 18, 20,
-    21, 25, 27,
-    28, 29, 30, 31, 32, 34,
-    36, 38, 39, 41, 42,
-    43, 45, 46, 48,
-]);
 
 const videoSourcePattern = /\.(mp4|webm|mov|m4v)(\?.*)?$/i;
 
@@ -617,9 +607,6 @@ export default function RoyalInvitation({ tpl, countdown, mode = "full", autoPla
     const mapQuery = encodeURIComponent(mapSearchText.replace(/\s+/g, " ").trim());
     const mapSrc = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
     const mapLink = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
-    const qrImage = tpl.qrImage || tpl.qrCodeImage || tpl.qr?.image || tpl.qrCode?.image;
-    const contactPhone = tpl.contactPhone || tpl.contact?.phone || "";
-    const cleanPhone = String(contactPhone).replace(/[^\d+]/g, "");
     const musicLabel = isMusicPlaying ? "បិទតន្ត្រី" : "បើកតន្ត្រី";
     const flowerGatePhase = flowerGateState.templateId === tpl.id && flowerGateState.enabled === flowerGateEnabled
         ? flowerGateState.phase

@@ -1,5 +1,4 @@
 // # Form សម្រាប់ Upload ម៉ូដធៀបការថ្មីៗ
-import React from "react";
 
 export default function ManageTemplates() {
   return (

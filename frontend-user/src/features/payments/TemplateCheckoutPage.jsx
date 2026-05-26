@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getTemplateById, TEMPLATES } from "../templates/data/templatesData";
-import PaymentInstructionCard from "./PaymentInstructionCard";
+import PaymentCheckoutCard from "./PaymentCheckoutCard";
 import { paymentService } from "./paymentService";
 import "./PaymentPages.css";
 
@@ -22,6 +22,7 @@ export default function TemplateCheckoutPage() {
         templateName: template?.name || "Khmer Wedding Gold",
         packageName: "Premium",
         amount: "5.00",
+        currency: "USD",
     }), [template, templateId]);
     const [order, setOrder] = useState(null);
     const [creating, setCreating] = useState(false);
@@ -31,7 +32,7 @@ export default function TemplateCheckoutPage() {
         setCreating(true);
         setError("");
         try {
-            const response = await paymentService.createTemplateOrder(checkout);
+            const response = await paymentService.createPaywayCheckout(checkout);
             setOrder(response);
         } catch (err) {
             setError(err.message || "Could not create payment order");
@@ -48,7 +49,7 @@ export default function TemplateCheckoutPage() {
             <section className="payment-hero">
                 <span className="payment-eyebrow">Template checkout</span>
                 <h1>Buy Template</h1>
-                <p>Complete payment with ABA PayWay, then wait for admin confirmation before the template unlocks.</p>
+                <p>Complete payment with ABA PayWay Sandbox. Template access unlocks after backend verification.</p>
             </section>
 
             <section className="payment-card payment-product-card">
@@ -56,15 +57,15 @@ export default function TemplateCheckoutPage() {
                 <div>
                     <h2>{checkout.templateName}</h2>
                     <p>{checkout.packageName}</p>
-                    <strong>USD {checkout.amount}</strong>
+                    <strong>{checkout.currency} {checkout.amount}</strong>
                 </div>
                 <button type="button" className="payment-primary-btn" disabled={creating} onClick={createOrder}>
-                    {creating ? "Creating order..." : "Buy Template"}
+                    {creating ? "Creating checkout..." : "Pay with ABA PayWay Sandbox"}
                 </button>
             </section>
 
             {error && <div className="payment-error">{error}</div>}
-            {order && <PaymentInstructionCard order={order} onStatusChange={setOrder} />}
+            {order && <PaymentCheckoutCard order={order} onStatusChange={setOrder} />}
         </main>
     );
 }

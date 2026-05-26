@@ -1,5 +1,4 @@
 // # Table បញ្ជីឈ្មោះ User និងប៊ូតុង Block
-import React from "react";
 
 export default function ManageUsers() {
   return (

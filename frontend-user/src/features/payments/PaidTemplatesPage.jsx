@@ -46,7 +46,7 @@ export default function PaidTemplatesPage() {
             {!loading && templates.length === 0 && (
                 <section className="payment-card payment-empty">
                     <h2>No paid templates yet</h2>
-                    <p>Buy a premium template and check status after admin confirmation.</p>
+                    <p>Buy a premium template and check status after PayWay verification.</p>
                     <Link className="payment-primary-btn link-button" to="/templates">
                         Browse Templates
                     </Link>

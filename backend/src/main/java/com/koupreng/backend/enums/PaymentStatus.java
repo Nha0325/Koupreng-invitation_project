@@ -2,9 +2,10 @@ package com.koupreng.backend.enums;
 
 public enum PaymentStatus {
     PENDING,
-    WAITING_MANUAL_CONFIRMATION,
-    PAID_PENDING_REVIEW,
+    CHECKOUT_CREATED,
     PAID,
+    FAILED,
+    CANCELLED,
+    EXPIRED,
     REJECTED,
-    EXPIRED
 }

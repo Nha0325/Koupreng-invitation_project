@@ -1,25 +1,29 @@
 package com.koupreng.backend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.PaymentProperties;
-import com.koupreng.backend.dto.payment.ConfirmTemplatePaymentRequest;
-import com.koupreng.backend.dto.payment.CreateTemplateOrderRequest;
-import com.koupreng.backend.dto.payment.CreateTemplateOrderResponse;
-import com.koupreng.backend.dto.payment.PaymentConfirmResponse;
-import com.koupreng.backend.dto.payment.TelegramDetectPaymentRequest;
-import com.koupreng.backend.entity.payment.TemplateOrder;
+import com.koupreng.backend.dto.payment.CreateTemplatePaymentRequest;
+import com.koupreng.backend.dto.payment.CreateTemplatePaymentResponse;
+import com.koupreng.backend.dto.payment.PayWayCallbackResponse;
+import com.koupreng.backend.entity.payment.TemplatePaymentOrder;
 import com.koupreng.backend.entity.payment.UserTemplateAccess;
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.enums.PaymentStatus;
-import com.koupreng.backend.repository.TemplateOrderRepository;
+import com.koupreng.backend.repository.InvitationTemplateRepository;
+import com.koupreng.backend.repository.TemplatePaymentOrderRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
+import com.koupreng.backend.service.payment.AbaPayWayCheckout;
+import com.koupreng.backend.service.payment.AbaPayWayService;
+import com.koupreng.backend.service.payment.PayWayTransactionVerification;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,40 +39,61 @@ import static org.mockito.Mockito.when;
 class TemplatePaymentServiceTests {
 
     @Test
-    void createOrderCreatesPendingStaticAbaOrderForAuthenticatedUser() {
+    void createPaywayCheckoutCreatesSignedCheckoutForAuthenticatedUser() {
         Fixture fixture = fixture();
+        when(fixture.abaPayWayService.createCheckout(any(), any(), any()))
+                .thenReturn(new AbaPayWayCheckout(
+                        "https://checkout-sandbox.payway.com.kh/api/payment-gateway/v1/payments/purchase",
+                        Map.of("tran_id", "PW26052612000011", "hash", "signed"),
+                        "{\"tran_id\":\"PW26052612000011\"}",
+                        "{\"mode\":\"SIGNED_FORM\"}"
+                ));
 
-        CreateTemplateOrderResponse response = fixture.service.createOrder(fixture.authentication, createRequest());
+        CreateTemplatePaymentResponse response = fixture.service.createPaywayCheckout(
+                fixture.authentication,
+                createRequest()
+        );
 
         assertTrue(response.getOrderCode().matches("EVT\\d{9,10}"));
+        assertNotNull(response.getTransactionId());
         assertEquals(10L, response.getTemplateId());
         assertEquals(new BigDecimal("5.00"), response.getAmount());
-        assertEquals("https://link.payway.com.kh/ABAPAY66444229Q", response.getPaymentLink());
-        assertEquals(response.getOrderCode(), response.getPaymentNote());
-        assertEquals(PaymentStatus.PENDING, response.getStatus());
-        assertNotNull(response.getExpiresAt());
+        assertEquals(PaymentStatus.CHECKOUT_CREATED, response.getStatus());
+        assertEquals("signed", response.getCheckoutFormFields().get("hash"));
     }
 
     @Test
-    void createOrderRejectsAlreadyUnlockedTemplate() {
+    void createPaywayCheckoutRejectsAlreadyUnlockedTemplate() {
         Fixture fixture = fixture();
         when(fixture.accessRepository.existsByUserIdAndTemplateIdAndActiveTrue(1L, 10L)).thenReturn(true);
 
         ApiException exception = assertThrows(
                 ApiException.class,
-                () -> fixture.service.createOrder(fixture.authentication, createRequest())
+                () -> fixture.service.createPaywayCheckout(fixture.authentication, createRequest())
         );
 
         assertEquals(HttpStatus.CONFLICT, exception.getStatus());
     }
 
     @Test
-    void confirmManualPaymentMarksPaidAndUnlocksTemplate() {
+    void callbackVerifiesWithPayWayBeforeMarkingPaidAndUnlockingTemplate() {
         Fixture fixture = fixture();
-        TemplateOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("5.00"));
-        when(fixture.orderRepository.findByOrderCode("EVT260520001")).thenReturn(Optional.of(order));
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        Map<String, Object> payload = Map.of("tran_id", order.getTransactionId(), "status", "0", "apv", "123456");
+        when(fixture.orderRepository.findByTransactionId(order.getTransactionId())).thenReturn(Optional.of(order));
+        when(fixture.abaPayWayService.verifyCallbackSignature(payload, "sig")).thenReturn(true);
+        when(fixture.abaPayWayService.checkTransaction(order.getTransactionId()))
+                .thenReturn(new PayWayTransactionVerification(
+                        true,
+                        PaymentStatus.PAID,
+                        new BigDecimal("5.00"),
+                        "USD",
+                        "APPROVED",
+                        order.getTransactionId(),
+                        "{\"data\":{\"payment_status\":\"APPROVED\"}}"
+                ));
 
-        PaymentConfirmResponse response = fixture.service.confirmManualPayment(confirmRequest("EVT260520001", "5.00"), "MANUAL_ADMIN");
+        PayWayCallbackResponse response = fixture.service.handlePaywayCallback(payload, "sig");
 
         assertEquals(PaymentStatus.PAID, response.getStatus());
         assertEquals(new BigDecimal("5.00"), order.getPaidAmount());
@@ -77,154 +102,132 @@ class TemplatePaymentServiceTests {
     }
 
     @Test
-    void confirmManualPaymentRejectsAmountMismatch() {
+    void callbackRejectsInvalidSignatureWithoutUnlockingTemplate() {
         Fixture fixture = fixture();
-        TemplateOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("5.00"));
-        when(fixture.orderRepository.findByOrderCode("EVT260520001")).thenReturn(Optional.of(order));
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        Map<String, Object> payload = Map.of("tran_id", order.getTransactionId(), "status", "0");
+        when(fixture.orderRepository.findByTransactionId(order.getTransactionId())).thenReturn(Optional.of(order));
+        when(fixture.abaPayWayService.verifyCallbackSignature(payload, "bad")).thenReturn(false);
 
         ApiException exception = assertThrows(
                 ApiException.class,
-                () -> fixture.service.confirmManualPayment(confirmRequest("EVT260520001", "4.00"), "MANUAL_ADMIN")
+                () -> fixture.service.handlePaywayCallback(payload, "bad")
+        );
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
+        assertEquals(PaymentStatus.CHECKOUT_CREATED, order.getStatus());
+        verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
+    }
+
+    @Test
+    void callbackRejectsAmountMismatch() {
+        Fixture fixture = fixture();
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        Map<String, Object> payload = Map.of("tran_id", order.getTransactionId(), "status", "0");
+        when(fixture.orderRepository.findByTransactionId(order.getTransactionId())).thenReturn(Optional.of(order));
+        when(fixture.abaPayWayService.verifyCallbackSignature(payload, "sig")).thenReturn(true);
+        when(fixture.abaPayWayService.checkTransaction(order.getTransactionId()))
+                .thenReturn(new PayWayTransactionVerification(
+                        true,
+                        PaymentStatus.PAID,
+                        new BigDecimal("4.00"),
+                        "USD",
+                        "APPROVED",
+                        order.getTransactionId(),
+                        "{}"
+                ));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.handlePaywayCallback(payload, "sig")
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("Amount mismatch", exception.getMessage());
+        assertEquals(PaymentStatus.REJECTED, order.getStatus());
         verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
-    }
-
-    @Test
-    void confirmManualPaymentRejectsAlreadyPaidOrder() {
-        Fixture fixture = fixture();
-        TemplateOrder order = order(fixture.owner, PaymentStatus.PAID, new BigDecimal("5.00"));
-        when(fixture.orderRepository.findByOrderCode("EVT260520001")).thenReturn(Optional.of(order));
-
-        ApiException exception = assertThrows(
-                ApiException.class,
-                () -> fixture.service.confirmManualPayment(confirmRequest("EVT260520001", "5.00"), "MANUAL_ADMIN")
-        );
-
-        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
-    }
-
-    @Test
-    void confirmManualPaymentRejectsExpiredOrder() {
-        Fixture fixture = fixture();
-        TemplateOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("5.00"));
-        order.setExpiresAt(Instant.now().minusSeconds(10));
-        when(fixture.orderRepository.findByOrderCode("EVT260520001")).thenReturn(Optional.of(order));
-
-        ApiException exception = assertThrows(
-                ApiException.class,
-                () -> fixture.service.confirmManualPayment(confirmRequest("EVT260520001", "5.00"), "MANUAL_ADMIN")
-        );
-
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals(PaymentStatus.EXPIRED, order.getStatus());
-    }
-
-    @Test
-    void telegramDetectMarksPendingReviewWithoutUnlockWhenAutoConfirmDisabled() {
-        Fixture fixture = fixture();
-        TemplateOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("5.00"));
-        when(fixture.orderRepository.findByOrderCode("EVT260520001")).thenReturn(Optional.of(order));
-        TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
-        request.setRawMessage("ABA payment received USD 5.00 Note: EVT260520001");
-        request.setDetectedBy("telegram_admin");
-
-        PaymentConfirmResponse response = fixture.service.detectPaymentFromTelegram(request);
-
-        assertEquals(PaymentStatus.PAID_PENDING_REVIEW, response.getStatus());
-        assertEquals(new BigDecimal("5.00"), order.getPaidAmount());
-        verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
-    }
-
-    @Test
-    void telegramDetectRejectsMissingOrderCode() {
-        Fixture fixture = fixture();
-        TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
-        request.setRawMessage("ABA payment received USD 5.00 without note");
-        request.setDetectedBy("telegram_admin");
-
-        ApiException exception = assertThrows(ApiException.class, () -> fixture.service.detectPaymentFromTelegram(request));
-
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Order code not found in Telegram message", exception.getMessage());
     }
 
     @Test
     void nonOwnerCannotViewOrder() {
         Fixture fixture = fixture();
-        TemplateOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("5.00"));
-        when(fixture.orderRepository.findByOrderCode("EVT260520001")).thenReturn(Optional.of(order));
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        when(fixture.orderRepository.findByOrderCode("EVT260526001")).thenReturn(Optional.of(order));
         AppUser other = user(2L, Role.USER);
         when(fixture.currentUserService.currentUser(fixture.authentication)).thenReturn(other);
 
         ApiException exception = assertThrows(
                 ApiException.class,
-                () -> fixture.service.getOrderByCode(fixture.authentication, "EVT260520001")
+                () -> fixture.service.getOrderStatus(fixture.authentication, "EVT260526001")
         );
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
     }
 
     private Fixture fixture() {
-        TemplateOrderRepository orderRepository = mock(TemplateOrderRepository.class);
+        TemplatePaymentOrderRepository orderRepository = mock(TemplatePaymentOrderRepository.class);
         UserTemplateAccessRepository accessRepository = mock(UserTemplateAccessRepository.class);
+        InvitationTemplateRepository templateRepository = mock(InvitationTemplateRepository.class);
         CurrentUserService currentUserService = mock(CurrentUserService.class);
+        AbaPayWayService abaPayWayService = mock(AbaPayWayService.class);
         PaymentProperties paymentProperties = new PaymentProperties();
         Authentication authentication = mock(Authentication.class);
         AppUser owner = user(1L, Role.USER);
         TemplatePaymentService service = new TemplatePaymentService(
                 orderRepository,
                 accessRepository,
+                templateRepository,
                 currentUserService,
-                paymentProperties
+                paymentProperties,
+                abaPayWayService,
+                new ObjectMapper()
         );
 
         when(currentUserService.currentUser(authentication)).thenReturn(owner);
+        when(templateRepository.count()).thenReturn(0L);
         when(orderRepository.existsByOrderCode(any())).thenReturn(false);
-        when(orderRepository.save(any(TemplateOrder.class))).thenAnswer(invocation -> {
-            TemplateOrder order = invocation.getArgument(0);
+        when(orderRepository.existsByTransactionId(any())).thenReturn(false);
+        when(orderRepository.save(any(TemplatePaymentOrder.class))).thenAnswer(invocation -> {
+            TemplatePaymentOrder order = invocation.getArgument(0);
             if (order.getId() == null) {
                 order.setId(99L);
             }
             return order;
         });
-        when(accessRepository.existsByUserIdAndTemplateIdAndOrderIdAndActiveTrue(any(), any(), any()))
-                .thenReturn(false);
+        when(accessRepository.existsByUserIdAndTemplateIdAndActiveTrue(any(), any())).thenReturn(false);
 
-        return new Fixture(service, orderRepository, accessRepository, currentUserService, authentication, owner);
+        return new Fixture(
+                service,
+                orderRepository,
+                accessRepository,
+                currentUserService,
+                abaPayWayService,
+                authentication,
+                owner
+        );
     }
 
-    private CreateTemplateOrderRequest createRequest() {
-        CreateTemplateOrderRequest request = new CreateTemplateOrderRequest();
+    private CreateTemplatePaymentRequest createRequest() {
+        CreateTemplatePaymentRequest request = new CreateTemplatePaymentRequest();
         request.setTemplateId(10L);
         request.setTemplateName("Khmer Wedding Gold");
         request.setPackageName("Premium");
         request.setAmount(new BigDecimal("5.00"));
+        request.setCurrency("USD");
         return request;
     }
 
-    private ConfirmTemplatePaymentRequest confirmRequest(String orderCode, String amount) {
-        ConfirmTemplatePaymentRequest request = new ConfirmTemplatePaymentRequest();
-        request.setOrderCode(orderCode);
-        request.setAmount(new BigDecimal(amount));
-        request.setConfirmedBy("admin");
-        return request;
-    }
-
-    private TemplateOrder order(AppUser user, PaymentStatus status, BigDecimal amount) {
-        TemplateOrder order = new TemplateOrder();
+    private TemplatePaymentOrder order(AppUser user, PaymentStatus status, BigDecimal amount) {
+        TemplatePaymentOrder order = new TemplatePaymentOrder();
         order.setId(99L);
-        order.setOrderCode("EVT260520001");
+        order.setOrderCode("EVT260526001");
+        order.setTransactionId("PW26052612000011");
         order.setUser(user);
         order.setTemplateId(10L);
         order.setTemplateName("Khmer Wedding Gold");
         order.setPackageName("Premium");
         order.setAmount(amount);
         order.setCurrency("USD");
-        order.setPaymentLink("https://link.payway.com.kh/ABAPAY66444229Q");
-        order.setPaymentNote("EVT260520001");
         order.setStatus(status);
         order.setExpiresAt(Instant.now().plusSeconds(3600));
         return order;
@@ -240,9 +243,10 @@ class TemplatePaymentServiceTests {
 
     private record Fixture(
             TemplatePaymentService service,
-            TemplateOrderRepository orderRepository,
+            TemplatePaymentOrderRepository orderRepository,
             UserTemplateAccessRepository accessRepository,
             CurrentUserService currentUserService,
+            AbaPayWayService abaPayWayService,
             Authentication authentication,
             AppUser owner
     ) {

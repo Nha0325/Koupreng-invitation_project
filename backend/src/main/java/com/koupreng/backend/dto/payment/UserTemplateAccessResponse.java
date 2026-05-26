@@ -1,6 +1,6 @@
 package com.koupreng.backend.dto.payment;
 
-import com.koupreng.backend.entity.payment.TemplateOrder;
+import com.koupreng.backend.entity.payment.TemplatePaymentOrder;
 import com.koupreng.backend.entity.payment.UserTemplateAccess;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +22,7 @@ public class UserTemplateAccessResponse {
     private Instant createdAt;
 
     public static UserTemplateAccessResponse from(UserTemplateAccess access) {
-        TemplateOrder order = access.getOrder();
+        TemplatePaymentOrder order = access.getOrder();
         return UserTemplateAccessResponse.builder()
                 .templateId(access.getTemplateId())
                 .templateName(order == null ? null : order.getTemplateName())
