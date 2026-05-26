@@ -11,6 +11,7 @@
 .source-ref
 
 # Environment files - never commit secrets
+.credential_info.txt
 .env
 .env.local
 .env.*.local
