@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Map;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -24,13 +24,14 @@ public class CreateTemplatePaymentResponse {
     private BigDecimal amount;
     private String currency;
     private PaymentStatus status;
+    private String qrString;
+    private String qrImageUrl;
     private String checkoutUrl;
-    private Map<String, String> checkoutFormFields;
+    private Instant expiresAt;
     private String message;
 
     public static CreateTemplatePaymentResponse from(
             TemplatePaymentOrder order,
-            Map<String, String> checkoutFormFields,
             String message
     ) {
         return CreateTemplatePaymentResponse.builder()
@@ -42,8 +43,10 @@ public class CreateTemplatePaymentResponse {
                 .amount(order.getAmount())
                 .currency(order.getCurrency())
                 .status(order.getStatus())
+                .qrString(order.getQrString())
+                .qrImageUrl(order.getQrImageUrl())
                 .checkoutUrl(order.getCheckoutUrl())
-                .checkoutFormFields(checkoutFormFields)
+                .expiresAt(order.getExpiresAt())
                 .message(message)
                 .build();
     }

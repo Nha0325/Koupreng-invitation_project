@@ -7,13 +7,21 @@ import PricingPage from "../../pages/marketing/PricingPage";
 import TemplateDemoPage from "../../pages/marketing/TemplateDemoPage";
 import TemplatesPage from "../../pages/marketing/TemplatesPage";
 import VenuesPage from "../../pages/marketing/VenuesPage";
+import RequireAuth from "./RequireAuth";
 
 export function marketingRoutes() {
   return (
     <Route element={<MarketingShell />}>
       <Route path="/" element={<HomePage />} />
       <Route path="/templates" element={<TemplatesPage />} />
-      <Route path="/templates/:templateId/checkout" element={<TemplateCheckoutPage />} />
+      <Route
+        path="/templates/:templateId/checkout"
+        element={
+          <RequireAuth>
+            <TemplateCheckoutPage />
+          </RequireAuth>
+        }
+      />
       <Route path="/templates/:id" element={<TemplateDemoPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/venues" element={<VenuesPage />} />

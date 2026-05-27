@@ -99,7 +99,9 @@ public class SecurityConfig {
                                 "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()
                         .requestMatchers("/api/v1/public/invitations/**").permitAll()
-                        .requestMatchers("/api/v1/payway/callback").permitAll()
+                        .requestMatchers("/api/v1/payway/callback",
+                                "/api/v1/payway/return",
+                                "/api/v1/payway/cancel").permitAll()
                         .requestMatchers("/api/v1/admin/template-payments/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

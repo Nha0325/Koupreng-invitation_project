@@ -44,9 +44,9 @@ public class TemplatePaymentController {
             Authentication authentication,
             @Valid @RequestBody CreateTemplatePaymentRequest request
     ) {
-        CreateTemplatePaymentResponse response = templatePaymentService.createPaywayCheckout(authentication, request);
+        CreateTemplatePaymentResponse response = templatePaymentService.createPaywayQrCheckout(authentication, request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("PayWay checkout created successfully", response));
+                .body(ApiResponse.success("PayWay QR payment created successfully", response));
     }
 
     @GetMapping("/template-payments/{orderCode}")
@@ -89,6 +89,22 @@ public class TemplatePaymentController {
                 headers.getFirst(PAYWAY_SIGNATURE_HEADER)
         );
         return ResponseEntity.ok(ApiResponse.success("PayWay callback processed", response));
+    }
+
+    @GetMapping("/payway/return")
+    public ResponseEntity<ApiResponse<Map<String, String>>> paywayReturn() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "PayWay return received. Check order status from backend.",
+                Map.of("message", "Payment is being verified.")
+        ));
+    }
+
+    @GetMapping("/payway/cancel")
+    public ResponseEntity<ApiResponse<Map<String, String>>> paywayCancel() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "PayWay cancel received. No template access was unlocked.",
+                Map.of("message", "Payment was cancelled or not completed.")
+        ));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

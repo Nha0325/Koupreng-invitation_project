@@ -2,8 +2,10 @@ package com.koupreng.backend.entity.payment;
 
 import com.koupreng.backend.entity.user.AppUser;
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,7 +36,7 @@ public class UserTemplateAccess {
     private Long templateId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "template_payment_order_id", nullable = false)
+    @JoinColumn(name = "template_payment_order_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TemplatePaymentOrder order;
 
     @Column(name = "access_type", nullable = false, length = 50)

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { paymentService } from "./paymentService";
-import { statusMessage } from "./paymentStatus";
+import { isTerminalStatus, statusMessage } from "./paymentStatus";
 import "./PaymentPages.css";
 
 export default function PaymentSuccessPage() {
@@ -12,23 +12,39 @@ export default function PaymentSuccessPage() {
 
     useEffect(() => {
         if (!orderCode) {
-            return;
+            return undefined;
         }
+
         let active = true;
-        paymentService.getTemplateOrder(orderCode)
-            .then((data) => {
-                if (active) {
+        let timer;
+
+        const loadStatus = () => {
+            paymentService.getTemplateOrder(orderCode)
+                .then((data) => {
+                    if (!active) {
+                        return;
+                    }
                     setOrder(data);
                     setError("");
-                }
-            })
-            .catch((err) => {
-                if (active) {
-                    setError(err.message || "Could not load payment status");
-                }
-            });
+                    if (isTerminalStatus(data.status) && timer) {
+                        window.clearInterval(timer);
+                    }
+                })
+                .catch((err) => {
+                    if (active) {
+                        setError(err.message || "Could not load payment status");
+                    }
+                });
+        };
+
+        loadStatus();
+        timer = window.setInterval(loadStatus, 5000);
+
         return () => {
             active = false;
+            if (timer) {
+                window.clearInterval(timer);
+            }
         };
     }, [orderCode]);
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import PaymentCheckoutCard from "./PaymentCheckoutCard";
+import PaymentQrCard from "./PaymentQrCard";
 import { statusMessage } from "./paymentStatus";
 import { paymentService } from "./paymentService";
 import "./PaymentPages.css";
@@ -45,7 +45,7 @@ export default function PaymentStatusPage() {
 
             {loading && <div className="payment-card">Loading payment status...</div>}
             {error && <div className="payment-error">{error}</div>}
-            {order && <PaymentCheckoutCard order={order} onStatusChange={setOrder} />}
+            {order && <PaymentQrCard order={order} onStatusChange={setOrder} />}
 
             <div className="payment-footer-links">
                 <Link to="/dashboard/templates/paid">View paid templates</Link>

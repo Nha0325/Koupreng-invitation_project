@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getTemplateById, TEMPLATES } from "../templates/data/templatesData";
-import PaymentCheckoutCard from "./PaymentCheckoutCard";
+import PaymentQrCard from "./PaymentQrCard";
 import { paymentService } from "./paymentService";
 import "./PaymentPages.css";
 
@@ -49,7 +49,7 @@ export default function TemplateCheckoutPage() {
             <section className="payment-hero">
                 <span className="payment-eyebrow">Template checkout</span>
                 <h1>Buy Template</h1>
-                <p>Complete payment with ABA PayWay Sandbox. Template access unlocks after backend verification.</p>
+                <p>Scan an ABA PayWay Sandbox QR code. Template access unlocks only after backend verification.</p>
             </section>
 
             <section className="payment-card payment-product-card">
@@ -60,12 +60,12 @@ export default function TemplateCheckoutPage() {
                     <strong>{checkout.currency} {checkout.amount}</strong>
                 </div>
                 <button type="button" className="payment-primary-btn" disabled={creating} onClick={createOrder}>
-                    {creating ? "Creating checkout..." : "Pay with ABA PayWay Sandbox"}
+                    {creating ? "Creating QR..." : "Buy Template"}
                 </button>
             </section>
 
             {error && <div className="payment-error">{error}</div>}
-            {order && <PaymentCheckoutCard order={order} onStatusChange={setOrder} />}
+            {order && <PaymentQrCard order={order} onStatusChange={setOrder} onRetry={createOrder} />}
         </main>
     );
 }

@@ -3,7 +3,7 @@ package com.koupreng.backend.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koupreng.backend.common.ApiException;
-import com.koupreng.backend.config.PaymentProperties;
+import com.koupreng.backend.config.payment.AbaPayWayProperties;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentResponse;
 import com.koupreng.backend.dto.payment.PayWayCallbackResponse;
@@ -47,10 +47,12 @@ public class TemplatePaymentService {
             .withZone(BUSINESS_ZONE);
     private static final Collection<PaymentStatus> EXPIRABLE_STATUSES = List.of(
             PaymentStatus.PENDING,
+            PaymentStatus.QR_CREATED,
             PaymentStatus.CHECKOUT_CREATED
     );
     private static final Collection<PaymentStatus> ADMIN_LIST_STATUSES = List.of(
             PaymentStatus.PENDING,
+            PaymentStatus.QR_CREATED,
             PaymentStatus.CHECKOUT_CREATED,
             PaymentStatus.PAID,
             PaymentStatus.FAILED,
@@ -63,7 +65,7 @@ public class TemplatePaymentService {
     private final UserTemplateAccessRepository accessRepository;
     private final InvitationTemplateRepository templateRepository;
     private final CurrentUserService currentUserService;
-    private final PaymentProperties paymentProperties;
+    private final AbaPayWayProperties payWayProperties;
     private final AbaPayWayService abaPayWayService;
     private final ObjectMapper objectMapper;
     private final SecureRandom random = new SecureRandom();
@@ -73,7 +75,7 @@ public class TemplatePaymentService {
             UserTemplateAccessRepository accessRepository,
             InvitationTemplateRepository templateRepository,
             CurrentUserService currentUserService,
-            PaymentProperties paymentProperties,
+            AbaPayWayProperties payWayProperties,
             AbaPayWayService abaPayWayService,
             ObjectMapper objectMapper
     ) {
@@ -81,13 +83,13 @@ public class TemplatePaymentService {
         this.accessRepository = accessRepository;
         this.templateRepository = templateRepository;
         this.currentUserService = currentUserService;
-        this.paymentProperties = paymentProperties;
+        this.payWayProperties = payWayProperties;
         this.abaPayWayService = abaPayWayService;
         this.objectMapper = objectMapper;
     }
 
     @Transactional
-    public CreateTemplatePaymentResponse createPaywayCheckout(
+    public CreateTemplatePaymentResponse createPaywayQrCheckout(
             Authentication authentication,
             CreateTemplatePaymentRequest request
     ) {
@@ -113,21 +115,29 @@ public class TemplatePaymentService {
         order.setAmount(amount);
         order.setCurrency(currency);
         order.setStatus(PaymentStatus.PENDING);
-        order.setExpiresAt(Instant.now().plusSeconds(paymentProperties.getOrderExpiryMinutes() * 60));
+        order.setExpiresAt(Instant.now().plusSeconds(payWayProperties.getOrderExpiryMinutes() * 60));
         orderRepository.save(order);
 
         AbaPayWayCheckout checkout = abaPayWayService.createCheckout(order, request, user);
         order.setCheckoutUrl(checkout.checkoutUrl());
+        order.setQrString(checkout.qrString());
+        order.setQrImageUrl(checkout.qrImageUrl());
         order.setPaywayRequestJson(checkout.requestJson());
         order.setPaywayResponseJson(checkout.responseJson());
-        order.setStatus(PaymentStatus.CHECKOUT_CREATED);
+        order.setStatus(PaymentStatus.QR_CREATED);
         TemplatePaymentOrder saved = orderRepository.save(order);
 
         return CreateTemplatePaymentResponse.from(
                 saved,
-                checkout.checkoutFormFields(),
-                "PayWay checkout created. Continue to ABA PayWay to complete payment."
+                "PayWay QR created. Scan with ABA Mobile to complete payment."
         );
+    }
+
+    public CreateTemplatePaymentResponse createPaywayCheckout(
+            Authentication authentication,
+            CreateTemplatePaymentRequest request
+    ) {
+        return createPaywayQrCheckout(authentication, request);
     }
 
     @Transactional(readOnly = true)
@@ -156,19 +166,24 @@ public class TemplatePaymentService {
         order.setCallbackRawJson(toJson(payload));
         order.setPaywayStatus(callbackText(payload, "status"));
 
-        if (!abaPayWayService.verifyCallbackSignature(payload, signatureHeader)) {
+        boolean hasCallbackSignature = hasCallbackSignature(payload, signatureHeader);
+        if (hasCallbackSignature && !abaPayWayService.verifyCallbackSignature(payload, signatureHeader)) {
             orderRepository.save(order);
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Callback signature/hash verification failed");
         }
 
         PaymentStatus callbackStatus = mapCallbackStatus(payload.get("status"));
         if (callbackStatus != PaymentStatus.PAID) {
-            if (callbackStatus != PaymentStatus.CHECKOUT_CREATED) {
+            if (hasCallbackSignature
+                    && callbackStatus != PaymentStatus.QR_CREATED
+                    && callbackStatus != PaymentStatus.CHECKOUT_CREATED) {
                 order.setStatus(callbackStatus);
             }
             orderRepository.save(order);
             return PayWayCallbackResponse.builder()
-                    .message("Payment callback received")
+                    .message(hasCallbackSignature
+                            ? "Payment callback received"
+                            : "Payment callback received. Waiting for PayWay verification.")
                     .orderCode(order.getOrderCode())
                     .status(order.getStatus())
                     .build();
@@ -370,7 +385,7 @@ public class TemplatePaymentService {
         String status = value == null ? "" : String.valueOf(value).trim();
         return switch (status.toLowerCase(Locale.ROOT)) {
             case "0", "approved", "success", "paid" -> PaymentStatus.PAID;
-            case "1", "2", "created", "pending" -> PaymentStatus.CHECKOUT_CREATED;
+            case "1", "2", "created", "pending" -> PaymentStatus.QR_CREATED;
             case "3", "declined", "failed", "fail" -> PaymentStatus.FAILED;
             case "4", "cancelled", "canceled" -> PaymentStatus.CANCELLED;
             default -> PaymentStatus.REJECTED;
@@ -387,9 +402,15 @@ public class TemplatePaymentService {
         return null;
     }
 
+    private boolean hasCallbackSignature(Map<String, Object> payload, String signatureHeader) {
+        return (signatureHeader != null && !signatureHeader.isBlank())
+                || callbackText(payload, "hash", "signature", "hmac") != null;
+    }
+
     private String statusMessage(PaymentStatus status) {
         return switch (status) {
             case PENDING -> "Payment order created.";
+            case QR_CREATED -> "QR created. Waiting for PayWay payment callback.";
             case CHECKOUT_CREATED -> "Checkout created. Waiting for PayWay payment callback.";
             case PAID -> "Payment verified. Template unlocked.";
             case FAILED -> "Payment failed.";

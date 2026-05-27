@@ -67,6 +67,15 @@ PREPARE add_access_column_stmt FROM @add_access_column;
 EXECUTE add_access_column_stmt;
 DEALLOCATE PREPARE add_access_column_stmt;
 
+ALTER TABLE user_template_access
+    MODIFY COLUMN template_payment_order_id BIGINT NULL;
+
+UPDATE user_template_access uta
+LEFT JOIN template_payment_orders tpo ON tpo.id = uta.template_payment_order_id
+SET uta.template_payment_order_id = NULL
+WHERE uta.template_payment_order_id IS NOT NULL
+  AND tpo.id IS NULL;
+
 SET @old_access_fk_exists := (
     SELECT COUNT(*)
     FROM information_schema.TABLE_CONSTRAINTS

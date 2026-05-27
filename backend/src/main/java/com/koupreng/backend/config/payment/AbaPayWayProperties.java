@@ -1,9 +1,17 @@
 package com.koupreng.backend.config.payment;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
+
+import java.util.Arrays;
+import java.util.List;
 
 @ConfigurationProperties(prefix = "app.payment.payway")
-public class AbaPayWayProperties {
+public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
+
+    private Environment environment;
 
     private String merchantId = "";
     private String publicKey = "";
@@ -15,7 +23,36 @@ public class AbaPayWayProperties {
     private String continueSuccessUrl = "http://localhost:5173/payments/success";
     private String callbackUrl = "http://localhost:8080/api/v1/payway/callback";
     private boolean sandbox = true;
-    private String paymentOption = "abapay";
+    private String paymentOption = "abapay_deeplink";
+    private long orderExpiryMinutes = 15;
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        if (Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+            return;
+        }
+        List<String> missing = new java.util.ArrayList<>();
+        if (getMerchantId().isBlank()) {
+            missing.add("ABA_PAYWAY_MERCHANT_ID");
+        }
+        if (getPublicKey().isBlank()) {
+            missing.add("ABA_PAYWAY_PUBLIC_KEY");
+        }
+        if (getApiUrl().isBlank()) {
+            missing.add("ABA_PAYWAY_API_URL");
+        }
+        if (getCallbackUrl().isBlank()) {
+            missing.add("ABA_PAYWAY_CALLBACK_URL");
+        }
+        if (!missing.isEmpty()) {
+            throw new IllegalStateException("Missing ABA PayWay configuration: " + String.join(", ", missing));
+        }
+    }
 
     public String getMerchantId() {
         return trim(merchantId);
@@ -98,19 +135,27 @@ public class AbaPayWayProperties {
     }
 
     public String getPaymentOption() {
-        return trim(paymentOption).isBlank() ? "abapay" : trim(paymentOption);
+        return trim(paymentOption).isBlank() ? "abapay_deeplink" : trim(paymentOption);
     }
 
     public void setPaymentOption(String paymentOption) {
         this.paymentOption = paymentOption;
     }
 
+    public long getOrderExpiryMinutes() {
+        return orderExpiryMinutes;
+    }
+
+    public void setOrderExpiryMinutes(long orderExpiryMinutes) {
+        this.orderExpiryMinutes = orderExpiryMinutes;
+    }
+
     public String getCheckTransactionUrl() {
         String url = getApiUrl();
         if (url.endsWith("/purchase")) {
-            return url.substring(0, url.length() - "/purchase".length()) + "/check-transaction-2";
+            return url.substring(0, url.length() - "/purchase".length()) + "/check-transaction";
         }
-        return url.replace("/payments/purchase", "/payments/check-transaction-2");
+        return url.replace("/payments/purchase", "/payments/check-transaction");
     }
 
     private String normalizeKey(String value) {

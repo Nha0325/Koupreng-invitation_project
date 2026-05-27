@@ -25,7 +25,7 @@ import java.time.Instant;
 @Table(name = "template_payment_orders")
 public class TemplatePaymentOrder {
 
-    public static final String PROVIDER_ABA_PAYWAY_SANDBOX = "ABA_PAYWAY_SANDBOX";
+    public static final String PROVIDER_ABA_PAYWAY_DYNAMIC_QR_SANDBOX = "ABA_PAYWAY_DYNAMIC_QR_SANDBOX";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,7 +64,13 @@ public class TemplatePaymentOrder {
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Column(nullable = false, length = 50)
-    private String provider = PROVIDER_ABA_PAYWAY_SANDBOX;
+    private String provider = PROVIDER_ABA_PAYWAY_DYNAMIC_QR_SANDBOX;
+
+    @Column(name = "qr_string", columnDefinition = "TEXT")
+    private String qrString;
+
+    @Column(name = "qr_image_url", columnDefinition = "TEXT")
+    private String qrImageUrl;
 
     @Column(name = "payway_request_json", columnDefinition = "TEXT")
     private String paywayRequestJson;
@@ -106,7 +112,7 @@ public class TemplatePaymentOrder {
             currency = "USD";
         }
         if (provider == null || provider.isBlank()) {
-            provider = PROVIDER_ABA_PAYWAY_SANDBOX;
+            provider = PROVIDER_ABA_PAYWAY_DYNAMIC_QR_SANDBOX;
         }
         createdAt = now;
         updatedAt = now;

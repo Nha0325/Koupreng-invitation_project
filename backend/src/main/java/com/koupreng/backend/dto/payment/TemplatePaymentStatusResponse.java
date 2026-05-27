@@ -25,6 +25,9 @@ public class TemplatePaymentStatusResponse {
     private BigDecimal paidAmount;
     private String currency;
     private PaymentStatus status;
+    private String qrString;
+    private String qrImageUrl;
+    private String checkoutUrl;
     private Instant paidAt;
     private Instant expiresAt;
     private String message;
@@ -40,6 +43,9 @@ public class TemplatePaymentStatusResponse {
                 .paidAmount(order.getPaidAmount())
                 .currency(order.getCurrency())
                 .status(order.getStatus())
+                .qrString(order.getQrString())
+                .qrImageUrl(order.getQrImageUrl())
+                .checkoutUrl(order.getCheckoutUrl())
                 .paidAt(order.getPaidAt())
                 .expiresAt(order.getExpiresAt())
                 .message(message)

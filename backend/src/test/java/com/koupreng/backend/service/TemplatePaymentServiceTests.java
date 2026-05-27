@@ -2,7 +2,7 @@ package com.koupreng.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koupreng.backend.common.ApiException;
-import com.koupreng.backend.config.PaymentProperties;
+import com.koupreng.backend.config.payment.AbaPayWayProperties;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentResponse;
 import com.koupreng.backend.dto.payment.PayWayCallbackResponse;
@@ -39,14 +39,17 @@ import static org.mockito.Mockito.when;
 class TemplatePaymentServiceTests {
 
     @Test
-    void createPaywayCheckoutCreatesSignedCheckoutForAuthenticatedUser() {
+    void createPaywayCheckoutCreatesDynamicQrForAuthenticatedUser() {
         Fixture fixture = fixture();
         when(fixture.abaPayWayService.createCheckout(any(), any(), any()))
                 .thenReturn(new AbaPayWayCheckout(
-                        "https://checkout-sandbox.payway.com.kh/api/payment-gateway/v1/payments/purchase",
-                        Map.of("tran_id", "PW26052612000011", "hash", "signed"),
+                        "abamobilebank://ababank.com?type=payway&qrcode=ABA123",
+                        "ABA123",
+                        "data:image/png;base64,abc",
+                        "abamobilebank://ababank.com?type=payway&qrcode=ABA123",
                         "{\"tran_id\":\"PW26052612000011\"}",
-                        "{\"mode\":\"SIGNED_FORM\"}"
+                        "{\"qrString\":\"ABA123\"}",
+                        Map.of("tran_id", "PW26052612000011", "hash", "signed")
                 ));
 
         CreateTemplatePaymentResponse response = fixture.service.createPaywayCheckout(
@@ -58,8 +61,9 @@ class TemplatePaymentServiceTests {
         assertNotNull(response.getTransactionId());
         assertEquals(10L, response.getTemplateId());
         assertEquals(new BigDecimal("5.00"), response.getAmount());
-        assertEquals(PaymentStatus.CHECKOUT_CREATED, response.getStatus());
-        assertEquals("signed", response.getCheckoutFormFields().get("hash"));
+        assertEquals(PaymentStatus.QR_CREATED, response.getStatus());
+        assertEquals("ABA123", response.getQrString());
+        assertEquals("data:image/png;base64,abc", response.getQrImageUrl());
     }
 
     @Test
@@ -78,7 +82,7 @@ class TemplatePaymentServiceTests {
     @Test
     void callbackVerifiesWithPayWayBeforeMarkingPaidAndUnlockingTemplate() {
         Fixture fixture = fixture();
-        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.QR_CREATED, new BigDecimal("5.00"));
         Map<String, Object> payload = Map.of("tran_id", order.getTransactionId(), "status", "0", "apv", "123456");
         when(fixture.orderRepository.findByTransactionId(order.getTransactionId())).thenReturn(Optional.of(order));
         when(fixture.abaPayWayService.verifyCallbackSignature(payload, "sig")).thenReturn(true);
@@ -102,9 +106,34 @@ class TemplatePaymentServiceTests {
     }
 
     @Test
+    void unsignedSuccessCallbackStillRequiresPayWayCheckTransactionBeforeUnlockingTemplate() {
+        Fixture fixture = fixture();
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.QR_CREATED, new BigDecimal("5.00"));
+        Map<String, Object> payload = Map.of("tran_id", order.getTransactionId(), "status", "0", "apv", "123456");
+        when(fixture.orderRepository.findByTransactionId(order.getTransactionId())).thenReturn(Optional.of(order));
+        when(fixture.abaPayWayService.checkTransaction(order.getTransactionId()))
+                .thenReturn(new PayWayTransactionVerification(
+                        true,
+                        PaymentStatus.PAID,
+                        new BigDecimal("5.00"),
+                        "USD",
+                        "APPROVED",
+                        order.getTransactionId(),
+                        "{\"status\":0,\"description\":\"approved\"}"
+                ));
+
+        PayWayCallbackResponse response = fixture.service.handlePaywayCallback(payload, null);
+
+        assertEquals(PaymentStatus.PAID, response.getStatus());
+        verify(fixture.abaPayWayService, never()).verifyCallbackSignature(any(), any());
+        verify(fixture.abaPayWayService).checkTransaction(order.getTransactionId());
+        verify(fixture.accessRepository).save(any(UserTemplateAccess.class));
+    }
+
+    @Test
     void callbackRejectsInvalidSignatureWithoutUnlockingTemplate() {
         Fixture fixture = fixture();
-        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.QR_CREATED, new BigDecimal("5.00"));
         Map<String, Object> payload = Map.of("tran_id", order.getTransactionId(), "status", "0");
         when(fixture.orderRepository.findByTransactionId(order.getTransactionId())).thenReturn(Optional.of(order));
         when(fixture.abaPayWayService.verifyCallbackSignature(payload, "bad")).thenReturn(false);
@@ -115,14 +144,14 @@ class TemplatePaymentServiceTests {
         );
 
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
-        assertEquals(PaymentStatus.CHECKOUT_CREATED, order.getStatus());
+        assertEquals(PaymentStatus.QR_CREATED, order.getStatus());
         verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
     }
 
     @Test
     void callbackRejectsAmountMismatch() {
         Fixture fixture = fixture();
-        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.QR_CREATED, new BigDecimal("5.00"));
         Map<String, Object> payload = Map.of("tran_id", order.getTransactionId(), "status", "0");
         when(fixture.orderRepository.findByTransactionId(order.getTransactionId())).thenReturn(Optional.of(order));
         when(fixture.abaPayWayService.verifyCallbackSignature(payload, "sig")).thenReturn(true);
@@ -151,7 +180,7 @@ class TemplatePaymentServiceTests {
     @Test
     void nonOwnerCannotViewOrder() {
         Fixture fixture = fixture();
-        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.CHECKOUT_CREATED, new BigDecimal("5.00"));
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.QR_CREATED, new BigDecimal("5.00"));
         when(fixture.orderRepository.findByOrderCode("EVT260526001")).thenReturn(Optional.of(order));
         AppUser other = user(2L, Role.USER);
         when(fixture.currentUserService.currentUser(fixture.authentication)).thenReturn(other);
@@ -170,7 +199,7 @@ class TemplatePaymentServiceTests {
         InvitationTemplateRepository templateRepository = mock(InvitationTemplateRepository.class);
         CurrentUserService currentUserService = mock(CurrentUserService.class);
         AbaPayWayService abaPayWayService = mock(AbaPayWayService.class);
-        PaymentProperties paymentProperties = new PaymentProperties();
+        AbaPayWayProperties payWayProperties = new AbaPayWayProperties();
         Authentication authentication = mock(Authentication.class);
         AppUser owner = user(1L, Role.USER);
         TemplatePaymentService service = new TemplatePaymentService(
@@ -178,7 +207,7 @@ class TemplatePaymentServiceTests {
                 accessRepository,
                 templateRepository,
                 currentUserService,
-                paymentProperties,
+                payWayProperties,
                 abaPayWayService,
                 new ObjectMapper()
         );

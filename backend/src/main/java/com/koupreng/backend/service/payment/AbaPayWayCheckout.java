@@ -4,8 +4,11 @@ import java.util.Map;
 
 public record AbaPayWayCheckout(
         String checkoutUrl,
-        Map<String, String> checkoutFormFields,
+        String qrString,
+        String qrImageUrl,
+        String abaPayDeeplink,
         String requestJson,
-        String responseJson
+        String responseJson,
+        Map<String, String> requestFields
 ) {
 }
