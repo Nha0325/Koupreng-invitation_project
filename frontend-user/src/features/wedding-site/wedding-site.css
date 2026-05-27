@@ -97,17 +97,12 @@
     background-image: var(--tpl-demo-bg-image);
     background-size: cover;
     background-position: center;
-    opacity: 0.62;
+    opacity: 0.6;
     transform: scale(1.03);
     animation: tplDemoBgDrift 18s ease-in-out infinite alternate;
 }
 
-.tpl-demo-root::after {
-    z-index: 0;
-    background:
-        linear-gradient(180deg, rgba(255, 250, 241, 0.52) 0%, rgba(255, 250, 241, 0.78) 48%, rgba(246, 239, 228, 0.92) 100%),
-        radial-gradient(ellipse at 50% 15%, rgba(255, 255, 255, 0.48), transparent 34%);
-}
+
 
 .tpl-demo-root > * {
     position: relative;
@@ -172,7 +167,7 @@
 }
 
 .tpl-demo-phone {
-    width: min(250px, 100vw);
+    width: min(320px, 100vw);
     height: clamp(520px, calc(100vh - 190px), 660px);
     height: clamp(520px, calc(100svh - 190px - var(--safe-bottom)), 660px);
     aspect-ratio: 9 / 18.7;
@@ -493,6 +488,7 @@
 .tpl-phone-scroll {
     position: absolute;
     inset: 0;
+    z-index: 2;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -657,6 +653,7 @@
 
 .tpl-royal-invitation.is-phone {
     min-height: 100%;
+    overflow: visible;
 }
 
 .tpl-ri-cover {
@@ -1231,6 +1228,33 @@
     height: 100%;
     min-height: 170px;
     object-fit: cover;
+    object-position: center center;
+}
+
+.royal-story-image-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+}
+
+.royal-story-image-grid .tpl-ri-gallery-item {
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+    transform: none;
+}
+
+.royal-story-image-grid .tpl-ri-gallery-item:first-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 100%;
+    aspect-ratio: auto;
+}
+
+.royal-story-image-grid .tpl-ri-gallery-item img,
+.royal-story-image-grid .tpl-ri-gallery-item video {
+    height: auto;
+    min-height: 0;
+    object-fit: contain;
 }
 
 .tpl-gallery-a,
@@ -1863,9 +1887,9 @@
     background-size:
         100% 100%,
         100% 100%,
-        cover;
-    transform: scale(1.04);
-    animation: tplPinnedWeddingBg 18s ease-in-out infinite alternate;
+        contain;
+    transform: none;
+    filter: saturate(0.96) brightness(1.02);
 }
 
 .tpl-royal-invitation.is-full.no-intro .tpl-ri-cover {
@@ -1908,8 +1932,8 @@
     z-index: 1;
     background:
         linear-gradient(180deg, rgba(255, 250, 241, 0.72), rgba(246, 239, 228, 0.86)),
-        var(--tpl-cover-image) center / cover no-repeat;
-    transform: scale(1.04);
+        var(--tpl-cover-image) center / contain no-repeat;
+    transform: none;
     filter: saturate(0.95) brightness(1.04);
 }
 
@@ -2035,9 +2059,10 @@
     left: 50%;
     bottom: calc(12px + var(--safe-bottom));
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     z-index: 40;
-    width: min(280px, calc(100% - 18px - var(--safe-left) - var(--safe-right)));
+    /* width: min(280px, calc(100% - 18px - var(--safe-left) - var(--safe-right))); */
+    width: min(280px, calc(80% - 18px - var(--safe-left) - var(--safe-right)));
     gap: 3px;
     max-width: none;
     margin: 0;
@@ -2093,7 +2118,7 @@
     padding: 64px 18px 44px;
     background:
         linear-gradient(180deg, rgba(36, 32, 28, 0.35), rgba(55, 45, 36, 0.5) 50%, rgba(36, 32, 28, 0.6)),
-        var(--tpl-cover-image) center / cover no-repeat;
+        var(--tpl-cover-image) center / contain no-repeat;
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -2477,7 +2502,7 @@
     }
 
     .tpl-demo-phone {
-        width: min(250px, 100vw);
+        width: min(320px, 100vw);
         height: min(560px, calc(100vh - 68px));
         height: min(560px, calc(100svh - 68px - var(--safe-bottom)));
         min-height: 420px;
@@ -2525,7 +2550,9 @@
     }
 
     .tpl-royal-invitation.is-full .tpl-ri-gallery-grid {
-        display: none;
+        grid-template-columns: 1fr;
+        width: min(100%, 320px);
+        margin: 18px auto 0;
     }
 
     .tpl-royal-invitation.is-full .tpl-ri-dress-palette {
@@ -2840,9 +2867,22 @@
     z-index: 1;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    transform: scale(1.02);
-    animation: tplPhoneCoverDrift 8s ease-in-out infinite alternate;
+    object-fit: contain;
+    object-position: center center;
+    transform: none;
+}
+
+.tpl-gate-image-pinned {
+    z-index: 3;
+    opacity: 0;
+    pointer-events: none;
+    animation: none;
+    transform: none;
+    transition: opacity 0.4s ease;
+}
+
+.tpl-demo-phone.is-opened .tpl-gate-image-pinned {
+    opacity: 0.08;
 }
 
 @keyframes tplPhoneCoverDrift {
@@ -3107,7 +3147,7 @@
 
 /* ── 3D Split Scroll → Image Slideshow ── */
 .royal-split-scroll {
-    padding: 60px 20px;
+    padding: 20px 20px;
     text-align: center;
     overflow: hidden;
 }
@@ -3299,7 +3339,9 @@
 }
 
 .tpl-royal-invitation.is-phone .royal-split-scroll {
-    padding: 36px 14px;
+    min-height: 150svh;
+    padding: 36px 14px 120px;
+    overflow: visible;
 }
 
 .tpl-royal-invitation.is-phone .royal-split-scroll__title {
@@ -3307,10 +3349,13 @@
 }
 
 .tpl-royal-invitation.is-phone .royal-slideshow {
+    position: sticky;
+    top: calc(24px + var(--safe-top, 0px));
     width: 100%;
     aspect-ratio: 3 / 4;
     border-radius: 12px;
     border-width: 1.5px;
+    z-index: 2;
 }
 
 .tpl-royal-invitation.is-phone .royal-slideshow__counter {
@@ -3387,6 +3432,11 @@
 .tpl-ri-gallery {
     position: relative;
     overflow: hidden;
+}
+
+.tpl-ri-gallery > :not(.royal-gallery-bg) {
+    position: relative;
+    z-index: 1;
 }
 
 .royal-gallery-bg__hearts {
@@ -3563,7 +3613,26 @@
 }
 
 .tpl-royal-invitation.is-phone .tpl-ri-gallery-grid {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-items: center;
+    gap: 12px;
+    width: min(100%, 330px);
+    margin: 18px auto 0;
+}
+
+.tpl-royal-invitation.is-phone .royal-story-image-grid .tpl-ri-gallery-item {
+    min-height: 0;
+    width: 100%;
+}
+
+.tpl-royal-invitation.is-phone .royal-story-image-grid .tpl-ri-gallery-item:first-child {
+    width: 100%;
+}
+
+.tpl-royal-invitation.is-phone .royal-story-image-grid .tpl-ri-gallery-item img,
+.tpl-royal-invitation.is-phone .royal-story-image-grid .tpl-ri-gallery-item video {
+    min-height: 0;
 }
 
 .tpl-royal-invitation.is-phone .royal-story-card__dots {

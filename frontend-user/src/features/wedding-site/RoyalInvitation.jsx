@@ -5,147 +5,67 @@ import defaultMusicUrl from "../../assets/music/Instrumental Wedding Music (VioS
 
 // ─── Default Data ───────────────────────────────────────────────────────────
 
-// Each card contains multiple images from /facebook/all/ folders
-const defaultStoryCards = [
-    {
-        id: "card-01",
-        title: "Our Story",
-        images: [
-            "/facebook/all/01-card-01-story/01-01.jpg",
-            "/facebook/all/01-card-01-story/01-02.jpg",
-            "/facebook/all/01-card-01-story/01-03.jpg",
-            "/facebook/all/01-card-01-story/01-04.jpg",
-            "/facebook/all/01-card-01-story/01-05.jpg",
-        ],
-    },
-    {
-        id: "card-02",
-        title: "Curtain Post",
-        images: [
-            "/facebook/all/02-card-02-curtain-post/02-01.jpg",
-            "/facebook/all/02-card-02-curtain-post/02-02.jpg",
-            "/facebook/all/02-card-02-curtain-post/02-03.jpg",
-        ],
-    },
-    {
-        id: "card-03",
-        title: "Video Moments",
-        images: [
-            "/facebook/all/03-card-02-video/03-01.jpg",
-            "/facebook/all/03-card-02-video/03-02.jpg",
-            "/facebook/all/03-card-02-video/03-03.jpg",
-            "/facebook/all/03-card-02-video/03-04.jpg",
-            "/facebook/all/03-card-02-video/03-05.jpg",
-        ],
-    },
-    {
-        id: "card-04",
-        title: "Reel 01",
-        images: [
-            "/facebook/all/04-card-02-reel-01/04-01.jpg",
-            "/facebook/all/04-card-02-reel-01/04-02.jpg",
-            "/facebook/all/04-card-02-reel-01/04-03.jpg",
-            "/facebook/all/04-card-02-reel-01/04-04.jpg",
-            "/facebook/all/04-card-02-reel-01/04-05.jpg",
-        ],
-    },
-    {
-        id: "card-05",
-        title: "Reel 02",
-        images: [
-            "/facebook/all/05-card-02-reel-02/05-01.jpg",
-            "/facebook/all/05-card-02-reel-02/05-02.jpg",
-            "/facebook/all/05-card-02-reel-02/05-03.jpg",
-            "/facebook/all/05-card-02-reel-02/05-04.jpg",
-            "/facebook/all/05-card-02-reel-02/05-05.jpg",
-        ],
-    },
-    {
-        id: "card-06",
-        title: "Reel 03",
-        images: [
-            "/facebook/all/06-card-02-reel-03/06-01.jpg",
-            "/facebook/all/06-card-02-reel-03/06-02.jpg",
-            "/facebook/all/06-card-02-reel-03/06-03.jpg",
-            "/facebook/all/06-card-02-reel-03/06-04.jpg",
-            "/facebook/all/06-card-02-reel-03/06-05.jpg",
-        ],
-    },
+const DEFAULT_STORY_CARD_GROUPS = [
+    { id: "card-01", title: "Our Story", folder: "01-card", count: 4 },
+    { id: "card-02", title: "Curtain Post", folder: "02-card", count: 9 },
+    { id: "card-03", title: "Video Moments", folder: "03-card", count: 7 },
+    { id: "card-04", title: "Reel 01", folder: "04-card", count: 5 },
+    { id: "card-05", title: "Reel 02", folder: "05-card", count: 6 },
+    { id: "card-06", title: "Reel 03", folder: "06-card", count: 8 },
+    { id: "card-07", title: "Story 01", folder: "07-card", count: 4 },
+    { id: "card-08", title: "Story 02", folder: "08-card", count: 4 },
+    { id: "card-09", title: "Story 03", folder: "09-card", count: 4 },
+    { id: "card-10", title: "Story 04", folder: "10-card", count: 5 },
+    { id: "card-11", title: "Story 05", folder: "11-card", count: 4 },
 ];
 
-const defaultStoryImages = [
-    { src: "/facebook/01-card-01-story.jpg", alt: "Wedding story photo 1", className: "tpl-gallery-a" },
-    { src: "/facebook/07-story-image-01.jpg", alt: "Wedding story photo 2", className: "tpl-gallery-b" },
-    { src: "/facebook/08-story-image-02.jpg", alt: "Wedding story photo 3", className: "tpl-gallery-c" },
-    { src: "/facebook/09-story-image-03.jpg", alt: "Wedding story photo 4", className: "tpl-gallery-d" },
-];
+function buildDefaultStoryCard({ id, title, folder, count }) {
+    const sourceNumber = folder.slice(0, 2);
+    return {
+        id,
+        title,
+        images: [
+            `/facebook/all/${folder}/cover-card.jpg`,
+            ...Array.from(
+                { length: count },
+                (_, index) => `/facebook/all/${folder}/${sourceNumber}-${String(index + 1).padStart(2, "0")}.jpg`
+            ),
+        ],
+    };
+}
+
+const defaultStoryCards = DEFAULT_STORY_CARD_GROUPS.map(buildDefaultStoryCard);
+
+function mergeStoryImageCards(...cardSets) {
+    const seen = new Set();
+
+    return cardSets
+        .flatMap((cards) => (Array.isArray(cards) ? cards : []))
+        .map((card, index) => {
+            const images = (Array.isArray(card?.images) ? card.images : [])
+                .filter((src) => {
+                    if (typeof src !== "string" || src.length === 0 || seen.has(src)) return false;
+                    seen.add(src);
+                    return true;
+                });
+
+            return images.length
+                ? { ...card, id: card.id || `story-card-${index}`, images }
+                : null;
+        })
+        .filter(Boolean);
+}
 
 const STORY_IMAGE_CLASSES = ["tpl-gallery-a", "tpl-gallery-b", "tpl-gallery-c", "tpl-gallery-d"];
 
-const MAIN_IMAGE = "/facebook/01-card-01-story.jpg";
-
-const defaultStoryVideoCards = [
-    { id: "vdo-1", title: "Story Video 1", videos: ["/vdo/1.mp4"] },
-    { id: "vdo-2", title: "Story Video 2", videos: ["/vdo/2.mp4"] },
-    { id: "vdo-3", title: "Story Video 3", videos: ["/vdo/3.mp4"] },
-    { id: "vdo-4", title: "Story Video 4", videos: ["/vdo/4.mp4"] },
-];
+const MAIN_IMAGE = "/facebook/all/01-card/cover-card.jpg";
 
 const quickNavItems = [
     { target: "cover", label: "ទំព័រដើម", Icon: IoHome },
     { target: "schedule", label: "កម្មវិធី", Icon: IoCalendar },
     { target: "venue", label: "ទីតាំង", Icon: IoLocationSharp },
     { target: "gallery", label: "រូបភាព", Icon: IoCamera },
-    // { target: "qr", label: "QR Code", Icon: IoQrCode },
 ];
-
-const videoSourcePattern = /\.(mp4|webm|mov|m4v)(\?.*)?$/i;
-
-function getMediaSrc(media) {
-    return typeof media === "string" ? media : media?.src || media?.url || "";
-}
-
-function isVideoMedia(media) {
-    if (typeof media === "object" && media?.type === "video") return true;
-    return videoSourcePattern.test(getMediaSrc(media));
-}
-
-function normalizeStoryVideoCards(cards) {
-    return cards
-        .map((card, index) => {
-            if (typeof card === "string") {
-                return isVideoMedia(card) ? { id: `story-video-${index}`, title: `Story Video ${index + 1}`, media: [card] } : null;
-            }
-
-            const media = card.videos || card.media || card.images || [card.src || card.url].filter(Boolean);
-            const videos = media.filter(isVideoMedia);
-            return videos.length ? { ...card, id: card.id || `story-video-${index}`, media: videos } : null;
-        })
-        .filter(Boolean);
-}
-
-function buildStoryGalleryImages(storyImages, storyImageCards) {
-    const seen = new Set();
-    const images = [];
-
-    const addImage = (image, index) => {
-        const src = getMediaSrc(image);
-        if (!src || seen.has(src) || isVideoMedia(image)) return;
-        seen.add(src);
-        images.push({
-            src,
-            alt: image.alt || `Wedding story photo ${images.length + 1}`,
-            className: image.className || STORY_IMAGE_CLASSES[index % STORY_IMAGE_CLASSES.length],
-        });
-    };
-
-    storyImages.forEach(addImage);
-    storyImageCards.forEach((card) => {
-        (card.images || card.media || []).forEach(addImage);
-    });
-
-    return images;
-}
 
 // ─── Logo Preloader ─────────────────────────────────────────────────────────
 function LogoPreloader({ onComplete }) {
@@ -345,17 +265,7 @@ function KineticGrid() {
 }
 
 // ─── Image Slideshow (replaces split scroll) ────────────────────────────────
-const SLIDESHOW_IMAGES = [
-    "/facebook/07-story-image-01.jpg",
-    "/facebook/08-story-image-02.jpg",
-    "/facebook/09-story-image-03.jpg",
-    "/facebook/10-story-image-04.jpg",
-    "/facebook/11-story-image-05.jpg",
-    "/facebook/12-story-image-06.jpg",
-    "/facebook/13-story-image-07.jpg",
-    "/facebook/14-story-image-08.jpg",
-    "/facebook/15-story-image-09.jpg",
-];
+const SLIDESHOW_IMAGES = defaultStoryCards[0].images;
 
 function ImageSplitScroll({ isPhone, images = SLIDESHOW_IMAGES }) {
     const [slideIndex, setSlideIndex] = useState(0);
@@ -476,72 +386,6 @@ function ImageCard({ isPhone }) {
     );
 }
 
-// ─── Story Card (auto-sliding media like Facebook stories) ─────────────────
-function StoryCard({ card, isPhone }) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const mediaItems = card.media || card.videos || card.images || [];
-    const intervalRef = useRef(null);
-    const activeMedia = mediaItems[currentIndex] || mediaItems[0];
-    const activeSrc = getMediaSrc(activeMedia);
-    const activeIsVideo = isVideoMedia(activeMedia);
-
-    useEffect(() => {
-        if (mediaItems.length <= 1) return undefined;
-        intervalRef.current = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
-        }, 3000);
-        return () => clearInterval(intervalRef.current);
-    }, [mediaItems.length]);
-
-    return (
-        <div className="royal-story-card">
-            <div className="royal-story-card__image-wrap">
-                <AnimatePresence mode="wait">
-                    {activeIsVideo ? (
-                        <motion.video
-                            key={`${card.id}-${currentIndex}`}
-                            src={activeSrc}
-                            className="royal-story-card__video"
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                            preload={isPhone ? "auto" : "metadata"}
-                            initial={{ opacity: 0, scale: 1.05 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.6, ease: "easeInOut" }}
-                        />
-                    ) : (
-                        <motion.img
-                            key={`${card.id}-${currentIndex}`}
-                            src={activeSrc}
-                            alt={`${card.title} - ${currentIndex + 1}`}
-                            className="royal-story-card__img"
-                            loading={isPhone ? "eager" : "lazy"}
-                            initial={{ opacity: 0, scale: 1.05 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.6, ease: "easeInOut" }}
-                        />
-                    )}
-                </AnimatePresence>
-            </div>
-            {/* Progress dots */}
-            {mediaItems.length > 1 && (
-                <div className="royal-story-card__dots">
-                    {mediaItems.map((_, i) => (
-                    <span
-                        key={i}
-                        className={`royal-story-card__dot${i === currentIndex ? " active" : ""}`}
-                    />
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
-
 // ─── Countdown Grid ─────────────────────────────────────────────────────────
 function CountdownGrid({ countdown }) {
     return (
@@ -585,10 +429,11 @@ export default function RoyalInvitation({ tpl, countdown, mode = "full", autoPla
     const flowerGateTimerRef = useRef(null);
     const manualActiveLockRef = useRef(false);
     const manualActiveTimerRef = useRef(null);
-    const storyImages = tpl.storyImages || defaultStoryImages;
-    const storyImageCards = tpl.storyCards || defaultStoryCards;
-    const storyVideoCards = normalizeStoryVideoCards(tpl.storyVideoCards || tpl.storyVideos || defaultStoryVideoCards);
-    const storyGalleryImages = buildStoryGalleryImages(storyImages, storyImageCards);
+    const selectedStoryCard = Array.isArray(tpl.storyCards) && tpl.storyCards[0]?.images?.length
+        ? tpl.storyCards[0]
+        : defaultStoryCards[0];
+    const storyImageCards = mergeStoryImageCards([selectedStoryCard]);
+    const slideshowImages = storyImageCards[0]?.images?.length ? storyImageCards[0].images : SLIDESHOW_IMAGES;
     const musicUrl = tpl.music?.url !== undefined ? tpl.music.url : defaultMusicUrl;
     const mainImage = tpl.mainImage || MAIN_IMAGE;
     const coverImage = tpl.phoneCoverImage || mainImage;
@@ -934,7 +779,7 @@ export default function RoyalInvitation({ tpl, countdown, mode = "full", autoPla
             <ImageCard isPhone={isPhone} />
 
             {/* 3D Split Scroll */}
-            <ImageSplitScroll key={tpl.id} isPhone={isPhone} images={tpl.slideshowImages} />
+            <ImageSplitScroll key={tpl.id} isPhone={isPhone} images={slideshowImages} />
 
             {/* Schedule */}
             <section className="tpl-ri-section tpl-ri-schedule tpl-ri-animate" data-ri-section="schedule" data-ri-animate>
@@ -971,10 +816,10 @@ export default function RoyalInvitation({ tpl, countdown, mode = "full", autoPla
                 </div>
             </section>
 
-            {/* Gallery — Story Cards */}
-            <section className="tpl-ri-section tpl-ri-gallery tpl-ri-animate" data-ri-section="gallery" data-ri-animate>
+            {/* Gallery — Image Cards */}
+            <section className="tpl-ri-section tpl-ri-gallery" data-ri-section="gallery">
                 <p className="tpl-ri-kicker">រូបភាពអនុស្សាវរីយ៍</p>
-                <h2>Our Story</h2>
+                <h2>រូបភាពស្នេហា</h2>
 
                 {/* Animated wedding background for gallery */}
                 <div className="royal-gallery-bg" aria-hidden="true">
@@ -982,25 +827,17 @@ export default function RoyalInvitation({ tpl, countdown, mode = "full", autoPla
                     <div className="royal-gallery-bg__sparkles" />
                 </div>
 
-                {/* Story cards grid */}
-                <div className="royal-story-cards-grid">
-                    {storyVideoCards.map((card) => (
-                        <StoryCard key={card.id} card={card} isPhone={isPhone} />
-                    ))}
-                </div>
-
-                {/* Image gallery below */}
+                {/* Image gallery */}
                 <div className="tpl-ri-gallery-grid royal-story-image-grid">
-                    {storyGalleryImages.map((image, index) => (
+                    {storyImageCards.flatMap((card) => card.images || []).map((src, index) => (
                         <figure
-                            className={`tpl-ri-gallery-item tpl-ri-animate ${image.className || ""}`}
-                            data-ri-animate
-                            key={`${image.src}-${index}`}
+                            className={`tpl-ri-gallery-item ${STORY_IMAGE_CLASSES[index % STORY_IMAGE_CLASSES.length]}`}
+                            key={`${src}-${index}`}
                         >
                             <img
-                                src={image.src}
-                                alt={image.alt || "Wedding story"}
-                                loading={isPhone ? "eager" : "lazy"}
+                                src={src}
+                                alt={`Wedding photo ${index + 1}`}
+                                loading="eager"
                             />
                         </figure>
                     ))}

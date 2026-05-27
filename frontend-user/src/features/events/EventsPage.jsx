@@ -4,8 +4,13 @@ import { listDrafts } from "../../services/weddingStorage";
 import "./EventsPage.css";
 
 function getTitle(draft) {
+    const eventTitle = draft?.extras?.eventTitle || draft?.title;
     const groom = draft?.couple?.groom;
     const bride = draft?.couple?.bride;
+
+    if (eventTitle) {
+        return eventTitle;
+    }
 
     if (groom || bride) {
         return `${groom || "កូនកំលោះ"} & ${bride || "កូនក្រមុំ"}`;
@@ -68,8 +73,8 @@ export default function EventsPage() {
                     <h1>កម្មវិធីសន្លឹកការរបស់អ្នក</h1>
                     <p>ទិន្នន័យនេះអានពី wedding draft storage ដូចគ្នានឹង dashboard និង builder។</p>
                 </div>
-                <Link to="/templates" className="events-create-btn">
-                    + ជ្រើសរើសគំរូ
+                <Link to="/events/create" className="events-create-btn">
+                    + បង្កើតកម្មវិធី
                 </Link>
             </header>
 
@@ -77,9 +82,9 @@ export default function EventsPage() {
                 <section className="events-empty">
                     <div className="events-empty-icon">គូព្រេង</div>
                     <h2>មិនទាន់មានកម្មវិធី</h2>
-                    <p>ចាប់ផ្តើមពីគំរូសន្លឹកការ ដើម្បីបង្កើតកម្មវិធីដំបូង។</p>
-                    <Link to="/templates" className="events-create-btn">
-                        + ជ្រើសរើសគំរូ
+                    <p>ចាប់ផ្តើមបង្កើតកម្មវិធីដំបូង ហើយរក្សាទុកក្នុង wedding draft storage។</p>
+                    <Link to="/events/create" className="events-create-btn">
+                        + បង្កើតកម្មវិធី
                     </Link>
                 </section>
             ) : (

@@ -1,75 +1,205 @@
-/* Wedding builder layout — kept simple on purpose. */
+/* Wedding builder layout — header + content */
 
 .wb-root {
-    display: grid;
-    grid-template-columns: 200px 1fr 360px;
-    gap: 24px;
-    padding: 24px;
-    min-height: calc(100vh - 80px);
-    background: #faf7f2;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    isolation: isolate;
+    background: #fbf5ec;
     overflow-x: hidden;
 }
 
-.wb-sidebar {
-    background: #ffffff;
-    border: 1px solid #ece6da;
-    border-radius: 12px;
-    padding: 20px;
-    height: fit-content;
+.wb-root::before,
+.wb-root::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.wb-root::before {
+    background-image: url("../../assets/icons/background.png");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.4;
+    transform: scale(1.03);
+    animation: tplDemoBgDrift 18s ease-in-out infinite alternate;
+}
+
+.wb-root::after {
+    background:
+        linear-gradient(180deg, rgba(255, 250, 241, 0.4), rgba(255, 250, 241, 0.4)),
+        radial-gradient(ellipse at 50% 15%, rgba(255, 255, 255, 0.4), transparent 34%);
+}
+
+.wb-root > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Top Header (same style as site header) ── */
+.wb-top-header {
     position: sticky;
-    top: 24px;
+    top: 0;
+    z-index: 100;
+    padding: 14px 0;
+    pointer-events: none;
 }
 
-.wb-breadcrumb {
-    grid-column: 1 / -1;
-    min-width: 0;
-    padding: 14px 18px;
-    background: #ffffff;
-    border: 1px solid #ece6da;
-    border-radius: 12px;
+.wb-top-header-inner {
+    pointer-events: auto;
+    max-width: 1440px;
+    margin: 0 auto;
+    width: 94%;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 0 28px;
+    height: 68px;
+    background: rgba(252, 248, 242, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 50px;
+    border: 1px solid rgba(176, 146, 106, 0.3);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.06);
 }
 
-.wb-breadcrumb .kp-breadcrumb {
+.wb-header-brand {
+    flex-shrink: 0;
+}
+
+.wb-header-brand .kp-breadcrumb {
     max-width: none;
     margin: 0;
 }
 
-.wb-breadcrumb .kp-breadcrumb-list {
+.wb-header-brand .kp-breadcrumb-list {
     flex-wrap: nowrap;
     gap: 6px;
+}
+
+.wb-header-brand .kp-breadcrumb-link,
+.wb-header-brand .kp-breadcrumb-current {
+    font-family: "Kantumruy Pro", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.wb-header-brand .kp-breadcrumb-link {
+    color: #7f8aa0;
+}
+
+.wb-header-brand .kp-breadcrumb-link:hover {
+    color: #7d6443;
+}
+
+.wb-header-brand .kp-breadcrumb-current {
+    color: #7d6443;
+}
+
+.wb-header-brand .kp-breadcrumb-separator {
+    color: #b0926a;
+    font-size: 16px;
+}
+
+/* ── Step Nav Links ── */
+.wb-step-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
     overflow-x: auto;
     scrollbar-width: none;
 }
 
-.wb-breadcrumb .kp-breadcrumb-list::-webkit-scrollbar {
+.wb-step-nav::-webkit-scrollbar {
     display: none;
 }
 
-.wb-breadcrumb .kp-breadcrumb-link,
-.wb-breadcrumb .kp-breadcrumb-current {
-    font-family: "Kantumruy Pro", "Noto Sans Khmer", sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.4;
-    text-shadow: none;
+.wb-step-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 50px;
+    border: none;
+    background: transparent;
+    font-family: "Kantumruy Pro", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5a4d3f;
+    cursor: pointer;
+    transition: all 0.2s ease;
     white-space: nowrap;
 }
 
-.wb-breadcrumb .kp-breadcrumb-link {
-    color: #7f8aa0;
+.wb-step-link:hover {
+    background: rgba(176, 146, 106, 0.1);
+    color: #4a3a26;
 }
 
-.wb-breadcrumb .kp-breadcrumb-link:hover {
+.wb-step-link.active {
+    background: #7d6443;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(125, 100, 67, 0.25);
+}
+
+.wb-step-link-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(176, 146, 106, 0.15);
     color: #7d6443;
+    font-size: 11px;
+    font-weight: 800;
 }
 
-.wb-breadcrumb .kp-breadcrumb-current {
-    color: #7d6443;
+.wb-step-link.active .wb-step-link-num {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
 }
 
-.wb-breadcrumb .kp-breadcrumb-separator {
-    color: #b0926a;
-    font-size: 18px;
+/* ── Header Progress ── */
+.wb-header-progress {
+    width: 80px;
+    height: 6px;
+    border-radius: 999px;
+    background: #efe5d7;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.wb-header-progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #b0926a, #7d6443);
+    transition: width 0.25s ease;
+}
+
+/* ── Content area ── */
+.wb-content {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    padding: 24px 40px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Hide old sidebar/breadcrumb */
+.wb-sidebar {
+    display: none;
+}
+
+.wb-breadcrumb {
+    display: none;
 }
 
 .wb-back-btn {
@@ -483,17 +613,23 @@
 }
 
 @media (max-width: 1024px) {
-    .wb-root {
+    .wb-content {
         grid-template-columns: 1fr;
     }
 
-    .wb-sidebar,
     .wb-preview {
         position: static;
     }
 
-    .wb-breadcrumb {
-        grid-column: 1;
+    .wb-step-link {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .wb-top-header-inner {
+        gap: 12px;
+        padding: 0 16px;
+        height: 60px;
     }
 }
 
@@ -505,6 +641,27 @@
 
     .wb-nav {
         align-items: center;
+    }
+
+    .wb-top-header-inner {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 12px 16px;
+        border-radius: 20px;
+    }
+
+    .wb-step-nav {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .wb-header-brand {
+        display: none;
+    }
+
+    .wb-content {
+        padding: 16px;
     }
 }
 

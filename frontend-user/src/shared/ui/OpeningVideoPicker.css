@@ -33,9 +33,30 @@
 
 .ovp-video-wrap {
     position: relative;
+    display: grid;
+    place-items: center;
     overflow: hidden;
     aspect-ratio: 9 / 16;
     background: #21180f;
+}
+
+.ovp-video-wrap-empty {
+    background:
+        linear-gradient(135deg, rgba(125, 100, 67, 0.12), rgba(255, 250, 241, 0.9)),
+        #fffaf1;
+}
+
+.ovp-empty-mark {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    border: 1px solid rgba(125, 100, 67, 0.28);
+    border-radius: 999px;
+    color: #7d6443;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
 }
 
 .ovp-video {

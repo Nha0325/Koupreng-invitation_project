@@ -9,7 +9,7 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
     const event = draft?.event || {};
     const rsvp = draft?.rsvp || {};
     const contact = draft?.contact || {};
-    const openingVideo = draft?.openingVideo;
+    const openingVideo = draft?.openingVideoEnabled ? draft?.openingVideo : null;
     const activeDraft = publishedDraft || draft;
     const isPublished = Boolean(activeDraft?.publishedAt || publishedDraft);
     const publicPath = activeDraft?.slug ? `/w/${activeDraft.slug}` : "";
@@ -93,7 +93,7 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
 
                 <div className="wb-field">
                     <label>វីដេអូបើកសន្លឹកការ</label>
-                    <p className="wb-review-text">{openingVideo?.name || "វីដេអូ 1"}</p>
+                    <p className="wb-review-text">{openingVideo?.name || "មិនប្រើវីដេអូ"}</p>
                 </div>
 
                 <div className="wb-field">

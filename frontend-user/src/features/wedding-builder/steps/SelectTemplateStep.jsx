@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { TEMPLATES, TEMPLATE_CATEGORIES } from "../../templates/data/templatesData";
+import { FACEBOOK_TEMPLATE_CARDS, TEMPLATE_CATEGORIES } from "../../templates/data/templatesData";
 
 const categoryLabels = {
     all: "All",
@@ -72,12 +72,13 @@ export default function SelectTemplateStep({ draft, update }) {
     // Read ?template from URL so we get the right category even before draft loads
     const [searchParams] = useSearchParams();
     const urlTemplateId = searchParams.get("template");
+    const templateOptions = FACEBOOK_TEMPLATE_CARDS;
 
     const initialCategory = useMemo(() => {
         const id = urlTemplateId || draft?.templateId;
-        const t = TEMPLATES.find((t) => t.id === id);
+        const t = templateOptions.find((t) => t.id === id);
         return t?.category || "all";
-    }, [draft?.templateId, urlTemplateId]);
+    }, [draft?.templateId, templateOptions, urlTemplateId]);
 
     const [activeCategory, setActiveCategory] = useState(initialCategory);
 
@@ -85,15 +86,15 @@ export default function SelectTemplateStep({ draft, update }) {
     const filtered = useMemo(
         () =>
             activeCategory === "all"
-                ? TEMPLATES
-                : TEMPLATES.filter((t) => t.category === activeCategory),
-        [activeCategory]
+                ? templateOptions
+                : templateOptions.filter((t) => t.category === activeCategory),
+        [activeCategory, templateOptions]
     );
 
     const countFor = (catId) =>
         catId === "all"
-            ? TEMPLATES.length
-            : TEMPLATES.filter((t) => t.category === catId).length;
+            ? templateOptions.length
+            : templateOptions.filter((t) => t.category === catId).length;
 
     return (
         <div>
@@ -122,6 +123,7 @@ export default function SelectTemplateStep({ draft, update }) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
                 {filtered.map((t) => {
                     const isSelected = draft?.templateId === t.id;
+                    const coverImage = t.phoneCoverImage || t.mainImage || t.image;
                     return (
                         <button
                             type="button"
@@ -144,7 +146,7 @@ export default function SelectTemplateStep({ draft, update }) {
                             }}
                         >
                             <img
-                                src={t.image}
+                                src={coverImage}
                                 alt={t.name}
                                 style={{
                                     width: "100%",

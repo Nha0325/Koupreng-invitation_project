@@ -43,6 +43,12 @@ const templateThemeMap = {
     sky: "artdeco",
 };
 
+const themeTemplateFallback = {
+    classic: "classic",
+    forest: "garden",
+    artdeco: "sky",
+};
+
 function TrashIcon() {
     return (
         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -247,12 +253,21 @@ function CreateEventForm({ onBack, onCreated, initialTemplateId }) {
 
     const handleSubmit = (event) => {
         event.preventDefault();
+        const templateId = templateThemeMap[initialTemplateId] === selectedTheme
+            ? initialTemplateId
+            : themeTemplateFallback[selectedTheme] || "royal";
+
         onCreated({
+            templateId,
             title: form.title || "ព្រឹត្តិការណ៍ថ្មី",
             type: form.type,
+            groom: form.groom,
+            bride: form.bride,
             date: form.date,
             time: form.time,
             location: form.venue,
+            contact: form.contact,
+            note: form.note,
             description: form.groom && form.bride ? `${form.groom} & ${form.bride}` : theme.name,
             image: imagePreview,
             theme: theme.name,

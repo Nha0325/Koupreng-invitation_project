@@ -4,7 +4,6 @@ import { MusicPicker } from "../../../shared/ui/MusicPicker";
 import { OpeningVideoPicker } from "../../../shared/ui/OpeningVideoPicker";
 import { DRESS_CODE_COMBOS } from "../../../shared/data/dressCodeColors";
 import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
-import { DEFAULT_OPENING_VIDEO } from "../../../shared/data/openingVideos";
 
 export default function EnhancementsStep({ draft, update, updateField }) {
     const fileInputRef = useRef(null);
@@ -12,7 +11,7 @@ export default function EnhancementsStep({ draft, update, updateField }) {
     const extras = draft?.extras || {};
     const dressCode = draft?.dressCode || DRESS_CODE_COMBOS[0];
     const music = draft?.music || MUSIC_TRACKS[0];
-    const openingVideo = draft?.openingVideo || DEFAULT_OPENING_VIDEO;
+    const openingVideo = draft?.openingVideoEnabled ? draft?.openingVideo : null;
 
     const handleFiles = (event) => {
         const files = Array.from(event.target.files || []);
@@ -102,7 +101,7 @@ export default function EnhancementsStep({ draft, update, updateField }) {
                     <label>វីដេអូ 1-4</label>
                     <OpeningVideoPicker
                         value={openingVideo}
-                        onChange={(video) => update({ openingVideo: video })}
+                        onChange={(video) => update({ openingVideo: video, openingVideoEnabled: Boolean(video) })}
                     />
                 </div>
             </section>

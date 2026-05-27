@@ -1,5 +1,3 @@
-import { DEFAULT_OPENING_VIDEO } from "../shared/data/openingVideos";
-
 /**
  * weddingStorage — minimal localStorage-based draft store for the
  * wedding builder. No backend yet. Drafts are keyed by draftId.
@@ -15,6 +13,8 @@ import { DEFAULT_OPENING_VIDEO } from "../shared/data/openingVideos";
  *   story: string,
  *   gallery: string[],
  *   rsvp: { enabled, deadline },
+ *   openingVideo: object | null,
+ *   openingVideoEnabled: boolean,
  *   updatedAt: number,
  * }
  */
@@ -90,7 +90,8 @@ export function createDraft(initial = {}) {
         contact: { phone: "", ...initial.contact },
         story: initial.story || "",
         gallery: initial.gallery || [],
-        openingVideo: initial.openingVideo || DEFAULT_OPENING_VIDEO,
+        openingVideo: initial.openingVideo || null,
+        openingVideoEnabled: initial.openingVideoEnabled ?? Boolean(initial.openingVideo),
         rsvp: { enabled: true, deadline: "", ...initial.rsvp },
         extras: {
             playlistLink: "",

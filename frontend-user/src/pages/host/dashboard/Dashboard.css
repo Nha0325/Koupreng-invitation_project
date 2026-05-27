@@ -1,24 +1,27 @@
 .dash-wrapper {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: #fbf6ee;
 }
 
 .dash-sidebar {
-  min-width: 0;
+  display: none;
 }
 
 .dash-main-scroll {
   min-width: 0;
-  min-height: 100vh;
+  min-height: 0;
+  flex: 1;
   overflow-x: hidden;
+  padding-top: 120px;
 }
 
 .dash-main {
-  width: min(1180px, calc(100% - 48px));
+  width: 100%;
+  max-width: 100%;
+  padding: 32px 40px 56px;
   margin: 0 auto;
-  padding: 32px 0 56px;
   color: #2a1f10;
 }
 
@@ -357,10 +360,6 @@
 }
 
 @media (max-width: 900px) {
-  .dash-wrapper {
-    grid-template-columns: 1fr;
-  }
-
   .dash-main {
     width: min(100% - 28px, 760px);
     padding-top: 18px;
@@ -368,6 +367,7 @@
 }
 
 @media (max-width: 640px) {
+
   .dash-page-header,
   .dash-current-card {
     grid-template-columns: 1fr;

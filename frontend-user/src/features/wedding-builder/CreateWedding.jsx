@@ -81,55 +81,61 @@ export default function CreateWedding() {
 
     return (
         <div className="wb-root">
-            {/* Breadcrumb */}
-            <div className="wb-breadcrumb">
-                <Breadcrumb
-                    items={[
-                        breadcrumbStart,
-                        { label: "បង្កើតសន្លឹកការ" },
-                    ]}
-                />
-            </div>
+            {/* Header with breadcrumb + step nav */}
+            <div className="wb-top-header">
+                <div className="wb-top-header-inner">
+                    {/* Breadcrumb */}
+                    <div className="wb-header-brand">
+                        <Breadcrumb
+                            items={[
+                                breadcrumbStart,
+                                { label: "បង្កើតសន្លឹកការ" },
+                            ]}
+                        />
+                    </div>
 
-            {/* Step Sidebar */}
-            <aside className="wb-sidebar">
-                <h3>ដំណាក់កាល</h3>
-                <div className="wb-progress" aria-label={`Progress ${progress}%`}>
-                    <div className="wb-progress-bar" style={{ width: `${progress}%` }} />
-                </div>
-                <ol>
-                    {BUILDER_STEPS.map((s, index) => (
-                        <li key={s.id}>
+                    {/* Step nav links */}
+                    <nav className="wb-step-nav">
+                        {BUILDER_STEPS.map((s, index) => (
                             <button
+                                key={s.id}
                                 type="button"
-                                className={`wb-step-btn${index === step ? " is-active" : ""}`}
+                                className={`wb-step-link${index === step ? " active" : ""}`}
                                 onClick={() => setStep(index)}
                             >
-                                <span className="wb-step-num">{index + 1}</span>
+                                <span className="wb-step-link-num">{index + 1}</span>
                                 {s.label}
                             </button>
-                        </li>
-                    ))}
-                </ol>
-            </aside>
+                        ))}
+                    </nav>
 
-            {/* Main Form */}
-            <main className="wb-main">
-                {stepEl}
+                    {/* Progress */}
+                    <div className="wb-header-progress" aria-label={`Progress ${progress}%`}>
+                        <div className="wb-header-progress-bar" style={{ width: `${progress}%` }} />
+                    </div>
+                </div>
+            </div>
 
-                <StepNavigation
-                    onPrev={prev}
-                    onNext={next}
-                    isFirst={step === 0}
-                    isLast={step === BUILDER_STEPS.length - 1}
-                />
-            </main>
+            {/* Content area */}
+            <div className="wb-content">
+                {/* Main Form */}
+                <main className="wb-main">
+                    {stepEl}
 
-            {/* Phone Preview */}
-            <aside className="wb-preview">
-                <h3>ការបង្ហាញ</h3>
-                <PhonePreview draft={draft} />
-            </aside>
+                    <StepNavigation
+                        onPrev={prev}
+                        onNext={next}
+                        isFirst={step === 0}
+                        isLast={step === BUILDER_STEPS.length - 1}
+                    />
+                </main>
+
+                {/* Phone Preview */}
+                <aside className="wb-preview">
+                    <h3>ការបង្ហាញ</h3>
+                    <PhonePreview draft={draft} />
+                </aside>
+            </div>
         </div>
     );
 }

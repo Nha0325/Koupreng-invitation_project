@@ -12,46 +12,12 @@ const FEATURED_TEMPLATE_IDS = [
     "terracotta",
 ];
 
-function sourceMedia(sourceFolder, count) {
-    const sourceNumber = sourceFolder.slice(0, 2);
-
-    return Array.from({ length: count }, (_, index) => (
-        `/facebook/all/${sourceFolder}/${sourceNumber}-${String(index + 1).padStart(2, "0")}.jpg`
-    ));
-}
-
-function sourceGroup(...sources) {
-    return sources.flatMap(([sourceFolder, count]) => sourceMedia(sourceFolder, count));
-}
-
-const TEMPLATE_CARD_MEDIA = {
-    royal: sourceGroup(["01-card-01-story", 9]),
-    classic: sourceGroup(
-        ["02-card-02-curtain-post", 3],
-        ["03-card-02-video", 11],
-        ["04-card-02-reel-01", 12],
-        ["05-card-02-reel-02", 11],
-        ["06-card-02-reel-03", 11],
-    ),
-    garden: sourceGroup(
-        ["07-story-image-01", 5],
-        ["08-story-image-02", 6],
-        ["09-story-image-03", 5],
-        ["10-story-image-04", 5],
-    ),
-    "boho-chic": sourceGroup(
-        ["11-story-image-05", 5],
-        ["12-story-image-06", 6],
-        ["13-story-image-07", 5],
-        ["14-story-image-08", 5],
-    ),
-    terracotta: sourceGroup(
-        ["15-story-image-09", 7],
-        ["16-pichpisey-post-01", 5],
-        ["17-story-image-10", 5],
-        ["18-pichpisey-post-02", 6],
-        ["19-story-image-11", 6],
-    ),
+const TEMPLATE_CARD_COVER = {
+    royal: "/facebook/all/01-card/cover-card.jpg",
+    classic: "/facebook/all/02-card/cover-card.jpg",
+    garden: "/facebook/all/03-card/cover-card.jpg",
+    "boho-chic": "/facebook/all/04-card/cover-card.jpg",
+    terracotta: "/facebook/all/05-card/cover-card.jpg",
 };
 
 const categoryLabels = {
@@ -113,9 +79,7 @@ export default function TemplateGrid() {
                 <div className="tp-grid">
                     {visibleTemplates.map((t) => {
                         const createPath = getUseTemplatePath(t.id, isAuthenticated);
-                        const cardMedia = TEMPLATE_CARD_MEDIA[t.id] || [t.image];
-                        const visibleMedia = cardMedia.slice(0, 4);
-                        const extraMediaCount = cardMedia.length - visibleMedia.length;
+                        const coverImage = TEMPLATE_CARD_COVER[t.id] || t.image;
 
                         return (
                             <div key={t.id} className="tp-card">
@@ -126,19 +90,12 @@ export default function TemplateGrid() {
                                     {categoryLabels[t.category]}
                                 </div>
 
-                                <Link to={`/templates/${t.id}`} className={`tp-image-box${cardMedia.length > 1 ? " tp-image-box-collage" : ""}`}>
-                                    {visibleMedia.map((imageUrl, index) => (
-                                        <span key={imageUrl} className="tp-media-frame">
-                                            <img
-                                                src={imageUrl}
-                                                alt={`${t.name} ${index + 1}`}
-                                                className="tp-main-img"
-                                            />
-                                            {index === visibleMedia.length - 1 && extraMediaCount > 0 && (
-                                                <span className="tp-media-count">+{extraMediaCount}</span>
-                                            )}
-                                        </span>
-                                    ))}
+                                <Link to={`/templates/${t.id}`} className="tp-image-box">
+                                    <img
+                                        src={coverImage}
+                                        alt={t.name}
+                                        className="tp-main-img"
+                                    />
                                     <div className="tp-overlay">
                                         <span className="tp-view-btn">មើលលម្អិត</span>
                                     </div>

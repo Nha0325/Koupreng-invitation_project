@@ -151,12 +151,18 @@ export default function TemplateDemoPage() {
                 ]}
             />
 
-            <div className="tpl-demo-layout tpl-demo-layout-phone-only">
-                <div className="tpl-demo-phone-wrap">
-                    <div className={`tpl-demo-phone${isOpened ? " is-opened" : ""}`} aria-label="scrollable wedding invitation preview">
-                        <button
-                            type="button"
-                            className={`tpl-phone-gate${isOpening ? " is-opening" : ""}${isOpened ? " is-opened" : ""}`}
+                <div className="tpl-demo-layout tpl-demo-layout-phone-only">
+                    <div className="tpl-demo-phone-wrap">
+                        <div className={`tpl-demo-phone${isOpened ? " is-opened" : ""}`} aria-label="scrollable wedding invitation preview">
+                            <img
+                                className="tpl-gate-image tpl-gate-image-pinned"
+                                src={phoneCoverImage}
+                                alt=""
+                                aria-hidden="true"
+                            />
+                            <button
+                                type="button"
+                                className={`tpl-phone-gate${isOpening ? " is-opening" : ""}${isOpened ? " is-opened" : ""}`}
                             onClick={openInvitation}
                             aria-label="Open wedding invitation"
                             tabIndex={isOpened || isOpening ? -1 : 0}

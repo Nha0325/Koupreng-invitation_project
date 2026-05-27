@@ -2,6 +2,7 @@ import { Route } from "react-router-dom";
 
 import PaidTemplatesPage from "../../features/payments/PaidTemplatesPage";
 import HostShell from "../../layouts/HostShell";
+import BrowseTemplatesPage from "../../pages/host/BrowseTemplatesPage";
 import CreateEventPage from "../../pages/host/CreateEventPage";
 import DashboardPage from "../../pages/host/DashboardPage";
 import EventsPage from "../../pages/host/EventsPage";
@@ -38,6 +39,7 @@ export function hostRoutes() {
       <Route path="/events/create" element={<CreateEventPage />} />
       <Route path="/expenses" element={<ExpensesPage />} />
       <Route path="/gifts" element={<WeddingGiftPage />} />
+      <Route path="/templates/browse" element={<BrowseTemplatesPage />} />
     </Route>
   );
 }

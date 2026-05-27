@@ -77,7 +77,7 @@ export default function PhonePreview({ draft }) {
         storyImages,
         dressCode: draft?.dressCode,
         music: draft?.music,
-        openingVideo: draft?.openingVideo || baseTpl.openingVideo,
+        openingVideo: draft?.openingVideoEnabled ? draft.openingVideo : baseTpl.openingVideo,
     };
 
     if (!draft?.id) {

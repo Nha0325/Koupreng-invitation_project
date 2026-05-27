@@ -141,6 +141,6 @@ function mergeDraftIntoTemplate(tpl, draft, gallery) {
         storyImages,
         dressCode: draft.dressCode || tpl.dressCode,
         music: draft.music || tpl.music,
-        openingVideo: draft.openingVideo || tpl.openingVideo,
+        openingVideo: draft.openingVideoEnabled ? draft.openingVideo : tpl.openingVideo,
     };
 }

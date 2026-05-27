@@ -5,12 +5,18 @@ import W04Preview from "../previews/ClassicPreview";
 import W05Preview from "../previews/RoyalKhmerPreview";
 import W06Preview from "../previews/VintageGoldPreview";
 
-// Videos for each template (gate + intro)
-import vdoCurtain from "../../../assets/vdo-open-then-show-wedding/curtain-video-BAKLj3Y5.mp4";
-import vdoHeroPhone from "../../../assets/vdo-open-then-show-wedding/hero-phone.webm";
-import vdoIntro from "../../../assets/vdo-open-then-show-wedding/intro-video-BpkZMtTn.mov";
-import vdoMediterranean from "../../../assets/vdo-open-then-show-wedding/mediterranean-preview.mp4";
-import vdoFinca from "../../../assets/vdo-open-then-show-wedding/theme-finca.mov";
+// Videos for each template (gate + intro) — currently disabled
+// import vdoCurtain from "../../../assets/vdo-open-then-show-wedding/curtain-video-BAKLj3Y5.mp4";
+// import vdoHeroPhone from "../../../assets/vdo-open-then-show-wedding/hero-phone.webm";
+// import vdoIntro from "../../../assets/vdo-open-then-show-wedding/intro-video-BpkZMtTn.mov";
+// import vdoMediterranean from "../../../assets/vdo-open-then-show-wedding/mediterranean-preview.mp4";
+// import vdoFinca from "../../../assets/vdo-open-then-show-wedding/theme-finca.mov";
+
+const vdoCurtain = null;
+const vdoHeroPhone = null;
+const vdoIntro = null;
+const vdoMediterranean = null;
+const vdoFinca = null;
 
 // Music for each template (background music when invitation opens)
 import musicInstrumental from "../../../assets/music/Instrumental Wedding Music (VioSounds Cover).m4a";
@@ -40,8 +46,8 @@ const BASE_TEMPLATES = [
         category: "ancient",
         popular: true,
         image: "/image/a1.png",
-        mainImage: "/facebook/all/01-card-01-story/01-01.jpg",
-        phoneCoverImage: "/facebook/all/01-card-01-story/01-01.jpg",
+        mainImage: "/facebook/all/01-card/cover-card.jpg",
+        phoneCoverImage: "/facebook/all/01-card/cover-card.jpg",
         video: vdoCurtain,
         music: { url: musicInstrumental },
         Preview: W01Preview,
@@ -827,26 +833,47 @@ const BASE_TEMPLATES = [
 ];
 
 const TEMPLATE_MEDIA_GROUPS = [
-    { folder: "01-card-01-story", count: 9 },
-    { folder: "02-card-02-curtain-post", count: 3 },
-    { folder: "03-card-02-video", count: 11 },
-    { folder: "04-card-02-reel-01", count: 12 },
-    { folder: "05-card-02-reel-02", count: 11 },
-    { folder: "06-card-02-reel-03", count: 11 },
-    { folder: "07-story-image-01", count: 5 },
-    { folder: "08-story-image-02", count: 6 },
-    { folder: "09-story-image-03", count: 5 },
-    { folder: "10-story-image-04", count: 5 },
-    { folder: "11-story-image-05", count: 5 },
-    { folder: "12-story-image-06", count: 6 },
-    { folder: "13-story-image-07", count: 5 },
-    { folder: "14-story-image-08", count: 5 },
-    { folder: "15-story-image-09", count: 7 },
-    { folder: "16-pichpisey-post-01", count: 5 },
-    { folder: "17-story-image-10", count: 5 },
-    { folder: "18-pichpisey-post-02", count: 6 },
-    { folder: "19-story-image-11", count: 6 },
+    { folder: "01-card", count: 4 },
+    { folder: "02-card", count: 9 },
+    { folder: "03-card", count: 7 },
+    { folder: "04-card", count: 5 },
+    { folder: "05-card", count: 6 },
+    { folder: "06-card", count: 8 },
+    { folder: "07-card", count: 4 },
+    { folder: "08-card", count: 4 },
+    { folder: "09-card", count: 4 },
+    { folder: "10-card", count: 5 },
+    { folder: "11-card", count: 4 },
 ];
+
+const TEMPLATE_MEDIA_GROUP_BY_ID = {
+    royal: "01-card",
+    classic: "02-card",
+    garden: "03-card",
+    "angkor-spirit": "04-card",
+    "boho-chic": "04-card",
+    terracotta: "05-card",
+    "temple-blessing": "06-card",
+    "royal-lotus": "07-card",
+    "golden-era": "08-card",
+    "apsara-dance": "09-card",
+    "naga-blessing": "10-card",
+    sky: "11-card",
+};
+
+const TEMPLATE_CATEGORY_BY_MEDIA_GROUP = {
+    "01-card": "contemporary",
+    "02-card": "modern",
+    "03-card": "contemporary",
+    "04-card": "ancient",
+    "05-card": "modern",
+    "06-card": "contemporary",
+    "07-card": "contemporary",
+    "08-card": "contemporary",
+    "09-card": "contemporary",
+    "10-card": "contemporary",
+    "11-card": "modern",
+};
 
 const STORY_IMAGE_CLASSES = ["tpl-gallery-a", "tpl-gallery-b", "tpl-gallery-c", "tpl-gallery-d"];
 
@@ -865,19 +892,26 @@ function rotateMedia(media, offset) {
 }
 
 function withTemplateMedia(template, index) {
-    const primaryGroup = TEMPLATE_MEDIA_GROUPS[index % TEMPLATE_MEDIA_GROUPS.length];
-    const secondaryGroup = TEMPLATE_MEDIA_GROUPS[(index + 1) % TEMPLATE_MEDIA_GROUPS.length];
-    const rotationOffset = Math.floor(index / TEMPLATE_MEDIA_GROUPS.length);
+    const requestedGroupIndex = TEMPLATE_MEDIA_GROUPS.findIndex(
+        ({ folder }) => folder === TEMPLATE_MEDIA_GROUP_BY_ID[template.id]
+    );
+    const groupIndex = requestedGroupIndex >= 0 ? requestedGroupIndex : index % TEMPLATE_MEDIA_GROUPS.length;
+    const primaryGroup = TEMPLATE_MEDIA_GROUPS[groupIndex];
+    const secondaryGroup = TEMPLATE_MEDIA_GROUPS[(groupIndex + 1) % TEMPLATE_MEDIA_GROUPS.length];
+    const rotationOffset = requestedGroupIndex >= 0 ? 0 : Math.floor(index / TEMPLATE_MEDIA_GROUPS.length);
     const primaryImages = rotateMedia(getSourceMedia(primaryGroup), rotationOffset);
     const secondaryImages = getSourceMedia(secondaryGroup);
     const media = [...primaryImages, ...secondaryImages];
     const fallbackMedia = media.length > 0 ? media : [template.image].filter(Boolean);
-    const mainImage = template.mainImage || fallbackMedia[0];
+    const coverImage = `/facebook/all/${primaryGroup.folder}/cover-card.jpg`;
+    const mainImage = template.mainImage || coverImage;
+    const category = TEMPLATE_CATEGORY_BY_MEDIA_GROUP[primaryGroup.folder] || template.category;
 
     return {
         ...template,
+        category,
         mainImage,
-        phoneCoverImage: template.phoneCoverImage || mainImage,
+        phoneCoverImage: template.phoneCoverImage || coverImage,
         slideshowImages: template.slideshowImages || fallbackMedia.slice(0, 9),
         storyImages: template.storyImages || fallbackMedia.slice(0, 4).map((src, imageIndex) => ({
             src,
@@ -888,7 +922,7 @@ function withTemplateMedia(template, index) {
             {
                 id: `${template.id}-${primaryGroup.folder}`,
                 title: template.style,
-                images: primaryImages,
+                images: [coverImage, ...primaryImages],
             },
             {
                 id: `${template.id}-${secondaryGroup.folder}`,
@@ -900,6 +934,24 @@ function withTemplateMedia(template, index) {
 }
 
 export const TEMPLATES = BASE_TEMPLATES.map(withTemplateMedia);
+
+const FACEBOOK_TEMPLATE_CARD_IDS = [
+    "royal",
+    "classic",
+    "garden",
+    "angkor-spirit",
+    "terracotta",
+    "temple-blessing",
+    "royal-lotus",
+    "golden-era",
+    "apsara-dance",
+    "naga-blessing",
+    "sky",
+];
+
+export const FACEBOOK_TEMPLATE_CARDS = FACEBOOK_TEMPLATE_CARD_IDS
+    .map((id) => TEMPLATES.find((template) => template.id === id))
+    .filter(Boolean);
 
 export function getTemplateById(id) {
     return TEMPLATES.find((template) => template.id === id) || TEMPLATES[0];
