@@ -1,4 +1,4 @@
-import { useAuthStore } from "../../../stores/useAuthStore";
+import { useAuthStore, isTokenExpired } from "../../../stores/useAuthStore";
 
 /**
  * useAuth — hook that returns { user, isAuthenticated, login, logout }.
@@ -7,9 +7,12 @@ import { useAuthStore } from "../../../stores/useAuthStore";
  */
 export function useAuth() {
     const user = useAuthStore((s) => s.user);
-    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const accessToken = useAuthStore((s) => s.accessToken);
     const login = useAuthStore((s) => s.login);
     const logout = useAuthStore((s) => s.logout);
+
+    const isExpired = isTokenExpired(accessToken);
+    const isAuthenticated = Boolean(accessToken && user && !isExpired);
 
     return { user, isAuthenticated, login, logout };
 }

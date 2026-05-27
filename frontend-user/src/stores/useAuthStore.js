@@ -10,10 +10,35 @@ import { create } from "zustand";
 
 const STORAGE_KEY = "koupreng.auth";
 
+export function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const { exp } = JSON.parse(jsonPayload);
+    if (!exp) return false;
+    return Date.now() >= exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
 function readStoredAuth() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.accessToken && isTokenExpired(parsed.accessToken)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -36,7 +61,7 @@ const initialAuth = readStoredAuth();
 export const useAuthStore = create((set) => ({
   user: initialAuth?.user || null,
   accessToken: initialAuth?.accessToken || null,
-  isAuthenticated: Boolean(initialAuth?.accessToken && initialAuth?.user),
+  isAuthenticated: Boolean(initialAuth?.accessToken && initialAuth?.user && !isTokenExpired(initialAuth?.accessToken)),
 
   login: (authData) => {
     const nextState = {
