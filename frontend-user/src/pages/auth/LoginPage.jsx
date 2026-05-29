@@ -2,8 +2,6 @@ import { useId, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "./context/useAuth";
 import { useToggle } from "../../shared/utils/hooks/useToggle";
-import SocialAuthButtons from "./SocialAuthButtons";
-import authService from "../../services/remote/authService";
 import "./AuthPage.css";
 
 function getSafeRedirect(searchParams) {
@@ -16,13 +14,41 @@ function getSafeRedirect(searchParams) {
   return redirect;
 }
 
+function encodeBase64Url(value) {
+  return btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function createLocalAccessToken() {
+  const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
+  const header = encodeBase64Url(JSON.stringify({ alg: "none", typ: "JWT" }));
+  const payload = encodeBase64Url(JSON.stringify({ sub: "local-user", exp: expiresAt }));
+
+  return `${header}.${payload}.local`;
+}
+
+function createLocalAuthData(identifier) {
+  const account = identifier.trim();
+  const displayName = account || "Koupreng Host";
+
+  return {
+    accessToken: createLocalAccessToken(),
+    tokenType: "Bearer",
+    expiresAt: new Date(Date.now() + 60 * 60 * 24 * 30 * 1000).toISOString(),
+    user: {
+      id: "local-user",
+      name: displayName,
+      email: account.includes("@") ? account : "",
+      phone: account && !account.includes("@") ? account : "",
+    },
+  };
+}
+
 function Login() {
   const emailId = useId();
   const passwordId = useId();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, togglePassword] = useToggle();
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -34,21 +60,8 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    if (!identifier.trim() || !password) {
-      setError("Please enter your email/phone and password.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const authData = await authService.login(identifier.trim(), password);
-      login(authData);
-      navigate(redirectTo, { replace: true });
-    } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    login(createLocalAuthData(identifier));
+    navigate(redirectTo, { replace: true });
   };
 
   return (
@@ -149,15 +162,10 @@ function Login() {
           </div>
 
           {/* Submit */}
-          <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "កំពុងចូល..." : "ចូលគណនី"}
+          <button type="submit" className="auth-submit">
+            ចូលគណនី
           </button>
         </form>
-
-        {/* Divider */}
-        <p className="auth-divider">ឬ បន្តជាមួយ</p>
-
-        <SocialAuthButtons />
 
         {/* Forgot password */}
         <div className="auth-footer">

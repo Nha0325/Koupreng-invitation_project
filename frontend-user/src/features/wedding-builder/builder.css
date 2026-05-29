@@ -166,6 +166,93 @@
     color: #fff;
 }
 
+.wb-step-menu {
+    display: none;
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.wb-step-menu-trigger,
+.wb-step-menu-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    font-family: "Kantumruy Pro", sans-serif;
+    cursor: pointer;
+}
+
+.wb-step-menu-trigger {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    justify-content: flex-start;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #7d6443;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(125, 100, 67, 0.25);
+}
+
+.wb-step-menu-trigger span:nth-child(2) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wb-step-menu-trigger .wb-step-link-num {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.wb-step-menu-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.wb-step-menu-list {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: grid;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 18px;
+    background: rgba(255, 250, 241, 0.98);
+    border: 1px solid rgba(176, 146, 106, 0.28);
+    box-shadow: 0 18px 40px rgba(64, 42, 20, 0.16);
+}
+
+.wb-step-menu-item {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: transparent;
+    color: #5a4d3f;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+}
+
+.wb-step-menu-item.active {
+    background: #7d6443;
+    color: #fff;
+}
+
+.wb-step-menu-item.active .wb-step-link-num {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
 /* ── Header Progress ── */
 .wb-header-progress {
     width: 80px;
@@ -644,20 +731,27 @@
     }
 
     .wb-top-header-inner {
-        flex-wrap: wrap;
-        height: auto;
-        padding: 12px 16px;
-        border-radius: 20px;
+        flex-wrap: nowrap;
+        height: 66px;
+        padding: 10px 12px;
+        border-radius: 24px;
+        gap: 10px;
     }
 
     .wb-step-nav {
-        order: 3;
-        width: 100%;
-        justify-content: flex-start;
+        display: none;
+    }
+
+    .wb-step-menu {
+        display: block;
     }
 
     .wb-header-brand {
         display: none;
+    }
+
+    .wb-header-progress {
+        width: 54px;
     }
 
     .wb-content {

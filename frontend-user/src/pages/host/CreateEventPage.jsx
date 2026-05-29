@@ -2,6 +2,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import CreateEventForm from "../../features/events/CreateEventForm";
 import { createDraft } from "../../services/weddingStorage";
+import { setActiveEventId } from "../../services/hostPlanningStorage";
 
 const CreateEventPage = () => {
   const [searchParams] = useSearchParams();
@@ -9,7 +10,7 @@ const CreateEventPage = () => {
   const initialTemplateId = searchParams.get("template");
 
   const handleCreated = (createdEvent) => {
-    createDraft({
+    const draft = createDraft({
       templateId: createdEvent.templateId || initialTemplateId || "royal",
       couple: {
         groom: createdEvent.groom || "",
@@ -37,11 +38,13 @@ const CreateEventPage = () => {
       },
     });
 
-    navigate("/events");
+    // Set the newly created event as active
+    setActiveEventId(draft.id);
+    navigate("/dashboard");
   };
 
   return (
-    <CreateEventForm 
+    <CreateEventForm
       onBack={() => navigate("/events")}
       onCreated={handleCreated}
       initialTemplateId={initialTemplateId}

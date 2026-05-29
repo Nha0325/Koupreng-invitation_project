@@ -18,6 +18,7 @@ export default function CreateWedding() {
     const initialTemplateId = searchParams.get("template") || "royal";
     const initialized = useRef(false);
     const [publishedDraft, setPublishedDraft] = useState(null);
+    const [stepMenuOpen, setStepMenuOpen] = useState(false);
 
     const draft = useWeddingStore((state) => state.draft);
     const step = useWeddingStore((state) => state.step);
@@ -44,10 +45,30 @@ export default function CreateWedding() {
 
     const CurrentStep = BUILDER_STEPS[step]?.Component;
     const progress = Math.round(((step + 1) / BUILDER_STEPS.length) * 100);
-    const shouldBackToDashboard = location.state?.backTo === "/dashboard";
-    const breadcrumbStart = shouldBackToDashboard
-        ? { label: "ផ្ទាំងគ្រប់គ្រង", to: "/dashboard" }
-        : { label: "គំរូសន្លឹកការ", to: "/templates" };
+    const backTo = location.state?.backTo;
+    const shouldBackToDashboard = backTo === "/dashboard";
+    const shouldBackToEvents = backTo === "/events";
+
+    let breadcrumbStart;
+    let breadcrumbCurrent;
+
+    if (shouldBackToEvents) {
+        breadcrumbStart = { label: "កម្មវិធី", to: "/events" };
+        breadcrumbCurrent = { label: "កែប្រែកម្មវិធី" };
+    } else if (shouldBackToDashboard) {
+        breadcrumbStart = { label: "ផ្ទាំងគ្រប់គ្រង", to: "/dashboard" };
+        breadcrumbCurrent = { label: "បង្កើតសន្លឹកការ" };
+    } else {
+        breadcrumbStart = { label: "គំរូសន្លឹកការ", to: "/templates/browse" };
+        breadcrumbCurrent = { label: "បង្កើតសន្លឹកការ" };
+    }
+
+    const activeStep = BUILDER_STEPS[step];
+
+    const handleStepSelect = useCallback((index) => {
+        setStep(index);
+        setStepMenuOpen(false);
+    }, [setStep]);
 
     const handlePublish = useCallback(() => {
         const saved = publishDraft();
@@ -89,7 +110,7 @@ export default function CreateWedding() {
                         <Breadcrumb
                             items={[
                                 breadcrumbStart,
-                                { label: "បង្កើតសន្លឹកការ" },
+                                breadcrumbCurrent,
                             ]}
                         />
                     </div>
@@ -101,13 +122,43 @@ export default function CreateWedding() {
                                 key={s.id}
                                 type="button"
                                 className={`wb-step-link${index === step ? " active" : ""}`}
-                                onClick={() => setStep(index)}
+                                onClick={() => handleStepSelect(index)}
                             >
                                 <span className="wb-step-link-num">{index + 1}</span>
                                 {s.label}
                             </button>
                         ))}
                     </nav>
+
+                    <div className="wb-step-menu">
+                        <button
+                            type="button"
+                            className="wb-step-menu-trigger"
+                            aria-expanded={stepMenuOpen}
+                            aria-controls="wb-step-menu-list"
+                            onClick={() => setStepMenuOpen((current) => !current)}
+                        >
+                            <span className="wb-step-link-num">{step + 1}</span>
+                            <span>{activeStep?.label}</span>
+                            <span className="wb-step-menu-chevron" aria-hidden="true">⌄</span>
+                        </button>
+
+                        {stepMenuOpen && (
+                            <div className="wb-step-menu-list" id="wb-step-menu-list">
+                                {BUILDER_STEPS.map((s, index) => (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        className={`wb-step-menu-item${index === step ? " active" : ""}`}
+                                        onClick={() => handleStepSelect(index)}
+                                    >
+                                        <span className="wb-step-link-num">{index + 1}</span>
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     {/* Progress */}
                     <div className="wb-header-progress" aria-label={`Progress ${progress}%`}>

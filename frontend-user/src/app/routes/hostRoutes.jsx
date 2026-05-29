@@ -3,7 +3,6 @@ import { Route } from "react-router-dom";
 import PaidTemplatesPage from "../../features/payments/PaidTemplatesPage";
 import HostShell from "../../layouts/HostShell";
 import BrowseTemplatesPage from "../../pages/host/BrowseTemplatesPage";
-import CreateEventPage from "../../pages/host/CreateEventPage";
 import DashboardPage from "../../pages/host/DashboardPage";
 import EventsPage from "../../pages/host/EventsPage";
 import ExpensesPage from "../../pages/host/ExpensesPage";
@@ -14,6 +13,7 @@ import InvitationGuestsPage from "../../pages/host/InvitationGuestsPage";
 import InvitationMediaPage from "../../pages/host/InvitationMediaPage";
 import InvitationPreviewPage from "../../pages/host/InvitationPreviewPage";
 import MyInvitationsPage from "../../pages/host/MyInvitationsPage";
+import ProfilePage from "../../pages/host/ProfilePage";
 import WeddingGiftPage from "../../pages/host/WeddingGiftPage";
 import RequireAuth from "./RequireAuth";
 
@@ -36,10 +36,10 @@ export function hostRoutes() {
       <Route path="/dashboard/templates/paid" element={<PaidTemplatesPage />} />
       <Route path="/guests" element={<GuestsPage />} />
       <Route path="/events" element={<EventsPage />} />
-      <Route path="/events/create" element={<CreateEventPage />} />
       <Route path="/expenses" element={<ExpensesPage />} />
       <Route path="/gifts" element={<WeddingGiftPage />} />
       <Route path="/templates/browse" element={<BrowseTemplatesPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
     </Route>
   );
 }

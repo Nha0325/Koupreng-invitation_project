@@ -1496,6 +1496,16 @@
     text-transform: uppercase;
 }
 
+.tpl-royal-invitation.is-phone .tpl-ri-footer {
+    padding-bottom: calc(118px + var(--safe-bottom));
+}
+
+.tpl-royal-invitation.is-phone .tpl-ri-footer span {
+    display: block;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
 .tpl-royal-invitation.is-phone .tpl-ri-cover {
     min-height: 560px;
     padding: 70px 20px 48px;

@@ -838,3 +838,103 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ─── Three-dot menu ─── */
+.event-card-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.event-card-title-row .event-card-title {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.event-card-menu-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.event-card-dots-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #999;
+    transition: background 0.15s, color 0.15s;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.event-card-dots-btn:hover {
+    background: #f0ebe3;
+    color: #7d6443;
+}
+
+.event-card-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #fff;
+    border: 1px solid #eadfce;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+    min-width: 140px;
+    padding: 6px;
+    animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.event-card-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-align: left;
+}
+
+.event-card-dropdown-item:hover {
+    background: #f8f5f0;
+}
+
+.event-card-dropdown-item--danger {
+    color: #dc2626;
+}
+
+.event-card-dropdown-item--danger:hover {
+    background: #fef2f2;
+}

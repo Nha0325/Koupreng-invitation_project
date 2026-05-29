@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import "../../features/wedding-site/wedding-site.css";
 import RoyalInvitation from "../../features/wedding-site/RoyalInvitation";
-import BuyTemplateButton from "../../features/payments/BuyTemplateButton";
 import { getTemplateById } from "../../features/templates/data/templatesData";
 import useCountdown from "../../features/wedding-site/hooks/useCountdown";
 import { Breadcrumb } from "../../shared/ui/Breadcrumb";
@@ -151,18 +150,18 @@ export default function TemplateDemoPage() {
                 ]}
             />
 
-                <div className="tpl-demo-layout tpl-demo-layout-phone-only">
-                    <div className="tpl-demo-phone-wrap">
-                        <div className={`tpl-demo-phone${isOpened ? " is-opened" : ""}`} aria-label="scrollable wedding invitation preview">
-                            <img
-                                className="tpl-gate-image tpl-gate-image-pinned"
-                                src={phoneCoverImage}
-                                alt=""
-                                aria-hidden="true"
-                            />
-                            <button
-                                type="button"
-                                className={`tpl-phone-gate${isOpening ? " is-opening" : ""}${isOpened ? " is-opened" : ""}`}
+            <div className="tpl-demo-layout tpl-demo-layout-phone-only">
+                <div className="tpl-demo-phone-wrap">
+                    <div className={`tpl-demo-phone${isOpened ? " is-opened" : ""}`} aria-label="scrollable wedding invitation preview">
+                        <img
+                            className="tpl-gate-image tpl-gate-image-pinned"
+                            src={phoneCoverImage}
+                            alt=""
+                            aria-hidden="true"
+                        />
+                        <button
+                            type="button"
+                            className={`tpl-phone-gate${isOpening ? " is-opening" : ""}${isOpened ? " is-opened" : ""}`}
                             onClick={openInvitation}
                             aria-label="Open wedding invitation"
                             tabIndex={isOpened || isOpening ? -1 : 0}
@@ -198,8 +197,7 @@ export default function TemplateDemoPage() {
                     </div>
 
                     <div className="tpl-demo-phone-actions">
-                        <BuyTemplateButton templateId={tpl.id} />
-                        <Link to={useTemplateLink} className="tpl-btn-outline">
+                        <Link to={useTemplateLink} className="tpl-btn-primary">
                             ប្រើគំរូនេះ
                         </Link>
                         <Link to={`/templates/${tpl.id}/preview`} className="tpl-btn-outline">
