@@ -59,7 +59,7 @@ export default function CreateWedding() {
         breadcrumbStart = { label: "ផ្ទាំងគ្រប់គ្រង", to: "/dashboard" };
         breadcrumbCurrent = { label: "បង្កើតសន្លឹកការ" };
     } else {
-        breadcrumbStart = { label: "គំរូសន្លឹកការ", to: "/templates/browse" };
+        breadcrumbStart = { label: "កម្មវិធីសន្លឹកការ", to: "/events" };
         breadcrumbCurrent = { label: "បង្កើតសន្លឹកការ" };
     }
 
@@ -115,19 +115,26 @@ export default function CreateWedding() {
                         />
                     </div>
 
-                    {/* Step nav links */}
-                    <nav className="wb-step-nav">
-                        {BUILDER_STEPS.map((s, index) => (
-                            <button
-                                key={s.id}
-                                type="button"
-                                className={`wb-step-link${index === step ? " active" : ""}`}
-                                onClick={() => handleStepSelect(index)}
-                            >
-                                <span className="wb-step-link-num">{index + 1}</span>
-                                {s.label}
-                            </button>
-                        ))}
+                    {/* Step nav links — Flower-style numbered stepper */}
+                    <nav className="wb-step-nav" aria-label="ជំហានបង្កើតសន្លឹកការ">
+                        {BUILDER_STEPS.map((s, index) => {
+                            const isActive = index === step;
+                            const isDone = index < step;
+                            return (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    className={`wb-step-link${isActive ? " active" : ""}${isDone ? " done" : ""}`}
+                                    aria-current={isActive ? "step" : undefined}
+                                    onClick={() => handleStepSelect(index)}
+                                >
+                                    <span className="wb-step-link-num">
+                                        {String(index + 1).padStart(2, "0")}
+                                    </span>
+                                    <span className="wb-step-link-label">{s.label}</span>
+                                </button>
+                            );
+                        })}
                     </nav>
 
                     <div className="wb-step-menu">
@@ -171,6 +178,21 @@ export default function CreateWedding() {
             <div className="wb-content">
                 {/* Main Form */}
                 <main className="wb-main">
+                    {/* Flower-style step banner */}
+                    <div className="wb-phase-banner">
+                        <span className="wb-phase-banner-step">
+                            {String(step + 1).padStart(2, "0")} / {String(BUILDER_STEPS.length).padStart(2, "0")} · {activeStep?.labelEn}
+                        </span>
+                        <div className="wb-phase-dots" aria-hidden="true">
+                            {BUILDER_STEPS.map((s, index) => (
+                                <span
+                                    key={s.id}
+                                    className={`wb-phase-dot${index <= step ? " is-active" : ""}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
                     {stepEl}
 
                     <StepNavigation

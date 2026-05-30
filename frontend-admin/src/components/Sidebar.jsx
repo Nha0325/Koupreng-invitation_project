@@ -1,0 +1,35 @@
+import { NavLink } from "react-router-dom";
+
+const links = [
+    { to: "/dashboard", label: "ផ្ទាំងគ្រប់គ្រង", icon: "📊" },
+    { to: "/users", label: "អ្នកប្រើប្រាស់", icon: "👥" },
+    { to: "/events", label: "ព្រឹត្តិការណ៍", icon: "🎉" },
+    { to: "/invitations", label: "ធៀបការ", icon: "💌" },
+    { to: "/payments", label: "ការទូទាត់", icon: "💳" },
+];
+
+export default function Sidebar() {
+    return (
+        <aside className="sidebar">
+            <div className="sidebar-brand">
+                <div className="sidebar-crest">⚜️</div>
+                <span className="sidebar-title">រដ្ឋបាលគូព្រេង</span>
+            </div>
+
+            <nav className="sidebar-nav">
+                {links.map((link) => (
+                    <NavLink
+                        key={link.to}
+                        to={link.to}
+                        className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
+                    >
+                        <span className="nav-icon">{link.icon}</span>
+                        <span>{link.label}</span>
+                    </NavLink>
+                ))}
+            </nav>
+
+            <div className="sidebar-foot">Koupreng Admin v1.0</div>
+        </aside>
+    );
+}

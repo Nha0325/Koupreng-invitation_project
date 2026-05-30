@@ -4,6 +4,7 @@ npm install
 npm install react-router-dom zustand framer-motion react-icons lenis
 npm install tailwindcss @tailwindcss/vite
 npm install axios
+npm install lint
 npm run dev
 
 

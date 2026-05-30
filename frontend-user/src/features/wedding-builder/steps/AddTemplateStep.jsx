@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./AddTemplateStep.css";
+import { getTemplateById } from "../../templates/data/templatesData";
+import { VARIANT_ROUTE_ALIASES } from "../../templates/template-experience/templateExperienceThemes";
 
 /**
  * Event type template categories with free/paid templates
@@ -108,8 +111,39 @@ function getCategoryInfo(eventType) {
     return EVENT_CATEGORIES.find((cat) => cat.id === eventType) || EVENT_CATEGORIES[0];
 }
 
+/**
+ * Map each demo template code to a real template id so the "View" button opens
+ * the full immersive TemplateExperience page (/templates/:id) — the same UI as
+ * /templates/classic — instead of the old phone-frame preview.
+ */
+const VIEW_TEMPLATE_ID = {
+    W01: "royal",
+    W02: "luxury",
+    E01: "garden",
+    B01: "modern-khmer",
+    H01: "classic",
+    A01: "vintage-gold",
+};
+
+function getViewTemplateId(template) {
+    return VIEW_TEMPLATE_ID[template.id] || "classic";
+}
+
+/**
+ * Resolve the REAL cover image of the template each card opens, so the browse
+ * card thumbnail matches the actual template experience instead of generic art.
+ * Falls back to the card's own placeholder image when no real cover exists.
+ */
+function getCardImage(template) {
+    const viewId = getViewTemplateId(template);
+    const realId = VARIANT_ROUTE_ALIASES[viewId] || viewId;
+    const tpl = getTemplateById(realId);
+    return tpl?.mainImage || tpl?.phoneCoverImage || template.image;
+}
+
 function TemplateCard({ template, onSelect, onView }) {
     const category = getCategoryInfo(template.eventType);
+    const cardImage = getCardImage(template);
 
     return (
         <div className="at-card">
@@ -127,8 +161,8 @@ function TemplateCard({ template, onSelect, onView }) {
 
             {/* Image */}
             <div className="at-card-image">
-                {template.image ? (
-                    <img src={template.image} alt={template.name} />
+                {cardImage ? (
+                    <img src={cardImage} alt={template.name} />
                 ) : (
                     <div className="at-card-no-image">
                         <span>មិនមានរូបភាព</span>
@@ -175,16 +209,21 @@ function EyeIcon() {
 }
 
 export default function AddTemplateStep() {
+    const navigate = useNavigate();
     const [selectedTemplates, setSelectedTemplates] = useState(["W01"]);
 
     const handleSelect = (template) => {
-        const updated = [...selectedTemplates, template.id];
-        setSelectedTemplates(updated);
+        setSelectedTemplates((current) =>
+            current.includes(template.id) ? current : [...current, template.id]
+        );
+        // Start the wedding builder with the chosen template.
+        navigate(`/create/wedding?template=${getViewTemplateId(template)}`);
     };
 
     const handleView = (template) => {
-        // Navigate to template preview
-        window.open(`/templates/${template.id === "W01" ? "royal" : template.id}/preview`, "_blank");
+        // Open the full immersive TemplateExperience inside the dashboard shell
+        // (keeps the host navigation), instead of the public marketing layout.
+        navigate(`/templates/browse/${getViewTemplateId(template)}`);
     };
 
     const freeTemplates = FREE_TEMPLATES.map((t) => ({

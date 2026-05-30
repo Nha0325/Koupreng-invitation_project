@@ -104,7 +104,7 @@
 
 
 
-.tpl-demo-root > * {
+.tpl-demo-root>* {
     position: relative;
     z-index: 1;
 }
@@ -171,9 +171,9 @@
     height: clamp(520px, calc(100vh - 190px), 660px);
     height: clamp(520px, calc(100svh - 190px - var(--safe-bottom)), 660px);
     aspect-ratio: 9 / 18.7;
-    border-radius: 46px;
-    border: 1px solid #16110c;
-    background: #16110c;
+    /* border-radius: 46px; */
+    /* border: 1px solid #16110c; */
+    /* background: #16110c; */
     position: relative;
     overflow: hidden;
     transform: translateZ(0);
@@ -197,13 +197,13 @@
     position: absolute;
     inset: 0;
     z-index: 60;
-    border: 0;
+    /* border: 0;
     border-radius: 38px;
     padding: 0;
     overflow: hidden;
     cursor: pointer;
     box-shadow: inset 0 0 0 1px rgba(116, 63, 75, 0.2);
-    transition: opacity 0.45s ease, transform 0.45s ease;
+    transition: opacity 0.45s ease, transform 0.45s ease; */
 }
 
 .tpl-phone-gate::after {
@@ -2516,7 +2516,7 @@
         height: min(560px, calc(100vh - 68px));
         height: min(560px, calc(100svh - 68px - var(--safe-bottom)));
         min-height: 420px;
-        border-width: 3.5px;
+        /* border-width: 3.5px; */
     }
 
     .tpl-demo-meta {
@@ -3444,7 +3444,7 @@
     overflow: hidden;
 }
 
-.tpl-ri-gallery > :not(.royal-gallery-bg) {
+.tpl-ri-gallery> :not(.royal-gallery-bg) {
     position: relative;
     z-index: 1;
 }
@@ -3662,7 +3662,7 @@
         gap: 6px;
     }
 
-    .royal-story-card {
+.royal-story-card {
         border-radius: 10px;
     }
 }

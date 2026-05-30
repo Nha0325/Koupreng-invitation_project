@@ -1,16 +1,46 @@
-# React + Vite
+# Koupreng — Admin Panel (frontend-admin)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Admin dashboard for controlling the Koupreng user app. It authenticates against
+the Spring backend with a JWT and is restricted to users whose role is `ADMIN`.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Login** — `/api/auth/login`. Only `ADMIN` accounts are allowed in.
+- **Dashboard** — aggregate stats (users, invitations, payments, revenue).
+- **Users** — list every user and promote/demote roles (`USER` ⇄ `ADMIN`).
+- **Invitations** — list all invitations across users; view details, publish,
+  unpublish, and delete.
+- **Payments** — template payment / PayWay (ABA KHQR) order report with totals.
 
-## React Compiler
+## Backend endpoints used
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Area        | Endpoint                                   | Auth        |
+| ----------- | ------------------------------------------ | ----------- |
+| Login       | `POST /api/auth/login`                     | public      |
+| Logout      | `POST /api/auth/logout`                    | bearer      |
+| Users       | `GET /api/admin/users`                     | ROLE_ADMIN  |
+| Update role | `PATCH /api/admin/users/{id}/role`         | ROLE_ADMIN  |
+| Invitations | `GET /api/admin/invitations`               | ROLE_ADMIN  |
+| Invitation  | `GET /api/v1/invitations/{id}`             | bearer      |
+| Publish     | `PATCH /api/v1/invitations/{id}/publish`   | bearer      |
+| Unpublish   | `PATCH /api/v1/invitations/{id}/unpublish` | bearer      |
+| Delete      | `DELETE /api/v1/invitations/{id}`          | bearer      |
+| Payments    | `GET /api/v1/admin/template-payments`      | ROLE_ADMIN  |
 
-## Expanding the ESLint configuration
+## Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+cp .env.example .env   # adjust VITE_API_URL if needed
+npm run dev            # runs on http://localhost:5174
+```
+
+`VITE_API_URL` defaults to `http://localhost:8080/api`. The backend already
+allows `http://localhost:5174` via CORS.
+
+## Scripts
+
+- `npm run dev` — start the dev server (port 5174)
+- `npm run build` — production build
+- `npm run preview` — preview the production build
+- `npm run lint` — run ESLint

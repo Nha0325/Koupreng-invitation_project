@@ -85,12 +85,55 @@ export default function HostNav() {
           gap: 12px;
           text-decoration: none;
           flex-shrink: 0;
-          overflow: hidden;
+          position: relative;
+          transition: transform 0.25s ease;
+        }
+        .host-logo-box:hover {
+          transform: scale(1.05);
         }
         .host-logo-box img {
           height: 90px;
           width: auto;
           object-fit: contain;
+          transition: filter 0.25s ease;
+        }
+        .host-logo-box:hover img {
+          filter: drop-shadow(0 4px 12px rgba(176, 146, 106, 0.45));
+        }
+        .host-logo-tip {
+          position: absolute;
+          left: 50%;
+          top: 100%;
+          transform: translate(-50%, 6px);
+          white-space: nowrap;
+          background: #7D6443;
+          color: #fff;
+          font-family: 'Kantumruy Pro', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 6px 12px;
+          border-radius: 8px;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+          pointer-events: none;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+          z-index: 10;
+        }
+        .host-logo-tip::before {
+          content: "";
+          position: absolute;
+          left: 50%;
+          bottom: 100%;
+          transform: translateX(-50%);
+          border: 5px solid transparent;
+          border-bottom-color: #7D6443;
+        }
+        .host-logo-box:hover .host-logo-tip,
+        .host-logo-box:focus-visible .host-logo-tip {
+          opacity: 1;
+          visibility: visible;
+          transform: translate(-50%, 10px);
         }
         .host-nav-links {
           display: flex;
@@ -331,8 +374,9 @@ export default function HostNav() {
 
       <div className="host-header-wrapper">
         <header className="host-header-container">
-          <Link to="/dashboard" className="host-logo-box">
+          <Link to="/" className="host-logo-box" aria-label="គូព្រេង — ទៅផ្ទាំងគ្រប់គ្រង">
             <img src={logo} alt="គូព្រេង" />
+            <span className="host-logo-tip" role="tooltip">ទៅផ្ទាំងគ្រប់គ្រង</span>
           </Link>
 
           {/* Desktop nav links */}

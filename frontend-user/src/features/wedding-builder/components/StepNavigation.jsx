@@ -1,5 +1,7 @@
 /**
  * Bottom prev/next buttons.
+ * Back = cream outline, Next = gold primary. Publish on the last step is
+ * handled inside ReviewPublishStep, so Next is hidden there.
  */
 export default function StepNavigation({ onPrev, onNext, isFirst, isLast }) {
     return (
@@ -9,9 +11,8 @@ export default function StepNavigation({ onPrev, onNext, isFirst, isLast }) {
                 className="wb-btn"
                 onClick={onPrev}
                 disabled={isFirst}
-                style={isFirst ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
             >
-                ← មុន
+                ← ត្រឡប់ក្រោយ
             </button>
             {!isLast && (
                 <button type="button" className="wb-btn wb-btn-primary" onClick={onNext}>
@@ -19,6 +20,5 @@ export default function StepNavigation({ onPrev, onNext, isFirst, isLast }) {
                 </button>
             )}
         </div>
-        // <> </>
     );
 }

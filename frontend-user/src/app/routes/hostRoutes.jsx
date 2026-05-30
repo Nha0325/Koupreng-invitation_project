@@ -2,17 +2,18 @@ import { Route } from "react-router-dom";
 
 import PaidTemplatesPage from "../../features/payments/PaidTemplatesPage";
 import HostShell from "../../layouts/HostShell";
-import BrowseTemplatesPage from "../../pages/host/BrowseTemplatesPage";
+import BrowseTemplatesPage from "../../pages/host/templates/BrowseTemplatesPage";
 import DashboardPage from "../../pages/host/DashboardPage";
 import EventsPage from "../../pages/host/EventsPage";
 import ExpensesPage from "../../pages/host/ExpensesPage";
 import GuestsPage from "../../pages/host/GuestsPage";
-import InvitationCreatePage from "../../pages/host/InvitationCreatePage";
-import InvitationEditPage from "../../pages/host/InvitationEditPage";
-import InvitationGuestsPage from "../../pages/host/InvitationGuestsPage";
-import InvitationMediaPage from "../../pages/host/InvitationMediaPage";
-import InvitationPreviewPage from "../../pages/host/InvitationPreviewPage";
-import MyInvitationsPage from "../../pages/host/MyInvitationsPage";
+import HostTemplateDemoPage from "../../pages/host/templates/HostTemplateDemoPage";
+import InvitationCreatePage from "../../pages/host/invitations/InvitationCreatePage";
+import InvitationEditPage from "../../pages/host/invitations/InvitationEditPage";
+import InvitationGuestsPage from "../../pages/host/invitations/InvitationGuestsPage";
+import InvitationMediaPage from "../../pages/host/invitations/InvitationMediaPage";
+import InvitationPreviewPage from "../../pages/host/invitations/InvitationPreviewPage";
+import MyInvitationsPage from "../../pages/host/invitations/MyInvitationsPage";
 import ProfilePage from "../../pages/host/ProfilePage";
 import WeddingGiftPage from "../../pages/host/WeddingGiftPage";
 import RequireAuth from "./RequireAuth";
@@ -35,10 +36,12 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/:id/media" element={<InvitationMediaPage />} />
       <Route path="/dashboard/templates/paid" element={<PaidTemplatesPage />} />
       <Route path="/guests" element={<GuestsPage />} />
+      <Route path="/event/list" element={<EventsPage />} />
       <Route path="/events" element={<EventsPage />} />
       <Route path="/expenses" element={<ExpensesPage />} />
       <Route path="/gifts" element={<WeddingGiftPage />} />
       <Route path="/templates/browse" element={<BrowseTemplatesPage />} />
+      <Route path="/templates/browse/:id" element={<HostTemplateDemoPage />} />
       <Route path="/profile" element={<ProfilePage />} />
     </Route>
   );

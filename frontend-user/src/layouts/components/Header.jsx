@@ -12,12 +12,12 @@ const PUBLIC_NAV_ITEMS = [
 ];
 
 const DASHBOARD_NAV_ITEMS = [
-  { label: "គំរូសន្លឹកការ", path: "/templates" },
   { label: "ផ្ទាំងគ្រប់គ្រង", path: "/dashboard" },
-  { label: "បង្កើតសន្លឹកការ", path: "/create/wedding" },
-  { label: "បញ្ជីភ្ញៀវ", path: "/guests" },
-  { label: "គម្រោងថវិកា", path: "/expenses" },
-  { label: "ចងដៃមង្គល", path: "/gifts" },
+  { label: "គំរូសន្លឹកការ", path: "/templates" },
+  // { label: "បង្កើតសន្លឹកការ", path: "/create/wedding" },
+  // { label: "បញ្ជីភ្ញៀវ", path: "/guests" },
+  // { label: "គម្រោងថវិកា", path: "/expenses" },
+  // { label: "ចងដៃមង្គល", path: "/gifts" },
 ];
 
 export default function Header() {
@@ -61,7 +61,13 @@ export default function Header() {
       <style>{`
         .header-wrapper { position: fixed; top: 0; left: 0; width: 100%; z-index: 3000; padding: ${scrolled ? "10px 0" : "20px 0"}; transition: 0.4s; pointer-events: none; }
         .header-container { pointer-events: auto; max-width: 1440px; margin: 0 auto; width: 92%; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; height: 75px; background: ${scrolled ? "rgba(252, 248, 242, 0.95)" : "rgba(252, 248, 242, 0.4)"}; backdrop-filter: blur(5px); border-radius: 50px; border: 1px solid rgba(176, 146, 106, 0.3); box-shadow: ${scrolled ? "0 10px 40px rgba(0,0,0,0.1)" : "none"}; }
-        .logo-box { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-box { display: flex; align-items: center; gap: 12px; text-decoration: none; position: relative; transition: transform 0.25s ease; }
+        .logo-box:hover { transform: scale(1.05); }
+        .logo-box img { transition: filter 0.25s ease; }
+        .logo-box:hover img { filter: drop-shadow(0 4px 12px rgba(176, 146, 106, 0.45)); }
+        .logo-tip { position: absolute; left: 50%; top: 100%; transform: translate(-50%, 6px); white-space: nowrap; background: #7D6443; color: #fff; font-family: 'Kantumruy Pro', sans-serif; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,0.18); z-index: 10; }
+        .logo-tip::before { content: ""; position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); border: 5px solid transparent; border-bottom-color: #7D6443; }
+        .logo-box:hover .logo-tip, .logo-box:focus-visible .logo-tip { opacity: 1; visibility: visible; transform: translate(-50%, 10px); }
         .logo-text { font-family: 'Moul', serif; color: #7D6443; font-size: 22px; }
         .nav-links { display: flex; gap: 20px; align-items: center; }
         .nav-link { font-family: 'Kantumruy Pro', sans-serif; text-decoration: none; color: #333; font-weight: 700; font-size: 14px; transition: 0.3s; background: none; border: 0; cursor: pointer; padding: 0; }
@@ -88,7 +94,7 @@ export default function Header() {
 
       <div className="header-wrapper">
         <header className="header-container">
-          <Link to="/" className="logo-box">
+          <Link to="/" className="logo-box" aria-label="គូព្រេង — ត្រឡប់ទៅទំព័រដើម">
             <img
               src={logo}
               alt="គូព្រេង"
@@ -99,6 +105,7 @@ export default function Header() {
               }}
             />
             {/* <span className="logo-text">គូព្រេង</span> */}
+            <span className="logo-tip" role="tooltip">ត្រឡប់ទៅទំព័រដើម</span>
           </Link>
 
           <nav className="nav-links">

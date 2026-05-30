@@ -1,29 +1,35 @@
 import { useEffect, useState } from "react";
-import RoyalInvitation from "../../wedding-site/RoyalInvitation";
-import { getTemplateById } from "../../templates/data/templatesData";
-import useCountdown from "../../wedding-site/hooks/useCountdown";
+
+import TemplateExperience from "../../templates/template-experience/TemplateExperience";
+import { draftToTemplate } from "../utils/draftToTemplate";
 import { loadGallery } from "../../../services/galleryStorage";
+import "../../templates/template-experience/template-experience.css";
 
 /**
- * Live phone-shape preview that renders the full RoyalInvitation
- * with the user's current draft (names, location, images, videos).
- * Same content as the published page, sized for a phone frame.
+ * PhonePreview — live phone-shape preview for the wedding builder.
+ *
+ * Renders the SAME shared TemplateExperience engine that powers the public
+ * /templates/:id pages, so what the host sees while editing matches the
+ * published invitation exactly. The host's draft (names, date, venue, story,
+ * dress code, music, uploaded gallery) is layered on top of the chosen
+ * template via a merged `tpl` object; TemplateExperience's content builder
+ * reads those real values and falls back to tasteful demo content for the
+ * rest. Rendered in `preview` mode so the marketing chrome (breadcrumb, CTA
+ * row, sticky bar, floating music) is hidden and it fits the phone frame.
  */
 export default function PhonePreview({ draft }) {
     const [gallery, setGallery] = useState(null);
 
     useEffect(() => {
         if (!draft?.id) {
-            return;
+            return undefined;
         }
 
         let cancelled = false;
         const loadAndSet = () => {
             loadGallery(draft.id)
                 .then((items) => {
-                    if (cancelled) return;
-                    console.log("PhonePreview: loaded", items.length, "gallery items for", draft.id);
-                    setGallery(items);
+                    if (!cancelled) setGallery(items);
                 })
                 .catch(() => {
                     if (!cancelled) setGallery([]);
@@ -32,12 +38,9 @@ export default function PhonePreview({ draft }) {
 
         loadAndSet();
 
-        // Listen for gallery updates from StoryGalleryStep
+        // Reload when StoryGalleryStep uploads/removes images.
         const handler = (e) => {
-            if (e.detail?.draftId === draft.id) {
-                console.log("PhonePreview: gallery-updated event received, reloading");
-                loadAndSet();
-            }
+            if (e.detail?.draftId === draft.id) loadAndSet();
         };
         window.addEventListener("gallery-updated", handler);
         return () => {
@@ -46,41 +49,7 @@ export default function PhonePreview({ draft }) {
         };
     }, [draft?.id, draft?.galleryUpdatedAt]);
 
-    const baseTpl = getTemplateById(draft?.templateId) || {};
-    const targetDate = draft?.event?.date
-        ? new Date(`${draft.event.date}T${draft.event.ceremonyTime || "17:00"}:00`)
-        : baseTpl.targetDate;
-    const countdown = useCountdown(targetDate);
-
-    const classNames = ["tpl-gallery-a", "tpl-gallery-b", "tpl-gallery-c", "tpl-gallery-d"];
-    const storyImages = (gallery && gallery.length > 0)
-        ? gallery.map((item, i) => ({
-            id: item.id,
-            src: item.preview,
-            alt: item.name,
-            type: item.type,
-            className: classNames[i % classNames.length],
-        }))
-        : baseTpl.storyImages;
-
-    const tpl = {
-        ...baseTpl,
-        groom: draft?.couple?.groom || baseTpl.groom,
-        bride: draft?.couple?.bride || baseTpl.bride,
-        dateText: draft?.event?.date || baseTpl.dateText,
-        targetDate,
-        ceremonyTime: draft?.event?.ceremonyTime || baseTpl.ceremonyTime,
-        receptionTime: draft?.event?.receptionTime || baseTpl.receptionTime,
-        venueName: draft?.event?.venueName || baseTpl.venueName,
-        venueAddress: draft?.event?.venueAddress || baseTpl.venueAddress,
-        story: draft?.story || baseTpl.story,
-        storyImages,
-        dressCode: draft?.dressCode,
-        music: draft?.music,
-        openingVideo: draft?.openingVideoEnabled ? draft.openingVideo : baseTpl.openingVideo,
-    };
-
-    if (!draft?.id) {
+    if (!draft?.id || gallery === null) {
         return (
             <div className="wb-phone-preview">
                 <div className="wb-phone-frame">
@@ -94,17 +63,32 @@ export default function PhonePreview({ draft }) {
         );
     }
 
+    const merged = draftToTemplate(draft, gallery);
+
+    if (!merged) {
+        return (
+            <div className="wb-phone-preview">
+                <div className="wb-phone-frame">
+                    <div className="wb-phone-scroll">
+                        <div style={{ padding: 24, textAlign: "center", color: "#7d6443", fontSize: 12 }}>
+                            មិនអាចបង្ហាញគំរូ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="wb-phone-preview">
             <div className="wb-phone-frame">
                 <div className="wb-phone-scroll">
-                    {gallery === null ? (
-                        <div style={{ padding: 24, textAlign: "center", color: "#7d6443", fontSize: 12 }}>
-                            កំពុងផ្ទុក...
-                        </div>
-                    ) : (
-                        <RoyalInvitation tpl={tpl} countdown={countdown} mode="phone" />
-                    )}
+                    <TemplateExperience
+                        tpl={merged.tpl}
+                        variant={merged.variant}
+                        useTemplateLink={`/create/wedding/${draft.id}`}
+                        preview
+                    />
                 </div>
             </div>
         </div>

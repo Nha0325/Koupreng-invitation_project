@@ -1,10 +1,7 @@
 import { useState } from "react";
 
-/**
- * useToggle — manage boolean state (e.g. show/hide password)
- */
 export function useToggle(initial = false) {
-    const [value, setValue] = useState(initial);
-    const toggle = () => setValue((v) => !v);
-    return [value, toggle];
+  const [value, setValue] = useState(initial);
+  const toggle = () => setValue((current) => !current);
+  return [value, toggle];
 }

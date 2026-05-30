@@ -20,11 +20,15 @@
 ```
 components/PhonePreview.jsx
    ↓ ប្រើ
-features/wedding-site/RoyalInvitation.jsx       ← កាតពិត
-features/wedding-site/hooks/useCountdown.js     ← countdown timer
+features/templates/template-experience/TemplateExperience.jsx  ← engine តែមួយ (mode preview)
+features/templates/template-experience/templateExperienceContent.js ← បង្កើត content
 features/templates/data/templatesData.js        ← template data
-services/galleryStorage.js                      ← រូបភាព gallery
+services/galleryStorage.js                      ← រូបភាព gallery (IndexedDB)
 ```
+
+> ⚠️ ស្ថាបត្យកម្មថ្មី៖ PhonePreview render **TemplateExperience** ដូចគ្នានឹង
+> ទំព័រ `/templates/:id` ដែរ (តាមរយៈ prop `preview`)។ វាលែងប្រើ
+> `RoyalInvitation` ទៀតហើយ ដូច្នេះ preview ត្រូវនឹងកាតដែលបោះផ្សាយ ១០០%។
 
 ---
 

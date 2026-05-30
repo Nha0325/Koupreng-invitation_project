@@ -7,16 +7,18 @@ export default function VenueRsvpStep({ draft, updateField }) {
 
     return (
         <div>
-            <h2>3. ទីកន្លែង និង RSVP</h2>
-            <p className="wb-help">បន្ថែមទីតាំង ព័ត៌មានទំនាក់ទំនង និងរបៀបឱ្យភ្ញៀវឆ្លើយតប។</p>
+            <h2>Place &amp; RSVP</h2>
+            <p className="wb-help">បន្ថែមទីតាំង តំណផែនទី និងរបៀបឱ្យភ្ញៀវឆ្លើយតប។</p>
 
+            {/* Card 1 — Venue */}
             <section className="wb-section">
                 <div className="wb-section-head">
                     <span className="wb-section-kicker">Venue</span>
                     <h3>ទីតាំងកម្មវិធី</h3>
                 </div>
 
-                    <label>ឈ្មោះទីកន្លែង</label>
+                {/* <div className="wb-fields"> */}
+                    <label htmlFor="venue-name">ឈ្មោះទីកន្លែង</label>
                     <VenuePicker
                         value={event.venueName || ""}
                         onChange={(value) => updateField("event", { venueName: value })}
@@ -28,6 +30,7 @@ export default function VenueRsvpStep({ draft, updateField }) {
                         }
                         placeholder="សាលមង្គល..."
                     />
+                {/* </div> */}
 
                 <div className="wb-field">
                     <label htmlFor="venue-address">អាសយដ្ឋាន</label>
@@ -39,9 +42,17 @@ export default function VenueRsvpStep({ draft, updateField }) {
                         placeholder="ផ្លូវ ៥២០ ក្រុងបាត់ដំបង..."
                     />
                 </div>
+            </section>
+
+            {/* Card 2 — Map */}
+            <section className="wb-section">
+                <div className="wb-section-head">
+                    <span className="wb-section-kicker">Map</span>
+                    <h3>តំណភ្ជាប់ផែនទី</h3>
+                </div>
 
                 <div className="wb-field">
-                    <label htmlFor="venue-map">តំណភ្ជាប់ផែនទី</label>
+                    <label htmlFor="venue-map">Google Maps link</label>
                     <input
                         id="venue-map"
                         type="url"
@@ -52,6 +63,7 @@ export default function VenueRsvpStep({ draft, updateField }) {
                 </div>
             </section>
 
+            {/* Card 3 — RSVP */}
             <section className="wb-section">
                 <div className="wb-section-head">
                     <span className="wb-section-kicker">RSVP</span>

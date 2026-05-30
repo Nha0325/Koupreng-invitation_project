@@ -1,0 +1,53 @@
+import { getTemplateById } from "../../templates/data/templatesData";
+import { resolveVariant } from "../../templates/template-experience/templateExperienceThemes";
+
+/**
+ * draftToTemplate — merge a host's wedding draft (+ uploaded gallery) onto the
+ * chosen base template, producing the `tpl` object the shared
+ * TemplateExperience engine reads.
+ *
+ * This is the single source of truth for the draft → preview mapping so every
+ * surface that previews a draft (builder phone frame, dashboard "មើលជាមុន",
+ * full-page preview) renders identically through TemplateExperience.
+ *
+ * @param {object} draft   wedding draft (see services/weddingStorage shape)
+ * @param {Array}  gallery uploaded gallery items ({ preview, type, ... })
+ * @returns {{ tpl: object, variant: string } | null} null when draft/template missing
+ */
+export function draftToTemplate(draft, gallery = []) {
+    if (!draft?.templateId) return null;
+
+    const baseTpl = getTemplateById(draft.templateId);
+    if (!baseTpl) return null;
+
+    // Prefer the host's uploaded photos; fall back to the template's own images.
+    const uploadedImages = (gallery || [])
+        .filter((item) => item?.preview && item.type !== "video")
+        .map((item) => item.preview);
+
+    const targetDate = draft.event?.date
+        ? new Date(`${draft.event.date}T${draft.event.ceremonyTime || "17:00"}:00`).toISOString()
+        : baseTpl.targetDate;
+
+    const tpl = {
+        ...baseTpl,
+        groom: draft.couple?.groom || baseTpl.groom,
+        bride: draft.couple?.bride || baseTpl.bride,
+        dateText: draft.event?.date || baseTpl.dateText,
+        targetDate,
+        ceremonyTime: draft.event?.ceremonyTime || baseTpl.ceremonyTime,
+        receptionTime: draft.event?.receptionTime || baseTpl.receptionTime,
+        venueName: draft.event?.venueName || baseTpl.venueName,
+        venueAddress: draft.event?.venueAddress || baseTpl.venueAddress,
+        message: draft.story || baseTpl.message,
+        dressCode: draft.dressCode || baseTpl.dressCode,
+        music: draft.music || baseTpl.music,
+        // When the host has uploaded photos, drive gallery + story from them.
+        storyImages: uploadedImages.length ? uploadedImages : baseTpl.storyImages,
+        storyCards: uploadedImages.length
+            ? [{ id: `${draft.id}-uploads`, title: "Our Photos", images: uploadedImages }]
+            : baseTpl.storyCards,
+    };
+
+    return { tpl, variant: resolveVariant(baseTpl) };
+}

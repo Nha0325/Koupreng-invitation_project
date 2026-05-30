@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import authService from "../services/remote/authService";
 
 /**
  * useAuthStore — Zustand store for authentication state.
@@ -78,7 +79,12 @@ export const useAuthStore = create((set) => ({
     });
   },
 
-  logout: () => {
+  logout: async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // Ignore network/logout errors; clear the local session regardless.
+    }
     clearStoredAuth();
     set({ user: null, accessToken: null, isAuthenticated: false });
   },

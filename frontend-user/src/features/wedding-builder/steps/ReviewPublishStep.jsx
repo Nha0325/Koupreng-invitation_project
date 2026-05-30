@@ -25,10 +25,41 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
         }
     };
 
+    // Missing-info checklist (display only — does not block publishing).
+    const checklist = [
+        { label: "គំរូសន្លឹកការ", done: Boolean(draft?.templateId) },
+        { label: "ឈ្មោះគូស្វាមីភរិយា", done: Boolean(couple.groom && couple.bride) },
+        { label: "ថ្ងៃកម្មវិធី", done: Boolean(event.date) },
+        { label: "ទីតាំងកម្មវិធី", done: Boolean(event.venueName) },
+    ];
+    const completedCount = checklist.filter((item) => item.done).length;
+
     return (
         <div>
-            <h2>5. ពិនិត្យមើល និងបោះផ្សាយ</h2>
+            <h2>Review &amp; create link</h2>
             <p className="wb-help">ពិនិត្យព័ត៌មានទាំងអស់ មុនបោះផ្សាយសន្លឹកការទៅភ្ញៀវ។</p>
+
+            {!isPublished && (
+                <section className="wb-checklist" aria-label="បញ្ជីពិនិត្យព័ត៌មាន">
+                    <div className="wb-checklist-head">
+                        <span className="wb-section-kicker">Checklist</span>
+                        <h3>ព័ត៌មានសំខាន់ ({completedCount}/{checklist.length})</h3>
+                    </div>
+                    <ul className="wb-checklist-list">
+                        {checklist.map((item) => (
+                            <li
+                                key={item.label}
+                                className={`wb-checklist-item${item.done ? " is-done" : ""}`}
+                            >
+                                <span className="wb-checklist-mark" aria-hidden="true">
+                                    {item.done ? "✓" : "•"}
+                                </span>
+                                {item.label}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
 
             {isPublished && (
                 <section className="wb-success" aria-live="polite">
@@ -39,7 +70,7 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
                         <Link to="/dashboard" className="wb-btn wb-btn-primary">
                             ទៅផ្ទាំងគ្រប់គ្រង
                         </Link>
-                        <Link to={`/preview/${activeDraft.id}`} className="wb-btn">
+                        <Link to={`/event/${activeDraft.id}`} className="wb-btn">
                             មើលជាមុន
                         </Link>
                         <button type="button" className="wb-btn" onClick={handleCopy} disabled={!publicPath}>
@@ -107,7 +138,7 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
                     <button type="button" className="wb-btn wb-btn-primary" onClick={onPublish}>
                         បោះផ្សាយសន្លឹកការ
                     </button>
-                    <Link to={`/preview/${draft.id}`} className="wb-btn">
+                    <Link to={`/event/${draft.id}`} className="wb-btn">
                         មើលជាមុន
                     </Link>
                     <Link to="/dashboard" className="wb-btn">

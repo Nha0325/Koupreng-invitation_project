@@ -20,8 +20,11 @@ function getTitle(draft) {
     return "សន្លឹកការថ្មី";
 }
 
-function EventCard({ draft, onManage, onDelete }) {
+function EventCard({ draft, onSee, onManage, onDelete }) {
     const template = getTemplateById(draft.templateId);
+    // Show the same cover image the user picked in the builder's card grid
+    // (phoneCoverImage / mainImage), not the generic thumbnail.
+    const coverImage = template.phoneCoverImage || template.mainImage || template.image;
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
@@ -40,7 +43,7 @@ function EventCard({ draft, onManage, onDelete }) {
     return (
         <article className="event-card" onClick={() => onManage(draft)}>
             <div className="event-card-img-wrap">
-                <img src={template.image} alt={template.name} className="event-card-img" />
+                <img src={coverImage} alt={template.name} className="event-card-img" />
                 <span className="event-card-badge">{draft.publishedAt ? "Published" : "Draft"}</span>
             </div>
             <div className="event-card-body">
@@ -65,10 +68,20 @@ function EventCard({ draft, onManage, onDelete }) {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setMenuOpen(false);
+                                        onSee(draft);
+                                    }}
+                                >
+                                    See
+                                </button>
+                                <button
+                                    className="event-card-dropdown-item"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMenuOpen(false);
                                         onManage(draft);
                                     }}
                                 >
-                                    ✏️ កែប្រែ
+                                    Edit
                                 </button>
                                 <button
                                     className="event-card-dropdown-item event-card-dropdown-item--danger"
@@ -96,14 +109,14 @@ function EventCard({ draft, onManage, onDelete }) {
                             onManage(draft);
                         }}
                     >
-                        ចូលគ្រប់គ្រង
+                        Edit
                     </button>
                     <Link
-                        to={`/preview/${draft.id}`}
+                        to={`/event/${draft.id}`}
                         className="event-card-preview-btn"
                         onClick={(event) => event.stopPropagation()}
                     >
-                        Preview
+                        See
                     </Link>
                 </div>
             </div>
@@ -115,8 +128,12 @@ export default function EventsPage() {
     const navigate = useNavigate();
     const [drafts, setDrafts] = useState(listDrafts());
 
+    const handleSee = (draft) => {
+        navigate(`/event/${draft.id}`);
+    };
+
     const handleManage = (draft) => {
-        navigate(`/create/wedding/${draft.id}`, { state: { backTo: "/events" } });
+        navigate(`/event/${draft.id}/manage`, { state: { backTo: "/events" } });
     };
 
     const handleDelete = (draft) => {
@@ -151,7 +168,13 @@ export default function EventsPage() {
             ) : (
                 <section className="events-grid">
                     {drafts.map((draft) => (
-                        <EventCard key={draft.id} draft={draft} onManage={handleManage} onDelete={handleDelete} />
+                        <EventCard
+                            key={draft.id}
+                            draft={draft}
+                            onSee={handleSee}
+                            onManage={handleManage}
+                            onDelete={handleDelete}
+                        />
                     ))}
                 </section>
             )}

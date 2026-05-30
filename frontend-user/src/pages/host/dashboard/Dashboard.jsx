@@ -68,6 +68,9 @@ export default function Dashboard() {
 
   const currentDraft = drafts.find((d) => d.id === activeEventId) || drafts[0];
   const template = currentDraft ? getTemplateById(currentDraft.templateId) : null;
+  // Show the same cover image the user picked in the builder's card grid
+  // (phoneCoverImage / mainImage), not the generic thumbnail.
+  const coverImage = template?.phoneCoverImage || template?.mainImage || template?.image;
   const responses = getDraftResponses(currentDraft);
   const accepted = responses.filter((item) => item.attending === "yes").length;
   const declined = responses.filter((item) => item.attending === "no").length;
@@ -156,6 +159,7 @@ export default function Dashboard() {
           <div className="dash-event-switcher-list">
             {drafts.map((draft) => {
               const tpl = getTemplateById(draft.templateId);
+              const tplCover = tpl.phoneCoverImage || tpl.mainImage || tpl.image;
               const isActive = draft.id === currentDraft?.id;
               return (
                 <button
@@ -164,7 +168,7 @@ export default function Dashboard() {
                   className={`dash-event-switcher-card${isActive ? " active" : ""}`}
                   onClick={() => handleSwitchEvent(draft.id)}
                 >
-                  <img src={tpl.image} alt={tpl.name} className="dash-event-switcher-img" />
+                  <img src={tplCover} alt={tpl.name} className="dash-event-switcher-img" />
                   <div className="dash-event-switcher-info">
                     <span className="dash-event-switcher-name">{getInvitationTitle(draft)}</span>
                     <span className="dash-event-switcher-meta">
@@ -181,8 +185,8 @@ export default function Dashboard() {
 
       <section className="dash-current-card">
         <div className="dash-current-media">
-          {template?.image ? (
-            <img src={template.image} alt={template.name} />
+          {coverImage ? (
+            <img src={coverImage} alt={template.name} />
           ) : (
             <span>គូព្រេង</span>
           )}
@@ -258,7 +262,7 @@ export default function Dashboard() {
           note={`${gifts.length} កំណត់ត្រាចងដៃមង្គល`}
         />
       </section>
-{/* 
+      {/* 
       <section className="dash-quick-actions">
         <h2>Quick actions</h2>
         <div className="dash-action-grid">

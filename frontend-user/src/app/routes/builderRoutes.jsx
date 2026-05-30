@@ -4,9 +4,9 @@ import PaymentCancelPage from "../../features/payments/PaymentCancelPage";
 import PaymentStatusPage from "../../features/payments/PaymentStatusPage";
 import PaymentSuccessPage from "../../features/payments/PaymentSuccessPage";
 import WeddingSite from "../../features/wedding-site/WeddingSite";
-import CreateWeddingPage from "../../pages/CreateWeddingPage";
-import PublicInvitationPage from "../../pages/PublicInvitationPage";
-import WeddingPreviewPage from "../../pages/WeddingPreviewPage";
+import CreateWeddingPage from "../../pages/wedding/CreateWeddingPage";
+import PublicInvitationPage from "../../pages/wedding/PublicInvitationPage";
+import WeddingPreviewPage from "../../pages/wedding/WeddingPreviewPage";
 import RequireAuth from "./RequireAuth";
 
 export function builderRoutes() {
@@ -29,6 +29,15 @@ export function builderRoutes() {
           </RequireAuth>
         }
       />
+      <Route
+        path="/event/:draftId/manage"
+        element={
+          <RequireAuth>
+            <CreateWeddingPage />
+          </RequireAuth>
+        }
+      />
+      <Route path="/event/:draftId" element={<WeddingPreviewPage />} />
       <Route path="/preview/:draftId" element={<WeddingPreviewPage />} />
       <Route path="/payments/:orderCode/status" element={<PaymentStatusPage />} />
       <Route path="/payments/success" element={<PaymentSuccessPage />} />

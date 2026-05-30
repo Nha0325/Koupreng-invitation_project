@@ -25,7 +25,7 @@ export default function EnhancementsStep({ draft, update, updateField }) {
 
     return (
         <div>
-            <h2>4. រូបភាព និងព័ត៌មានបន្ថែម</h2>
+            <h2>Notes &amp; media</h2>
             <p className="wb-help">ព័ត៌មានខាងក្រោមជាជម្រើសបន្ថែម។ អ្នកអាចបោះផ្សាយសន្លឹកការដោយមិនបំពេញទាំងអស់។</p>
 
             <section className="wb-section">
@@ -92,7 +92,7 @@ export default function EnhancementsStep({ draft, update, updateField }) {
                 )}
             </section>
 
-            <section className="wb-section">
+            {/* <section className="wb-section">
                 <div className="wb-section-head">
                     <span className="wb-section-kicker">Opening</span>
                     <h3>ជ្រើសរើសវីដេអូបើកសន្លឹកការ</h3>
@@ -104,9 +104,9 @@ export default function EnhancementsStep({ draft, update, updateField }) {
                         onChange={(video) => update({ openingVideo: video, openingVideoEnabled: Boolean(video) })}
                     />
                 </div>
-            </section>
+            </section> */}
 
-            <details className="wb-advanced">
+            {/* <details className="wb-advanced">
                 <summary>ព័ត៌មានបន្ថែមសម្រាប់ភ្ញៀវ</summary>
                 <div className="wb-advanced-body">
                     <div className="wb-row">
@@ -183,7 +183,7 @@ export default function EnhancementsStep({ draft, update, updateField }) {
                         />
                     </div>
                 </div>
-            </details>
+            </details> */}
 
             <details className="wb-advanced">
                 <summary>Dress code និងតន្ត្រី</summary>
