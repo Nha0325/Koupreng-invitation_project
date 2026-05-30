@@ -1172,6 +1172,21 @@
     font-size: 17px;
 }
 
+.wb-checklist-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: #efe4d2;
+    overflow: hidden;
+    margin: 0 0 16px;
+}
+
+.wb-checklist-progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #c8a35f, #e3c98a);
+    transition: width 0.35s ease;
+}
+
 .wb-checklist-list {
     list-style: none;
     margin: 0;
@@ -1185,19 +1200,60 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
     border-radius: 12px;
     background: #fff;
     border: 1px solid #ece1cd;
     font-size: 13px;
     font-weight: 600;
     color: var(--wb-flower-muted);
+    overflow: hidden;
 }
 
 .wb-checklist-item.is-done {
     color: #2f6b45;
     border-color: #cfe9d4;
     background: #f4fbf3;
+}
+
+.wb-checklist-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease;
+}
+
+.wb-checklist-btn:hover {
+    background: rgba(200, 163, 95, 0.1);
+}
+
+.wb-checklist-item.is-done .wb-checklist-btn:hover {
+    background: rgba(47, 107, 69, 0.08);
+}
+
+.wb-checklist-btn:focus-visible {
+    outline: 2px solid var(--wb-flower-muted);
+    outline-offset: -2px;
+}
+
+.wb-checklist-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.wb-checklist-cta {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #b0926a;
+    white-space: nowrap;
 }
 
 .wb-checklist-mark {

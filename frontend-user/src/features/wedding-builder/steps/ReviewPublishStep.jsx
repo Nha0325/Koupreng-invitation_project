@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getTemplateById } from "../../templates/data/templatesData";
 
-export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) {
+export default function ReviewPublishStep({ draft, onPublish, publishedDraft, goToStep }) {
     const [copied, setCopied] = useState(false);
     const template = getTemplateById(draft?.templateId);
     const couple = draft?.couple || {};
@@ -30,13 +30,28 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
     };
 
     // Missing-info checklist (display only — does not block publishing).
+    // `step` points to the builder step that collects each item so clicking
+    // an unfilled row jumps straight there.
     const checklist = [
-        { label: "គំរូសន្លឹកការ", done: Boolean(draft?.templateId) },
-        { label: "ឈ្មោះគូស្វាមីភរិយា", done: Boolean(couple.groom && couple.bride) },
-        { label: "ថ្ងៃកម្មវិធី", done: Boolean(event.date) },
-        { label: "ទីតាំងកម្មវិធី", done: Boolean(event.venueName) },
+        { label: "គំរូសន្លឹកការ", done: Boolean(draft?.templateId), step: 0 },
+        { label: "ឈ្មោះគូស្វាមីភរិយា", done: Boolean(couple.groom && couple.bride), step: 1 },
+        { label: "ថ្ងៃកម្មវិធី", done: Boolean(event.date), step: 1 },
+        { label: "ទីតាំងកម្មវិធី", done: Boolean(event.venueName), step: 2 },
+        { label: "លេខទូរស័ព្ទ / Telegram", done: Boolean(contact.phone || contact.telegram), step: 2 },
+        { label: "កម្មវិធីពិធី", done: schedule.length > 0, step: 1 },
+        { label: "ជំពូករឿងរ៉ាវ", done: storyChapters.length > 0, step: 3 },
+        { label: "ក្រុមអម", done: party.length > 0, step: 3 },
+        { label: "គណនីចងដៃ", done: gift.length > 0, step: 3 },
+        { label: "សំណួរញឹកញាប់", done: faq.length > 0, step: 3 },
     ];
     const completedCount = checklist.filter((item) => item.done).length;
+    const progressPct = Math.round((completedCount / checklist.length) * 100);
+
+    const handleChecklistClick = (stepIndex) => {
+        if (typeof goToStep !== "function") return;
+        goToStep(stepIndex);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     return (
         <div>
@@ -47,7 +62,10 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
                 <section className="wb-checklist" aria-label="បញ្ជីពិនិត្យព័ត៌មាន">
                     <div className="wb-checklist-head">
                         <span className="wb-section-kicker">Checklist</span>
-                        <h3>ព័ត៌មានសំខាន់ ({completedCount}/{checklist.length})</h3>
+                        <h3>ព័ត៌មានសំខាន់ ({completedCount}/{checklist.length} · {progressPct}%)</h3>
+                    </div>
+                    <div className="wb-checklist-progress" aria-hidden="true">
+                        <div className="wb-checklist-progress-bar" style={{ width: `${progressPct}%` }} />
                     </div>
                     <ul className="wb-checklist-list">
                         {checklist.map((item) => (
@@ -55,10 +73,19 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
                                 key={item.label}
                                 className={`wb-checklist-item${item.done ? " is-done" : ""}`}
                             >
-                                <span className="wb-checklist-mark" aria-hidden="true">
-                                    {item.done ? "✓" : "•"}
-                                </span>
-                                {item.label}
+                                <button
+                                    type="button"
+                                    className="wb-checklist-btn"
+                                    onClick={() => handleChecklistClick(item.step)}
+                                >
+                                    <span className="wb-checklist-mark" aria-hidden="true">
+                                        {item.done ? "✓" : "•"}
+                                    </span>
+                                    <span className="wb-checklist-label">{item.label}</span>
+                                    {!item.done && (
+                                        <span className="wb-checklist-cta" aria-hidden="true">បំពេញ →</span>
+                                    )}
+                                </button>
                             </li>
                         ))}
                     </ul>
