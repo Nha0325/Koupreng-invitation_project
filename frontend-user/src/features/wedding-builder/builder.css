@@ -1224,3 +1224,115 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================================
+   Repeatable list editor (story / schedule / party / gift / faq)
+   ============================================================ */
+.wb-li-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.wb-li-empty {
+    margin: 0;
+    padding: 14px;
+    border: 1px dashed #d8cdb8;
+    border-radius: 12px;
+    background: #fdfbf7;
+    color: var(--wb-flower-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+.wb-li-card {
+    border: 1px solid #ece1cd;
+    border-radius: 14px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(76, 58, 30, 0.04);
+}
+
+.wb-li-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.wb-li-card-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--wb-flower-gold);
+}
+
+.wb-li-remove {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #e4d8c2;
+    background: #fff;
+    color: #9a5b4f;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.wb-li-remove:hover {
+    background: #fbecea;
+    border-color: #e0b4ac;
+    color: #b33c2c;
+}
+
+.wb-li-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.wb-li-fields .wb-field {
+    margin-bottom: 0;
+}
+
+.wb-li-field-wide {
+    grid-column: 1 / -1;
+}
+
+.wb-li-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1.5px dashed var(--wb-flower-gold);
+    background: #fffaf2;
+    color: #87662f;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wb-li-add:hover {
+    background: #faf3e6;
+    border-style: solid;
+}
+
+.wb-li-add:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .wb-li-fields {
+        grid-template-columns: 1fr;
+    }
+}

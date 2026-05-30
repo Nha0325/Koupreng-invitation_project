@@ -1,17 +1,20 @@
 import { useRef } from "react";
 import { DressCodePicker } from "../../../shared/ui/DressCodePicker";
 import { MusicPicker } from "../../../shared/ui/MusicPicker";
-import { OpeningVideoPicker } from "../../../shared/ui/OpeningVideoPicker";
 import { DRESS_CODE_COMBOS } from "../../../shared/data/dressCodeColors";
 import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
+import RepeatableList from "../components/RepeatableList";
 
-export default function EnhancementsStep({ draft, update, updateField }) {
+export default function EnhancementsStep({ draft, update }) {
     const fileInputRef = useRef(null);
     const gallery = draft?.gallery || [];
-    const extras = draft?.extras || {};
     const dressCode = draft?.dressCode || DRESS_CODE_COMBOS[0];
     const music = draft?.music || MUSIC_TRACKS[0];
-    const openingVideo = draft?.openingVideoEnabled ? draft?.openingVideo : null;
+
+    const storyChapters = draft?.storyChapters || [];
+    const party = draft?.party || [];
+    const gift = draft?.gift || [];
+    const faq = draft?.faq || [];
 
     const handleFiles = (event) => {
         const files = Array.from(event.target.files || []);
@@ -28,6 +31,7 @@ export default function EnhancementsStep({ draft, update, updateField }) {
             <h2>Notes &amp; media</h2>
             <p className="wb-help">ព័ត៌មានខាងក្រោមជាជម្រើសបន្ថែម។ អ្នកអាចបោះផ្សាយសន្លឹកការដោយមិនបំពេញទាំងអស់។</p>
 
+            {/* Short story blurb + gallery */}
             <section className="wb-section">
                 <div className="wb-section-head">
                     <span className="wb-section-kicker">Story</span>
@@ -35,7 +39,7 @@ export default function EnhancementsStep({ draft, update, updateField }) {
                 </div>
 
                 <div className="wb-field">
-                    <label>រឿងរ៉ាវរបស់យើង</label>
+                    <label>រឿងរ៉ាវរបស់យើង (សង្ខេប)</label>
                     <textarea
                         rows={4}
                         value={draft?.story || ""}
@@ -91,99 +95,6 @@ export default function EnhancementsStep({ draft, update, updateField }) {
                     </div>
                 )}
             </section>
-
-            {/* <section className="wb-section">
-                <div className="wb-section-head">
-                    <span className="wb-section-kicker">Opening</span>
-                    <h3>ជ្រើសរើសវីដេអូបើកសន្លឹកការ</h3>
-                </div>
-                <div className="wb-field">
-                    <label>វីដេអូ 1-4</label>
-                    <OpeningVideoPicker
-                        value={openingVideo}
-                        onChange={(video) => update({ openingVideo: video, openingVideoEnabled: Boolean(video) })}
-                    />
-                </div>
-            </section> */}
-
-            {/* <details className="wb-advanced">
-                <summary>ព័ត៌មានបន្ថែមសម្រាប់ភ្ញៀវ</summary>
-                <div className="wb-advanced-body">
-                    <div className="wb-row">
-                        <div className="wb-field">
-                            <label>Playlist link</label>
-                            <input
-                                type="url"
-                                value={extras.playlistLink || ""}
-                                onChange={(e) => updateField("extras", { playlistLink: e.target.value })}
-                                placeholder="https://..."
-                            />
-                        </div>
-
-                        <div className="wb-field">
-                            <label>Video link</label>
-                            <input
-                                type="url"
-                                value={extras.videoLink || ""}
-                                onChange={(e) => updateField("extras", { videoLink: e.target.value })}
-                                placeholder="https://..."
-                            />
-                        </div>
-                    </div>
-
-                    <div className="wb-field">
-                        <label>Gift / cash gift details</label>
-                        <textarea
-                            rows={3}
-                            value={extras.giftInfo || ""}
-                            onChange={(e) => updateField("extras", { giftInfo: e.target.value })}
-                            placeholder="ព័ត៌មានចងដៃ ឬ ABA/ធនាគារ..."
-                        />
-                    </div>
-
-                    <div className="wb-row">
-                        <div className="wb-field">
-                            <label>Accommodation info</label>
-                            <textarea
-                                rows={3}
-                                value={extras.accommodationInfo || ""}
-                                onChange={(e) => updateField("extras", { accommodationInfo: e.target.value })}
-                                placeholder="សណ្ឋាគារ ឬកន្លែងស្នាក់នៅ..."
-                            />
-                        </div>
-
-                        <div className="wb-field">
-                            <label>Transportation note</label>
-                            <textarea
-                                rows={3}
-                                value={extras.transportationNote || ""}
-                                onChange={(e) => updateField("extras", { transportationNote: e.target.value })}
-                                placeholder="ចំណាំអំពីការធ្វើដំណើរ..."
-                            />
-                        </div>
-                    </div>
-
-                    <div className="wb-field">
-                        <label>Extra guest note</label>
-                        <textarea
-                            rows={3}
-                            value={extras.guestNote || ""}
-                            onChange={(e) => updateField("extras", { guestNote: e.target.value })}
-                            placeholder="សំណូមពរពិសេសសម្រាប់ភ្ញៀវ..."
-                        />
-                    </div>
-
-                    <div className="wb-field">
-                        <label>Multilingual content note</label>
-                        <textarea
-                            rows={3}
-                            value={extras.languageNote || ""}
-                            onChange={(e) => updateField("extras", { languageNote: e.target.value })}
-                            placeholder="ចំណាំសម្រាប់ Khmer / English / ភាសាផ្សេង..."
-                        />
-                    </div>
-                </div>
-            </details> */}
 
             <details className="wb-advanced">
                 <summary>Dress code និងតន្ត្រី</summary>

@@ -39,9 +39,22 @@ export function draftToTemplate(draft, gallery = []) {
         receptionTime: draft.event?.receptionTime || baseTpl.receptionTime,
         venueName: draft.event?.venueName || baseTpl.venueName,
         venueAddress: draft.event?.venueAddress || baseTpl.venueAddress,
-        message: draft.story || baseTpl.message,
+        mapQuery: draft.event?.mapLink || baseTpl.mapQuery,
+        message: draft.message || draft.story || baseTpl.message,
         dressCode: draft.dressCode || baseTpl.dressCode,
         music: draft.music || baseTpl.music,
+        // Host-authored rich sections. Passed straight through so the content
+        // builder can prefer them over its demo fallbacks (see hostContent).
+        hostContent: {
+            couple: draft.couple || {},
+            contact: draft.contact || {},
+            storyChapters: draft.storyChapters || [],
+            schedule: draft.schedule || [],
+            party: draft.party || [],
+            gift: draft.gift || [],
+            faq: draft.faq || [],
+            eventTitle: draft.event?.title || "",
+        },
         // When the host has uploaded photos, drive gallery + story from them.
         storyImages: uploadedImages.length ? uploadedImages : baseTpl.storyImages,
         storyCards: uploadedImages.length

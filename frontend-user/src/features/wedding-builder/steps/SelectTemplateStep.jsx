@@ -11,7 +11,7 @@ const categoryLabels = {
 
 const FALLBACK_IMAGE = "/facebook/all/01-card/cover-card.jpg";
 
-export default function SelectTemplateStep({ draft, update }) {
+export default function SelectTemplateStep({ draft, update, onNext }) {
     // Read ?template from URL so we get the right category even before draft loads
     const [searchParams] = useSearchParams();
     const urlTemplateId = searchParams.get("template");
@@ -41,7 +41,7 @@ export default function SelectTemplateStep({ draft, update }) {
     return (
         <div>
             <h2>Choose your wedding card</h2>
-            <p className="wb-help">Customize the first impression of your invitation.</p>
+            <p className="wb-help">ជ្រើសរើសគំរូមួយ រួចបំពេញព័ត៌មានពីលើចុះក្រោម។</p>
 
             {/* Category pills */}
             <div className="wb-pill-bar" role="tablist" aria-label="ប្រភេទគំរូ">
@@ -74,7 +74,10 @@ export default function SelectTemplateStep({ draft, update }) {
                             key={t.id}
                             className={`wb-tpl-card${isSelected ? " is-selected" : ""}`}
                             aria-pressed={isSelected}
-                            onClick={() => update({ templateId: t.id })}
+                            onClick={() => {
+                                update({ templateId: t.id });
+                                onNext?.();
+                            }}
                         >
                             <span className="wb-tpl-card-media">
                                 <img

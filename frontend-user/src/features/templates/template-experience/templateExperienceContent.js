@@ -243,12 +243,22 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
     const copy = VARIANT_COPY[variant] || VARIANT_COPY.classic;
     const theme = getVariantTheme(variant);
 
+    // Host-authored content (from the wedding builder). When present, these
+    // real values are preferred over the demo fallbacks below. The demo pages
+    // pass no hostContent, so they keep showing tasteful sample data.
+    const host = tpl.hostContent || {};
+    const hostCouple = host.couple || {};
+    const hostContact = host.contact || {};
+    const nonEmpty = (arr) => (Array.isArray(arr) && arr.length ? arr : null);
+
     const venueName = tpl.venueName || "";
     const venueAddress = (tpl.venueAddress || "").replace(/\n/g, ", ");
     const mapSearch = (tpl.mapQuery || `${venueName} ${venueAddress}`).replace(/\s+/g, " ").trim();
     const hasMap = mapSearch.length > 0;
     const mapLink = hasMap
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearch)}`
+        ? (/^https?:\/\//i.test(tpl.mapQuery || "")
+            ? tpl.mapQuery
+            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearch)}`)
         : null;
 
     const dressCode = tpl.dressCode && Array.isArray(tpl.dressCode.colors) && tpl.dressCode.colors.length
@@ -267,6 +277,64 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
 
     const coverImage = tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
 
+    // Map host story chapters onto the timeline shape, layering template images.
+    const ownImages = getTemplateOwnImages(tpl);
+    const hostStory = nonEmpty(host.storyChapters)
+        ? host.storyChapters.map((c, index) => ({
+            id: c.id || `chapter-${index}`,
+            kicker: c.kicker || `ជំពូកទី ${index + 1}`,
+            title: c.title || "",
+            date: c.date || "",
+            text: c.text || "",
+            image: ownImages ? ownImages[index % ownImages.length] : undefined,
+        }))
+        : null;
+
+    const hostSchedule = nonEmpty(host.schedule)
+        ? host.schedule.map((s, index) => ({
+            id: s.id || `sched-${index}`,
+            time: s.time || "",
+            title: s.title || "",
+            titleEn: s.titleEn || "",
+            description: s.description || "",
+            location: s.location || "",
+        }))
+        : null;
+
+    const hostParty = nonEmpty(host.party)
+        ? host.party.map((m, index) => ({
+            id: m.id || `member-${index}`,
+            role: m.role || "",
+            roleEn: m.roleEn || "",
+            name: m.name || "",
+            image: ownImages ? ownImages[index % ownImages.length] : DEMO_PARTY[index % DEMO_PARTY.length].image,
+        }))
+        : null;
+
+    const hostGift = nonEmpty(host.gift)
+        ? host.gift.map((g, index) => ({
+            id: g.id || `gift-${index}`,
+            bank: g.bank || "",
+            account: g.account || "",
+            number: g.number || "",
+            note: g.note || "",
+        }))
+        : null;
+
+    const hostFaq = nonEmpty(host.faq)
+        ? host.faq.map((f, index) => ({
+            id: f.id || `faq-${index}`,
+            q: f.q || "",
+            a: f.a || "",
+        }))
+        : null;
+
+    const contactTelegram = hostContact.telegram
+        ? (/^https?:\/\//i.test(hostContact.telegram)
+            ? hostContact.telegram
+            : `https://t.me/${hostContact.telegram.replace(/^@/, "")}`)
+        : "https://t.me/koupreng";
+
     return {
         variant,
         amp: theme.amp,
@@ -282,10 +350,10 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         message: tpl.message || copy.message,
         families: "រួមជាមួយក្រុមគ្រួសារទាំងសងខាង",
         couple: {
-            groomIntro: copy.groomIntro,
-            brideIntro: copy.brideIntro,
-            groomParents: "បុត្រាលោក ... និងលោកស្រី ...",
-            brideParents: "បុត្រីលោក ... និងលោកស្រី ...",
+            groomIntro: hostCouple.groomIntro || copy.groomIntro,
+            brideIntro: hostCouple.brideIntro || copy.brideIntro,
+            groomParents: hostCouple.groomParents || "បុត្រាលោក ... និងលោកស្រី ...",
+            brideParents: hostCouple.brideParents || "បុត្រីលោក ... និងលោកស្រី ...",
         },
         venue: {
             name: venueName,
@@ -294,15 +362,15 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             image: tpl.mainImage || tpl.phoneCoverImage || coverImage,
         },
         gallery: buildGallery(tpl),
-        story: buildStory(tpl),
-        schedule: buildSchedule(tpl),
-        party: DEMO_PARTY,
+        story: hostStory || buildStory(tpl),
+        schedule: hostSchedule || buildSchedule(tpl),
+        party: hostParty || DEMO_PARTY,
         dressCode,
-        gift: DEMO_GIFT,
-        faq: DEMO_FAQ,
+        gift: hostGift || DEMO_GIFT,
+        faq: hostFaq || DEMO_FAQ,
         contact: {
-            telegram: "https://t.me/koupreng",
-            phone: "+855 12 345 678",
+            telegram: contactTelegram,
+            phone: hostContact.phone || "+855 12 345 678",
         },
         music: tpl.music?.url,
     };

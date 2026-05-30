@@ -9,7 +9,11 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
     const event = draft?.event || {};
     const rsvp = draft?.rsvp || {};
     const contact = draft?.contact || {};
-    const openingVideo = draft?.openingVideoEnabled ? draft?.openingVideo : null;
+    const storyChapters = draft?.storyChapters || [];
+    const schedule = draft?.schedule || [];
+    const party = draft?.party || [];
+    const gift = draft?.gift || [];
+    const faq = draft?.faq || [];
     const activeDraft = publishedDraft || draft;
     const isPublished = Boolean(activeDraft?.publishedAt || publishedDraft);
     const publicPath = activeDraft?.slug ? `/w/${activeDraft.slug}` : "";
@@ -87,8 +91,17 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
                 <div className="wb-field">
                     <label>គំរូដែលបានជ្រើស</label>
                     <div className="wb-review-template">
-                        {template?.image && (
-                            <img src={template.image} alt={template.name} />
+                        {template && (
+                            <img
+                                src={template.phoneCoverImage || template.mainImage || template.image || "/facebook/all/01-card/cover-card.jpg"}
+                                alt={template.name}
+                                onError={(e) => {
+                                    const fallback = "/facebook/all/01-card/cover-card.jpg";
+                                    if (e.currentTarget.src.indexOf(fallback) === -1) {
+                                        e.currentTarget.src = fallback;
+                                    }
+                                }}
+                            />
                         )}
                         <div>
                             <div className="wb-review-title">{template?.name || draft?.templateId}</div>
@@ -123,8 +136,14 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft }) 
                 </div>
 
                 <div className="wb-field">
-                    <label>វីដេអូបើកសន្លឹកការ</label>
-                    <p className="wb-review-text">{openingVideo?.name || "មិនប្រើវីដេអូ"}</p>
+                    <label>មាតិកាបន្ថែម</label>
+                    <div className="wb-review-lines">
+                        <div>📖 ជំពូករឿងរ៉ាវ: {storyChapters.length}</div>
+                        <div>🗓️ កម្មវិធី: {schedule.length}</div>
+                        <div>👥 ក្រុមការងារ: {party.length}</div>
+                        <div>🎁 គណនីចងដៃ: {gift.length}</div>
+                        <div>❓ សំណួរញឹកញាប់: {faq.length}</div>
+                    </div>
                 </div>
 
                 <div className="wb-field">

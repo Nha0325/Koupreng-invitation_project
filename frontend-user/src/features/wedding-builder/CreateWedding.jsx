@@ -84,11 +84,12 @@ export default function CreateWedding() {
                 draft={draft}
                 update={update}
                 updateField={updateField}
+                onNext={next}
                 onPublish={handlePublish}
                 publishedDraft={publishedDraft}
             />
         );
-    }, [CurrentStep, draft, handlePublish, publishedDraft, update, updateField]);
+    }, [CurrentStep, draft, handlePublish, next, publishedDraft, update, updateField]);
 
     if (!draft) {
         return (

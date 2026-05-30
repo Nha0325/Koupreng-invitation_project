@@ -1,10 +1,11 @@
 import { DatePicker } from "../../../shared/ui/DatePicker";
 import { TimePicker } from "../../../shared/ui/TimePicker";
+import RepeatableList from "../components/RepeatableList";
 
-export default function CoupleEventStep({ draft, updateField }) {
+export default function CoupleEventStep({ draft, update, updateField }) {
     const couple = draft?.couple || {};
     const event = draft?.event || {};
-    const contact = draft?.contact || {};
+    const schedule = draft?.schedule || [];
 
     return (
         <div>
@@ -52,9 +53,72 @@ export default function CoupleEventStep({ draft, updateField }) {
                         placeholder="ឧ. ពិធីមង្គលការ បញ្ញា & ផ្កាយ"
                     />
                 </div>
+
+                <div className="wb-field">
+                    <label htmlFor="event-message">សារអញ្ជើញ (ស្រេចចិត្ត)</label>
+                    <textarea
+                        id="event-message"
+                        rows={3}
+                        value={draft?.message || ""}
+                        onChange={(e) => update({ message: e.target.value })}
+                        placeholder="ឧ. ដោយក្ដីគោរព និងសេចក្ដីស្រឡាញ់ យើងសូមអញ្ជើញលោកអ្នក..."
+                    />
+                </div>
             </section>
 
-            {/* Card 2 — Schedule */}
+            {/* Card 2 — Couple intros & parents */}
+            <section className="wb-section">
+                <div className="wb-section-head">
+                    <span className="wb-section-kicker">Profiles</span>
+                    <h3>ការណែនាំ និងឪពុកម្ដាយ (ស្រេចចិត្ត)</h3>
+                </div>
+
+                <div className="wb-field">
+                    <label htmlFor="groom-intro">ការណែនាំកូនកំលោះ</label>
+                    <textarea
+                        id="groom-intro"
+                        rows={2}
+                        value={couple.groomIntro || ""}
+                        onChange={(e) => updateField("couple", { groomIntro: e.target.value })}
+                        placeholder="ឧ. បុរសដ៏សុភាពរាបសា ស្រឡាញ់ភាពសាមញ្ញ..."
+                    />
+                </div>
+
+                <div className="wb-field">
+                    <label htmlFor="groom-parents">ឪពុកម្ដាយខាងប្រុស</label>
+                    <input
+                        id="groom-parents"
+                        type="text"
+                        value={couple.groomParents || ""}
+                        onChange={(e) => updateField("couple", { groomParents: e.target.value })}
+                        placeholder="ឧ. បុត្រាលោក ... និងលោកស្រី ..."
+                    />
+                </div>
+
+                <div className="wb-field">
+                    <label htmlFor="bride-intro">ការណែនាំកូនក្រមុំ</label>
+                    <textarea
+                        id="bride-intro"
+                        rows={2}
+                        value={couple.brideIntro || ""}
+                        onChange={(e) => updateField("couple", { brideIntro: e.target.value })}
+                        placeholder="ឧ. ស្ត្រីដ៏ទន់ភ្លន់ ស្លូតបូត ពោរពេញដោយក្ដីមេត្តា..."
+                    />
+                </div>
+
+                <div className="wb-field">
+                    <label htmlFor="bride-parents">ឪពុកម្ដាយខាងស្រី</label>
+                    <input
+                        id="bride-parents"
+                        type="text"
+                        value={couple.brideParents || ""}
+                        onChange={(e) => updateField("couple", { brideParents: e.target.value })}
+                        placeholder="ឧ. បុត្រីលោក ... និងលោកស្រី ..."
+                    />
+                </div>
+            </section>
+
+            {/* Card 3 — Date & time */}
             <section className="wb-section">
                 <div className="wb-section-head">
                     <span className="wb-section-kicker">Schedule</span>
@@ -91,53 +155,24 @@ export default function CoupleEventStep({ draft, updateField }) {
                 </div>
             </section>
 
-            {/* Card 3 — Contact 
-            
-            
-            <section className="wb-section">
-                <div className="wb-section-head">
-                    <span className="wb-section-kicker">Contact</span>
-                    <h3>ព័ត៌មានទំនាក់ទំនង (ស្រេចចិត្ត)</h3>
-                </div>
-
-                <div className="wb-row">
-                    <div className="wb-field">
-                        <label htmlFor="contact-phone">លេខទូរស័ព្ទ</label>
-                        <input
-                            id="contact-phone"
-                            type="tel"
-                            value={contact.phone || ""}
-                            onChange={(e) => updateField("contact", { phone: e.target.value })}
-                            placeholder="012 345 678"
-                        />
-                    </div>
-
-                    <div className="wb-field">
-                        <label htmlFor="contact-telegram">Telegram</label>
-                        <input
-                            id="contact-telegram"
-                            type="text"
-                            value={contact.telegram || ""}
-                            onChange={(e) => updateField("contact", { telegram: e.target.value })}
-                            placeholder="@username ឬ link"
-                        />
-                    </div>
-                </div>
-
-                <div className="wb-field">
-                    <label htmlFor="contact-email">អ៊ីមែល</label>
-                    <input
-                        id="contact-email"
-                        type="email"
-                        value={contact.email || ""}
-                        onChange={(e) => updateField("contact", { email: e.target.value })}
-                        placeholder="name@email.com"
-                    />
-                </div>
-            </section>
-            
-            
-            */}
+            {/* Card 4 — Program agenda (repeatable) */}
+            <RepeatableList
+                kicker="Program"
+                title="កម្មវិធីពិធីមង្គលការ (ស្រេចចិត្ត)"
+                help="បន្ថែមកម្មវិធីនីមួយៗ ឧ. ពិធីសូត្រមន្ត ពិធីជប់លៀង អាហារពេលល្ងាច។"
+                items={schedule}
+                onChange={(next) => update({ schedule: next })}
+                addLabel="+ បន្ថែមកម្មវិធី"
+                itemLabel="កម្មវិធី"
+                makeEmpty={() => ({ time: "", title: "", titleEn: "", description: "", location: "" })}
+                fields={[
+                    { key: "time", label: "ម៉ោង", type: "time", placeholder: "ជ្រើសម៉ោង" },
+                    { key: "title", label: "ចំណងជើង", placeholder: "ឧ. ពិធីជប់លៀង" },
+                    { key: "titleEn", label: "ចំណងជើង (EN)", placeholder: "ឧ. Reception" },
+                    { key: "description", label: "ការពិពណ៌នា", type: "textarea", rows: 2, wide: true, placeholder: "ឧ. ស្វាគមន៍ភ្ញៀវ ការថតរូប និងពាក្យជូនពរ។" },
+                    { key: "location", label: "ទីតាំង (ស្រេចចិត្ត)", wide: true, placeholder: "ឧ. សាលធំ ជាន់ទី ២" },
+                ]}
+            />
         </div>
     );
 }
