@@ -8,12 +8,8 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
     const couple = draft?.couple || {};
     const event = draft?.event || {};
     const rsvp = draft?.rsvp || {};
-    const contact = draft?.contact || {};
     const storyChapters = draft?.storyChapters || [];
     const schedule = draft?.schedule || [];
-    const party = draft?.party || [];
-    const gift = draft?.gift || [];
-    const faq = draft?.faq || [];
     const activeDraft = publishedDraft || draft;
     const isPublished = Boolean(activeDraft?.publishedAt || publishedDraft);
     const publicPath = activeDraft?.slug ? `/w/${activeDraft.slug}` : "";
@@ -37,12 +33,8 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
         { label: "ឈ្មោះគូស្វាមីភរិយា", done: Boolean(couple.groom && couple.bride), step: 1 },
         { label: "ថ្ងៃកម្មវិធី", done: Boolean(event.date), step: 1 },
         { label: "ទីតាំងកម្មវិធី", done: Boolean(event.venueName), step: 2 },
-        { label: "លេខទូរស័ព្ទ / Telegram", done: Boolean(contact.phone || contact.telegram), step: 2 },
         { label: "កម្មវិធីពិធី", done: schedule.length > 0, step: 1 },
         { label: "ជំពូករឿងរ៉ាវ", done: storyChapters.length > 0, step: 3 },
-        { label: "ក្រុមអម", done: party.length > 0, step: 3 },
-        { label: "គណនីចងដៃ", done: gift.length > 0, step: 3 },
-        { label: "សំណួរញឹកញាប់", done: faq.length > 0, step: 3 },
     ];
     const completedCount = checklist.filter((item) => item.done).length;
     const progressPct = Math.round((completedCount / checklist.length) * 100);
@@ -167,15 +159,7 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
                     <div className="wb-review-lines">
                         <div>📖 ជំពូករឿងរ៉ាវ: {storyChapters.length}</div>
                         <div>🗓️ កម្មវិធី: {schedule.length}</div>
-                        <div>👥 ក្រុមការងារ: {party.length}</div>
-                        <div>🎁 គណនីចងដៃ: {gift.length}</div>
-                        <div>❓ សំណួរញឹកញាប់: {faq.length}</div>
                     </div>
-                </div>
-
-                <div className="wb-field">
-                    <label>លេខទូរស័ព្ទទំនាក់ទំនង</label>
-                    <p className="wb-review-text">{contact.phone || "មិនទាន់បំពេញ"}</p>
                 </div>
             </div>
 

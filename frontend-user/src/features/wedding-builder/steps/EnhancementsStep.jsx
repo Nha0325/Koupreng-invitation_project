@@ -1,20 +1,14 @@
 import { useRef } from "react";
-import { DressCodePicker } from "../../../shared/ui/DressCodePicker";
 import { MusicPicker } from "../../../shared/ui/MusicPicker";
-import { DRESS_CODE_COMBOS } from "../../../shared/data/dressCodeColors";
 import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
 import RepeatableList from "../components/RepeatableList";
 
 export default function EnhancementsStep({ draft, update }) {
     const fileInputRef = useRef(null);
     const gallery = draft?.gallery || [];
-    const dressCode = draft?.dressCode || DRESS_CODE_COMBOS[0];
     const music = draft?.music || MUSIC_TRACKS[0];
 
     const storyChapters = draft?.storyChapters || [];
-    const party = draft?.party || [];
-    const gift = draft?.gift || [];
-    const faq = draft?.faq || [];
 
     const handleFiles = (event) => {
         const files = Array.from(event.target.files || []);
@@ -114,68 +108,9 @@ export default function EnhancementsStep({ draft, update }) {
                 ]}
             />
 
-            {/* Wedding party / crew */}
-            <RepeatableList
-                kicker="Wedding party"
-                title="ក្រុមអម / ក្រុមការងារ (ស្រេចចិត្ត)"
-                help="បន្ថែមសមាជិកក្រុមអម ឧ. កូនកំលោះកិត្តិយស កូនក្រមុំកិត្តិយស គ្រួសារ មិត្តភក្ដិ។"
-                items={party}
-                onChange={(next) => update({ party: next })}
-                addLabel="+ បន្ថែមសមាជិក"
-                itemLabel="សមាជិក"
-                makeEmpty={() => ({ role: "", roleEn: "", name: "" })}
-                fields={[
-                    { key: "role", label: "តួនាទី", placeholder: "ឧ. កូនកំលោះកិត្តិយស" },
-                    { key: "roleEn", label: "តួនាទី (EN)", placeholder: "ឧ. Best Man" },
-                    { key: "name", label: "ឈ្មោះ", wide: true, placeholder: "ឧ. សុខ វិបុល" },
-                ]}
-            />
-
-            {/* Gift / bank accounts */}
-            <RepeatableList
-                kicker="Gift"
-                title="គណនីចងដៃមង្គល (ស្រេចចិត្ត)"
-                help="បន្ថែមគណនីធនាគារ ឧ. ABA, ACLEDA, Wing ដើម្បីឱ្យភ្ញៀវអាចចូលរួមចងដៃ។"
-                items={gift}
-                onChange={(next) => update({ gift: next })}
-                addLabel="+ បន្ថែមគណនី"
-                itemLabel="គណនី"
-                makeEmpty={() => ({ bank: "", account: "", number: "", note: "" })}
-                fields={[
-                    { key: "bank", label: "ធនាគារ", placeholder: "ឧ. ABA Bank" },
-                    { key: "note", label: "ស្លាក (ស្រេចចិត្ត)", placeholder: "ឧ. ABA PAY" },
-                    { key: "account", label: "ឈ្មោះម្ចាស់គណនី", wide: true, placeholder: "ឈ្មោះម្ចាស់គណនី" },
-                    { key: "number", label: "លេខគណនី", wide: true, placeholder: "000 000 000" },
-                ]}
-            />
-
-            {/* FAQ */}
-            <RepeatableList
-                kicker="FAQ"
-                title="សំណួរញឹកញាប់ (ស្រេចចិត្ត)"
-                help="បន្ថែមសំណួរ និងចម្លើយ ដើម្បីជួយភ្ញៀវ ឧ. ទីតាំង សម្លៀកបំពាក់ កន្លែងចតរថយន្ត។"
-                items={faq}
-                onChange={(next) => update({ faq: next })}
-                addLabel="+ បន្ថែមសំណួរ"
-                itemLabel="សំណួរ"
-                makeEmpty={() => ({ q: "", a: "" })}
-                fields={[
-                    { key: "q", label: "សំណួរ", wide: true, placeholder: "ឧ. តើពិធីប្រព្រឹត្តទៅនៅទីណា?" },
-                    { key: "a", label: "ចម្លើយ", type: "textarea", rows: 3, wide: true, placeholder: "ឧ. ពិធីនឹងប្រព្រឹត្តទៅនៅទីតាំងដែលបានបញ្ជាក់..." },
-                ]}
-            />
-
             <details className="wb-advanced">
-                <summary>Dress code និងតន្ត្រី</summary>
+                <summary>តន្ត្រី</summary>
                 <div className="wb-advanced-body">
-                    <div className="wb-field">
-                        <label>ពណ៌ Dress Code</label>
-                        <DressCodePicker
-                            value={dressCode}
-                            onChange={(combo) => update({ dressCode: combo })}
-                        />
-                    </div>
-
                     <div className="wb-field">
                         <label>តន្ត្រី Background</label>
                         <MusicPicker

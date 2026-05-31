@@ -48,3 +48,5 @@ __pycache__/
 *.py[cod]
 .venv/
 telegram-bot/.venv/
+
+database.txt
