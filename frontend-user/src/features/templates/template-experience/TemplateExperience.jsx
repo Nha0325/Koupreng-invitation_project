@@ -12,12 +12,6 @@ import TemplateStory from "./sections/TemplateStory";
 import TemplateSchedule from "./sections/TemplateSchedule";
 import TemplateVenue from "./sections/TemplateVenue";
 import TemplateGallery from "./sections/TemplateGallery";
-import TemplateParty from "./sections/TemplateParty";
-import TemplateDressCode from "./sections/TemplateDressCode";
-import TemplateGift from "./sections/TemplateGift";
-import TemplateFaq from "./sections/TemplateFaq";
-import TemplateRsvp from "./sections/TemplateRsvp";
-import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
 import TemplateStickyCta from "./controls/TemplateStickyCta";
 import "./template-experience.css";
@@ -78,7 +72,6 @@ export default function TemplateExperience({
     );
 
     const rootRef = useRef(null);
-    const rsvpRef = useRef(null);
 
     const scrollToTarget = useCallback((node) => {
         if (!node) return;
@@ -93,10 +86,6 @@ export default function TemplateExperience({
     const handleScrollTop = useCallback(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, []);
-
-    const handleRsvp = useCallback(() => {
-        scrollToTarget(rsvpRef.current);
-    }, [scrollToTarget]);
 
     return (
         <div
@@ -119,12 +108,6 @@ export default function TemplateExperience({
             <TemplateSchedule content={content} />
             <TemplateVenue content={content} />
             <TemplateGallery content={content} />
-            <TemplateParty content={content} />
-            <TemplateDressCode content={content} />
-            <TemplateGift content={content} />
-            <TemplateFaq content={content} />
-            <TemplateRsvp useTemplateLink={useTemplateLink} ref={rsvpRef} />
-            <TemplateFooter content={content} />
 
             {!preview && (
                 <div className="tx-template-actions">
@@ -137,7 +120,6 @@ export default function TemplateExperience({
             {!preview && (
                 <TemplateStickyCta
                     onTop={handleScrollTop}
-                    onRsvp={handleRsvp}
                     mapLink={content.venue.mapLink}
                     useTemplateLink={useTemplateLink}
                     primaryCtaLabel={primaryCtaLabel}
