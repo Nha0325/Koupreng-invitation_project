@@ -3,12 +3,16 @@ package com.koupreng.backend.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koupreng.backend.common.ApiException;
+import com.koupreng.backend.config.PaymentProperties;
 import com.koupreng.backend.config.payment.AbaPayWayProperties;
+import com.koupreng.backend.dto.payment.ConfirmTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentResponse;
 import com.koupreng.backend.dto.payment.PayWayCallbackResponse;
+import com.koupreng.backend.dto.payment.PaymentConfirmResponse;
 import com.koupreng.backend.dto.payment.TemplateAccessCheckResponse;
 import com.koupreng.backend.dto.payment.TemplatePaymentStatusResponse;
+import com.koupreng.backend.dto.payment.TelegramDetectPaymentRequest;
 import com.koupreng.backend.dto.payment.UserTemplateAccessResponse;
 import com.koupreng.backend.entity.payment.TemplatePaymentOrder;
 import com.koupreng.backend.entity.payment.UserTemplateAccess;
@@ -21,6 +25,8 @@ import com.koupreng.backend.repository.UserTemplateAccessRepository;
 import com.koupreng.backend.service.payment.AbaPayWayCheckout;
 import com.koupreng.backend.service.payment.AbaPayWayService;
 import com.koupreng.backend.service.payment.PayWayTransactionVerification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -29,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -36,6 +43,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class TemplatePaymentService {
@@ -45,13 +54,58 @@ public class TemplatePaymentService {
             .withZone(BUSINESS_ZONE);
     private static final DateTimeFormatter TRANSACTION_DATE_FORMAT = DateTimeFormatter.ofPattern("yyMMddHHmmss")
             .withZone(BUSINESS_ZONE);
+    private static final Pattern ORDER_CODE_PATTERN = Pattern.compile("\\bEVT\\d{9,10}\\b", Pattern.CASE_INSENSITIVE);
+    private static final String STATIC_ABA_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAY66444229Q";
+    private static final String STATIC_ABA_PAYMENT_CURRENCY = "USD";
+    private static final BigDecimal STATIC_ABA_PAYMENT_AMOUNT = new BigDecimal("0.01");
+    private static final Duration TELEGRAM_ORDER_CODE_FALLBACK_WINDOW = Duration.ofMinutes(10);
+    private static final List<TelegramAmountPattern> TELEGRAM_AMOUNT_PATTERNS = List.of(
+            new TelegramAmountPattern(
+                    Pattern.compile("\\b(USD|KHR)\\s*([0-9]+(?:\\.[0-9]{1,2})?)\\b", Pattern.CASE_INSENSITIVE),
+                    2,
+                    1,
+                    null
+            ),
+            new TelegramAmountPattern(
+                    Pattern.compile("\\b([0-9]+(?:\\.[0-9]{1,2})?)\\s*(USD|KHR)\\b", Pattern.CASE_INSENSITIVE),
+                    1,
+                    2,
+                    null
+            ),
+            new TelegramAmountPattern(
+                    Pattern.compile("\\$\\s*([0-9]+(?:\\.[0-9]{1,2})?)\\b"),
+                    1,
+                    0,
+                    "USD"
+            ),
+            new TelegramAmountPattern(
+                    Pattern.compile(
+                            "\\b(?:Amount|Paid|Total|Received)\\s*[:=]?\\s*(USD|KHR|US\\$|\\$)\\s*([0-9]+(?:\\.[0-9]{1,2})?)\\b",
+                            Pattern.CASE_INSENSITIVE
+                    ),
+                    2,
+                    1,
+                    null
+            ),
+            new TelegramAmountPattern(
+                    Pattern.compile(
+                            "\\b(?:Amount|Paid|Total|Received)\\s*[:=]?\\s*([0-9]+(?:\\.[0-9]{1,2})?)\\s*(USD|KHR)\\b",
+                            Pattern.CASE_INSENSITIVE
+                    ),
+                    1,
+                    2,
+                    null
+            )
+    );
     private static final Collection<PaymentStatus> EXPIRABLE_STATUSES = List.of(
             PaymentStatus.PENDING,
+            PaymentStatus.PAID_PENDING_REVIEW,
             PaymentStatus.QR_CREATED,
             PaymentStatus.CHECKOUT_CREATED
     );
     private static final Collection<PaymentStatus> ADMIN_LIST_STATUSES = List.of(
             PaymentStatus.PENDING,
+            PaymentStatus.PAID_PENDING_REVIEW,
             PaymentStatus.QR_CREATED,
             PaymentStatus.CHECKOUT_CREATED,
             PaymentStatus.PAID,
@@ -60,11 +114,13 @@ public class TemplatePaymentService {
             PaymentStatus.EXPIRED,
             PaymentStatus.REJECTED
     );
+    private static final Logger log = LoggerFactory.getLogger(TemplatePaymentService.class);
 
     private final TemplatePaymentOrderRepository orderRepository;
     private final UserTemplateAccessRepository accessRepository;
     private final InvitationTemplateRepository templateRepository;
     private final CurrentUserService currentUserService;
+    private final PaymentProperties paymentProperties;
     private final AbaPayWayProperties payWayProperties;
     private final AbaPayWayService abaPayWayService;
     private final ObjectMapper objectMapper;
@@ -75,6 +131,7 @@ public class TemplatePaymentService {
             UserTemplateAccessRepository accessRepository,
             InvitationTemplateRepository templateRepository,
             CurrentUserService currentUserService,
+            PaymentProperties paymentProperties,
             AbaPayWayProperties payWayProperties,
             AbaPayWayService abaPayWayService,
             ObjectMapper objectMapper
@@ -83,6 +140,7 @@ public class TemplatePaymentService {
         this.accessRepository = accessRepository;
         this.templateRepository = templateRepository;
         this.currentUserService = currentUserService;
+        this.paymentProperties = paymentProperties;
         this.payWayProperties = payWayProperties;
         this.abaPayWayService = abaPayWayService;
         this.objectMapper = objectMapper;
@@ -114,6 +172,7 @@ public class TemplatePaymentService {
         order.setPackageName(packageName);
         order.setAmount(amount);
         order.setCurrency(currency);
+        order.setProvider(TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_DYNAMIC_QR_SANDBOX);
         order.setStatus(PaymentStatus.PENDING);
         order.setExpiresAt(Instant.now().plusSeconds(payWayProperties.getOrderExpiryMinutes() * 60));
         orderRepository.save(order);
@@ -138,6 +197,70 @@ public class TemplatePaymentService {
             CreateTemplatePaymentRequest request
     ) {
         return createPaywayQrCheckout(authentication, request);
+    }
+
+    @Transactional
+    public CreateTemplatePaymentResponse createPayment(
+            Authentication authentication,
+            CreateTemplatePaymentRequest request
+    ) {
+        return createStaticPaymentOrder(authentication, request);
+    }
+
+    @Transactional
+    public CreateTemplatePaymentResponse createStaticPaymentOrder(
+            Authentication authentication,
+            CreateTemplatePaymentRequest request
+    ) {
+        TemplatePaymentOrder saved = createStaticPaymentOrderInternal(authentication, request);
+        return CreateTemplatePaymentResponse.from(
+                saved,
+                "Static ABA payment order created. Copy the order code into the ABA note before paying."
+        );
+    }
+
+    private TemplatePaymentOrder createStaticPaymentOrderInternal(
+            Authentication authentication,
+            CreateTemplatePaymentRequest request
+    ) {
+        AppUser user = currentUserService.currentUser(authentication);
+        Long templateId = requirePositiveTemplateId(request.getTemplateId());
+        String currency = normalizeCurrency(request.getCurrency());
+        BigDecimal amount = money(request.getAmount(), currency);
+        requireStaticAbaAmount(currency, amount);
+        String templateName = requireText(request.getTemplateName(), "Template name is required");
+        String packageName = requireText(request.getPackageName(), "Package name is required");
+
+        if (accessRepository.existsByUserIdAndTemplateIdAndActiveTrue(user.getId(), templateId)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Template already unlocked");
+        }
+
+        TemplatePaymentOrder order = new TemplatePaymentOrder();
+        String orderCode = uniqueOrderCode();
+        String staticLink = paymentProperties.getAba().getStaticLink();
+        if (staticLink == null || staticLink.isBlank()) {
+            staticLink = STATIC_ABA_PAYMENT_LINK;
+        }
+
+        order.setOrderCode(orderCode);
+        order.setTransactionId(uniqueTransactionId());
+        order.setUser(user);
+        order.setTemplateId(templateId);
+        order.setTemplateName(templateName);
+        order.setPackageName(packageName);
+        order.setAmount(amount);
+        order.setCurrency(currency);
+        order.setPaymentLink(staticLink);
+        order.setCheckoutUrl(staticLink);
+        order.setPaymentNote(orderCode);
+        order.setProvider(TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_STATIC_TELEGRAM);
+        order.setStatus(PaymentStatus.PENDING);
+        order.setExpiresAt(Instant.now().plusSeconds(paymentProperties.getOrderExpiryMinutes() * 60));
+
+        TemplatePaymentOrder saved = orderRepository.save(order);
+        log.info("Created static template payment order code={} amount={} provider={} paymentLink={}",
+                orderCode, amount, order.getProvider(), maskLink(staticLink));
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -221,24 +344,197 @@ public class TemplatePaymentService {
             orderRepository.save(order);
             throw new ApiException(HttpStatus.BAD_GATEWAY, "ABA PayWay verification failed");
         }
-        if (order.getAmount().compareTo(money(verification.paidAmount(), order.getCurrency())) != 0) {
+        BigDecimal verifiedAmount = money(verification.paidAmount(), order.getCurrency());
+        if (order.getAmount().compareTo(verifiedAmount) != 0) {
             order.setStatus(PaymentStatus.REJECTED);
             orderRepository.save(order);
             throw new ApiException(HttpStatus.BAD_REQUEST, "Amount mismatch");
         }
         if (verification.currency() == null
-                || !order.getCurrency().equalsIgnoreCase(verification.currency())) {
+                || !normalizeCurrency(order.getCurrency()).equals(normalizeCurrency(verification.currency()))) {
             order.setStatus(PaymentStatus.REJECTED);
             orderRepository.save(order);
             throw new ApiException(HttpStatus.BAD_REQUEST, "Currency mismatch");
         }
 
-        Instant now = Instant.now();
-        order.setStatus(PaymentStatus.PAID);
-        order.setPaidAmount(verification.paidAmount());
-        order.setPaidAt(now);
-        orderRepository.save(order);
-        unlockTemplate(order);
+        markOrderPaid(
+                order,
+                verifiedAmount,
+                TemplatePaymentOrder.CONFIRM_SOURCE_PAYWAY_CALLBACK,
+                "aba-payway"
+        );
+    }
+
+    @Transactional
+    public PaymentConfirmResponse detectPaymentFromTelegram(TelegramDetectPaymentRequest request) {
+        String rawMessage = requireText(request.getRawMessage(), "Raw Telegram message is required");
+        String orderCode = detectOrderCode(rawMessage);
+        String botDetectedOrderCode = blankToNull(request.getDetectedOrderCode());
+        if (orderCode == null && botDetectedOrderCode != null) {
+            orderCode = botDetectedOrderCode.toUpperCase(Locale.ROOT);
+        } else if (orderCode != null
+                && botDetectedOrderCode != null
+                && !orderCode.equalsIgnoreCase(botDetectedOrderCode)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Order code mismatch");
+        }
+
+        TelegramAmount detectedPayment = resolveTelegramAmount(rawMessage, request);
+        String detectedCurrency = normalizeCurrency(detectedPayment.currency());
+        BigDecimal paidAmount = money(detectedPayment.amount(), detectedCurrency);
+        requireStaticAbaAmount(detectedCurrency, paidAmount);
+
+        if (orderCode == null) {
+            return detectPaymentWithoutOrderCode(request, paidAmount, detectedCurrency);
+        }
+
+        TemplatePaymentOrder order = requireOrder(orderCode);
+
+        if (order.getStatus() == PaymentStatus.PAID) {
+            throw new ApiException(HttpStatus.CONFLICT, "Order is already paid");
+        }
+
+        applyTelegramMetadata(order, request, paidAmount);
+
+        if (isExpired(order)) {
+            order.setStatus(PaymentStatus.EXPIRED);
+            orderRepository.save(order);
+            return PaymentConfirmResponse.builder()
+                    .message("Payment order expired")
+                    .orderCode(order.getOrderCode())
+                    .status(order.getStatus())
+                    .build();
+        }
+
+        if (order.getStatus() != PaymentStatus.PENDING
+                && order.getStatus() != PaymentStatus.PAID_PENDING_REVIEW) {
+            orderRepository.save(order);
+            throw new ApiException(HttpStatus.CONFLICT, "Order is not pending payment");
+        }
+
+        if (!normalizeCurrency(order.getCurrency()).equals(detectedCurrency)) {
+            orderRepository.save(order);
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Currency mismatch");
+        }
+
+        requireStaticAbaAmount(order.getCurrency(), order.getAmount());
+        if (order.getAmount().compareTo(paidAmount) != 0) {
+            order.setStatus(PaymentStatus.REJECTED);
+            orderRepository.save(order);
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Amount mismatch");
+        }
+
+        if (!paymentProperties.isAutoConfirmTelegramDetected()) {
+            order.setStatus(PaymentStatus.PAID_PENDING_REVIEW);
+            orderRepository.save(order);
+            return PaymentConfirmResponse.builder()
+                    .message("Telegram payment detected. Waiting for admin review.")
+                    .orderCode(order.getOrderCode())
+                    .status(order.getStatus())
+                    .build();
+        }
+
+        markOrderPaid(
+                order,
+                paidAmount,
+                TemplatePaymentOrder.CONFIRM_SOURCE_TELEGRAM_ABA_ALERT,
+                requireText(request.getDetectedBy(), "Detected by is required")
+        );
+        return PaymentConfirmResponse.builder()
+                .message("Telegram payment verified. Template unlocked.")
+                .orderCode(order.getOrderCode())
+                .status(order.getStatus())
+                .build();
+    }
+
+    private PaymentConfirmResponse detectPaymentWithoutOrderCode(
+            TelegramDetectPaymentRequest request,
+            BigDecimal paidAmount,
+            String detectedCurrency
+    ) {
+        Instant fallbackCreatedAfter = Instant.now().minus(TELEGRAM_ORDER_CODE_FALLBACK_WINDOW);
+        List<TemplatePaymentOrder> candidates = orderRepository
+                .findTop5ByStatusAndProviderAndCurrencyAndAmountAndCreatedAtAfterOrderByCreatedAtDesc(
+                        PaymentStatus.PENDING,
+                        TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_STATIC_TELEGRAM,
+                        detectedCurrency,
+                        paidAmount,
+                        fallbackCreatedAfter
+                )
+                .stream()
+                .filter(order -> !isExpired(order))
+                .toList();
+
+        if (candidates.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Order code not found and no recent pending order matched");
+        }
+
+        TemplatePaymentOrder order = candidates.get(0);
+        requireStaticAbaAmount(order.getCurrency(), order.getAmount());
+        applyTelegramMetadata(order, request, paidAmount);
+
+        if (candidates.size() > 1 || !paymentProperties.isAutoConfirmTelegramDetected()) {
+            order.setStatus(PaymentStatus.PAID_PENDING_REVIEW);
+            orderRepository.save(order);
+            return PaymentConfirmResponse.builder()
+                    .message("Telegram payment detected without order code. Waiting for admin review.")
+                    .orderCode(order.getOrderCode())
+                    .status(order.getStatus())
+                    .build();
+        }
+
+        markOrderPaid(
+                order,
+                paidAmount,
+                TemplatePaymentOrder.CONFIRM_SOURCE_TELEGRAM_ABA_ALERT,
+                requireText(request.getDetectedBy(), "Detected by is required")
+        );
+        return PaymentConfirmResponse.builder()
+                .message("Telegram payment verified by recent pending order fallback. Template unlocked.")
+                .orderCode(order.getOrderCode())
+                .status(order.getStatus())
+                .build();
+    }
+
+    @Transactional
+    public PaymentConfirmResponse confirmManualPayment(ConfirmTemplatePaymentRequest request) {
+        TemplatePaymentOrder order = requireOrder(request.getOrderCode());
+        BigDecimal paidAmount = money(request.getAmount(), order.getCurrency());
+
+        if (order.getStatus() == PaymentStatus.PAID) {
+            return PaymentConfirmResponse.builder()
+                    .message("Order is already paid")
+                    .orderCode(order.getOrderCode())
+                    .status(order.getStatus())
+                    .build();
+        }
+
+        if (isExpired(order)) {
+            order.setStatus(PaymentStatus.EXPIRED);
+            orderRepository.save(order);
+            return PaymentConfirmResponse.builder()
+                    .message("Payment order expired")
+                    .orderCode(order.getOrderCode())
+                    .status(order.getStatus())
+                    .build();
+        }
+
+        if (order.getAmount().compareTo(paidAmount) != 0) {
+            order.setStatus(PaymentStatus.REJECTED);
+            orderRepository.save(order);
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Amount mismatch");
+        }
+
+        markOrderPaid(
+                order,
+                paidAmount,
+                TemplatePaymentOrder.CONFIRM_SOURCE_MANUAL_ADMIN,
+                requireText(request.getConfirmedBy(), "Confirmed by is required")
+        );
+        return PaymentConfirmResponse.builder()
+                .message("Payment confirmed manually. Template unlocked.")
+                .orderCode(order.getOrderCode())
+                .status(order.getStatus())
+                .build();
     }
 
     @Transactional(readOnly = true)
@@ -292,6 +588,101 @@ public class TemplatePaymentService {
         access.setAccessType(UserTemplateAccess.ACCESS_TYPE_PURCHASED);
         access.setActive(true);
         accessRepository.save(access);
+    }
+
+    private void markOrderPaid(
+            TemplatePaymentOrder order,
+            BigDecimal paidAmount,
+            String confirmSource,
+            String confirmedBy
+    ) {
+        Instant now = Instant.now();
+        order.setStatus(PaymentStatus.PAID);
+        order.setPaidAmount(paidAmount);
+        order.setConfirmSource(confirmSource);
+        order.setConfirmedBy(confirmedBy);
+        order.setConfirmedAt(now);
+        order.setPaidAt(now);
+        orderRepository.save(order);
+        unlockTemplate(order);
+    }
+
+    private void applyTelegramMetadata(
+            TemplatePaymentOrder order,
+            TelegramDetectPaymentRequest request,
+            BigDecimal detectedAmount
+    ) {
+        order.setPaidAmount(detectedAmount);
+        order.setConfirmSource(TemplatePaymentOrder.CONFIRM_SOURCE_TELEGRAM_ABA_ALERT);
+        order.setConfirmedBy(requireText(request.getDetectedBy(), "Detected by is required"));
+        order.setRawTelegramMessage(request.getRawMessage());
+        order.setTelegramChatId(blankToNull(request.getTelegramChatId()));
+        order.setTelegramMessageId(blankToNull(request.getTelegramMessageId()));
+        order.setTelegramSenderUsername(blankToNull(request.getTelegramSenderUsername()));
+        order.setTelegramSenderId(blankToNull(request.getTelegramSenderId()));
+        order.setPaywayTransactionId(blankToNull(request.getPaywayTransactionId()));
+        order.setPaywayApprovalCode(blankToNull(request.getPaywayApprovalCode()));
+        order.setPaywayStatus(paywayStatusFromTelegram(request));
+    }
+
+    private String paywayStatusFromTelegram(TelegramDetectPaymentRequest request) {
+        String approvalCode = blankToNull(request.getPaywayApprovalCode());
+        if (approvalCode == null) {
+            return "TELEGRAM_ABA_ALERT";
+        }
+        return "TELEGRAM_ABA_ALERT_APV_" + approvalCode;
+    }
+
+    private String detectOrderCode(String rawMessage) {
+        Matcher matcher = ORDER_CODE_PATTERN.matcher(rawMessage);
+        return matcher.find() ? matcher.group().toUpperCase(Locale.ROOT) : null;
+    }
+
+    private TelegramAmount resolveTelegramAmount(String rawMessage, TelegramDetectPaymentRequest request) {
+        TelegramAmount rawDetectedAmount = detectAmount(rawMessage);
+        if (rawDetectedAmount == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Amount not found in Telegram message");
+        }
+        if (request.getDetectedAmount() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Detected amount is required");
+        }
+
+        String rawCurrency = normalizeCurrency(rawDetectedAmount.currency());
+        String requestCurrency = normalizeCurrency(request.getDetectedCurrency());
+        if (!rawCurrency.equals(requestCurrency)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Currency mismatch");
+        }
+
+        BigDecimal normalizedRawAmount = money(rawDetectedAmount.amount(), rawCurrency);
+        BigDecimal requestDetectedAmount = money(request.getDetectedAmount(), requestCurrency);
+        if (requestDetectedAmount.compareTo(normalizedRawAmount) != 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Amount mismatch");
+        }
+        return new TelegramAmount(normalizedRawAmount, rawCurrency);
+    }
+
+    private TelegramAmount detectAmount(String rawMessage) {
+        for (TelegramAmountPattern amountPattern : TELEGRAM_AMOUNT_PATTERNS) {
+            Matcher matcher = amountPattern.pattern().matcher(rawMessage);
+            if (matcher.find()) {
+                try {
+                    String currency = amountPattern.fixedCurrency() != null
+                            ? amountPattern.fixedCurrency()
+                            : matcher.group(amountPattern.currencyGroup());
+                    return new TelegramAmount(
+                            new BigDecimal(matcher.group(amountPattern.amountGroup())),
+                            normalizeCurrency(currency)
+                    );
+                } catch (NumberFormatException exception) {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isExpired(TemplatePaymentOrder order) {
+        return order.getExpiresAt() != null && Instant.now().isAfter(order.getExpiresAt());
     }
 
     private TemplatePaymentOrder markExpiredInMemory(TemplatePaymentOrder order) {
@@ -354,6 +745,9 @@ public class TemplatePaymentService {
         String normalized = currency == null || currency.isBlank()
                 ? "USD"
                 : currency.trim().toUpperCase(Locale.ROOT);
+        if ("$".equals(normalized) || "US$".equals(normalized)) {
+            normalized = "USD";
+        }
         if (!"USD".equals(normalized) && !"KHR".equals(normalized)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Currency mismatch");
         }
@@ -374,9 +768,25 @@ public class TemplatePaymentService {
         }
     }
 
+    private void requireStaticAbaAmount(String currency, BigDecimal amount) {
+        String normalizedCurrency = normalizeCurrency(currency);
+        if (!STATIC_ABA_PAYMENT_CURRENCY.equals(normalizedCurrency)
+                || amount == null
+                || STATIC_ABA_PAYMENT_AMOUNT.compareTo(amount) != 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Static ABA payment amount must be USD 0.01");
+        }
+    }
+
     private String requireText(String value, String message) {
         if (value == null || value.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, message);
+        }
+        return value.trim();
+    }
+
+    private String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
         }
         return value.trim();
     }
@@ -410,6 +820,7 @@ public class TemplatePaymentService {
     private String statusMessage(PaymentStatus status) {
         return switch (status) {
             case PENDING -> "Payment order created.";
+            case PAID_PENDING_REVIEW -> "Payment detected. Waiting for admin review.";
             case QR_CREATED -> "QR created. Waiting for PayWay payment callback.";
             case CHECKOUT_CREATED -> "Checkout created. Waiting for PayWay payment callback.";
             case PAID -> "Payment verified. Template unlocked.";
@@ -426,5 +837,18 @@ public class TemplatePaymentService {
         } catch (JsonProcessingException exception) {
             throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not serialize PayWay callback");
         }
+    }
+
+    private String maskLink(String link) {
+        if (link == null || link.length() <= 12) {
+            return "***";
+        }
+        return link.substring(0, 12) + "..." + link.substring(link.length() - 4);
+    }
+
+    private record TelegramAmount(BigDecimal amount, String currency) {
+    }
+
+    private record TelegramAmountPattern(Pattern pattern, int amountGroup, int currencyGroup, String fixedCurrency) {
     }
 }

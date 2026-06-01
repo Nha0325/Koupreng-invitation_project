@@ -18,7 +18,7 @@ curl -X POST http://localhost:8080/api/v1/template-payments/create \
     "templateId": 10,
     "templateName": "Khmer Wedding Gold",
     "packageName": "Premium",
-    "amount": 5.00
+    "amount": 0.01
   }'
 ```
 
@@ -37,7 +37,7 @@ curl -X POST http://localhost:8080/api/v1/admin/template-payments/confirm \
   -H "X-ADMIN-PAYMENT-SECRET: your-secret" \
   -d '{
     "orderCode": "EVT260520001",
-    "amount": 5.00,
+    "amount": 0.01,
     "confirmedBy": "admin"
   }'
 ```
@@ -49,7 +49,7 @@ curl -X POST http://localhost:8080/api/v1/admin/template-payments/telegram-detec
   -H "Content-Type: application/json" \
   -H "X-ADMIN-PAYMENT-SECRET: your-secret" \
   -d '{
-    "rawMessage": "ABA payment received USD 5.00 Note: EVT260520001",
+    "rawMessage": "ABA payment received USD 0.01 Note: EVT260520001",
     "detectedBy": "telegram_admin"
   }'
 ```

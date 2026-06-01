@@ -1,5 +1,6 @@
 const STATUS_TEXT = {
     PENDING: "Payment order created.",
+    PAID_PENDING_REVIEW: "Payment detected. Waiting for admin review.",
     QR_CREATED: "QR created. Waiting for ABA PayWay verification.",
     CHECKOUT_CREATED: "Checkout created. Waiting for PayWay verification.",
     PAID: "Payment verified. Template unlocked.",
