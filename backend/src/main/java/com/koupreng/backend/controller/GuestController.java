@@ -1,9 +1,11 @@
 package com.koupreng.backend.controller;
 
 import com.koupreng.backend.dto.ApiResponse;
+import com.koupreng.backend.dto.guest.GuestGroupResponse;
 import com.koupreng.backend.dto.guest.GuestImportRequest;
 import com.koupreng.backend.dto.guest.GuestRequest;
 import com.koupreng.backend.dto.guest.GuestResponse;
+import com.koupreng.backend.dto.guest.GuestSendListResponse;
 import com.koupreng.backend.service.GuestService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -52,6 +54,28 @@ public class GuestController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Guests fetched successfully",
                 guestService.list(authentication, invitationId)
+        ));
+    }
+
+    @GetMapping("/grouped")
+    public ResponseEntity<ApiResponse<List<GuestGroupResponse>>> grouped(
+            Authentication authentication,
+            @PathVariable Long invitationId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Guests grouped successfully",
+                guestService.groupedByCategory(authentication, invitationId)
+        ));
+    }
+
+    @GetMapping("/send-list")
+    public ResponseEntity<ApiResponse<GuestSendListResponse>> sendList(
+            Authentication authentication,
+            @PathVariable Long invitationId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Guest send list generated successfully",
+                guestService.sendList(authentication, invitationId)
         ));
     }
 

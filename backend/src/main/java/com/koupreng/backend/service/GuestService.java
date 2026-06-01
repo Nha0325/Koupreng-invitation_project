@@ -1,9 +1,12 @@
 package com.koupreng.backend.service;
 
 import com.koupreng.backend.common.ApiException;
+import com.koupreng.backend.dto.guest.GuestGroupResponse;
 import com.koupreng.backend.dto.guest.GuestImportRequest;
 import com.koupreng.backend.dto.guest.GuestRequest;
 import com.koupreng.backend.dto.guest.GuestResponse;
+import com.koupreng.backend.dto.guest.GuestSendListItemResponse;
+import com.koupreng.backend.dto.guest.GuestSendListResponse;
 import com.koupreng.backend.entity.invitation.Guest;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.repository.GuestRepository;
@@ -12,7 +15,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -43,6 +49,43 @@ public class GuestService {
         return guestRepository.findByInvitationIdOrderByCreatedAtDesc(invitationId).stream()
                 .map(GuestResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<GuestGroupResponse> groupedByCategory(Authentication authentication, Long invitationId) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        List<Guest> guests = guestRepository.findByInvitationIdOrderByGuestGroupAscTableNumberAscGuestNameAsc(invitationId);
+        Map<String, List<GuestResponse>> grouped = new LinkedHashMap<>();
+        for (Guest guest : guests) {
+            grouped.computeIfAbsent(category(guest), ignored -> new ArrayList<>())
+                    .add(GuestResponse.from(guest));
+        }
+        return grouped.entrySet().stream()
+                .map(entry -> GuestGroupResponse.builder()
+                        .category(entry.getKey())
+                        .totalGuests(entry.getValue().size())
+                        .guests(entry.getValue())
+                        .build())
+                .toList();
+    }
+
+    @Transactional
+    public GuestSendListResponse sendList(Authentication authentication, Long invitationId) {
+        UserInvitation invitation = invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        List<Guest> guests = guestRepository.findByInvitationIdOrderByGuestGroupAscTableNumberAscGuestNameAsc(invitationId);
+        List<GuestSendListItemResponse> items = guests.stream()
+                .map(guest -> {
+                    ensureInvitationLink(invitation, guest);
+                    return GuestSendListItemResponse.from(guest, guest.getQrCodeUrl());
+                })
+                .toList();
+        return GuestSendListResponse.builder()
+                .invitationId(invitation.getId())
+                .invitationSlug(invitation.getSlug())
+                .totalGuests(items.size())
+                .sendableGuests((int) items.stream().filter(GuestSendListItemResponse::isSendable).count())
+                .guests(items)
+                .build();
     }
 
     @Transactional(readOnly = true)
@@ -100,6 +143,21 @@ public class GuestService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Guest not found"));
     }
 
+    private void ensureInvitationLink(UserInvitation invitation, Guest guest) {
+        boolean changed = false;
+        if (guest.getInviteToken() == null || guest.getInviteToken().isBlank()) {
+            guest.setInviteToken(uniqueInviteToken());
+            changed = true;
+        }
+        if (guest.getQrCodeUrl() == null || guest.getQrCodeUrl().isBlank()) {
+            guest.setQrCodeUrl(tokenUrl(invitation, guest.getInviteToken()));
+            changed = true;
+        }
+        if (changed) {
+            guestRepository.save(guest);
+        }
+    }
+
     private void applyRequest(Guest guest, GuestRequest request) {
         guest.setGuestName(trimToNull(request.getGuestName()));
         guest.setPhone(trimToNull(request.getPhone()));
@@ -125,6 +183,11 @@ public class GuestService {
                 ? "invitation-" + invitation.getId()
                 : invitation.getSlug();
         return "/i/" + slug + "?token=" + inviteToken;
+    }
+
+    private String category(Guest guest) {
+        String group = trimToNull(guest.getGuestGroup());
+        return group == null ? "Uncategorized" : group;
     }
 
     private String trimToNull(String value) {
