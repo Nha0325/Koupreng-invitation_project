@@ -1,11 +1,14 @@
 package com.koupreng.backend.controller;
 
 import com.koupreng.backend.dto.ApiResponse;
+import com.koupreng.backend.dto.payment.ConfirmTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentResponse;
 import com.koupreng.backend.dto.payment.PayWayCallbackResponse;
+import com.koupreng.backend.dto.payment.PaymentConfirmResponse;
 import com.koupreng.backend.dto.payment.TemplateAccessCheckResponse;
 import com.koupreng.backend.dto.payment.TemplatePaymentStatusResponse;
+import com.koupreng.backend.dto.payment.TelegramDetectPaymentRequest;
 import com.koupreng.backend.dto.payment.UserTemplateAccessResponse;
 import com.koupreng.backend.service.TemplatePaymentService;
 import jakarta.validation.Valid;
@@ -47,6 +50,16 @@ public class TemplatePaymentController {
         CreateTemplatePaymentResponse response = templatePaymentService.createPaywayQrCheckout(authentication, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("PayWay QR payment created successfully", response));
+    }
+
+    @PostMapping("/template-payments/create")
+    public ResponseEntity<ApiResponse<CreateTemplatePaymentResponse>> createStaticPayment(
+            Authentication authentication,
+            @Valid @RequestBody CreateTemplatePaymentRequest request
+    ) {
+        CreateTemplatePaymentResponse response = templatePaymentService.createPayment(authentication, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Static ABA payment order created successfully", response));
     }
 
     @GetMapping("/template-payments/{orderCode}")
@@ -114,5 +127,21 @@ public class TemplatePaymentController {
                 "Template payment orders fetched successfully",
                 templatePaymentService.listOrdersForAdmin()
         ));
+    }
+
+    @PostMapping("/admin/template-payments/confirm")
+    public ResponseEntity<ApiResponse<PaymentConfirmResponse>> confirmManualPayment(
+            @Valid @RequestBody ConfirmTemplatePaymentRequest request
+    ) {
+        PaymentConfirmResponse response = templatePaymentService.confirmManualPayment(request);
+        return ResponseEntity.ok(ApiResponse.success("Template payment confirmed successfully", response));
+    }
+
+    @PostMapping("/admin/template-payments/telegram-detect")
+    public ResponseEntity<ApiResponse<PaymentConfirmResponse>> detectTelegramPayment(
+            @Valid @RequestBody TelegramDetectPaymentRequest request
+    ) {
+        PaymentConfirmResponse response = templatePaymentService.detectPaymentFromTelegram(request);
+        return ResponseEntity.ok(ApiResponse.success("Telegram payment detection processed", response));
     }
 }

@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -13,12 +14,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Set;
 
 @Component
 public class AdminPaymentSecretFilter extends OncePerRequestFilter {
 
     public static final String ADMIN_PAYMENT_SECRET_HEADER = "X-ADMIN-PAYMENT-SECRET";
-    private static final String PROTECTED_PREFIX = "/api/v1/admin/template-payments";
+    private static final Set<String> PROTECTED_POST_PATHS = Set.of(
+            "/api/v1/admin/template-payments/confirm",
+            "/api/v1/admin/template-payments/telegram-detect"
+    );
 
     private final PaymentProperties paymentProperties;
 
@@ -33,7 +38,7 @@ public class AdminPaymentSecretFilter extends OncePerRequestFilter {
         if (contextPath != null && !contextPath.isBlank() && path.startsWith(contextPath)) {
             path = path.substring(contextPath.length());
         }
-        return !path.equals(PROTECTED_PREFIX) && !path.startsWith(PROTECTED_PREFIX + "/");
+        return !HttpMethod.POST.matches(request.getMethod()) || !PROTECTED_POST_PATHS.contains(path);
     }
 
     @Override

@@ -26,6 +26,10 @@ import java.time.Instant;
 public class TemplatePaymentOrder {
 
     public static final String PROVIDER_ABA_PAYWAY_DYNAMIC_QR_SANDBOX = "ABA_PAYWAY_DYNAMIC_QR_SANDBOX";
+    public static final String PROVIDER_ABA_PAYWAY_STATIC_TELEGRAM = "ABA_PAYWAY_STATIC_TELEGRAM";
+    public static final String CONFIRM_SOURCE_PAYWAY_CALLBACK = "ABA_PAYWAY_CALLBACK";
+    public static final String CONFIRM_SOURCE_TELEGRAM_ABA_ALERT = "TELEGRAM_ABA_ALERT";
+    public static final String CONFIRM_SOURCE_MANUAL_ADMIN = "MANUAL_ADMIN";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -90,11 +94,44 @@ public class TemplatePaymentOrder {
     @Column(name = "checkout_url", columnDefinition = "TEXT")
     private String checkoutUrl;
 
+    @Column(name = "payment_link", columnDefinition = "TEXT")
+    private String paymentLink;
+
+    @Column(name = "payment_note", length = 100)
+    private String paymentNote;
+
+    @Column(name = "confirm_source", length = 100)
+    private String confirmSource;
+
+    @Column(name = "confirmed_by", length = 100)
+    private String confirmedBy;
+
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
     @Column(name = "paid_at")
     private Instant paidAt;
 
     @Column(name = "expires_at")
     private Instant expiresAt;
+
+    @Column(name = "raw_telegram_message", columnDefinition = "TEXT")
+    private String rawTelegramMessage;
+
+    @Column(name = "telegram_chat_id", length = 100)
+    private String telegramChatId;
+
+    @Column(name = "telegram_message_id", length = 100)
+    private String telegramMessageId;
+
+    @Column(name = "telegram_sender_username", length = 100)
+    private String telegramSenderUsername;
+
+    @Column(name = "telegram_sender_id", length = 100)
+    private String telegramSenderId;
+
+    @Column(name = "payway_approval_code", length = 100)
+    private String paywayApprovalCode;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

@@ -28,6 +28,9 @@ public class TemplatePaymentStatusResponse {
     private String qrString;
     private String qrImageUrl;
     private String checkoutUrl;
+    private String paymentLink;
+    private String paymentNote;
+    private String provider;
     private Instant paidAt;
     private Instant expiresAt;
     private String message;
@@ -46,6 +49,9 @@ public class TemplatePaymentStatusResponse {
                 .qrString(order.getQrString())
                 .qrImageUrl(order.getQrImageUrl())
                 .checkoutUrl(order.getCheckoutUrl())
+                .paymentLink(order.getPaymentLink())
+                .paymentNote(order.getPaymentNote())
+                .provider(order.getProvider())
                 .paidAt(order.getPaidAt())
                 .expiresAt(order.getExpiresAt())
                 .message(message)
