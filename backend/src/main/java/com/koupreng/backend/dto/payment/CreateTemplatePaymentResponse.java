@@ -27,6 +27,9 @@ public class CreateTemplatePaymentResponse {
     private String qrString;
     private String qrImageUrl;
     private String checkoutUrl;
+    private String paymentLink;
+    private String paymentNote;
+    private String provider;
     private Instant expiresAt;
     private String message;
 
@@ -46,6 +49,9 @@ public class CreateTemplatePaymentResponse {
                 .qrString(order.getQrString())
                 .qrImageUrl(order.getQrImageUrl())
                 .checkoutUrl(order.getCheckoutUrl())
+                .paymentLink(order.getPaymentLink())
+                .paymentNote(order.getPaymentNote())
+                .provider(order.getProvider())
                 .expiresAt(order.getExpiresAt())
                 .message(message)
                 .build();

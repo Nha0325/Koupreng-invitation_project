@@ -134,6 +134,7 @@
 }
 
 .payment-status.pending,
+.payment-status.paid_pending_review,
 .payment-status.qr_created,
 .payment-status.checkout_created {
     color: #78601c;

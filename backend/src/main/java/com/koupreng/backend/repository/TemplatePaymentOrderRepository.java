@@ -5,6 +5,7 @@ import com.koupreng.backend.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -24,6 +25,14 @@ public interface TemplatePaymentOrderRepository extends JpaRepository<TemplatePa
     List<TemplatePaymentOrder> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     List<TemplatePaymentOrder> findByStatusInOrderByCreatedAtDesc(Collection<PaymentStatus> statuses);
+
+    List<TemplatePaymentOrder> findTop5ByStatusAndProviderAndCurrencyAndAmountAndCreatedAtAfterOrderByCreatedAtDesc(
+            PaymentStatus status,
+            String provider,
+            String currency,
+            BigDecimal amount,
+            Instant createdAt
+    );
 
     List<TemplatePaymentOrder> findByStatusInAndExpiresAtBefore(
             Collection<PaymentStatus> statuses,

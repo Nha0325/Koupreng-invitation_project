@@ -67,6 +67,19 @@ class AdminPaymentSecretFilterTests {
         assertTrue(called.get());
     }
 
+    @Test
+    void ignoresAdminPaymentListEndpoint() throws Exception {
+        AdminPaymentSecretFilter filter = filter();
+        MockHttpServletRequest request = request("GET", "/api/v1/admin/template-payments");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        AtomicBoolean called = new AtomicBoolean();
+
+        filter.doFilter(request, response, (servletRequest, servletResponse) -> called.set(true));
+
+        assertEquals(200, response.getStatus());
+        assertTrue(called.get());
+    }
+
     private AdminPaymentSecretFilter filter() {
         PaymentProperties properties = new PaymentProperties();
         properties.setAdminSecret("secret");
@@ -74,7 +87,11 @@ class AdminPaymentSecretFilterTests {
     }
 
     private MockHttpServletRequest request(String path) {
-        MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+        return request("POST", path);
+    }
+
+    private MockHttpServletRequest request(String method, String path) {
+        MockHttpServletRequest request = new MockHttpServletRequest(method, path);
         request.setRequestURI(path);
         return request;
     }
