@@ -12,6 +12,9 @@ public class PaymentProperties {
     @NotBlank
     private String adminSecret = "change-me-local-only";
 
+    @NotBlank
+    private String providerMode = "static";
+
     private boolean autoConfirmTelegramDetected = false;
 
     @Min(1)
@@ -25,6 +28,14 @@ public class PaymentProperties {
 
     public void setAdminSecret(String adminSecret) {
         this.adminSecret = adminSecret;
+    }
+
+    public String getProviderMode() {
+        return providerMode;
+    }
+
+    public void setProviderMode(String providerMode) {
+        this.providerMode = providerMode;
     }
 
     public boolean isAutoConfirmTelegramDetected() {
@@ -50,7 +61,7 @@ public class PaymentProperties {
     public static class Aba {
 
         @NotBlank
-        private String staticLink = "https://link.payway.com.kh/ABAPAY66444229Q";
+        private String staticLink = "https://link.payway.com.kh/ABAPAYrD450560q";
 
         public String getStaticLink() {
             return staticLink;

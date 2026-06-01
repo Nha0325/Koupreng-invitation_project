@@ -2,7 +2,7 @@
 
 FastAPI webhook helper for ABA PayWay static KHQR template payments.
 
-The bot listens for ABA PayWay bot alerts in the Telegram payment group. When a trusted ABA PayWay bot message contains an exact amount and optionally an `EVT...` order code, it calls the Spring Boot backend at `POST /api/v1/admin/template-payments/telegram-detect`. The backend verifies the order, amount, currency, expiry, and status before marking an order `PAID` and unlocking the template.
+The bot listens for ABA PayWay bot alerts in the Telegram payment group. When a trusted ABA PayWay bot message contains an exact amount and an `EVT...` order code, it calls the Spring Boot backend at `POST /api/v1/admin/template-payments/telegram-detect`. The backend verifies the order, amount, currency, expiry, and status before marking an order `PAID` and unlocking the template.
 
 The frontend never marks an order paid and never unlocks a template.
 
@@ -83,8 +83,10 @@ The bot ignores messages from disallowed groups.
 The bot automatically processes a message only when:
 
 - the sender is the trusted ABA PayWay bot
+- the message contains an `EVT...` order code
 - the message contains an amount, for example `USD 0.01`, `USD0.01`, `0.01 USD`, `$0.01`, `Amount: USD 0.01`, `Paid: USD 0.01`, `Total: USD 0.01`, or `Received: USD 0.01`
-- if the message has no order code, the backend only falls back to a recent pending USD 0.01 order inside a short time window; ambiguous matches are marked `PAID_PENDING_REVIEW`
+
+There is no amount-only auto-confirm fallback. Many users can pay the same USD 0.01 amount, so the backend refuses Telegram detection when the raw message does not include the order code.
 
 Payload sent to the backend:
 
@@ -128,15 +130,13 @@ If verification fails, the bot replies:
 Reason: ...
 ```
 
-If an ABA PayWay message has an amount but no order code, the bot still calls the backend. If the backend can identify a single recent pending order, it may confirm it; if multiple recent orders match, it marks the latest one for review and replies:
+If an ABA PayWay message has an amount but no order code, the bot does not call the backend and replies:
 
 ```text
-⚠️ Payment detected but pending review
-Order: EVT260529001
-Amount: USD 0.01
+Payment detected but no order code found. Please check manually.
 ```
 
-Amount-only matching is intentionally conservative because many users can pay the same USD 0.01 amount.
+The backend also rejects no-code Telegram detection requests, even if they come from the admin `/detect` command.
 
 ## Manual Admin Fallback
 

@@ -89,6 +89,7 @@ async def telegram_webhook(request: Request):
     sender_display = username or str(sender.get("first_name") or "").strip() or sender_id or "telegram"
     message_id = str(message.get("message_id") or "")
     text = (message.get("text") or message.get("caption") or "").strip()
+    trusted_payment_sender = payment_sender_allowed(sender)
 
     if not chat_id or not text:
         logger.info("Ignoring update without chat/text: keys=%s", list(update.keys()))
@@ -99,11 +100,12 @@ async def telegram_webhook(request: Request):
         return {"ok": True}
 
     logger.info(
-        "Received Telegram message chat_id=%s sender_id=%s username=%s is_bot=%s text=%s",
+        "Received Telegram message chat_id=%s sender_id=%s username=%s is_bot=%s trusted_payment_bot=%s text=%s",
         chat_id,
         sender_id,
         sender_display,
         sender.get("is_bot"),
+        trusted_payment_sender,
         short_text(text),
     )
 
@@ -117,7 +119,7 @@ async def telegram_webhook(request: Request):
                 f"Sender is bot: {sender.get('is_bot')}\n"
                 f"Allowed group: {group_allowed(chat_id)}\n"
                 f"Allowed admin: {sender_id in TELEGRAM_ALLOWED_ADMIN_IDS}\n"
-                f"Trusted payment bot: {payment_sender_allowed(sender)}"
+                f"Trusted payment bot: {trusted_payment_sender}"
             ),
             message_id,
         )
@@ -145,6 +147,16 @@ async def telegram_webhook(request: Request):
         if not payment:
             await send_message(chat_id, "Could not find a payment amount in that message.", message_id)
             return {"ok": True}
+        if not payment.get("orderCode"):
+            logger.info(
+                "Payment detected by admin debug but no order code found chat_id=%s sender_id=%s amount=%s %s",
+                chat_id,
+                sender_id,
+                payment.get("amount"),
+                payment.get("currency"),
+            )
+            await send_message(chat_id, "Payment detected but no order code found. Please check manually.", message_id)
+            return {"ok": True}
         await handle_detect_message(
             chat_id,
             message_id,
@@ -160,7 +172,7 @@ async def telegram_webhook(request: Request):
         logger.info("Message did not look like payment alert: %s", short_text(text))
         return {"ok": True}
 
-    if not payment_sender_allowed(sender):
+    if not trusted_payment_sender:
         logger.warning(
             "Ignoring payment-like message from untrusted sender_id=%s username=%s is_bot=%s text=%s",
             sender_id,
@@ -183,6 +195,17 @@ async def telegram_webhook(request: Request):
     )
     if not payment:
         await send_message(chat_id, "Could not find a payment amount in that message.", message_id)
+        return {"ok": True}
+    if not payment.get("orderCode"):
+        logger.info(
+            "Trusted payment alert missing order code chat_id=%s sender_id=%s username=%s amount=%s %s",
+            chat_id,
+            sender_id,
+            username or "(none)",
+            payment.get("amount"),
+            payment.get("currency"),
+        )
+        await send_message(chat_id, "Payment detected but no order code found. Please check manually.", message_id)
         return {"ok": True}
 
     await handle_detect_message(

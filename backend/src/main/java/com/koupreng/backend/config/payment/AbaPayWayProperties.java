@@ -33,7 +33,7 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        if (!isProductionProfile()) {
+        if (!isProductionProfile() || isStaticProviderMode()) {
             return;
         }
         List<String> missing = new java.util.ArrayList<>();
@@ -59,6 +59,13 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
                 && Arrays.stream(environment.getActiveProfiles())
                 .anyMatch(profile -> "prod".equalsIgnoreCase(profile)
                         || "production".equalsIgnoreCase(profile));
+    }
+
+    private boolean isStaticProviderMode() {
+        if (environment == null) {
+            return true;
+        }
+        return "static".equalsIgnoreCase(trim(environment.getProperty("app.payment.provider-mode", "static")));
     }
 
     public String getMerchantId() {

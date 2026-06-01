@@ -35,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -55,10 +54,10 @@ public class TemplatePaymentService {
     private static final DateTimeFormatter TRANSACTION_DATE_FORMAT = DateTimeFormatter.ofPattern("yyMMddHHmmss")
             .withZone(BUSINESS_ZONE);
     private static final Pattern ORDER_CODE_PATTERN = Pattern.compile("\\bEVT\\d{9,10}\\b", Pattern.CASE_INSENSITIVE);
-    private static final String STATIC_ABA_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAY66444229Q";
+    private static final String STATIC_ABA_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
+    private static final String PAYMENT_PROVIDER_MODE_STATIC = "static";
     private static final String STATIC_ABA_PAYMENT_CURRENCY = "USD";
     private static final BigDecimal STATIC_ABA_PAYMENT_AMOUNT = new BigDecimal("0.01");
-    private static final Duration TELEGRAM_ORDER_CODE_FALLBACK_WINDOW = Duration.ofMinutes(10);
     private static final List<TelegramAmountPattern> TELEGRAM_AMOUNT_PATTERNS = List.of(
             new TelegramAmountPattern(
                     Pattern.compile("\\b(USD|KHR)\\s*([0-9]+(?:\\.[0-9]{1,2})?)\\b", Pattern.CASE_INSENSITIVE),
@@ -151,6 +150,10 @@ public class TemplatePaymentService {
             Authentication authentication,
             CreateTemplatePaymentRequest request
     ) {
+        if (isStaticProviderMode()) {
+            return createStaticPaymentOrder(authentication, request);
+        }
+
         AppUser user = currentUserService.currentUser(authentication);
         Long templateId = requirePositiveTemplateId(request.getTemplateId());
         validateTemplateIfCatalogExists(templateId);
@@ -370,11 +373,13 @@ public class TemplatePaymentService {
         String rawMessage = requireText(request.getRawMessage(), "Raw Telegram message is required");
         String orderCode = detectOrderCode(rawMessage);
         String botDetectedOrderCode = blankToNull(request.getDetectedOrderCode());
-        if (orderCode == null && botDetectedOrderCode != null) {
-            orderCode = botDetectedOrderCode.toUpperCase(Locale.ROOT);
-        } else if (orderCode != null
-                && botDetectedOrderCode != null
-                && !orderCode.equalsIgnoreCase(botDetectedOrderCode)) {
+        if (orderCode == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Order code not found in Telegram message");
+        }
+        if (botDetectedOrderCode == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Detected order code is required");
+        }
+        if (!orderCode.equalsIgnoreCase(botDetectedOrderCode)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Order code mismatch");
         }
 
@@ -383,17 +388,11 @@ public class TemplatePaymentService {
         BigDecimal paidAmount = money(detectedPayment.amount(), detectedCurrency);
         requireStaticAbaAmount(detectedCurrency, paidAmount);
 
-        if (orderCode == null) {
-            return detectPaymentWithoutOrderCode(request, paidAmount, detectedCurrency);
-        }
-
         TemplatePaymentOrder order = requireOrder(orderCode);
 
         if (order.getStatus() == PaymentStatus.PAID) {
             throw new ApiException(HttpStatus.CONFLICT, "Order is already paid");
         }
-
-        applyTelegramMetadata(order, request, paidAmount);
 
         if (isExpired(order)) {
             order.setStatus(PaymentStatus.EXPIRED);
@@ -407,12 +406,10 @@ public class TemplatePaymentService {
 
         if (order.getStatus() != PaymentStatus.PENDING
                 && order.getStatus() != PaymentStatus.PAID_PENDING_REVIEW) {
-            orderRepository.save(order);
             throw new ApiException(HttpStatus.CONFLICT, "Order is not pending payment");
         }
 
         if (!normalizeCurrency(order.getCurrency()).equals(detectedCurrency)) {
-            orderRepository.save(order);
             throw new ApiException(HttpStatus.BAD_REQUEST, "Currency mismatch");
         }
 
@@ -422,6 +419,8 @@ public class TemplatePaymentService {
             orderRepository.save(order);
             throw new ApiException(HttpStatus.BAD_REQUEST, "Amount mismatch");
         }
+
+        applyTelegramMetadata(order, request, paidAmount);
 
         if (!paymentProperties.isAutoConfirmTelegramDetected()) {
             order.setStatus(PaymentStatus.PAID_PENDING_REVIEW);
@@ -441,55 +440,6 @@ public class TemplatePaymentService {
         );
         return PaymentConfirmResponse.builder()
                 .message("Telegram payment verified. Template unlocked.")
-                .orderCode(order.getOrderCode())
-                .status(order.getStatus())
-                .build();
-    }
-
-    private PaymentConfirmResponse detectPaymentWithoutOrderCode(
-            TelegramDetectPaymentRequest request,
-            BigDecimal paidAmount,
-            String detectedCurrency
-    ) {
-        Instant fallbackCreatedAfter = Instant.now().minus(TELEGRAM_ORDER_CODE_FALLBACK_WINDOW);
-        List<TemplatePaymentOrder> candidates = orderRepository
-                .findTop5ByStatusAndProviderAndCurrencyAndAmountAndCreatedAtAfterOrderByCreatedAtDesc(
-                        PaymentStatus.PENDING,
-                        TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_STATIC_TELEGRAM,
-                        detectedCurrency,
-                        paidAmount,
-                        fallbackCreatedAfter
-                )
-                .stream()
-                .filter(order -> !isExpired(order))
-                .toList();
-
-        if (candidates.isEmpty()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Order code not found and no recent pending order matched");
-        }
-
-        TemplatePaymentOrder order = candidates.get(0);
-        requireStaticAbaAmount(order.getCurrency(), order.getAmount());
-        applyTelegramMetadata(order, request, paidAmount);
-
-        if (candidates.size() > 1 || !paymentProperties.isAutoConfirmTelegramDetected()) {
-            order.setStatus(PaymentStatus.PAID_PENDING_REVIEW);
-            orderRepository.save(order);
-            return PaymentConfirmResponse.builder()
-                    .message("Telegram payment detected without order code. Waiting for admin review.")
-                    .orderCode(order.getOrderCode())
-                    .status(order.getStatus())
-                    .build();
-        }
-
-        markOrderPaid(
-                order,
-                paidAmount,
-                TemplatePaymentOrder.CONFIRM_SOURCE_TELEGRAM_ABA_ALERT,
-                requireText(request.getDetectedBy(), "Detected by is required")
-        );
-        return PaymentConfirmResponse.builder()
-                .message("Telegram payment verified by recent pending order fallback. Template unlocked.")
                 .orderCode(order.getOrderCode())
                 .status(order.getStatus())
                 .build();
@@ -844,6 +794,11 @@ public class TemplatePaymentService {
             return "***";
         }
         return link.substring(0, 12) + "..." + link.substring(link.length() - 4);
+    }
+
+    private boolean isStaticProviderMode() {
+        String providerMode = paymentProperties.getProviderMode();
+        return providerMode == null || PAYMENT_PROVIDER_MODE_STATIC.equalsIgnoreCase(providerMode.trim());
     }
 
     private record TelegramAmount(BigDecimal amount, String currency) {
