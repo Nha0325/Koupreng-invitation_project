@@ -3,7 +3,7 @@
 This MVP uses a static ABA PayWay payment link:
 
 ```text
-https://link.payway.com.kh/ABAPAY66444229Q
+https://link.payway.com.kh/ABAPAYrD450560q
 ```
 
 It is not official ABA PayWay webhook verification and not dynamic QR/API integration. The user must copy the generated order code into the ABA payment note. Backend status changes to `PAID` only after admin or Telegram-bot confirmation.
@@ -11,7 +11,7 @@ It is not official ABA PayWay webhook verification and not dynamic QR/API integr
 ## Create Order
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/template-payments/create \
+curl -X POST http://localhost:8080/api/v1/template-payments/static/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{

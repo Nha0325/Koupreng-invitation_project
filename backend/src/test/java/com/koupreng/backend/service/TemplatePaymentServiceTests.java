@@ -26,7 +26,6 @@ import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,6 +46,7 @@ class TemplatePaymentServiceTests {
     @Test
     void createPaywayCheckoutCreatesDynamicQrForAuthenticatedUser() {
         Fixture fixture = fixture();
+        fixture.paymentProperties.setProviderMode("dynamic");
         when(fixture.abaPayWayService.createCheckout(any(), any(), any()))
                 .thenReturn(new AbaPayWayCheckout(
                         "abamobilebank://ababank.com?type=payway&qrcode=ABA123",
@@ -109,8 +109,25 @@ class TemplatePaymentServiceTests {
     }
 
     @Test
+    void createPaywayCheckoutUsesStaticPaymentFlowWhenProviderModeIsStatic() {
+        Fixture fixture = fixture();
+
+        CreateTemplatePaymentResponse response = fixture.service.createPaywayCheckout(
+                fixture.authentication,
+                createStaticRequest()
+        );
+
+        assertEquals(new BigDecimal("0.01"), response.getAmount());
+        assertEquals(STATIC_PAYMENT_LINK, response.getPaymentLink());
+        assertEquals(TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_STATIC_TELEGRAM, response.getProvider());
+        assertEquals(PaymentStatus.PENDING, response.getStatus());
+        verify(fixture.abaPayWayService, never()).createCheckout(any(), any(), any());
+    }
+
+    @Test
     void createPaywayCheckoutRejectsAlreadyUnlockedTemplate() {
         Fixture fixture = fixture();
+        fixture.paymentProperties.setProviderMode("dynamic");
         when(fixture.accessRepository.existsByUserIdAndTemplateIdAndActiveTrue(1L, 10L)).thenReturn(true);
 
         ApiException exception = assertThrows(
@@ -149,6 +166,7 @@ class TemplatePaymentServiceTests {
         request.setTelegramMessageId("77");
         request.setTelegramSenderUsername("PayWayByABA_bot");
         request.setTelegramSenderId("123456");
+        request.setDetectedOrderCode(order.getOrderCode());
         request.setDetectedAmount(new BigDecimal("0.01"));
         request.setDetectedCurrency("USD");
         request.setPaywayTransactionId("178002414241549");
@@ -169,16 +187,8 @@ class TemplatePaymentServiceTests {
     }
 
     @Test
-    void telegramDetectWithoutOrderCodeFallsBackToSingleRecentPendingOrder() {
+    void telegramDetectWithoutOrderCodeRejectsWithoutUnlockingTemplate() {
         Fixture fixture = fixture();
-        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("0.01"));
-        when(fixture.orderRepository.findTop5ByStatusAndProviderAndCurrencyAndAmountAndCreatedAtAfterOrderByCreatedAtDesc(
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-        )).thenReturn(List.of(order));
 
         TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
         request.setRawMessage("$0.01 paid by RAN NARATH via ABA PAY at KOEURNG VIREAK. Trx. ID: 178002414241549");
@@ -187,59 +197,26 @@ class TemplatePaymentServiceTests {
         request.setDetectedCurrency("USD");
         request.setPaywayTransactionId("178002414241549");
 
-        PaymentConfirmResponse response = fixture.service.detectPaymentFromTelegram(request);
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.detectPaymentFromTelegram(request)
+        );
 
-        assertEquals(PaymentStatus.PAID, response.getStatus());
-        assertEquals(order.getOrderCode(), response.getOrderCode());
-        assertEquals(PaymentStatus.PAID, order.getStatus());
-        assertEquals("178002414241549", order.getPaywayTransactionId());
-        verify(fixture.accessRepository).save(any(UserTemplateAccess.class));
-    }
-
-    @Test
-    void telegramDetectWithoutOrderCodeMarksLatestPendingReviewWhenMultipleCandidates() {
-        Fixture fixture = fixture();
-        TemplatePaymentOrder latest = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("0.01"));
-        latest.setOrderCode("EVT260526002");
-        TemplatePaymentOrder older = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("0.01"));
-        older.setOrderCode("EVT260526001");
-        when(fixture.orderRepository.findTop5ByStatusAndProviderAndCurrencyAndAmountAndCreatedAtAfterOrderByCreatedAtDesc(
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-        )).thenReturn(List.of(latest, older));
-
-        TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
-        request.setRawMessage("ABA payment received USD 0.01 from customer");
-        request.setDetectedBy("telegram-bot");
-        request.setDetectedAmount(new BigDecimal("0.01"));
-        request.setDetectedCurrency("USD");
-
-        PaymentConfirmResponse response = fixture.service.detectPaymentFromTelegram(request);
-
-        assertEquals(PaymentStatus.PAID_PENDING_REVIEW, response.getStatus());
-        assertEquals(latest.getOrderCode(), response.getOrderCode());
-        assertEquals(PaymentStatus.PAID_PENDING_REVIEW, latest.getStatus());
-        assertEquals(PaymentStatus.PENDING, older.getStatus());
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("Order code not found in Telegram message", exception.getMessage());
+        verify(fixture.orderRepository, never()).findByOrderCode(any());
         verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
     }
 
     @Test
-    void telegramDetectWithoutOrderCodeRejectsWhenNoRecentPendingOrderMatches() {
+    void telegramDetectRejectsWhenDetectedOrderCodeDoesNotMatchRawMessage() {
         Fixture fixture = fixture();
-        when(fixture.orderRepository.findTop5ByStatusAndProviderAndCurrencyAndAmountAndCreatedAtAfterOrderByCreatedAtDesc(
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-        )).thenReturn(List.of());
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("0.01"));
 
         TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
-        request.setRawMessage("ABA payment received USD 0.01 from customer");
+        request.setRawMessage("ABA payment received USD 0.01 Note: " + order.getOrderCode());
         request.setDetectedBy("telegram-bot");
+        request.setDetectedOrderCode("EVT260526999");
         request.setDetectedAmount(new BigDecimal("0.01"));
         request.setDetectedCurrency("USD");
 
@@ -249,7 +226,8 @@ class TemplatePaymentServiceTests {
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("Order code not found and no recent pending order matched", exception.getMessage());
+        assertEquals("Order code mismatch", exception.getMessage());
+        verify(fixture.orderRepository, never()).findByOrderCode(any());
         verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
     }
 
@@ -262,6 +240,7 @@ class TemplatePaymentServiceTests {
         TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
         request.setRawMessage("ABA payment received USD 0.02 Note: " + order.getOrderCode());
         request.setDetectedBy("telegram-bot");
+        request.setDetectedOrderCode(order.getOrderCode());
         request.setDetectedAmount(new BigDecimal("0.02"));
         request.setDetectedCurrency("USD");
 
@@ -286,6 +265,7 @@ class TemplatePaymentServiceTests {
         TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
         request.setRawMessage("ABA payment received 0.01 USD Note: " + order.getOrderCode());
         request.setDetectedBy("telegram-bot");
+        request.setDetectedOrderCode(order.getOrderCode());
         request.setDetectedAmount(new BigDecimal("0.01"));
         request.setDetectedCurrency("USD");
 

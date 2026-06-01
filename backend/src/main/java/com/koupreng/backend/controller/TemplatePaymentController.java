@@ -62,6 +62,16 @@ public class TemplatePaymentController {
                 .body(ApiResponse.success("Static ABA payment order created successfully", response));
     }
 
+    @PostMapping("/template-payments/static/create")
+    public ResponseEntity<ApiResponse<CreateTemplatePaymentResponse>> createStaticPaymentOrder(
+            Authentication authentication,
+            @Valid @RequestBody CreateTemplatePaymentRequest request
+    ) {
+        CreateTemplatePaymentResponse response = templatePaymentService.createStaticPaymentOrder(authentication, request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Static ABA payment order created successfully", response));
+    }
+
     @GetMapping("/template-payments/{orderCode}")
     public ResponseEntity<ApiResponse<TemplatePaymentStatusResponse>> getOrder(
             Authentication authentication,
