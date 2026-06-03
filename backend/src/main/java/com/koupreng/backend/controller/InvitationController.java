@@ -4,6 +4,7 @@ import com.koupreng.backend.dto.ApiResponse;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.InvitationSummaryResponse;
+import com.koupreng.backend.dto.invitation.PublicInvitationResponse;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.service.InvitationService;
 import jakarta.validation.Valid;
@@ -144,7 +145,7 @@ public class InvitationController {
     }
 
     @GetMapping("/public/invitations/{slug}")
-    public ResponseEntity<ApiResponse<InvitationResponse>> publicInvitation(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<PublicInvitationResponse>> publicInvitation(@PathVariable String slug) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Invitation fetched successfully",
                 invitationService.publicBySlug(slug)

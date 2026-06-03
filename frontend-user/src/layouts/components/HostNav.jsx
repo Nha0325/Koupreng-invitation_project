@@ -25,11 +25,6 @@ export default function HostNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
-
   // Prevent body scroll when menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -45,7 +40,12 @@ export default function HostNav() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   const handleLogout = () => {
+    closeMobileMenu();
     logout();
     navigate("/", { replace: true });
   };
@@ -434,6 +434,7 @@ export default function HostNav() {
           to="/profile"
           className={`host-mobile-menu-item${isActive("/profile") ? " active" : ""}`}
           style={{ marginBottom: 8 }}
+          onClick={closeMobileMenu}
         >
           <span className="menu-icon">👤</span>
           {user?.fullName?.trim() || user?.full_name?.trim()
@@ -448,6 +449,7 @@ export default function HostNav() {
             key={item.path}
             to={item.path}
             className={`host-mobile-menu-item${isActive(item.path) ? " active" : ""}`}
+            onClick={closeMobileMenu}
           >
             <span className="menu-icon">{item.icon}</span>
             {item.label}
