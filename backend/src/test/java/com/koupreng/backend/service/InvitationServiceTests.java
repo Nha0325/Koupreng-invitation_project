@@ -3,13 +3,16 @@ package com.koupreng.backend.service;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
+import com.koupreng.backend.dto.invitation.PublicInvitationResponse;
 import com.koupreng.backend.entity.invitation.EventType;
+import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
+import com.koupreng.backend.repository.UserTemplateAccessRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -17,9 +20,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,6 +91,39 @@ class InvitationServiceTests {
     }
 
     @Test
+    void createInvitationRejectsPremiumTemplateWithoutAccess() {
+        Fixture fixture = fixture();
+        InvitationTemplate template = template(20L, true);
+        InvitationRequest request = request("Premium invitation");
+        request.setTemplateId(20L);
+        when(fixture.templateRepository.findById(20L)).thenReturn(Optional.of(template));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.create(fixture.authentication, request)
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+        assertEquals("Premium template access is required", exception.getMessage());
+    }
+
+    @Test
+    void createInvitationAllowsPremiumTemplateWithAccess() {
+        Fixture fixture = fixture();
+        InvitationTemplate template = template(20L, true);
+        InvitationRequest request = request("Premium invitation");
+        request.setTemplateId(20L);
+        when(fixture.templateRepository.findById(20L)).thenReturn(Optional.of(template));
+        when(fixture.templateAccessRepository.existsByUserIdAndTemplateIdAndActiveTrue(1L, 20L))
+                .thenReturn(true);
+
+        InvitationResponse response = fixture.service.create(fixture.authentication, request);
+
+        assertEquals(20L, response.getTemplateId());
+        assertEquals("Premium template", response.getTemplateName());
+    }
+
+    @Test
     void unpublishPublishedInvitationSucceeds() {
         Fixture fixture = fixture();
         UserInvitation invitation = validInvitation(fixture.owner);
@@ -106,10 +144,13 @@ class InvitationServiceTests {
         when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
                 .thenReturn(Optional.of(invitation));
 
-        InvitationResponse response = fixture.service.publicBySlug("draft-invitation");
+        PublicInvitationResponse response = fixture.service.publicBySlug("draft-invitation");
 
-        assertEquals(InvitationStatus.PUBLISHED, response.getStatus());
         assertEquals("draft-invitation", response.getSlug());
+        assertFalse(hasDeclaredField(PublicInvitationResponse.class, "id"));
+        assertFalse(hasDeclaredField(PublicInvitationResponse.class, "userId"));
+        assertFalse(hasDeclaredField(PublicInvitationResponse.class, "ownerName"));
+        assertFalse(hasDeclaredField(PublicInvitationResponse.class, "accessPassword"));
     }
 
     @Test
@@ -172,6 +213,7 @@ class InvitationServiceTests {
     private Fixture fixture() {
         UserInvitationRepository invitationRepository = mock(UserInvitationRepository.class);
         InvitationTemplateRepository templateRepository = mock(InvitationTemplateRepository.class);
+        UserTemplateAccessRepository templateAccessRepository = mock(UserTemplateAccessRepository.class);
         CurrentUserService currentUserService = mock(CurrentUserService.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
         Authentication authentication = mock(Authentication.class);
@@ -179,6 +221,7 @@ class InvitationServiceTests {
         InvitationService service = new InvitationService(
                 invitationRepository,
                 templateRepository,
+                templateAccessRepository,
                 currentUserService,
                 passwordEncoder
         );
@@ -194,7 +237,15 @@ class InvitationServiceTests {
             return invitation;
         });
 
-        return new Fixture(service, invitationRepository, currentUserService, authentication, owner);
+        return new Fixture(
+                service,
+                invitationRepository,
+                templateRepository,
+                templateAccessRepository,
+                currentUserService,
+                authentication,
+                owner
+        );
     }
 
     private InvitationRequest request(String title) {
@@ -226,6 +277,14 @@ class InvitationServiceTests {
         return invitation;
     }
 
+    private InvitationTemplate template(Long id, boolean premium) {
+        InvitationTemplate template = new InvitationTemplate();
+        template.setId(id);
+        template.setName("Premium template");
+        template.setPremium(premium);
+        return template;
+    }
+
     private AppUser user(Long id) {
         AppUser user = new AppUser();
         user.setId(id);
@@ -233,9 +292,16 @@ class InvitationServiceTests {
         return user;
     }
 
+    private static boolean hasDeclaredField(Class<?> type, String fieldName) {
+        return Arrays.stream(type.getDeclaredFields())
+                .anyMatch(field -> field.getName().equals(fieldName));
+    }
+
     private record Fixture(
             InvitationService service,
             UserInvitationRepository invitationRepository,
+            InvitationTemplateRepository templateRepository,
+            UserTemplateAccessRepository templateAccessRepository,
             CurrentUserService currentUserService,
             Authentication authentication,
             AppUser owner

@@ -4,6 +4,7 @@ import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.InvitationSummaryResponse;
+import com.koupreng.backend.dto.invitation.PublicInvitationResponse;
 import com.koupreng.backend.entity.invitation.EventType;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
@@ -12,6 +13,7 @@ import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
+import com.koupreng.backend.repository.UserTemplateAccessRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -31,17 +33,20 @@ public class InvitationService {
 
     private final UserInvitationRepository invitationRepository;
     private final InvitationTemplateRepository templateRepository;
+    private final UserTemplateAccessRepository templateAccessRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
 
     public InvitationService(
             UserInvitationRepository invitationRepository,
             InvitationTemplateRepository templateRepository,
+            UserTemplateAccessRepository templateAccessRepository,
             CurrentUserService currentUserService,
             PasswordEncoder passwordEncoder
     ) {
         this.invitationRepository = invitationRepository;
         this.templateRepository = templateRepository;
+        this.templateAccessRepository = templateAccessRepository;
         this.currentUserService = currentUserService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -52,7 +57,7 @@ public class InvitationService {
         UserInvitation invitation = new UserInvitation();
         invitation.setUser(user);
         invitation.setStatus(InvitationStatus.DRAFT);
-        applyRequest(invitation, request);
+        applyRequest(invitation, request, user);
         ensureSlug(invitation);
         return toResponse(save(invitation));
     }
@@ -83,7 +88,7 @@ public class InvitationService {
     @Transactional
     public InvitationResponse update(Authentication authentication, Long id, InvitationRequest request) {
         UserInvitation invitation = requireOwnedInvitation(authentication, id);
-        applyRequest(invitation, request);
+        applyRequest(invitation, request, invitation.getUser());
         ensureSlug(invitation);
         if (invitation.getStatus() == InvitationStatus.PUBLISHED) {
             validatePublishReady(invitation);
@@ -134,7 +139,7 @@ public class InvitationService {
     }
 
     @Transactional(readOnly = true)
-    public InvitationResponse publicBySlug(String slug) {
+    public PublicInvitationResponse publicBySlug(String slug) {
         UserInvitation invitation = invitationRepository
                 .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
@@ -145,7 +150,7 @@ public class InvitationService {
         if (invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
         }
-        return toResponse(invitation);
+        return PublicInvitationResponse.from(invitation);
     }
 
     @Transactional(readOnly = true)
@@ -178,9 +183,9 @@ public class InvitationService {
         return invitation;
     }
 
-    private void applyRequest(UserInvitation invitation, InvitationRequest request) {
+    private void applyRequest(UserInvitation invitation, InvitationRequest request, AppUser user) {
         invitation.setTitle(trimToNull(request.getTitle()));
-        invitation.setTemplate(resolveTemplate(request.getTemplateId()));
+        invitation.setTemplate(resolveTemplate(request.getTemplateId(), user));
         invitation.setEventType(request.getEventType());
         invitation.setEventDate(request.getEventDate());
         invitation.setEventTime(request.getEventTime());
@@ -207,12 +212,18 @@ public class InvitationService {
         }
     }
 
-    private InvitationTemplate resolveTemplate(Long templateId) {
+    private InvitationTemplate resolveTemplate(Long templateId, AppUser user) {
         if (templateId == null) {
             return null;
         }
-        return templateRepository.findById(templateId)
+        InvitationTemplate template = templateRepository.findById(templateId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Template not found"));
+        if (template.isPremium()
+                && (user == null
+                || !templateAccessRepository.existsByUserIdAndTemplateIdAndActiveTrue(user.getId(), templateId))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Premium template access is required");
+        }
+        return template;
     }
 
     private InvitationVisibility parseVisibility(String value) {
