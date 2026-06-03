@@ -1,7 +1,9 @@
 package com.koupreng.backend.service;
 
+import com.koupreng.backend.dto.guest.GuestGroupResponse;
 import com.koupreng.backend.dto.guest.GuestRequest;
 import com.koupreng.backend.dto.guest.GuestResponse;
+import com.koupreng.backend.dto.guest.GuestSendListResponse;
 import com.koupreng.backend.entity.invitation.Guest;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.user.AppUser;
@@ -68,6 +70,51 @@ class GuestServiceTests {
 
         assertEquals(1, responses.size());
         assertEquals("Sophea", responses.getFirst().getGuestName());
+    }
+
+    @Test
+    void groupedByCategoryGroupsGuestsByGuestGroup() {
+        Fixture fixture = fixture();
+        Guest family = guest(fixture.invitation, "Sophea");
+        family.setGuestGroup("Family");
+        Guest friend = guest(fixture.invitation, "Dara");
+        friend.setGuestGroup("Friends");
+        Guest uncategorized = guest(fixture.invitation, "Maly");
+        when(fixture.guestRepository.findByInvitationIdOrderByGuestGroupAscTableNumberAscGuestNameAsc(10L))
+                .thenReturn(List.of(family, friend, uncategorized));
+
+        List<GuestGroupResponse> responses = fixture.service.groupedByCategory(fixture.authentication, 10L);
+
+        assertEquals(3, responses.size());
+        assertEquals("Family", responses.get(0).getCategory());
+        assertEquals(1, responses.get(0).getTotalGuests());
+        assertEquals("Friends", responses.get(1).getCategory());
+        assertEquals("Uncategorized", responses.get(2).getCategory());
+    }
+
+    @Test
+    void sendListGeneratesInviteLinksAndCountsSendableGuests() {
+        Fixture fixture = fixture();
+        Guest phoneGuest = guest(fixture.invitation, "Sophea");
+        phoneGuest.setInviteToken(null);
+        phoneGuest.setQrCodeUrl(null);
+        phoneGuest.setPhone("012345678");
+        Guest noContactGuest = guest(fixture.invitation, "Dara");
+        noContactGuest.setQrCodeUrl(null);
+        when(fixture.guestRepository.findByInvitationIdOrderByGuestGroupAscTableNumberAscGuestNameAsc(10L))
+                .thenReturn(List.of(phoneGuest, noContactGuest));
+
+        GuestSendListResponse response = fixture.service.sendList(fixture.authentication, 10L);
+
+        assertEquals(2, response.getTotalGuests());
+        assertEquals(1, response.getSendableGuests());
+        assertEquals("samnang-sreyneang", response.getInvitationSlug());
+        assertNotNull(response.getGuests().getFirst().getInviteToken());
+        assertEquals(response.getGuests().getFirst().getInvitationUrl(), response.getGuests().getFirst().getQrCodeUrl());
+        assertEquals("/i/samnang-sreyneang?token=" + response.getGuests().getFirst().getInviteToken(),
+                response.getGuests().getFirst().getInvitationUrl());
+        verify(fixture.guestRepository).save(phoneGuest);
+        verify(fixture.guestRepository).save(noContactGuest);
     }
 
     @Test
