@@ -11,7 +11,7 @@ public interface InvitationDeliveryEventRepository extends JpaRepository<Invitat
     // NOTE: Used by delivery audit trail API.
     List<InvitationDeliveryEvent> findByInvitationIdOrderByCreatedAtDesc(Long invitationId);
 
-    List<InvitationDeliveryEvent> findByGuestId(Long guestId);
-
     List<InvitationDeliveryEvent> findByEventType(String eventType);
+
+    List<InvitationDeliveryEvent> findByGuestId(Long guestId);
 }
