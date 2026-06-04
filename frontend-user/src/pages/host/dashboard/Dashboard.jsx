@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getTemplateById } from "../../../features/templates/data/templatesData";
 import {
   getActiveEventId,
@@ -47,8 +47,6 @@ function SummaryCard({ label, value, note }) {
 }
 
 export default function Dashboard() {
-  const [copied, setCopied] = useState(false);
-  const navigate = useNavigate();
   const drafts = listDrafts();
 
   // Active event selection
@@ -88,19 +86,6 @@ export default function Dashboard() {
   const handleSwitchEvent = (eventId) => {
     setActiveEvent(eventId);
     setActiveEventId(eventId);
-  };
-
-  const handleCopy = async () => {
-    if (!currentDraft?.slug) return;
-
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}/w/${currentDraft.slug}`);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-
-    navigate(`/w/${currentDraft.slug}`, { state: { backTo: "/dashboard" } });
   };
 
   if (!currentDraft) {
@@ -229,14 +214,6 @@ export default function Dashboard() {
           >
             មើលជាមុន
           </Link>
-          <button
-            type="button"
-            className="dash-btn"
-            onClick={handleCopy}
-            disabled={!currentDraft.slug}
-          >
-            {copied ? "បានចម្លង" : "ចម្លងតំណភ្ជាប់"}
-          </button>
         </div>
       </section>
 
@@ -274,9 +251,6 @@ export default function Dashboard() {
           >
             មើលជាមុន
           </Link>
-          <button type="button" className="dash-action-card" onClick={handleCopy} disabled={!currentDraft.slug}>
-            ចម្លងតំណភ្ជាប់
-          </button>
           <Link to="/guests" className="dash-action-card">បញ្ជីភ្ញៀវ</Link>
           <Link to="/expenses" className="dash-action-card">គម្រោងថវិកា</Link>
           <Link to="/gifts" className="dash-action-card">ចងដៃមង្គល</Link>

@@ -53,6 +53,9 @@ export default function TemplateExperience({
     backLabel = "ត្រឡប់ទៅគំរូទាំងអស់",
     primaryCtaLabel = "ប្រើគំរូនេះ",
     preview = false,
+    showBreadcrumb = true,
+    showActions = true,
+    showStickyCta = true,
 }) {
     const resolvedVariant = useMemo(() => resolveVariant(tpl, variant), [tpl, variant]);
     const theme = useMemo(() => getVariantTheme(resolvedVariant), [resolvedVariant]);
@@ -94,7 +97,7 @@ export default function TemplateExperience({
             data-variant={resolvedVariant}
             ref={rootRef}
         >
-            {!preview && (
+            {!preview && showBreadcrumb && (
                 <div className="tx-breadcrumb">
                     <Breadcrumb items={crumbs} />
                 </div>
@@ -109,7 +112,7 @@ export default function TemplateExperience({
             <TemplateVenue content={content} />
             <TemplateGallery content={content} />
 
-            {!preview && (
+            {!preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">
                     <Link to={useTemplateLink} className="tx-btn tx-btn--solid">{primaryCtaLabel}</Link>
                     <Link to={backLink} className="tx-btn tx-btn--ghost">{backLabel}</Link>
@@ -117,7 +120,7 @@ export default function TemplateExperience({
             )}
 
             <TemplateMusicControl src={content.music} />
-            {!preview && (
+            {!preview && showStickyCta && (
                 <TemplateStickyCta
                     onTop={handleScrollTop}
                     mapLink={content.venue.mapLink}

@@ -5,8 +5,10 @@ import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import InvitationDisplay from "../../features/invitations/InvitationDisplay";
 import PublicRsvpForm from "../../features/invitations/PublicRsvpForm";
 import "../../features/invitations/InvitationPages.css";
+import TemplateExperience from "../../features/templates/template-experience/TemplateExperience";
 import WeddingSite from "../../features/wedding-site/WeddingSite";
 import { getTemplateById } from "../../features/templates/data/templatesData";
+import { draftToTemplate } from "../../features/wedding-builder/utils/draftToTemplate";
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { loadGallery } from "../../services/galleryStorage";
 import { invitationService } from "../../shared/services/invitationService";
@@ -16,16 +18,17 @@ export default function PublicInvitationPage() {
     const { slug } = useParams();
     const [searchParams] = useSearchParams();
     const location = useLocation();
-    const inviteToken = searchParams.get("token");
+    const inviteToken = searchParams.get("token") || searchParams.get("i");
     const [invitation, setInvitation] = useState(null);
     const [media, setMedia] = useState(null);
     const [remoteLoading, setRemoteLoading] = useState(true);
     const [remoteError, setRemoteError] = useState("");
     const draft = useWeddingStore((state) => state.draft);
+    const loadDraft = useWeddingStore((state) => state.loadDraft);
     const loadDraftBySlug = useWeddingStore((state) => state.loadDraftBySlug);
     const localLoading = useWeddingStore((state) => state.loading);
     const [gallery, setGallery] = useState(null);
-    const activeDraft = draft?.slug === slug ? draft : null;
+    const activeDraft = draft?.slug === slug || draft?.id === slug ? draft : null;
     const shouldBackToDashboard = location.state?.backTo === "/dashboard";
     const backProps = shouldBackToDashboard
         ? { showBack: true, backTo: "/dashboard", backLabel: "← ផ្ទាំងគ្រប់គ្រង" }
@@ -80,7 +83,10 @@ export default function PublicInvitationPage() {
         }
 
         setGallery(null);
-        const loadedDraft = loadDraftBySlug(slug);
+        let loadedDraft = loadDraftBySlug(slug);
+        if (!loadedDraft?.id) {
+            loadedDraft = loadDraft(slug);
+        }
 
         if (!loadedDraft?.id) {
             setGallery([]);
@@ -90,40 +96,13 @@ export default function PublicInvitationPage() {
         loadGallery(loadedDraft.id)
             .then(setGallery)
             .catch(() => setGallery([]));
-    }, [slug, loadDraftBySlug]);
+    }, [slug, loadDraft, loadDraftBySlug]);
 
-    const tpl = useMemo(() => {
+    const merged = useMemo(() => {
         if (!activeDraft?.id || gallery === null) return null;
 
-        const baseTpl = getTemplateById(activeDraft.templateId);
-        const event = activeDraft.event || {};
-        const couple = activeDraft.couple || {};
-        const classNames = ["tpl-gallery-a", "tpl-gallery-b", "tpl-gallery-c", "tpl-gallery-d"];
-        const storyImages = gallery.length > 0
-            ? gallery.map((item, i) => ({
-                id: item.id,
-                src: item.preview,
-                alt: item.name,
-                type: item.type,
-                className: classNames[i % classNames.length],
-            }))
-            : baseTpl.storyImages;
-
-        return {
-            ...baseTpl,
-            groom: couple.groom || baseTpl.groom,
-            bride: couple.bride || baseTpl.bride,
-            dateText: event.date || baseTpl.dateText,
-            ceremonyTime: event.ceremonyTime || baseTpl.ceremonyTime,
-            receptionTime: event.receptionTime || baseTpl.receptionTime,
-            venueName: event.venueName || baseTpl.venueName,
-            venueAddress: event.venueAddress || baseTpl.venueAddress,
-            story: activeDraft.story || baseTpl.story,
-            storyImages,
-            dressCode: activeDraft.dressCode || baseTpl.dressCode,
-            music: activeDraft.music || baseTpl.music,
-            openingVideo: activeDraft.openingVideoEnabled ? activeDraft.openingVideo : baseTpl.openingVideo,
-        };
+        const templateId = activeDraft.templateId || getTemplateById(activeDraft.templateId).id;
+        return draftToTemplate({ ...activeDraft, templateId }, gallery);
     }, [activeDraft, gallery]);
 
     if (remoteLoading) {
@@ -155,8 +134,24 @@ export default function PublicInvitationPage() {
         );
     }
 
-    if (activeDraft?.id) {
-        return <WeddingSite tpl={tpl} {...backProps} />;
+    if (activeDraft?.id && merged) {
+        return (
+            <TemplateExperience
+                tpl={merged.tpl}
+                variant={merged.variant}
+                useTemplateLink={shouldBackToDashboard ? `/create/wedding/${activeDraft.id}` : ""}
+                primaryCtaLabel="កែសម្រួលសន្លឹកការ"
+                breadcrumbItems={[
+                    { label: "ផ្ទាំងគ្រប់គ្រង", to: "/dashboard" },
+                    { label: "ចម្លងតំណភ្ជាប់" },
+                ]}
+                backLink="/dashboard"
+                backLabel="ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង"
+                showBreadcrumb={shouldBackToDashboard}
+                showActions={shouldBackToDashboard}
+                showStickyCta={shouldBackToDashboard}
+            />
+        );
     }
 
     const fallbackTpl = getTemplateById(slug);

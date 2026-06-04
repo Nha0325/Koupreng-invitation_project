@@ -1,31 +1,88 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import QRCode from "react-qr-code";
+import {
+    IoAdd,
+    IoCheckmark,
+    IoClose,
+    IoCopyOutline,
+    IoDownloadOutline,
+    IoEllipsisVertical,
+    IoPencilOutline,
+    IoPeopleOutline,
+    IoQrCodeOutline,
+    IoRefreshOutline,
+    IoSearch,
+    IoSendOutline,
+    IoSettingsOutline,
+    IoTrashOutline,
+} from "react-icons/io5";
 import { listRsvps } from "../../services/rsvpService";
 import { listDrafts } from "../../services/weddingStorage";
 import {
     createHostRecordId,
+    getActiveEventId,
     listManualGuests,
     saveManualGuests,
 } from "../../services/hostPlanningStorage";
 import "./GuestsPage.css";
 
-const statusOptions = ["ទាំងអស់", "បានអញ្ជើញ", "បញ្ជាក់", "បដិសេធ"];
+const DEFAULT_GROUPS = [
+    { id: "groom-side", name: "Groom Side", note: "ខាងកូនកំលោះ" },
+    { id: "bride-side", name: "Bride Side", note: "ខាងកូនក្រមុំ" },
+];
 
-const groupOptions = ["ខាងស្រី", "ខាងប្រុស", "គ្រួសារ", "មិត្តភក្តិ", "សហការី", "អ្នកជិតខាង", "ភ្ញៀវ", "ផ្សេងៗ"];
+const DEFAULT_CATEGORIES = [
+    { id: "high-school", name: "High School Friend", note: "មិត្តភក្តិវិទ្យាល័យ" },
+    { id: "college", name: "College Friend", note: "មិត្តភក្តិសាកលវិទ្យាល័យ" },
+    { id: "friend", name: "Friend", note: "មិត្តភក្តិ" },
+    { id: "family", name: "Family", note: "គ្រួសារ" },
+    { id: "coworker", name: "Coworker", note: "សហការី" },
+    { id: "other", name: "Other", note: "ផ្សេងៗ" },
+];
 
-const STATUS_STYLES = {
-    "បានអញ្ជើញ": { bg: "#fef3c7", color: "#b45309", icon: "⏳" },
-    "បញ្ជាក់": { bg: "#dcfce7", color: "#15803d", icon: "✓" },
-    "បដិសេធ": { bg: "#fee2e2", color: "#dc2626", icon: "✕" },
+const SEND_STATUS = {
+    pending: "មិនទាន់ផ្ញើ",
+    sent: "បានផ្ញើ",
+    opened: "បានបើក",
+    responded: "បានឆ្លើយតប",
 };
 
 const emptyGuestForm = {
     name: "",
+    companionName: "",
     phone: "",
-    group: "ភ្ញៀវ",
-    status: "បានអញ្ជើញ",
+    group: DEFAULT_GROUPS[0].name,
+    category: DEFAULT_CATEGORIES[0].name,
+    note: "",
     count: "1",
     seat: "",
+    sendStatus: SEND_STATUS.pending,
 };
+
+function scopedKey(base, eventId) {
+    return eventId ? `${base}.${eventId}` : base;
+}
+
+function readList(key, fallback) {
+    if (typeof localStorage === "undefined") return fallback;
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function writeList(key, list) {
+    if (typeof localStorage === "undefined") return;
+    try {
+        localStorage.setItem(key, JSON.stringify(list));
+    } catch {
+        // localStorage may be disabled or full.
+    }
+}
 
 function getResponsesForDraft(draft) {
     if (!draft?.id) return [];
@@ -38,76 +95,383 @@ function getResponsesForDraft(draft) {
     return Array.from(responses.values());
 }
 
+function normalizeManualGuest(guest) {
+    const name = guest.name || guest.guestName || "Guest";
+    return {
+        ...guest,
+        id: guest.id || createHostRecordId("guest"),
+        name,
+        companionName: guest.companionName || "",
+        phone: guest.phone === "-" ? "" : guest.phone || "",
+        group: guest.group || guest.guestGroup || DEFAULT_GROUPS[0].name,
+        category: guest.category || guest.sideType || guest.status || DEFAULT_CATEGORIES[0].name,
+        sendStatus: guest.sendStatus || SEND_STATUS.pending,
+        count: Math.max(1, Number(guest.count) || 1),
+        seat: guest.seat === "-" ? "" : guest.seat || "",
+        note: guest.note || "",
+        source: guest.source || "manual",
+    };
+}
+
 function toManualGuest(form, existingId) {
     return {
         id: existingId || createHostRecordId("guest"),
         name: form.name.trim(),
-        phone: form.phone.trim() || "-",
-        group: form.group.trim() || "ភ្ញៀវ",
-        status: form.status,
+        companionName: form.companionName.trim(),
+        phone: form.phone.trim(),
+        group: form.group,
+        category: form.category,
+        sendStatus: form.sendStatus,
         amount: "-",
-        seat: form.seat.trim() || "-",
+        seat: form.seat.trim(),
         count: Math.max(1, Number(form.count) || 1),
+        note: form.note.trim(),
         source: "manual",
         updatedAt: Date.now(),
     };
 }
 
-export default function GuestsList() {
-    const [search, setSearch] = useState("");
-    const [statusFilter, setStatus] = useState("ទាំងអស់");
-    const [manualGuests, setManualGuests] = useState(() => listManualGuests());
-    const [showForm, setShowForm] = useState(false);
+function initials(name) {
+    return (name || "?")
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join("") || "?";
+}
+
+function guestInviteUrl(draft, guest) {
+    const base = typeof window === "undefined" ? "" : window.location.origin;
+    const slug = draft?.slug || draft?.id || "invitation";
+    const token = guest.inviteToken || guest.id;
+    return `${base}/i/${slug}?i=${token}`;
+}
+
+async function copyText(text) {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+    }
+
+    const field = document.createElement("textarea");
+    field.value = text;
+    field.setAttribute("readonly", "");
+    field.style.position = "fixed";
+    field.style.top = "-9999px";
+    document.body.appendChild(field);
+    field.select();
+    const copied = document.execCommand("copy");
+    document.body.removeChild(field);
+    return copied;
+}
+
+function SelectField({ label, value, options, onChange, onManage, placeholder }) {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState("");
+
+    const filtered = options.filter((option) => {
+        const term = query.trim().toLowerCase();
+        const note = option.note || "";
+        return !term || option.name.toLowerCase().includes(term) || note.toLowerCase().includes(term);
+    });
+
+    return (
+        <label className="pe-field pe-select-field">
+            <span>{label}</span>
+            <button type="button" className="pe-select-trigger" onClick={() => setOpen((next) => !next)}>
+                <span>{value || placeholder}</span>
+                <IoClose className="pe-select-clear" aria-hidden="true" />
+            </button>
+            {onManage && (
+                <button type="button" className="pe-manage-link" onClick={onManage}>
+                    <IoSettingsOutline aria-hidden="true" />
+                    គ្រប់គ្រង
+                </button>
+            )}
+            {open && (
+                <div className="pe-select-menu">
+                    <div className="pe-select-search">
+                        <IoSearch aria-hidden="true" />
+                        <input
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Search..."
+                        />
+                    </div>
+                    <div className="pe-select-options">
+                        {filtered.map((option) => (
+                            <button
+                                key={option.id}
+                                type="button"
+                                className={`pe-select-option${option.name === value ? " is-active" : ""}`}
+                                onClick={() => {
+                                    onChange(option.name);
+                                    setOpen(false);
+                                    setQuery("");
+                                }}
+                            >
+                                <span className="pe-radio" aria-hidden="true" />
+                                <span>
+                                    <strong>{option.name}</strong>
+                                    <small>{option.note || "មិនមានពណ៌នា"}</small>
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </label>
+    );
+}
+
+function ManageModal({ title, items, onClose, onSave }) {
+    const [draftItems, setDraftItems] = useState(items);
+    const [form, setForm] = useState({ name: "", note: "" });
     const [editingId, setEditingId] = useState(null);
+    const [editing, setEditing] = useState({ name: "", note: "" });
+
+    const addItem = () => {
+        if (!form.name.trim()) return;
+        setDraftItems((current) => [
+            ...current,
+            { id: createHostRecordId("option"), name: form.name.trim(), note: form.note.trim() },
+        ]);
+        setForm({ name: "", note: "" });
+    };
+
+    const updateEditing = () => {
+        if (!editing.name.trim()) return;
+        setDraftItems((current) =>
+            current.map((item) => item.id === editingId
+                ? { ...item, name: editing.name.trim(), note: editing.note.trim() }
+                : item
+            )
+        );
+        setEditingId(null);
+        setEditing({ name: "", note: "" });
+    };
+
+    return (
+        <div className="pe-modal-layer pe-modal-layer-top">
+            <section className="pe-manager-modal">
+                <button type="button" className="pe-modal-x" onClick={onClose} aria-label="Close">
+                    <IoClose aria-hidden="true" />
+                </button>
+                <h2>
+                    <IoSettingsOutline aria-hidden="true" />
+                    {title}
+                </h2>
+
+                <div className="pe-manager-add">
+                    <label>
+                        <span>ឈ្មោះ</span>
+                        <input
+                            value={form.name}
+                            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                            placeholder="បញ្ចូលឈ្មោះ"
+                        />
+                    </label>
+                    <label>
+                        <span>ពណ៌នា</span>
+                        <input
+                            value={form.note}
+                            onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
+                            placeholder="បញ្ចូលពណ៌នា"
+                        />
+                    </label>
+                    <button type="button" className="pe-primary-btn" onClick={addItem}>
+                        <IoAdd aria-hidden="true" />
+                        បន្ថែម
+                    </button>
+                </div>
+
+                <h3>បញ្ជី ({draftItems.length})</h3>
+                <div className="pe-manager-list">
+                    {draftItems.map((item) => {
+                        const isEditing = item.id === editingId;
+                        return (
+                            <article key={item.id} className={`pe-manager-row${isEditing ? " is-editing" : ""}`}>
+                                {isEditing ? (
+                                    <>
+                                        <div className="pe-manager-edit-grid">
+                                            <label>
+                                                <span>ឈ្មោះ</span>
+                                                <input
+                                                    value={editing.name}
+                                                    onChange={(event) => setEditing((current) => ({ ...current, name: event.target.value }))}
+                                                />
+                                            </label>
+                                            <label>
+                                                <span>ពណ៌នា</span>
+                                                <input
+                                                    value={editing.note}
+                                                    onChange={(event) => setEditing((current) => ({ ...current, note: event.target.value }))}
+                                                />
+                                            </label>
+                                        </div>
+                                        <div className="pe-manager-actions">
+                                            <button type="button" onClick={() => setEditingId(null)} aria-label="Cancel">
+                                                <IoClose aria-hidden="true" />
+                                            </button>
+                                            <button type="button" onClick={updateEditing} aria-label="Save">
+                                                <IoCheckmark aria-hidden="true" />
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="pe-row-icon"><IoPeopleOutline aria-hidden="true" /></span>
+                                        <div>
+                                            <strong>{item.name}</strong>
+                                            <small>{item.note || "មិនមានពណ៌នា"}</small>
+                                        </div>
+                                        <div className="pe-manager-actions">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditingId(item.id);
+                                                    setEditing({ name: item.name, note: item.note || "" });
+                                                }}
+                                                aria-label="Edit"
+                                            >
+                                                <IoPencilOutline aria-hidden="true" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setDraftItems((current) => current.filter((entry) => entry.id !== item.id))}
+                                                aria-label="Delete"
+                                            >
+                                                <IoTrashOutline aria-hidden="true" />
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </article>
+                        );
+                    })}
+                </div>
+
+                <div className="pe-manager-footer">
+                    <button type="button" className="pe-secondary-btn" onClick={onClose}>បោះបង់</button>
+                    <button type="button" className="pe-primary-btn" onClick={() => onSave(draftItems)}>
+                        <IoCheckmark aria-hidden="true" />
+                        រក្សាទុក
+                    </button>
+                </div>
+            </section>
+        </div>
+    );
+}
+
+export default function GuestsList() {
+    const drafts = useMemo(() => listDrafts(), []);
+    const activeEventId = getActiveEventId();
+    const currentDraft = drafts.find((draft) => draft.id === activeEventId) || drafts[0] || null;
+    const eventId = currentDraft?.id || activeEventId || "";
+
+    const [manualGuests, setManualGuests] = useState(() => listManualGuests(eventId).map(normalizeManualGuest));
+    const [groups, setGroups] = useState(() => readList(scopedKey("koupreng.host.guestGroups", eventId), DEFAULT_GROUPS));
+    const [categories, setCategories] = useState(() => readList(scopedKey("koupreng.host.guestCategories", eventId), DEFAULT_CATEGORIES));
+    const [search, setSearch] = useState("");
+    const [groupFilter, setGroupFilter] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("");
+    const [selectedIds, setSelectedIds] = useState([]);
     const [form, setForm] = useState(emptyGuestForm);
-    const currentDraft = listDrafts()[0];
+    const [editingId, setEditingId] = useState(null);
+    const [guestModalOpen, setGuestModalOpen] = useState(false);
+    const [managerType, setManagerType] = useState(null);
+    const [linkGuestId, setLinkGuestId] = useState(null);
+    const [menuGuestId, setMenuGuestId] = useState(null);
+    const [qrGuest, setQrGuest] = useState(null);
+    const [toast, setToast] = useState("");
+
+    useEffect(() => {
+        if (!toast) return undefined;
+        const timer = window.setTimeout(() => setToast(""), 2200);
+        return () => window.clearTimeout(timer);
+    }, [toast]);
 
     const rsvpGuests = useMemo(() => getResponsesForDraft(currentDraft).map((entry) => ({
         id: entry.id,
-        name: entry.name,
-        phone: entry.phone || "-",
+        name: entry.name || entry.guestName || "RSVP Guest",
+        companionName: "",
+        phone: entry.phone || "",
         group: "RSVP",
-        status: entry.attending === "no" ? "បដិសេធ" : "បញ្ជាក់",
+        category: "RSVP",
+        sendStatus: SEND_STATUS.responded,
         amount: "-",
-        seat: "-",
+        seat: "",
         count: Number(entry.count) || 1,
+        note: entry.message || "",
         source: "rsvp",
     })), [currentDraft]);
 
     const allGuests = useMemo(() => [...manualGuests, ...rsvpGuests], [manualGuests, rsvpGuests]);
 
-    const filtered = allGuests.filter((guest) => {
-        const keyword = search.trim();
-        const matchSearch = !keyword
-            || guest.name.includes(keyword)
-            || guest.phone.includes(keyword)
-            || guest.group.includes(keyword);
-        const matchStatus = statusFilter === "ទាំងអស់" || guest.status === statusFilter;
-        return matchSearch && matchStatus;
-    });
+    const filtered = useMemo(() => {
+        const keyword = search.trim().toLowerCase();
+        return allGuests.filter((guest) => {
+            const haystack = [
+                guest.name,
+                guest.companionName,
+                guest.phone,
+                guest.group,
+                guest.category,
+                guest.note,
+            ].join(" ").toLowerCase();
+            const matchSearch = !keyword || haystack.includes(keyword);
+            const matchGroup = !groupFilter || guest.group === groupFilter;
+            const matchCategory = !categoryFilter || guest.category === categoryFilter;
+            return matchSearch && matchGroup && matchCategory;
+        });
+    }, [allGuests, categoryFilter, groupFilter, search]);
 
-    const counts = {
-        total: allGuests.reduce((total, guest) => total + guest.count, 0),
-        invited: allGuests.filter((guest) => guest.status === "បានអញ្ជើញ").length,
-        confirmed: allGuests.filter((guest) => guest.status === "បញ្ជាក់").length,
-        rejected: allGuests.filter((guest) => guest.status === "បដិសេធ").length,
-    };
+    const selectedCount = selectedIds.length;
+    const totalSeats = allGuests.reduce((total, guest) => total + (Number(guest.count) || 1), 0);
+    const sentCount = allGuests.filter((guest) => guest.sendStatus === SEND_STATUS.sent || guest.sendStatus === SEND_STATUS.opened).length;
 
-    const statusCounts = {
-        "ទាំងអស់": allGuests.length,
-        "បានអញ្ជើញ": counts.invited,
-        "បញ្ជាក់": counts.confirmed,
-        "បដិសេធ": counts.rejected,
-    };
-
-    const resetForm = () => {
-        setEditingId(null);
-        setForm(emptyGuestForm);
-        setShowForm(false);
+    const persistManualGuests = (nextGuests) => {
+        setManualGuests(nextGuests);
+        saveManualGuests(nextGuests, eventId);
     };
 
     const updateForm = (field, value) => {
         setForm((current) => ({ ...current, [field]: value }));
+    };
+
+    const openCreateModal = () => {
+        setEditingId(null);
+        setForm({
+            ...emptyGuestForm,
+            group: groups[0]?.name || DEFAULT_GROUPS[0].name,
+            category: categories[0]?.name || DEFAULT_CATEGORIES[0].name,
+        });
+        setGuestModalOpen(true);
+    };
+
+    const openEditModal = (guest) => {
+        if (guest.source === "rsvp") return;
+        setEditingId(guest.id);
+        setForm({
+            name: guest.name || "",
+            companionName: guest.companionName || "",
+            phone: guest.phone || "",
+            group: guest.group || groups[0]?.name || DEFAULT_GROUPS[0].name,
+            category: guest.category || categories[0]?.name || DEFAULT_CATEGORIES[0].name,
+            note: guest.note || "",
+            count: String(guest.count || 1),
+            seat: guest.seat || "",
+            sendStatus: guest.sendStatus || SEND_STATUS.pending,
+        });
+        setGuestModalOpen(true);
+        setMenuGuestId(null);
+    };
+
+    const closeGuestModal = () => {
+        setGuestModalOpen(false);
+        setEditingId(null);
+        setForm(emptyGuestForm);
+        setManagerType(null);
     };
 
     const submitGuest = (event) => {
@@ -119,292 +483,458 @@ export default function GuestsList() {
             ? manualGuests.map((guest) => (guest.id === editingId ? nextGuest : guest))
             : [nextGuest, ...manualGuests];
 
-        setManualGuests(nextGuests);
-        saveManualGuests(nextGuests);
-        resetForm();
-    };
-
-    const editGuest = (guest) => {
-        if (guest.source === "rsvp") return;
-
-        setEditingId(guest.id);
-        setForm({
-            name: guest.name,
-            phone: guest.phone === "-" ? "" : guest.phone,
-            group: guest.group,
-            status: guest.status,
-            count: String(guest.count),
-            seat: guest.seat === "-" ? "" : guest.seat,
-        });
-        setShowForm(true);
+        persistManualGuests(nextGuests);
+        setToast(editingId ? "បានកែប្រែភ្ញៀវ" : "បានបន្ថែមភ្ញៀវ");
+        closeGuestModal();
     };
 
     const deleteGuest = (guestId) => {
-        if (!window.confirm("តើអ្នកពិតជាចង់លុបភ្ញៀវនេះមែនទេ?")) return;
         const nextGuests = manualGuests.filter((guest) => guest.id !== guestId);
-        setManualGuests(nextGuests);
-        saveManualGuests(nextGuests);
+        persistManualGuests(nextGuests);
+        setSelectedIds((current) => current.filter((id) => id !== guestId));
+        setMenuGuestId(null);
+        setToast("បានលុបភ្ញៀវ");
+    };
+
+    const deleteSelectedGuests = () => {
+        if (!selectedIds.length) return;
+        const selectedSet = new Set(selectedIds);
+        const nextGuests = manualGuests.filter((guest) => !selectedSet.has(guest.id));
+        persistManualGuests(nextGuests);
+        setSelectedIds([]);
+        setToast("បានលុបភ្ញៀវដែលបានជ្រើស");
+    };
+
+    const toggleSelected = (guestId) => {
+        setSelectedIds((current) =>
+            current.includes(guestId) ? current.filter((id) => id !== guestId) : [...current, guestId]
+        );
+    };
+
+    const toggleAll = () => {
+        const selectableIds = filtered.map((guest) => guest.id);
+        setSelectedIds((current) =>
+            selectableIds.every((id) => current.includes(id)) ? [] : selectableIds
+        );
+    };
+
+    const saveGroups = (nextGroups) => {
+        setGroups(nextGroups);
+        writeList(scopedKey("koupreng.host.guestGroups", eventId), nextGroups);
+        if (!nextGroups.some((group) => group.name === form.group)) {
+            updateForm("group", nextGroups[0]?.name || "");
+        }
+        setManagerType(null);
+    };
+
+    const saveCategories = (nextCategories) => {
+        setCategories(nextCategories);
+        writeList(scopedKey("koupreng.host.guestCategories", eventId), nextCategories);
+        if (!nextCategories.some((category) => category.name === form.category)) {
+            updateForm("category", nextCategories[0]?.name || "");
+        }
+        setManagerType(null);
+    };
+
+    const markSent = (guest) => {
+        if (guest.source === "manual") {
+            const nextGuests = manualGuests.map((item) =>
+                item.id === guest.id ? { ...item, sendStatus: SEND_STATUS.sent, updatedAt: Date.now() } : item
+            );
+            persistManualGuests(nextGuests);
+        }
+        setLinkGuestId(guest.id);
+        setMenuGuestId(null);
+        setToast("តំណភ្ជាប់រួចរាល់សម្រាប់ផ្ញើ");
+    };
+
+    const openQr = (guest) => {
+        setQrGuest(guest);
+        setLinkGuestId(null);
+        setMenuGuestId(null);
+    };
+
+    const downloadQr = () => {
+        const svg = document.querySelector(".pe-qr-code svg");
+        if (!svg || !qrGuest) return;
+        const data = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${qrGuest.name || "guest"}-qr.svg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const copyInvite = async (guest) => {
+        await copyText(guestInviteUrl(currentDraft, guest));
+        setToast("បានចម្លងតំណភ្ជាប់");
+    };
+
+    const copySelectedInvites = async () => {
+        const selectedGuests = allGuests.filter((guest) => selectedIds.includes(guest.id));
+        if (!selectedGuests.length) return;
+        const links = selectedGuests
+            .map((guest) => `${guest.name}: ${guestInviteUrl(currentDraft, guest)}`)
+            .join("\n");
+        await copyText(links);
+        setToast("បានចម្លងតំណភ្ជាប់ដែលបានជ្រើស");
     };
 
     return (
-        <div className="gp-page">
-            {/* Hero header */}
-            <div className="gp-hero">
-                <div className="gp-hero-content">
-                    <span className="gp-hero-tag">Guest Management</span>
-                    <h1 className="gp-title">👥 បញ្ជីភ្ញៀវ</h1>
-                    <p className="gp-subtitle">បន្ថែមភ្ញៀវដោយដៃ និងតាមដាន RSVP ទាំងអស់</p>
+        <main className="pe-page">
+            {toast && (
+                <div className="pe-toast" role="status">
+                    <IoCheckmark aria-hidden="true" />
+                    {toast}
                 </div>
-                <button
-                    type="button"
-                    className="gp-add-btn"
-                    onClick={() => {
-                        setShowForm((value) => !value);
-                        setEditingId(null);
-                        setForm(emptyGuestForm);
-                    }}
-                >
-                    {showForm ? "✕ បិទ" : "+ បន្ថែមភ្ញៀវ"}
-                </button>
-            </div>
+            )}
 
-            {/* Stats summary */}
-            <div className="gp-summary">
-                <div className="gp-sum-card gp-sum-total">
-                    <div className="gp-sum-icon">👥</div>
+            <section className="pe-board">
+                <header className="pe-title-row">
                     <div>
-                        <span className="gp-sum-label">ភ្ញៀវសរុប</span>
-                        <span className="gp-sum-value">{counts.total}</span>
+                        <h1>ការគ្រប់គ្រងភ្ញៀវ</h1>
+                        <p>
+                            <IoPeopleOutline aria-hidden="true" />
+                            {allGuests.length}/{Math.max(20, allGuests.length)}
+                        </p>
                     </div>
-                </div>
-                <div className="gp-sum-card">
-                    <div className="gp-sum-icon">⏳</div>
-                    <div>
-                        <span className="gp-sum-label">បានអញ្ជើញ</span>
-                        <span className="gp-sum-value">{counts.invited}</span>
+                    <div className="pe-title-stats">
+                        <span>សរុប {totalSeats} នាក់</span>
+                        <span>បានផ្ញើ {sentCount}</span>
                     </div>
-                </div>
-                <div className="gp-sum-card">
-                    <div className="gp-sum-icon">✓</div>
-                    <div>
-                        <span className="gp-sum-label">បានបញ្ជាក់</span>
-                        <span className="gp-sum-value">{counts.confirmed}</span>
-                    </div>
-                </div>
-                <div className="gp-sum-card">
-                    <div className="gp-sum-icon">✕</div>
-                    <div>
-                        <span className="gp-sum-label">បានបដិសេធ</span>
-                        <span className="gp-sum-value">{counts.rejected}</span>
-                    </div>
-                </div>
-            </div>
+                </header>
 
-            {/* Form */}
-            {showForm && (
-                <form className="gp-form" onSubmit={submitGuest}>
-                    <h3 className="gp-form-title">
-                        {editingId ? "✏️ កែប្រែភ្ញៀវ" : "➕ បន្ថែមភ្ញៀវថ្មី"}
-                    </h3>
-                    <div className="gp-form-grid">
-                        <label>
-                            <span>ឈ្មោះ <em>*</em></span>
+                <section className="pe-table-shell">
+                    <div className="pe-toolbar">
+                        <label className="pe-search">
+                            <IoSearch aria-hidden="true" />
                             <input
-                                type="text"
-                                value={form.name}
-                                onChange={(event) => updateForm("name", event.target.value)}
-                                placeholder="បញ្ចូលឈ្មោះភ្ញៀវ"
-                                required
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                placeholder="ស្វែងរក ..."
                             />
                         </label>
-                        <label>
-                            <span>លេខទូរស័ព្ទ</span>
-                            <input
-                                type="text"
-                                value={form.phone}
-                                onChange={(event) => updateForm("phone", event.target.value)}
-                                placeholder="012 345 678"
-                            />
-                        </label>
-                        <div className="gp-choice-field">
-                            <span>ក្រុម</span>
-                            <div className="gp-choice-list gp-choice-list-group">
-                                {groupOptions.map((group) => (
-                                    <button
-                                        key={group}
-                                        type="button"
-                                        className={`gp-choice-btn${form.group === group ? " active" : ""}`}
-                                        onClick={() => updateForm("group", group)}
-                                        aria-pressed={form.group === group}
-                                    >
-                                        {group}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="gp-choice-field">
-                            <span>ស្ថានភាព</span>
-                            <div className="gp-choice-list gp-choice-list-status">
-                                {statusOptions.filter((status) => status !== "ទាំងអស់").map((status) => {
-                                    const statusStyle = STATUS_STYLES[status];
 
+                        <select value={groupFilter} onChange={(event) => setGroupFilter(event.target.value)}>
+                            <option value="">ក្រុម</option>
+                            {groups.map((group) => (
+                                <option key={group.id} value={group.name}>{group.name}</option>
+                            ))}
+                        </select>
+
+                        <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+                            <option value="">ស្ថានភាព</option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.name}>{category.name}</option>
+                            ))}
+                        </select>
+
+                        <button
+                            type="button"
+                            className="pe-icon-filter"
+                            onClick={copySelectedInvites}
+                            disabled={!selectedCount}
+                            aria-label="Copy selected"
+                        >
+                            <IoCopyOutline aria-hidden="true" />
+                        </button>
+
+                        <div className="pe-toolbar-spacer" />
+
+                        <button type="button" className="pe-primary-btn" onClick={openCreateModal}>
+                            <IoAdd aria-hidden="true" />
+                            បន្ថែមភ្ញៀវ
+                        </button>
+                        <button
+                            type="button"
+                            className="pe-danger-soft"
+                            onClick={deleteSelectedGuests}
+                            disabled={!selectedCount}
+                        >
+                            <IoTrashOutline aria-hidden="true" />
+                            លុប
+                        </button>
+                    </div>
+
+                    <div className="pe-table-wrap">
+                        <table className="pe-table">
+                            <thead>
+                                <tr>
+                                    <th className="pe-check-col">
+                                        <input
+                                            type="checkbox"
+                                            checked={filtered.length > 0 && filtered.every((guest) => selectedIds.includes(guest.id))}
+                                            onChange={toggleAll}
+                                            aria-label="Select all guests"
+                                        />
+                                    </th>
+                                    <th>ឈ្មោះ</th>
+                                    <th>លេខអ្នកចូលរួម</th>
+                                    <th>ក្រុម</th>
+                                    <th>ស្ថានភាព</th>
+                                    <th>សារផ្ញើ</th>
+                                    <th>កំណត់ចំណាំ</th>
+                                    <th className="pe-action-head">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map((guest) => {
+                                    const inviteUrl = guestInviteUrl(currentDraft, guest);
                                     return (
-                                        <button
-                                            key={status}
-                                            type="button"
-                                            className={`gp-choice-btn gp-choice-status${form.status === status ? " active" : ""}`}
-                                            onClick={() => updateForm("status", status)}
-                                            aria-pressed={form.status === status}
-                                            style={{
-                                                "--choice-bg": statusStyle.bg,
-                                                "--choice-color": statusStyle.color,
-                                            }}
-                                        >
-                                            <span aria-hidden="true">{statusStyle.icon}</span>
-                                            {status}
-                                        </button>
+                                        <tr key={guest.id}>
+                                            <td className="pe-check-col">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(guest.id)}
+                                                    onChange={() => toggleSelected(guest.id)}
+                                                    aria-label={`Select ${guest.name}`}
+                                                />
+                                            </td>
+                                            <td>
+                                                <div className="pe-name-cell">
+                                                    <span className="pe-avatar">{initials(guest.name)}</span>
+                                                    <div>
+                                                        <strong>{guest.name}</strong>
+                                                        {guest.companionName && <small>{guest.companionName}</small>}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{guest.phone || "N/A"}</td>
+                                            <td>
+                                                <span className="pe-chip pe-chip-red">{guest.group}</span>
+                                            </td>
+                                            <td>
+                                                <span className="pe-chip">{guest.category}</span>
+                                            </td>
+                                            <td>{guest.sendStatus || SEND_STATUS.pending}</td>
+                                            <td>{guest.note || guest.seat || "N/A"}</td>
+                                            <td>
+                                                <div className="pe-actions">
+                                                    <button type="button" onClick={() => markSent(guest)} aria-label="Send link">
+                                                        <IoSendOutline aria-hidden="true" />
+                                                    </button>
+                                                    <button type="button" onClick={() => openQr(guest)} aria-label="Show QR">
+                                                        <IoQrCodeOutline aria-hidden="true" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setMenuGuestId((current) => current === guest.id ? null : guest.id)}
+                                                        aria-label="More actions"
+                                                    >
+                                                        <IoEllipsisVertical aria-hidden="true" />
+                                                    </button>
+
+                                                    {linkGuestId === guest.id && (
+                                                        <div className="pe-link-popover">
+                                                            <h3>តំណភ្ជាប់</h3>
+                                                            <textarea value={inviteUrl} readOnly />
+                                                            <div>
+                                                                <button type="button" onClick={() => copyInvite(guest)} aria-label="Copy link">
+                                                                    <IoCopyOutline aria-hidden="true" />
+                                                                </button>
+                                                                <button type="button" onClick={() => openQr(guest)} aria-label="Download QR">
+                                                                    <IoDownloadOutline aria-hidden="true" />
+                                                                </button>
+                                                                <button type="button" onClick={() => setLinkGuestId(null)} aria-label="Close">
+                                                                    <IoRefreshOutline aria-hidden="true" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {menuGuestId === guest.id && (
+                                                        <div className="pe-row-menu">
+                                                            <button type="button" onClick={() => openEditModal(guest)}>
+                                                                <IoPencilOutline aria-hidden="true" />
+                                                                កែប្រែភ្ញៀវ
+                                                            </button>
+                                                            {guest.source === "manual" && (
+                                                                <button type="button" className="is-danger" onClick={() => deleteGuest(guest.id)}>
+                                                                    <IoTrashOutline aria-hidden="true" />
+                                                                    លុបភ្ញៀវនេះ?
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
                                     );
                                 })}
+                            </tbody>
+                        </table>
+
+                        {filtered.length === 0 && (
+                            <div className="pe-empty">
+                                <IoPeopleOutline aria-hidden="true" />
+                                <strong>មិនមានភ្ញៀវ</strong>
+                                <span>មិនទាន់មានភ្ញៀវដែលត្រូវនឹងការស្វែងរកនេះទេ</span>
                             </div>
+                        )}
+                    </div>
+
+                    <footer className="pe-pagination">
+                        <strong>សរុប: <span>{filtered.length} កំណត់ត្រា</span></strong>
+                        <div>
+                            <span>ចំនួនបង្ហាញមួយទំព័រ</span>
+                            <button type="button">10</button>
                         </div>
-                        <label>
-                            <span>ចំនួនភ្ញៀវ</span>
-                            <input
-                                type="number"
-                                min="1"
-                                value={form.count}
-                                onChange={(event) => updateForm("count", event.target.value)}
-                            />
-                        </label>
-                        <label>
-                            <span>លេខកៅអី</span>
-                            <input
-                                type="text"
-                                value={form.seat}
-                                onChange={(event) => updateForm("seat", event.target.value)}
-                                placeholder="ឧ. T1, A2"
-                            />
-                        </label>
-                    </div>
-                    <div className="gp-form-actions">
-                        <button type="button" className="gp-secondary-btn" onClick={resetForm}>
-                            បោះបង់
+                        <span>ទំព័រ 1 នៃ 1</span>
+                        <div className="pe-page-buttons">
+                            <button type="button" disabled>«</button>
+                            <button type="button" disabled>‹</button>
+                            <button type="button" disabled>›</button>
+                            <button type="button" disabled>»</button>
+                        </div>
+                    </footer>
+                </section>
+            </section>
+
+            {guestModalOpen && (
+                <div className="pe-modal-layer">
+                    <form className="pe-guest-modal" onSubmit={submitGuest}>
+                        <button type="button" className="pe-modal-x" onClick={closeGuestModal} aria-label="Close">
+                            <IoClose aria-hidden="true" />
                         </button>
-                        <button type="submit" className="gp-add-btn">
-                            {editingId ? "💾 រក្សាទុក" : "➕ បន្ថែម"}
-                        </button>
-                    </div>
-                </form>
+                        <h2>{editingId ? "កែប្រែភ្ញៀវ" : "បន្ថែមភ្ញៀវ"}</h2>
+                        <p>បំពេញព័ត៌មានភ្ញៀវសម្រាប់ការអញ្ជើញទៅចូលរួមកម្មវិធី។</p>
+
+                        <div className="pe-form-grid">
+                            <label className="pe-field">
+                                <span>ឈ្មោះ <em>*</em></span>
+                                <input
+                                    autoFocus
+                                    value={form.name}
+                                    onChange={(event) => updateForm("name", event.target.value)}
+                                    placeholder="Ny Panha"
+                                    required
+                                />
+                            </label>
+                            <label className="pe-field">
+                                <span>ឈ្មោះអ្នកភ្ជាប់ ឬអ្នកអមដំណើរ</span>
+                                <input
+                                    value={form.companionName}
+                                    onChange={(event) => updateForm("companionName", event.target.value)}
+                                    placeholder="បញ្ចូលឈ្មោះអ្នកភ្ជាប់"
+                                />
+                            </label>
+
+                            <SelectField
+                                label="ក្រុម"
+                                value={form.group}
+                                options={groups}
+                                onChange={(value) => updateForm("group", value)}
+                                onManage={() => setManagerType("groups")}
+                                placeholder="ជ្រើសរើសក្រុម"
+                            />
+
+                            <SelectField
+                                label="ស្ថានភាព"
+                                value={form.category}
+                                options={categories}
+                                onChange={(value) => updateForm("category", value)}
+                                onManage={() => setManagerType("categories")}
+                                placeholder="ជ្រើសរើសស្ថានភាព"
+                            />
+
+                            <label className="pe-field">
+                                <span>លេខទូរស័ព្ទ</span>
+                                <input
+                                    value={form.phone}
+                                    onChange={(event) => updateForm("phone", event.target.value)}
+                                    placeholder="បញ្ចូលលេខទូរស័ព្ទ"
+                                />
+                            </label>
+                            <label className="pe-field">
+                                <span>ចំនួនភ្ញៀវ</span>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={form.count}
+                                    onChange={(event) => updateForm("count", event.target.value)}
+                                />
+                            </label>
+                            <label className="pe-field">
+                                <span>លេខតុ ឬកៅអី</span>
+                                <input
+                                    value={form.seat}
+                                    onChange={(event) => updateForm("seat", event.target.value)}
+                                    placeholder="ឧ. A1"
+                                />
+                            </label>
+                            <label className="pe-field">
+                                <span>ស្ថានភាពផ្ញើ</span>
+                                <select value={form.sendStatus} onChange={(event) => updateForm("sendStatus", event.target.value)}>
+                                    {Object.values(SEND_STATUS).map((status) => (
+                                        <option key={status} value={status}>{status}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="pe-field pe-field-wide">
+                                <span>កំណត់ចំណាំ</span>
+                                <textarea
+                                    value={form.note}
+                                    onChange={(event) => updateForm("note", event.target.value)}
+                                    placeholder="បញ្ចូលកំណត់ចំណាំ"
+                                />
+                            </label>
+                        </div>
+
+                        <div className="pe-modal-footer">
+                            <button type="button" className="pe-secondary-btn" onClick={closeGuestModal}>
+                                <IoClose aria-hidden="true" />
+                                បោះបង់
+                            </button>
+                            <button type="submit" className="pe-primary-btn">
+                                <IoCheckmark aria-hidden="true" />
+                                បញ្ចូល
+                            </button>
+                        </div>
+                    </form>
+
+                    {managerType === "groups" && (
+                        <ManageModal
+                            title="គ្រប់គ្រងក្រុម"
+                            items={groups}
+                            onClose={() => setManagerType(null)}
+                            onSave={saveGroups}
+                        />
+                    )}
+                    {managerType === "categories" && (
+                        <ManageModal
+                            title="គ្រប់គ្រងស្ថានភាព"
+                            items={categories}
+                            onClose={() => setManagerType(null)}
+                            onSave={saveCategories}
+                        />
+                    )}
+                </div>
             )}
 
-            {/* Toolbar (search + filters) */}
-            <div className="gp-toolbar">
-                <div className="gp-search-wrap">
-                    <span className="gp-search-icon">🔍</span>
-                    <input
-                        type="text"
-                        className="gp-search"
-                        placeholder="ស្វែងរកតាមឈ្មោះ ទូរស័ព្ទ..."
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                    />
-                </div>
-                <div className="gp-filter-group">
-                    {statusOptions.map((status) => (
-                        <button
-                            key={status}
-                            type="button"
-                            className={`gp-filter-btn${statusFilter === status ? " active" : ""}`}
-                            onClick={() => setStatus(status)}
-                        >
-                            {status}
-                            <span className="gp-filter-count">{statusCounts[status]}</span>
+            {qrGuest && (
+                <div className="pe-modal-layer">
+                    <section className="pe-qr-modal">
+                        <button type="button" className="pe-modal-x" onClick={() => setQrGuest(null)} aria-label="Close">
+                            <IoClose aria-hidden="true" />
                         </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Table */}
-            {filtered.length === 0 ? (
-                <div className="gp-empty">
-                    <div className="gp-empty-icon">👥</div>
-                    <h3>មិនមានភ្ញៀវ</h3>
-                    <p>មិនទាន់មានភ្ញៀវណាមួយត្រូវនឹងលក្ខខណ្ឌស្វែងរកទេ</p>
-                </div>
-            ) : (
-                <div className="gp-table-wrap">
-                    <table className="gp-table">
-                        <thead>
-                            <tr>
-                                <th>ឈ្មោះ</th>
-                                <th>ទំនាក់ទំនង</th>
-                                <th>ក្រុម</th>
-                                <th>ស្ថានភាព</th>
-                                <th>ចំនួន</th>
-                                <th>កៅអី</th>
-                                <th className="gp-th-actions">សកម្មភាព</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map((guest) => {
-                                const statusStyle = STATUS_STYLES[guest.status] || STATUS_STYLES["បានអញ្ជើញ"];
-                                return (
-                                    <tr key={guest.id}>
-                                        <td data-label="ឈ្មោះ">
-                                            <div className="gp-name-cell">
-                                                <div className="gp-avatar">{guest.name.charAt(0)}</div>
-                                                <span className="gp-name-text">{guest.name}</span>
-                                            </div>
-                                        </td>
-                                        <td data-label="ទំនាក់ទំនង" className="gp-muted">
-                                            📞 {guest.phone}
-                                        </td>
-                                        <td data-label="ក្រុម">
-                                            <span className="gp-group-badge">{guest.group}</span>
-                                        </td>
-                                        <td data-label="ស្ថានភាព">
-                                            <span
-                                                className="gp-status"
-                                                style={{ background: statusStyle.bg, color: statusStyle.color }}
-                                            >
-                                                {statusStyle.icon} {guest.status}
-                                            </span>
-                                        </td>
-                                        <td data-label="ចំនួន">
-                                            <span className="gp-count">{guest.count}</span>
-                                        </td>
-                                        <td data-label="កៅអី" className="gp-muted">
-                                            {guest.seat}
-                                        </td>
-                                        <td data-label="សកម្មភាព">
-                                            {guest.source === "manual" ? (
-                                                <div className="gp-row-actions">
-                                                    <button
-                                                        type="button"
-                                                        className="gp-action-btn"
-                                                        onClick={() => editGuest(guest)}
-                                                    >
-                                                        ✏️ កែ
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="gp-action-btn gp-danger-btn"
-                                                        onClick={() => deleteGuest(guest.id)}
-                                                    >
-                                                        🗑️ លុប
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <span className="gp-rsvp-badge">RSVP</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                        <h2>QR Code</h2>
+                        <div className="pe-qr-card">
+                            <div className="pe-qr-code">
+                                <QRCode value={guestInviteUrl(currentDraft, qrGuest)} size={174} level="M" />
+                            </div>
+                            <strong>{qrGuest.name}</strong>
+                        </div>
+                        <button type="button" className="pe-secondary-btn pe-qr-download" onClick={downloadQr}>
+                            <IoDownloadOutline aria-hidden="true" />
+                            ទាញយក QR កូដ
+                        </button>
+                    </section>
                 </div>
             )}
-        </div>
+        </main>
     );
 }

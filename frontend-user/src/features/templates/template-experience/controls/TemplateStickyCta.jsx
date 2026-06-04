@@ -31,10 +31,12 @@ export default function TemplateStickyCta({ onTop, mapLink, useTemplateLink, pri
                 </button>
             )}
 
-            <Link to={useTemplateLink} className="tx-sticky__btn tx-sticky__btn--primary">
-                <IoSparkles aria-hidden="true" />
-                <span>{primaryCtaLabel}</span>
-            </Link>
+            {useTemplateLink && (
+                <Link to={useTemplateLink} className="tx-sticky__btn tx-sticky__btn--primary">
+                    <IoSparkles aria-hidden="true" />
+                    <span>{primaryCtaLabel}</span>
+                </Link>
+            )}
         </div>
     );
 }

@@ -541,9 +541,9 @@ Body → raw → JSON:
 ```json
 {
   "fullName": "Postman User",
-  "email": "postman.delivery@example.com",
-  "phone": "85512345678",
-  "password": "Password123!"
+  "email": "postman.delivery4@example.com",
+  "phone": "85512345684",
+  "password": "Password1234!"
 }
 ```
 
