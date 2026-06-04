@@ -19,6 +19,10 @@ public interface RsvpRepository extends JpaRepository<Rsvp, Long> {
 
     long countByInvitationIdAndResponseStatus(Long invitationId, RsvpStatus responseStatus);
 
+    long countByInvitationId(Long invitationId);
+
+    long countByInvitationUserId(Long userId);
+
     @Query("""
             select coalesce(sum(r.attendeeCount), 0)
             from Rsvp r

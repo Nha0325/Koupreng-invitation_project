@@ -3,6 +3,7 @@ package com.koupreng.backend.dto.invitation;
 import com.koupreng.backend.entity.invitation.EventType;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
+import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import lombok.AllArgsConstructor;
@@ -42,6 +43,7 @@ public class InvitationResponse {
     private InvitationVisibility visibility;
     private LocalDate rsvpDeadline;
     private InvitationStatus status;
+    private InvitationModerationStatus moderationStatus;
     private boolean published;
     private boolean draft;
     private Instant createdAt;
@@ -73,6 +75,7 @@ public class InvitationResponse {
                 .visibility(invitation.getVisibility())
                 .rsvpDeadline(invitation.getRsvpDeadline())
                 .status(invitation.getStatus())
+                .moderationStatus(invitation.getModerationStatus())
                 .published(invitation.getStatus() == InvitationStatus.PUBLISHED)
                 .draft(invitation.getStatus() == InvitationStatus.DRAFT)
                 .createdAt(invitation.getCreatedAt())

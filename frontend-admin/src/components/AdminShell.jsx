@@ -3,11 +3,13 @@ import Sidebar from "./Sidebar";
 import { useAuth } from "../auth/AuthContext";
 
 const TITLES = {
-    "/dashboard": "ផ្ទាំងគ្រប់គ្រងទូទៅ",
-    "/users": "គ្រប់គ្រងអ្នកប្រើប្រាស់",
-    "/events": "គ្រប់គ្រងព្រឹត្តិការណ៍",
-    "/invitations": "គ្រប់គ្រងធៀបការ",
-    "/payments": "របាយការណ៍ការទូទាត់",
+    "/admin/dashboard": "ផ្ទាំងគ្រប់គ្រងទូទៅ",
+    "/admin/users": "គ្រប់គ្រងអ្នកប្រើប្រាស់",
+    "/admin/templates": "គ្រប់គ្រងគំរូ",
+    "/admin/invitations": "គ្រប់គ្រងធៀបការ",
+    "/admin/notifications": "គ្រប់គ្រងការជូនដំណឹង",
+    "/admin/reports": "របាយការណ៍",
+    "/admin/system-logs": "System audit logs",
 };
 
 function initials(name = "") {

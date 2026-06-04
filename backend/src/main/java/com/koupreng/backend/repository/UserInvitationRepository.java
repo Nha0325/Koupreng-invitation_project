@@ -21,6 +21,8 @@ public interface UserInvitationRepository extends JpaRepository<UserInvitation, 
 
     List<UserInvitation> findAllByDeletedFalseOrderByCreatedAtDesc();
 
+    List<UserInvitation> findTop5ByUserIdAndDeletedFalseOrderByCreatedAtDesc(Long userId);
+
     List<UserInvitation> findAllByUserIdAndDeletedFalseOrderByCreatedAtDesc(Long userId);
 
     List<UserInvitation> findAllByUserIdAndStatusAndDeletedFalseOrderByCreatedAtDesc(
@@ -31,4 +33,12 @@ public interface UserInvitationRepository extends JpaRepository<UserInvitation, 
     boolean existsBySlug(String slug);
 
     boolean existsBySlugAndIdNot(String slug, Long id);
+
+    long countByUserIdAndDeletedFalse(Long userId);
+
+    long countByUserIdAndStatusAndDeletedFalse(Long userId, InvitationStatus status);
+
+    long countByStatusAndDeletedFalse(InvitationStatus status);
+
+    long countByTemplateIdAndDeletedFalse(Long templateId);
 }

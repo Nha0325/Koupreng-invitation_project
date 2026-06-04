@@ -9,6 +9,7 @@ import com.koupreng.backend.entity.invitation.EventType;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
@@ -144,6 +145,7 @@ public class InvitationService {
                 .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
 
+        requirePubliclyVisibleByModeration(invitation);
         if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
         }
@@ -164,6 +166,7 @@ public class InvitationService {
                 .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
 
+        requirePubliclyVisibleByModeration(invitation);
         if (!tokenAccess && invitation.getVisibility() == InvitationVisibility.PRIVATE) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
         }
@@ -171,6 +174,13 @@ public class InvitationService {
             throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
         }
         return invitation;
+    }
+
+    private void requirePubliclyVisibleByModeration(UserInvitation invitation) {
+        if (invitation.getModerationStatus() != null
+                && invitation.getModerationStatus() != InvitationModerationStatus.ACTIVE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
+        }
     }
 
     private UserInvitation requireOwnedInvitation(Authentication authentication, Long id) {

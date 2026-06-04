@@ -1,0 +1,36 @@
+import { api } from "../../lib/api";
+
+function unwrap(response) {
+  return response?.data ?? response;
+}
+
+export const adminManagementService = {
+  users: () => api.get("/v1/admin/users").then(unwrap),
+  user: (userId) => api.get(`/v1/admin/users/${userId}`).then(unwrap),
+  userInvitations: (userId) => api.get(`/v1/admin/users/${userId}/invitations`).then(unwrap),
+  activateUser: (userId) => api.patch(`/v1/admin/users/${userId}/activate`, {}).then(unwrap),
+  deactivateUser: (userId) => api.patch(`/v1/admin/users/${userId}/deactivate`, {}).then(unwrap),
+  updateUserRole: (userId, role) => api.patch(`/v1/admin/users/${userId}/role`, { role }).then(unwrap),
+
+  templates: () => api.get("/v1/admin/templates").then(unwrap),
+  template: (templateId) => api.get(`/v1/admin/templates/${templateId}`).then(unwrap),
+  createTemplate: (payload) => api.post("/v1/admin/templates", payload).then(unwrap),
+  updateTemplate: (templateId, payload) => api.put(`/v1/admin/templates/${templateId}`, payload).then(unwrap),
+  activateTemplate: (templateId) => api.patch(`/v1/admin/templates/${templateId}/activate`, {}).then(unwrap),
+  deactivateTemplate: (templateId) => api.patch(`/v1/admin/templates/${templateId}/deactivate`, {}).then(unwrap),
+  updateTemplatePremium: (templateId, premium) =>
+    api.patch(`/v1/admin/templates/${templateId}/premium`, { premium }).then(unwrap),
+  deleteTemplate: (templateId) => api.delete(`/v1/admin/templates/${templateId}`).then(unwrap),
+
+  invitations: () => api.get("/v1/admin/invitations").then(unwrap),
+  invitation: (invitationId) => api.get(`/v1/admin/invitations/${invitationId}`).then(unwrap),
+  moderateInvitation: (invitationId, payload) =>
+    api.patch(`/v1/admin/invitations/${invitationId}/moderate`, payload).then(unwrap),
+  activateInvitation: (invitationId) => api.patch(`/v1/admin/invitations/${invitationId}/activate`, {}).then(unwrap),
+  deactivateInvitation: (invitationId) => api.patch(`/v1/admin/invitations/${invitationId}/deactivate`, {}).then(unwrap),
+
+  report: (name) => api.get(`/v1/admin/reports/${name}`).then(unwrap),
+  systemLogs: () => api.get("/v1/admin/system-logs").then(unwrap),
+};
+
+export default adminManagementService;

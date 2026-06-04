@@ -102,10 +102,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/payway/callback",
                                 "/api/v1/payway/return",
                                 "/api/v1/payway/cancel").permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/admin/template-payments/confirm",
-                                "/api/v1/admin/template-payments/telegram-detect").permitAll()
-                        .requestMatchers("/api/v1/admin/template-payments/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
