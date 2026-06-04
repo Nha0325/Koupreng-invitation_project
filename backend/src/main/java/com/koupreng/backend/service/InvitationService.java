@@ -4,6 +4,8 @@ import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.InvitationSummaryResponse;
+import com.koupreng.backend.dto.invitation.InvitationCustomizationRequest;
+import com.koupreng.backend.dto.invitation.InvitationCustomizationResponse;
 import com.koupreng.backend.dto.invitation.PublicInvitationResponse;
 import com.koupreng.backend.entity.invitation.EventType;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
@@ -140,6 +142,29 @@ public class InvitationService {
     }
 
     @Transactional(readOnly = true)
+    public InvitationCustomizationResponse getCustomization(Authentication authentication, Long id) {
+        return InvitationCustomizationResponse.from(requireOwnedInvitation(authentication, id));
+    }
+
+    @Transactional
+    public InvitationCustomizationResponse updateCustomization(
+            Authentication authentication,
+            Long id,
+            InvitationCustomizationRequest request
+    ) {
+        UserInvitation invitation = requireOwnedInvitation(authentication, id);
+        invitation.setTemplate(resolveTemplate(request.getTemplateId(), invitation.getUser()));
+        invitation.setLanguageMode(trimToNull(request.getLanguageMode()));
+        invitation.setDesignJson(trimToNull(request.getDesignJson()));
+        invitation.setContentJson(trimToNull(request.getContentJson()));
+        invitation.setCustomColors(trimToNull(request.getCustomColors()));
+        invitation.setCustomFonts(trimToNull(request.getCustomFonts()));
+        invitation.setEnabledSections(trimToNull(request.getEnabledSections()));
+        invitation.setLayoutSettings(trimToNull(request.getLayoutSettings()));
+        return InvitationCustomizationResponse.from(save(invitation));
+    }
+
+    @Transactional(readOnly = true)
     public PublicInvitationResponse publicBySlug(String slug) {
         UserInvitation invitation = invitationRepository
                 .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
@@ -208,6 +233,12 @@ public class InvitationService {
         invitation.setBrideName(trimToNull(request.getBrideName()));
         invitation.setStoryText(trimToNull(request.getStoryText()));
         invitation.setLanguageMode(trimToNull(request.getLanguageMode()));
+        invitation.setDesignJson(trimToNull(request.getDesignJson()));
+        invitation.setContentJson(trimToNull(request.getContentJson()));
+        invitation.setCustomColors(trimToNull(request.getCustomColors()));
+        invitation.setCustomFonts(trimToNull(request.getCustomFonts()));
+        invitation.setEnabledSections(trimToNull(request.getEnabledSections()));
+        invitation.setLayoutSettings(trimToNull(request.getLayoutSettings()));
         invitation.setRsvpDeadline(request.getRsvpDeadline());
 
         InvitationVisibility visibility = parseVisibility(request.getVisibility());

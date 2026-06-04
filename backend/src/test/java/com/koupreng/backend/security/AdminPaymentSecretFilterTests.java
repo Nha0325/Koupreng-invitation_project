@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AdminPaymentSecretFilterTests {
 
     @Test
-    void blocksMissingSecretOnAdminPaymentEndpoint() throws Exception {
+    void blocksMissingSecretOnInternalPaymentEndpoint() throws Exception {
         AdminPaymentSecretFilter filter = filter();
-        MockHttpServletRequest request = request("/api/v1/admin/template-payments/confirm");
+        MockHttpServletRequest request = request("/api/v1/internal/template-payments/confirm");
         MockHttpServletResponse response = new MockHttpServletResponse();
         AtomicBoolean called = new AtomicBoolean();
 
@@ -27,9 +27,9 @@ class AdminPaymentSecretFilterTests {
     }
 
     @Test
-    void blocksWrongSecretOnAdminPaymentEndpoint() throws Exception {
+    void blocksWrongSecretOnInternalPaymentEndpoint() throws Exception {
         AdminPaymentSecretFilter filter = filter();
-        MockHttpServletRequest request = request("/api/v1/admin/template-payments/confirm");
+        MockHttpServletRequest request = request("/api/v1/internal/template-payments/confirm");
         request.addHeader(AdminPaymentSecretFilter.ADMIN_PAYMENT_SECRET_HEADER, "wrong");
         MockHttpServletResponse response = new MockHttpServletResponse();
         AtomicBoolean called = new AtomicBoolean();
@@ -41,9 +41,9 @@ class AdminPaymentSecretFilterTests {
     }
 
     @Test
-    void allowsCorrectSecretOnAdminPaymentEndpoint() throws Exception {
+    void allowsCorrectSecretOnInternalPaymentEndpoint() throws Exception {
         AdminPaymentSecretFilter filter = filter();
-        MockHttpServletRequest request = request("/api/v1/admin/template-payments/confirm");
+        MockHttpServletRequest request = request("/api/v1/internal/template-payments/confirm");
         request.addHeader(AdminPaymentSecretFilter.ADMIN_PAYMENT_SECRET_HEADER, "secret");
         MockHttpServletResponse response = new MockHttpServletResponse();
         AtomicBoolean called = new AtomicBoolean();
@@ -71,6 +71,19 @@ class AdminPaymentSecretFilterTests {
     void ignoresAdminPaymentListEndpoint() throws Exception {
         AdminPaymentSecretFilter filter = filter();
         MockHttpServletRequest request = request("GET", "/api/v1/admin/template-payments");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        AtomicBoolean called = new AtomicBoolean();
+
+        filter.doFilter(request, response, (servletRequest, servletResponse) -> called.set(true));
+
+        assertEquals(200, response.getStatus());
+        assertTrue(called.get());
+    }
+
+    @Test
+    void ignoresAdminPaymentPostEndpointSoAdminJwtCanAuthorizeIt() throws Exception {
+        AdminPaymentSecretFilter filter = filter();
+        MockHttpServletRequest request = request("/api/v1/admin/template-payments/confirm");
         MockHttpServletResponse response = new MockHttpServletResponse();
         AtomicBoolean called = new AtomicBoolean();
 

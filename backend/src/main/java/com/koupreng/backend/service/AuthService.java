@@ -70,6 +70,7 @@ public class AuthService {
         if (phone != null && userRepository.existsByPhone(phone)) {
             throw new ApiException(HttpStatus.CONFLICT, "Phone number is already registered");
         }
+        requirePasswordPolicy(request.password());
 
         AppUser user = new AppUser();
         user.setEmail(email);
@@ -199,5 +200,15 @@ public class AuthService {
             return null;
         }
         return value.replaceAll("\\s+", "");
+    }
+
+    private void requirePasswordPolicy(String password) {
+        if (password == null || password.length() < 8) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters");
+        }
+        if (!password.chars().anyMatch(Character::isLetter)
+                || !password.chars().anyMatch(Character::isDigit)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password must contain at least one letter and one number");
+        }
     }
 }

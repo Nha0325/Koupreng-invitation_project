@@ -25,6 +25,8 @@ export const invitationService = {
     publish: (id) => api.patch(`/v1/invitations/${id}/publish`).then(unwrap),
     unpublish: (id) => api.patch(`/v1/invitations/${id}/unpublish`).then(unwrap),
     preview: (id) => api.get(`/v1/invitations/${id}/preview`).then(unwrap),
+    getCustomization: (id) => api.get(`/v1/invitations/${id}/customization`).then(unwrap),
+    updateCustomization: (id, data) => api.put(`/v1/invitations/${id}/customization`, data).then(unwrap),
     publicBySlug: (slug) => api.get(`/v1/public/invitations/${encodeURIComponent(slug)}`, { auth: false }).then(unwrap),
 };
 

@@ -1,6 +1,8 @@
 package com.koupreng.backend.controller;
 
 import com.koupreng.backend.dto.ApiResponse;
+import com.koupreng.backend.dto.invitation.InvitationCustomizationRequest;
+import com.koupreng.backend.dto.invitation.InvitationCustomizationResponse;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.InvitationSummaryResponse;
@@ -141,6 +143,29 @@ public class InvitationController {
         return ResponseEntity.ok(ApiResponse.success(
                 "Invitation preview loaded",
                 invitationService.preview(authentication, id)
+        ));
+    }
+
+    @GetMapping("/invitations/{id}/customization")
+    public ResponseEntity<ApiResponse<InvitationCustomizationResponse>> getCustomization(
+            Authentication authentication,
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Invitation customization loaded",
+                invitationService.getCustomization(authentication, id)
+        ));
+    }
+
+    @PutMapping("/invitations/{id}/customization")
+    public ResponseEntity<ApiResponse<InvitationCustomizationResponse>> updateCustomization(
+            Authentication authentication,
+            @PathVariable Long id,
+            @Valid @RequestBody InvitationCustomizationRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Invitation customization saved",
+                invitationService.updateCustomization(authentication, id, request)
         ));
     }
 

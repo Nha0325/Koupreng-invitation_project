@@ -94,7 +94,8 @@ public class SecurityConfig {
                                 "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/login", "/api/auth/register",
-                                "/api/auth/google", "/api/auth/telegram").permitAll()
+                                "/api/auth/google", "/api/auth/telegram",
+                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/invitations/templates",
                                 "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()
@@ -102,6 +103,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/payway/callback",
                                 "/api/v1/payway/return",
                                 "/api/v1/payway/cancel").permitAll()
+                        .requestMatchers("/api/v1/internal/template-payments/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -175,6 +177,7 @@ public class SecurityConfig {
         configuration.setMaxAge(corsProperties.getMaxAgeSeconds());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/v1/internal/**", new CorsConfiguration());
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }

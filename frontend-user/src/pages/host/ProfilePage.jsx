@@ -5,7 +5,7 @@ import { userService } from "../../services/remote/userService";
 
 /**
  * ProfilePage — create or edit user profile.
- * Maps to `users` table: full_name, email, phone, profile_image, status.
+ * Maps to `users` table: full_name, email, phone, status.
  */
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -14,9 +14,6 @@ export default function ProfilePage() {
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [profileImage, setProfileImage] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -26,34 +23,26 @@ export default function ProfilePage() {
 
   // Load profile from API
   useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const data = await userService.getProfile();
+    let cancelled = false;
+    userService
+      .getProfile()
+      .then((data) => {
+        if (cancelled) return;
         setFullName(data.fullName || data.full_name || "");
         setPhone(data.phone || "");
-        setProfileImage(data.profileImage || data.profile_image || "");
-      } catch {
-        // If API fails, use local user data
+      })
+      .catch(() => {
+        if (cancelled) return;
         setFullName(user?.fullName || user?.full_name || user?.name || "");
         setPhone(user?.phone || "");
-        setProfileImage(user?.profileImage || user?.profile_image || "");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProfile();
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
-
-  // Handle image file selection
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -62,18 +51,9 @@ export default function ProfilePage() {
     setSaved(false);
 
     try {
-      // Upload image first if selected
-      let imageUrl = profileImage;
-      if (imageFile) {
-        const uploadRes = await userService.uploadProfileImage(imageFile);
-        imageUrl = uploadRes.url || uploadRes.profileImage || uploadRes.profile_image || imageUrl;
-      }
-
-      // Update profile
       const profileData = {
         fullName: fullName.trim(),
         phone: phone.trim(),
-        profileImage: imageUrl,
       };
 
       const updatedUser = await userService.updateProfile(profileData);
@@ -87,16 +67,11 @@ export default function ProfilePage() {
           full_name: fullName.trim(),
           name: fullName.trim(),
           phone: phone.trim(),
-          profileImage: imageUrl,
-          profile_image: imageUrl,
           profileComplete: true,
           ...updatedUser,
         },
       });
 
-      setProfileImage(imageUrl);
-      setImageFile(null);
-      setImagePreview("");
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -106,7 +81,6 @@ export default function ProfilePage() {
     }
   };
 
-  const displayImage = imagePreview || profileImage;
   const displayInitial = fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   if (loading) {
@@ -159,29 +133,6 @@ export default function ProfilePage() {
           border: 3px solid rgba(176, 146, 106, 0.3);
           cursor: pointer;
           flex-shrink: 0;
-        }
-        .profile-avatar img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        .profile-avatar-overlay {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: rgba(0,0,0,0.5);
-          color: white;
-          font-size: 10px;
-          text-align: center;
-          padding: 4px 0;
-          font-family: 'Kantumruy Pro', sans-serif;
-        }
-        .profile-avatar input[type="file"] {
-          position: absolute;
-          inset: 0;
-          opacity: 0;
-          cursor: pointer;
         }
         .profile-info-text {
           font-family: 'Kantumruy Pro', sans-serif;
@@ -272,18 +223,7 @@ export default function ProfilePage() {
 
         <div className="profile-avatar-section">
           <div className="profile-avatar">
-            {displayImage ? (
-              <img src={displayImage} alt="Profile" />
-            ) : (
-              displayInitial
-            )}
-            <div className="profile-avatar-overlay">ប្តូររូប</div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              title="ជ្រើសរើសរូបភាព"
-            />
+            {displayInitial}
           </div>
           <div className="profile-info-text">
             <strong>{fullName || "អ្នកប្រើប្រាស់ថ្មី"}</strong>

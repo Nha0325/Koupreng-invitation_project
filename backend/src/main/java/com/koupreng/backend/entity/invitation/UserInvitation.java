@@ -70,6 +70,24 @@ public class UserInvitation {
     @Column(name = "language_mode", length = 20)
     private String languageMode;
 
+    @Column(name = "design_json", columnDefinition = "TEXT")
+    private String designJson;
+
+    @Column(name = "content_json", columnDefinition = "TEXT")
+    private String contentJson;
+
+    @Column(name = "custom_colors", columnDefinition = "TEXT")
+    private String customColors;
+
+    @Column(name = "custom_fonts", columnDefinition = "TEXT")
+    private String customFonts;
+
+    @Column(name = "enabled_sections", columnDefinition = "TEXT")
+    private String enabledSections;
+
+    @Column(name = "layout_settings", columnDefinition = "TEXT")
+    private String layoutSettings;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private InvitationVisibility visibility = InvitationVisibility.PUBLIC;

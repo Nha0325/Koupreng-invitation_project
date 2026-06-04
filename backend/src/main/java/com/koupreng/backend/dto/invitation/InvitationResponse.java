@@ -40,6 +40,12 @@ public class InvitationResponse {
     private String brideName;
     private String storyText;
     private String languageMode;
+    private String designJson;
+    private String contentJson;
+    private String customColors;
+    private String customFonts;
+    private String enabledSections;
+    private String layoutSettings;
     private InvitationVisibility visibility;
     private LocalDate rsvpDeadline;
     private InvitationStatus status;
@@ -72,6 +78,12 @@ public class InvitationResponse {
                 .brideName(invitation.getBrideName())
                 .storyText(invitation.getStoryText())
                 .languageMode(invitation.getLanguageMode())
+                .designJson(invitation.getDesignJson())
+                .contentJson(invitation.getContentJson())
+                .customColors(invitation.getCustomColors())
+                .customFonts(invitation.getCustomFonts())
+                .enabledSections(invitation.getEnabledSections())
+                .layoutSettings(invitation.getLayoutSettings())
                 .visibility(invitation.getVisibility())
                 .rsvpDeadline(invitation.getRsvpDeadline())
                 .status(invitation.getStatus())
