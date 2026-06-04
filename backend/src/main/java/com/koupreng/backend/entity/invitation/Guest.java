@@ -43,6 +43,24 @@ public class Guest {
     @Column(name = "send_status", length = 50)
     private String sendStatus;
 
+    @Column(name = "seat_count")
+    private Integer seatCount;
+
+    @Column(name = "last_sent_at")
+    private Instant lastSentAt;
+
+    @Column(name = "last_reminder_at")
+    private Instant lastReminderAt;
+
+    @Column(name = "reminder_count")
+    private Integer reminderCount = 0;
+
+    @Column(name = "last_send_channel", length = 50)
+    private String lastSendChannel;
+
+    @Column(name = "last_send_error", length = 1000)
+    private String lastSendError;
+
     @Column(name = "invitation_viewed_at")
     private Instant invitationViewedAt;
 
@@ -57,6 +75,9 @@ public class Guest {
 
     @PrePersist
     protected void onCreate() {
+        if (reminderCount == null) {
+            reminderCount = 0;
+        }
         createdAt = Instant.now();
     }
 }
