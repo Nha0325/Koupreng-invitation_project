@@ -10,25 +10,32 @@ export default function NotificationsPage() {
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
 
-  const load = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [items, counts] = await Promise.all([
-        notificationService.list(),
-        notificationService.summary(),
-      ]);
-      setNotifications(items || []);
-      setSummary(counts || null);
-    } catch (err) {
-      setError(err?.message || "Could not load notifications");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    load();
+    let active = true;
+    Promise.all([
+      notificationService.list(),
+      notificationService.summary(),
+    ])
+      .then(([items, counts]) => {
+        if (active) {
+          setNotifications(items || []);
+          setSummary(counts || null);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err?.message || "Could not load notifications");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const markRead = async (notificationId) => {
@@ -68,7 +75,7 @@ export default function NotificationsPage() {
         <div>
           <span className="dash-kicker">Notifications</span>
           <h1>ការជូនដំណឹង</h1>
-          <p>មើលស្ថានភាពការផ្ញើ RSVP ការរំលឹក និងសារ​ប្រព័ន្ធរបស់អ្នក។</p>
+          <p>មើលស្ថានភាពការផ្ញើ RSVP ការរំលឹក និងសារប្រព័ន្ធរបស់អ្នក។</p>
         </div>
         <button
           type="button"

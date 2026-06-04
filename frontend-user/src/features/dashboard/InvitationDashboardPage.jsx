@@ -17,11 +17,19 @@ export default function InvitationDashboardPage() {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     dashboardService
       .invitationDashboard(invitationId)
-      .then((data) => active && setDashboard(data))
-      .catch((err) => active && setError(err?.message || "Could not load invitation dashboard"))
+      .then((data) => {
+        if (active) {
+          setDashboard(data);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err?.message || "Could not load invitation dashboard");
+        }
+      })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -42,6 +50,7 @@ export default function InvitationDashboardPage() {
         <div className="report-actions">
           <Link to={`/dashboard/invitations/${invitationId}/rsvp-report`} className="dash-btn">RSVP report</Link>
           <Link to={`/dashboard/invitations/${invitationId}/guest-report`} className="dash-btn dash-btn-primary">Guest report</Link>
+          <Link to={`/dashboard/invitations/${invitationId}/budget`} className="dash-btn">Budget</Link>
         </div>
       </header>
 

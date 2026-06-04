@@ -608,6 +608,46 @@
     gap: 16px;
 }
 
+.pub-wishes-wall {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+    border: 1px solid #eadfcf;
+    border-radius: 8px;
+    padding: 24px;
+    background: #fff;
+}
+
+.pub-wishes-wall h2 {
+    margin: 0;
+    color: #2a1f10;
+}
+
+.pub-wishes-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.pub-wish-card,
+.pub-wish-empty {
+    border: 1px solid #eadfcf;
+    border-radius: 8px;
+    padding: 14px;
+    background: #fffaf2;
+}
+
+.pub-wish-card p {
+    margin: 0 0 10px;
+    color: #44362a;
+    line-height: 1.6;
+}
+
+.pub-wish-card strong,
+.pub-wish-empty {
+    color: #8b6b35;
+}
+
 .public-state {
     display: grid;
     place-items: center;
@@ -640,7 +680,8 @@
     .inv-form-grid,
     .guest-stats,
     .pub-details-grid,
-    .pub-gallery {
+    .pub-gallery,
+    .pub-wishes-list {
         grid-template-columns: 1fr;
     }
 

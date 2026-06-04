@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import dashboardService from "./dashboardService";
+import rsvpService from "../../shared/services/rsvpService";
 import DashboardStatsCard from "./DashboardStatsCard";
 import "./DashboardPages.css";
 
@@ -14,14 +15,40 @@ export default function RsvpReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    let active = true;
+  const load = async (active = true) => {
+    setLoading(true);
+    setError("");
     dashboardService
       .rsvpReport(invitationId)
       .then((data) => active && setReport(data))
       .catch((err) => active && setError(err?.message || "Could not load RSVP report"))
       .finally(() => active && setLoading(false));
+  };
+
+  useEffect(() => {
+    let active = true;
+    dashboardService
+      .rsvpReport(invitationId)
+      .then((data) => {
+        if (active) {
+          setReport(data);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err?.message || "Could not load RSVP report");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
     return () => {
       active = false;
     };
@@ -39,7 +66,49 @@ export default function RsvpReportPage() {
     }
   };
 
+  const updateStatus = async (row, responseStatus) => {
+    setSaving(true);
+    setError("");
+    try {
+      await rsvpService.update(invitationId, row.id, {
+        responseStatus,
+        attendeeCount: row.attendeeCount,
+        message: row.message || "",
+      });
+      await load();
+    } catch (err) {
+      setError(err?.message || "Could not update RSVP");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteRsvp = async (row) => {
+    if (!window.confirm(`Delete RSVP for ${row.guestName || "this guest"}?`)) {
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await rsvpService.delete(invitationId, row.id);
+      await load();
+    } catch (err) {
+      setError(err?.message || "Could not delete RSVP");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) return <main className="dash-main report-page"><div className="report-state">កំពុងផ្ទុក...</div></main>;
+
+  const rows = (report?.responses || []).filter((row) => {
+    const matchesStatus = !statusFilter || row.responseStatus === statusFilter;
+    const keyword = search.trim().toLowerCase();
+    const matchesSearch = !keyword
+      || (row.guestName || "").toLowerCase().includes(keyword)
+      || (row.message || "").toLowerCase().includes(keyword);
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <main className="dash-main report-page">
@@ -56,6 +125,24 @@ export default function RsvpReportPage() {
 
       {error && <div className="report-state is-error">{error}</div>}
 
+      <section className="report-panel">
+        <div className="report-filter-row">
+          <label>
+            Search
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Guest or message" />
+          </label>
+          <label>
+            Status
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <option value="">All</option>
+              <option value="ATTENDING">Attending</option>
+              <option value="NOT_ATTENDING">Not attending</option>
+              <option value="MAYBE">Maybe</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
       <section className="report-stat-grid">
         <DashboardStatsCard label="Guests" value={report?.totalGuests} />
         <DashboardStatsCard label="Yes" value={report?.yesCount} />
@@ -63,12 +150,12 @@ export default function RsvpReportPage() {
         <DashboardStatsCard label="Maybe/Pending" value={`${report?.maybeCount || 0}/${report?.pendingCount || 0}`} />
       </section>
 
-      <ReportTable rows={report?.responses || []} />
+      <ReportTable rows={rows} onStatusChange={updateStatus} onDelete={deleteRsvp} saving={saving} />
     </main>
   );
 }
 
-function ReportTable({ rows }) {
+function ReportTable({ rows, onStatusChange, onDelete, saving }) {
   return (
     <section className="report-panel">
       <div className="report-table-wrap">
@@ -80,19 +167,35 @@ function ReportTable({ rows }) {
               <th>Attendees</th>
               <th>Message</th>
               <th>Responded</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
               <tr key={row.id}>
                 <td>{row.guestName || "—"}</td>
-                <td>{row.responseStatus || "—"}</td>
+                <td>
+                  <select
+                    value={row.responseStatus || ""}
+                    onChange={(event) => onStatusChange(row, event.target.value)}
+                    disabled={saving}
+                  >
+                    <option value="ATTENDING">Attending</option>
+                    <option value="NOT_ATTENDING">Not attending</option>
+                    <option value="MAYBE">Maybe</option>
+                  </select>
+                </td>
                 <td>{row.attendeeCount ?? 0}</td>
                 <td>{row.message || "—"}</td>
                 <td>{dateTime(row.respondedAt)}</td>
+                <td>
+                  <button type="button" className="dash-btn" onClick={() => onDelete(row)} disabled={saving}>
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
-            {!rows.length && <tr><td colSpan="5">No RSVP responses yet.</td></tr>}
+            {!rows.length && <tr><td colSpan="6">No RSVP responses match this filter.</td></tr>}
           </tbody>
         </table>
       </div>

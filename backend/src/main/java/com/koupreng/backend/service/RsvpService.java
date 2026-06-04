@@ -4,12 +4,16 @@ import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.rsvp.RsvpRequest;
 import com.koupreng.backend.dto.rsvp.RsvpResponse;
 import com.koupreng.backend.dto.rsvp.RsvpSummaryResponse;
+import com.koupreng.backend.dto.rsvp.RsvpUpdateRequest;
+import com.koupreng.backend.dto.rsvp.WishResponse;
 import com.koupreng.backend.entity.invitation.Guest;
 import com.koupreng.backend.entity.invitation.Rsvp;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.enums.RsvpStatus;
 import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.RsvpRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -24,18 +28,23 @@ import java.util.UUID;
 @Service
 public class RsvpService {
 
+    private static final Logger log = LoggerFactory.getLogger(RsvpService.class);
+
     private final RsvpRepository rsvpRepository;
     private final GuestRepository guestRepository;
     private final InvitationService invitationService;
+    private final NotificationService notificationService;
 
     public RsvpService(
             RsvpRepository rsvpRepository,
             GuestRepository guestRepository,
-            InvitationService invitationService
+            InvitationService invitationService,
+            NotificationService notificationService
     ) {
         this.rsvpRepository = rsvpRepository;
         this.guestRepository = guestRepository;
         this.invitationService = invitationService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -44,7 +53,9 @@ public class RsvpService {
         validateDeadline(invitation);
         Guest guest = reusableGuest(invitation.getId(), request)
                 .orElseGet(() -> createPublicGuest(invitation, request));
-        return RsvpResponse.from(upsertRsvp(invitation, guest, request));
+        Rsvp saved = upsertRsvp(invitation, guest, request);
+        notifyRsvpRecorded(saved);
+        return RsvpResponse.from(saved);
     }
 
     @Transactional
@@ -54,7 +65,21 @@ public class RsvpService {
         Guest guest = guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), inviteToken)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Guest invitation link not found"));
         guest.setInvitationViewedAt(Instant.now());
-        return RsvpResponse.from(upsertRsvp(invitation, guest, request));
+        Rsvp saved = upsertRsvp(invitation, guest, request);
+        notifyRsvpRecorded(saved);
+        return RsvpResponse.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public RsvpSummaryResponse publicSummary(String slug) {
+        UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(slug, false);
+        return summaryForInvitation(invitation.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<WishResponse> publicWishes(String slug) {
+        UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(slug, false);
+        return wishesForInvitation(invitation.getId());
     }
 
     @Transactional(readOnly = true)
@@ -68,6 +93,51 @@ public class RsvpService {
     @Transactional(readOnly = true)
     public RsvpSummaryResponse summary(Authentication authentication, Long invitationId) {
         invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        return summaryForInvitation(invitationId);
+    }
+
+    @Transactional
+    public RsvpResponse update(
+            Authentication authentication,
+            Long invitationId,
+            Long rsvpId,
+            RsvpUpdateRequest request
+    ) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        Rsvp rsvp = rsvpRepository.findByIdAndInvitationId(rsvpId, invitationId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "RSVP not found"));
+        RsvpStatus status = request.getResponseStatus() == null
+                ? rsvp.getResponseStatus()
+                : request.getResponseStatus();
+        if (status == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "RSVP status is required");
+        }
+        Integer requestedAttendeeCount = request.getAttendeeCount() == null
+                ? rsvp.getAttendeeCount()
+                : request.getAttendeeCount();
+        rsvp.setResponseStatus(status);
+        rsvp.setAttendeeCount(attendeeCount(status, requestedAttendeeCount));
+        if (request.getMessage() != null) {
+            rsvp.setMessage(trimToNull(request.getMessage()));
+        }
+        return RsvpResponse.from(rsvpRepository.save(rsvp));
+    }
+
+    @Transactional
+    public void delete(Authentication authentication, Long invitationId, Long rsvpId) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        Rsvp rsvp = rsvpRepository.findByIdAndInvitationId(rsvpId, invitationId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "RSVP not found"));
+        rsvpRepository.delete(rsvp);
+    }
+
+    @Transactional(readOnly = true)
+    public List<WishResponse> wishes(Authentication authentication, Long invitationId) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        return wishesForInvitation(invitationId);
+    }
+
+    private RsvpSummaryResponse summaryForInvitation(Long invitationId) {
         long totalGuests = guestRepository.countByInvitationId(invitationId);
         long attending = rsvpRepository.countByInvitationIdAndResponseStatus(invitationId, RsvpStatus.ATTENDING);
         long notAttending = rsvpRepository.countByInvitationIdAndResponseStatus(invitationId, RsvpStatus.NOT_ATTENDING);
@@ -84,11 +154,18 @@ public class RsvpService {
                 .build();
     }
 
+    private List<WishResponse> wishesForInvitation(Long invitationId) {
+        return rsvpRepository.findByInvitationIdAndMessageIsNotNullOrderByRespondedAtDesc(invitationId).stream()
+                .filter(rsvp -> trimToNull(rsvp.getMessage()) != null)
+                .map(WishResponse::from)
+                .toList();
+    }
+
     private Rsvp upsertRsvp(UserInvitation invitation, Guest guest, RsvpRequest request) {
         if (request.getResponseStatus() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "RSVP status is required");
         }
-        int attendeeCount = attendeeCount(request);
+        int attendeeCount = attendeeCount(request.getResponseStatus(), request.getAttendeeCount());
         Rsvp rsvp = rsvpRepository.findByInvitationIdAndGuestId(invitation.getId(), guest.getId())
                 .orElseGet(Rsvp::new);
         rsvp.setInvitation(invitation);
@@ -130,14 +207,20 @@ public class RsvpService {
         return guestRepository.save(guest);
     }
 
-    private int attendeeCount(RsvpRequest request) {
-        int attendeeCount = request.getAttendeeCount() == null
-                ? (request.getResponseStatus() == RsvpStatus.NOT_ATTENDING ? 0 : 1)
-                : request.getAttendeeCount();
+    private int attendeeCount(RsvpStatus status, Integer requestedAttendeeCount) {
+        int attendeeCount = requestedAttendeeCount == null
+                ? (status == RsvpStatus.NOT_ATTENDING ? 0 : 1)
+                : requestedAttendeeCount;
         if (attendeeCount < 0) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Attendee count must be zero or greater");
         }
-        return request.getResponseStatus() == RsvpStatus.NOT_ATTENDING ? 0 : attendeeCount;
+        if (status == RsvpStatus.NOT_ATTENDING) {
+            return 0;
+        }
+        if (status == RsvpStatus.ATTENDING && attendeeCount < 1) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Attending RSVP must include at least one attendee");
+        }
+        return attendeeCount;
     }
 
     private void validateDeadline(UserInvitation invitation) {
@@ -152,6 +235,15 @@ public class RsvpService {
             token = UUID.randomUUID().toString().replace("-", "");
         } while (guestRepository.existsByInviteToken(token));
         return token;
+    }
+
+    private void notifyRsvpRecorded(Rsvp rsvp) {
+        try {
+            notificationService.sendRsvpConfirmation(rsvp);
+            notificationService.notifyOwnerRsvpReceived(rsvp);
+        } catch (RuntimeException exception) {
+            log.warn("Could not create RSVP notification for RSVP {}", rsvp.getId(), exception);
+        }
     }
 
     private String trimToNull(String value) {

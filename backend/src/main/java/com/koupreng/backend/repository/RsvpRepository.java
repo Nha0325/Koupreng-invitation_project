@@ -15,6 +15,10 @@ public interface RsvpRepository extends JpaRepository<Rsvp, Long> {
 
     List<Rsvp> findByInvitationIdOrderByRespondedAtDesc(Long invitationId);
 
+    List<Rsvp> findByInvitationIdAndMessageIsNotNullOrderByRespondedAtDesc(Long invitationId);
+
+    Optional<Rsvp> findByIdAndInvitationId(Long id, Long invitationId);
+
     Optional<Rsvp> findByInvitationIdAndGuestId(Long invitationId, Long guestId);
 
     long countByInvitationIdAndResponseStatus(Long invitationId, RsvpStatus responseStatus);

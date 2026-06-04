@@ -3,6 +3,7 @@ import { Route } from "react-router-dom";
 import GuestReportPage from "../../features/dashboard/GuestReportPage";
 import InvitationDashboardPage from "../../features/dashboard/InvitationDashboardPage";
 import RsvpReportPage from "../../features/dashboard/RsvpReportPage";
+import BudgetPage from "../../features/budget/BudgetPage";
 import NotificationsPage from "../../features/notifications/NotificationsPage";
 import PaidTemplatesPage from "../../features/payments/PaidTemplatesPage";
 import HostShell from "../../layouts/HostShell";
@@ -37,6 +38,7 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/:invitationId" element={<InvitationDashboardPage />} />
       <Route path="/dashboard/invitations/:invitationId/rsvp-report" element={<RsvpReportPage />} />
       <Route path="/dashboard/invitations/:invitationId/guest-report" element={<GuestReportPage />} />
+      <Route path="/dashboard/invitations/:invitationId/budget" element={<BudgetPage />} />
       <Route path="/dashboard/invitations/new" element={<InvitationCreatePage />} />
       <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />

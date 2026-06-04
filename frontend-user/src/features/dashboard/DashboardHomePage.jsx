@@ -31,7 +31,28 @@ export default function DashboardHomePage() {
   };
 
   useEffect(() => {
-    load();
+    let active = true;
+    dashboardService
+      .summary()
+      .then((data) => {
+        if (active) {
+          setSummary(data);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err?.message || "Could not load dashboard");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (loading) {

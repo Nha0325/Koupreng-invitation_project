@@ -172,6 +172,32 @@
   text-transform: uppercase;
 }
 
+.report-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 12px;
+}
+
+.report-filter-row label {
+  color: #5f513f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.report-filter-row input,
+.report-filter-row select,
+.report-table select {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 6px;
+  border: 1px solid #d8cab6;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fffdfa;
+  color: #2a1f10;
+  font: inherit;
+}
+
 .report-empty,
 .report-state {
   padding: 22px;
@@ -197,5 +223,9 @@
 
   .report-bar-row {
     grid-template-columns: 80px minmax(0, 1fr) 32px;
+  }
+
+  .report-filter-row {
+    grid-template-columns: 1fr;
   }
 }

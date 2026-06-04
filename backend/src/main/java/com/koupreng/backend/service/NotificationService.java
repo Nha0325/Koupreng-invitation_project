@@ -122,6 +122,30 @@ public class NotificationService {
     }
 
     @Transactional
+    public NotificationResponse notifyOwnerRsvpReceived(Rsvp rsvp) {
+        if (rsvp == null || rsvp.getInvitation() == null || rsvp.getInvitation().getUser() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "RSVP owner notification requires an invitation owner");
+        }
+        Guest guest = rsvp.getGuest();
+        UserInvitation invitation = rsvp.getInvitation();
+        String guestName = guest == null ? "A guest" : guest.getGuestName();
+        Notification notification = baseSendNotification(
+                invitation.getUser(),
+                invitation,
+                guest,
+                rsvp,
+                null,
+                NotificationType.RSVP_RECEIVED,
+                NotificationChannel.SYSTEM,
+                "New RSVP received",
+                guestName + " responded " + rsvp.getResponseStatus()
+        );
+        notification.setStatus(NotificationStatus.SENT);
+        notification.setSentAt(Instant.now());
+        return NotificationResponse.from(notificationRepository.save(notification));
+    }
+
+    @Transactional
     public NotificationResponse sendReminderNotification(
             Authentication authentication,
             Long invitationId,
