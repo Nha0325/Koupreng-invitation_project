@@ -142,6 +142,21 @@ class TemplatePaymentServiceTests {
     }
 
     @Test
+    void createStaticPaymentOrderRejectsUnknownTemplateWhenCatalogExists() {
+        Fixture fixture = fixture();
+        when(fixture.templateRepository.count()).thenReturn(1L);
+        when(fixture.templateRepository.existsById(10L)).thenReturn(false);
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.createStaticPaymentOrder(fixture.authentication, createStaticRequest())
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        assertEquals("Template not found", exception.getMessage());
+    }
+
+    @Test
     void telegramDetectMarksMatchingStaticOrderPaidAndUnlocksTemplate() {
         Fixture fixture = fixture();
         TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("0.01"));
@@ -467,6 +482,7 @@ class TemplatePaymentServiceTests {
                 service,
                 orderRepository,
                 accessRepository,
+                templateRepository,
                 currentUserService,
                 abaPayWayService,
                 paymentProperties,
@@ -526,6 +542,7 @@ class TemplatePaymentServiceTests {
             TemplatePaymentService service,
             TemplatePaymentOrderRepository orderRepository,
             UserTemplateAccessRepository accessRepository,
+            InvitationTemplateRepository templateRepository,
             CurrentUserService currentUserService,
             AbaPayWayService abaPayWayService,
             PaymentProperties paymentProperties,

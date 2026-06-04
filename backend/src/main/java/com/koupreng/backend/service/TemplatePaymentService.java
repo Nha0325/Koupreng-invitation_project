@@ -180,6 +180,7 @@ public class TemplatePaymentService {
     ) {
         AppUser user = currentUserService.currentUser(authentication);
         Long templateId = requirePositiveTemplateId(request.getTemplateId());
+        validateTemplateIfCatalogExists(templateId);
         String currency = normalizeCurrency(request.getCurrency());
         BigDecimal amount = money(request.getAmount(), currency);
         requireStaticAbaAmount(currency, amount);
