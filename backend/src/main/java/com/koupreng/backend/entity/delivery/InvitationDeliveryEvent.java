@@ -18,11 +18,11 @@ public class InvitationDeliveryEvent {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "guest_id", nullable = false)
+    @JoinColumn(name = "invitation_id", nullable = false)
     private UserInvitation invitation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "guest_id", nullable = false)
+    @JoinColumn(name = "guest_id")
     private Guest guest;
 
     @Column(name = "event_type", nullable = false, length = 50)
@@ -33,6 +33,9 @@ public class InvitationDeliveryEvent {
 
     @Column(length = 50)
     private String status;
+
+    @Column(columnDefinition = "TEXT")
+    private String message;
 
     @Column(name = "error_message", length = 1000)
     private String errorMessage;
