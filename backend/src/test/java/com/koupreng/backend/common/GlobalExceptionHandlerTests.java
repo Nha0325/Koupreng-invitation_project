@@ -10,17 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class GlobalExceptionHandlerTests {
+
+    private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
     @Test
     void methodNotSupportedReturns405InsteadOfGeneric500() {
-        MessageService messageService = mock(MessageService.class);
-        when(messageService.get("error.method.notSupported")).thenReturn("Request method is not supported");
-        GlobalExceptionHandler handler = new GlobalExceptionHandler(messageService);
-
         ResponseEntity<Map<String, Object>> response = handler.handleMethodNotSupported(
                 new HttpRequestMethodNotSupportedException("GET", List.of("POST"))
         );

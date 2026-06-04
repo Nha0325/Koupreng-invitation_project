@@ -29,16 +29,10 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    private final MessageService messageService;
-
-    public GlobalExceptionHandler(MessageService messageService) {
-        this.messageService = messageService;
-    }
-
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handleApiException(ApiException exception) {
         HttpStatus status = exception == null ? HttpStatus.INTERNAL_SERVER_ERROR : exception.getStatus();
-        return error(status, messageOrDefault(exception, messageService.get("error.request.unprocessable")));
+        return error(status, messageOrDefault(exception, "Request could not be processed"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -48,7 +42,7 @@ public class GlobalExceptionHandler {
             fields.put(error.getField(), error.getDefaultMessage());
         }
 
-        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, messageService.get("error.validation.failed"));
+        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, "Validation failed");
         body.put("fields", fields);
         return ResponseEntity.badRequest().body(body);
     }
@@ -60,55 +54,53 @@ public class GlobalExceptionHandler {
             fields.put(violation.getPropertyPath().toString(), violation.getMessage());
         }
 
-        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, messageService.get("error.validation.failed"));
+        Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, "Validation failed");
         body.put("fields", fields);
         return ResponseEntity.badRequest().body(body);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleMalformedJson(HttpMessageNotReadableException exception) {
-        return error(HttpStatus.BAD_REQUEST, messageService.get("error.json.malformed"));
+        return error(HttpStatus.BAD_REQUEST, "Request body is malformed");
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException exception) {
-        return error(HttpStatus.METHOD_NOT_ALLOWED, messageService.get("error.method.notSupported"));
+        return error(HttpStatus.METHOD_NOT_ALLOWED, "Request method is not supported");
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<Map<String, Object>> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException exception) {
-        return error(HttpStatus.UNSUPPORTED_MEDIA_TYPE, messageService.get("error.mediaType.notSupported"));
+        return error(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Content type is not supported");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoResourceFound(NoResourceFoundException exception) {
-        return error(HttpStatus.NOT_FOUND, messageService.get("error.resource.notFound"));
+        return error(HttpStatus.NOT_FOUND, "Resource not found");
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException exception) {
-        return error(HttpStatus.CONTENT_TOO_LARGE, messageService.get("error.upload.tooLarge"));
+        return error(HttpStatus.CONTENT_TOO_LARGE, "Uploaded file is too large");
     }
 
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<Map<String, Object>> handleMultipart(MultipartException exception) {
-        return error(HttpStatus.BAD_REQUEST, messageService.get("error.multipart.failed"));
+        return error(HttpStatus.BAD_REQUEST, "Multipart request could not be processed");
     }
 
     @ExceptionHandler({BadCredentialsException.class, AccessDeniedException.class})
     public ResponseEntity<Map<String, Object>> handleSecurity(RuntimeException exception) {
-        boolean accessDenied = exception instanceof AccessDeniedException;
-        HttpStatus status = accessDenied ? HttpStatus.FORBIDDEN : HttpStatus.UNAUTHORIZED;
-        String defaultMessage = accessDenied
-                ? messageService.get("error.access.denied")
-                : messageService.get("error.auth.required");
-        return error(status, messageOrDefault(exception, defaultMessage));
+        HttpStatus status = exception instanceof AccessDeniedException
+                ? HttpStatus.FORBIDDEN
+                : HttpStatus.UNAUTHORIZED;
+        return error(status, messageOrDefault(exception, "Authentication required"));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleUnexpected(Exception exception) {
         log.error("Unhandled API exception", exception);
-        return error(HttpStatus.INTERNAL_SERVER_ERROR, messageService.get("error.server.unexpected"));
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error");
     }
 
     private ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
