@@ -108,13 +108,13 @@ public class InvitationDeliveryService {
         }
 
         guestRepository.saveAll(guests);
-        return new DeliveryActionResponse(
-                invitation.getId(),
-                guests.size(),
-                successCount,
-                failedCount,
-                toGuestResponses(invitation, guests, respondedGuestIds)
-        );
+        return DeliveryActionResponse.builder()
+                .invitationId(invitation.getId())
+                .totalTargets(guests.size())
+                .successCount(successCount)
+                .failedCount(failedCount)
+                .guests(toGuestResponses(invitation, guests, respondedGuestIds))
+                .build();
     }
 
     @Transactional(readOnly = true)
@@ -157,20 +157,20 @@ public class InvitationDeliveryService {
             }
         }
 
-        return new DeliverySummaryResponse(
-                invitation.getId(),
-                invitation.getSlug(),
-                guests.size(),
-                notReady,
-                ready,
-                linkGenerated,
-                sent,
-                failed,
-                reminderSent,
-                opened,
-                respondedGuestIds.size(),
-                toGuestResponses(invitation, guests, respondedGuestIds)
-        );
+        return DeliverySummaryResponse.builder()
+                .invitationId(invitation.getId())
+                .invitationSlug(invitation.getSlug())
+                .totalGuests(guests.size())
+                .notReady(notReady)
+                .ready(ready)
+                .linkGenerated(linkGenerated)
+                .sent(sent)
+                .failed(failed)
+                .reminderSent(reminderSent)
+                .opened(opened)
+                .responded(respondedGuestIds.size())
+                .guests(toGuestResponses(invitation, guests, respondedGuestIds))
+                .build();
     }
 
     @Transactional
@@ -180,12 +180,12 @@ public class InvitationDeliveryService {
         ensureGuestLink(invitation, guest);
         guestRepository.save(guest);
 
-        return new ShareMessageResponse(
-                guest.getId(),
-                guest.getGuestName(),
-                invitationUrl(invitation, guest),
-                shareText(invitation, guest)
-        );
+        return ShareMessageResponse.builder()
+                .guestId(guest.getId())
+                .guestName(guest.getGuestName())
+                .invitationUrl(invitationUrl(invitation, guest))
+                .message(shareText(invitation, guest))
+                .build();
     }
 
     @Transactional
@@ -252,13 +252,13 @@ public class InvitationDeliveryService {
         }
 
         guestRepository.saveAll(targets);
-        return new DeliveryActionResponse(
-                invitation.getId(),
-                targets.size(),
-                successCount,
-                failedCount,
-                toGuestResponses(invitation, targets, respondedGuestIds)
-        );
+        return DeliveryActionResponse.builder()
+                .invitationId(invitation.getId())
+                .totalTargets(targets.size())
+                .successCount(successCount)
+                .failedCount(failedCount)
+                .guests(toGuestResponses(invitation, targets, respondedGuestIds))
+                .build();
     }
 
     @Transactional
@@ -322,13 +322,13 @@ public class InvitationDeliveryService {
         }
 
         guestRepository.saveAll(targets);
-        return new DeliveryActionResponse(
-                invitation.getId(),
-                targets.size(),
-                successCount,
-                failedCount,
-                toGuestResponses(invitation, targets, respondedGuestIds)
-        );
+        return DeliveryActionResponse.builder()
+                .invitationId(invitation.getId())
+                .totalTargets(targets.size())
+                .successCount(successCount)
+                .failedCount(failedCount)
+                .guests(toGuestResponses(invitation, targets, respondedGuestIds))
+                .build();
     }
 
     @Transactional(readOnly = true)
@@ -354,15 +354,15 @@ public class InvitationDeliveryService {
 
     private List<Guest> resolveTargets(Long invitationId, DeliveryRequest request, Predicate<Guest> allEligibleFilter) {
         List<Guest> guests = guestRepository.findByInvitationIdOrderByCreatedAtDesc(invitationId);
-        if (request == null || Boolean.TRUE.equals(request.allEligible())) {
+        if (request == null || Boolean.TRUE.equals(request.getAllEligible())) {
             return guests.stream()
                     .filter(allEligibleFilter)
                     .toList();
         }
-        if (request.guestIds() == null || request.guestIds().isEmpty()) {
+        if (request.getGuestIds() == null || request.getGuestIds().isEmpty()) {
             return List.of();
         }
-        Set<Long> guestIds = new HashSet<>(request.guestIds());
+        Set<Long> guestIds = new HashSet<>(request.getGuestIds());
         return guests.stream()
                 .filter(guest -> guestIds.contains(guest.getId()))
                 .toList();
@@ -386,7 +386,7 @@ public class InvitationDeliveryService {
     }
 
     private String emailMessage(UserInvitation invitation, Guest guest, DeliveryRequest request) {
-        String customMessage = request == null ? null : trimToNull(request.message());
+        String customMessage = request == null ? null : trimToNull(request.getMessage());
         if (customMessage != null) {
             return customMessage + "\n\n" + invitationUrl(invitation, guest);
         }
@@ -394,7 +394,7 @@ public class InvitationDeliveryService {
     }
 
     private String reminderMessage(UserInvitation invitation, Guest guest, DeliveryRequest request) {
-        String customMessage = request == null ? null : trimToNull(request.message());
+        String customMessage = request == null ? null : trimToNull(request.getMessage());
         if (customMessage != null) {
             return customMessage + "\n\n" + invitationUrl(invitation, guest);
         }
@@ -403,12 +403,12 @@ public class InvitationDeliveryService {
     }
 
     private String emailSubject(UserInvitation invitation, DeliveryRequest request) {
-        String subject = request == null ? null : trimToNull(request.subject());
+        String subject = request == null ? null : trimToNull(request.getSubject());
         return subject == null ? "Invitation: " + invitationTitle(invitation) : subject;
     }
 
     private String reminderSubject(UserInvitation invitation, DeliveryRequest request) {
-        String subject = request == null ? null : trimToNull(request.subject());
+        String subject = request == null ? null : trimToNull(request.getSubject());
         return subject == null ? "Reminder: " + invitationTitle(invitation) : subject;
     }
 

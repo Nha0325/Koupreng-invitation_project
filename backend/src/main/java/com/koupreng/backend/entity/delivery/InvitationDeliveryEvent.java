@@ -3,15 +3,15 @@ package com.koupreng.backend.entity.delivery;
 import com.koupreng.backend.entity.invitation.Guest;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.Instant;
-import lombok.Data;
 
 @Data
 @Entity
 @Table(name = "invitation_delivery_events")
 public class InvitationDeliveryEvent {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "delivery_event_id")
@@ -47,5 +47,4 @@ public class InvitationDeliveryEvent {
     protected void onCreate() {
         createdAt = Instant.now();
     }
-
 }

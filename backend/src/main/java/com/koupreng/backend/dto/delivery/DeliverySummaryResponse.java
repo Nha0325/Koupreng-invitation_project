@@ -1,18 +1,28 @@
 package com.koupreng.backend.dto.delivery;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-public record DeliverySummaryResponse(
-        Long invitationId,
-        String invitationSlug,
-        int totalGuests,
-        int notReady,
-        int ready,
-        int linkGenerated,
-        int sent,
-        int failed,
-        int reminderSent,
-        int opened,
-        int responded,
-        List<DeliveryGuestResponse> guests) {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DeliverySummaryResponse {
+
+    private Long invitationId;
+    private String invitationSlug;
+    private int totalGuests;
+    private int notReady;
+    private int ready;
+    private int linkGenerated;
+    private int sent;
+    private int failed;
+    private int reminderSent;
+    private int opened;
+    private int responded;
+    private List<DeliveryGuestResponse> guests;
 }
