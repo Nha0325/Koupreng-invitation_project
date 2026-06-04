@@ -22,7 +22,7 @@ public record DeliveryEventResponse(
                 event.getEventType(),
                 event.getChannel(),
                 event.getStatus(),
-                event.getMessage(),
+                null,
                 event.getErrorMessage(),
                 event.getCreatedAt());
     }
