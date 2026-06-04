@@ -5,7 +5,7 @@ set -euo pipefail
 git add .
 
 # Commit with a message (use first argument or default)
-MSG="${1:-Create delivery event entity}"
+MSG="${1:-Used by delivery audit trail API.}"
 if git diff --cached --quiet; then
   echo "No changes to commit."
 else
