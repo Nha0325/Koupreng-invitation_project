@@ -5,7 +5,7 @@ set -euo pipefail
 git add .
 
 # Commit with a message (use first argument or default)
-MSG="${1:-DeliveryGuestResponse.}"
+MSG="${1:-Create delivery controller.}"
 if git diff --cached --quiet; then
   echo "No changes to commit."
 else

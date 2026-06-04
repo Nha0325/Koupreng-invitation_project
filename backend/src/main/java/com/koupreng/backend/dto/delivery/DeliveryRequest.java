@@ -1,13 +1,14 @@
 package com.koupreng.backend.dto.delivery;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class DeliveryRequest {
-    List<Long> guestIds;
 
-    Boolean allEligibles;
-
-    String subject;
-
-    String message;
+    private List<Long> guestIds;
+    private Boolean allEligible;
+    private String subject;
+    private String message;
 }

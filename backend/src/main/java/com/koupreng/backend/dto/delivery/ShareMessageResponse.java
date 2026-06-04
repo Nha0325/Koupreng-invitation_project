@@ -1,9 +1,18 @@
 package com.koupreng.backend.dto.delivery;
 
-public record ShareMessageResponse(
-        Long guestId,
-        String guestName,
-        String invitationUrl,
-        String message
-) {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ShareMessageResponse {
+
+    private Long guestId;
+    private String guestName;
+    private String invitationUrl;
+    private String message;
 }
