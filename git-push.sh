@@ -4,7 +4,7 @@
 git add .
 
 # Commit with a message (use first argument or default)
-MSG="${1:- Add these fields after 'sendStatus'}"
+MSG="${1:-Create delivery event entity}"
 git commit -m "$MSG"
 
 # Force push to origin main
