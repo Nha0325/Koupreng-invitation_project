@@ -1,12 +1,21 @@
 package com.koupreng.backend.dto.delivery;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-public record DeliveryActionResponse(
-        Long invitationId,
-        int totalTargets,
-        int successCount,
-        int failedCount,
-        List<DeliveryGuestResponse> guests) {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DeliveryActionResponse {
 
+    private Long invitationId;
+    private int totalTargets;
+    private int successCount;
+    private int failedCount;
+    private List<DeliveryGuestResponse> guests;
 }
