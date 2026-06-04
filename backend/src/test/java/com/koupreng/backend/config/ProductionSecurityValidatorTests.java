@@ -55,7 +55,67 @@ class ProductionSecurityValidatorTests {
         assertTrue(exception.getMessage().contains("DB_URL"));
     }
 
+    @Test
+    void rejectsPlaceholderProductionAdminPaymentSecret() {
+        ProductionSecurityValidator validator = validator(
+                "a".repeat(64),
+                "jdbc:mysql://db.example.com:3306/koupreng_db?sslMode=VERIFY_IDENTITY&serverTimezone=UTC",
+                "change-me-local-only",
+                "static"
+        );
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                validator::validateProductionConfiguration
+        );
+
+        assertTrue(exception.getMessage().contains("ADMIN_PAYMENT_SECRET"));
+    }
+
+    @Test
+    void rejectsBlankProductionAdminPaymentSecret() {
+        ProductionSecurityValidator validator = validator(
+                "a".repeat(64),
+                "jdbc:mysql://db.example.com:3306/koupreng_db?sslMode=VERIFY_IDENTITY&serverTimezone=UTC",
+                " ",
+                "static"
+        );
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                validator::validateProductionConfiguration
+        );
+
+        assertTrue(exception.getMessage().contains("ADMIN_PAYMENT_SECRET"));
+    }
+
+    @Test
+    void rejectsNonStaticProductionPaymentProviderMode() {
+        ProductionSecurityValidator validator = validator(
+                "a".repeat(64),
+                "jdbc:mysql://db.example.com:3306/koupreng_db?sslMode=VERIFY_IDENTITY&serverTimezone=UTC",
+                "secure-admin-payment-secret",
+                "dynamic"
+        );
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                validator::validateProductionConfiguration
+        );
+
+        assertTrue(exception.getMessage().contains("PAYMENT_PROVIDER_MODE"));
+    }
+
     private ProductionSecurityValidator validator(String jwtSecret, String databaseUrl) {
+        return validator(jwtSecret, databaseUrl, "secure-admin-payment-secret", "static");
+    }
+
+    private ProductionSecurityValidator validator(
+            String jwtSecret,
+            String databaseUrl,
+            String adminPaymentSecret,
+            String providerMode
+    ) {
         AppProperties appProperties = new AppProperties();
         appProperties.getJwt().setIssuer("koupreng-backend");
         appProperties.getJwt().setSecret(jwtSecret);
@@ -73,6 +133,11 @@ class ProductionSecurityValidatorTests {
         wafProperties.setEnabled(true);
         wafProperties.setAuditOnly(false);
 
+        PaymentProperties paymentProperties = new PaymentProperties();
+        paymentProperties.setAdminSecret(adminPaymentSecret);
+        paymentProperties.setProviderMode(providerMode);
+        paymentProperties.getAba().setStaticLink("https://link.payway.com.kh/ABAPAYrD450560q");
+
         MockEnvironment environment = new MockEnvironment()
                 .withProperty("spring.datasource.url", databaseUrl)
                 .withProperty("spring.jpa.hibernate.ddl-auto", "none");
@@ -81,7 +146,8 @@ class ProductionSecurityValidatorTests {
                 environment,
                 appProperties,
                 apiSecurityProperties,
-                wafProperties
+                wafProperties,
+                paymentProperties
         );
     }
 }
