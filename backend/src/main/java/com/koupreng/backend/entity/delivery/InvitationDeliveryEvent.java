@@ -18,7 +18,7 @@ public class InvitationDeliveryEvent {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "guest_id", nullable = false)
+    @JoinColumn(name = "invitation_id", nullable = false)
     private UserInvitation invitation;
 
     @ManyToOne(fetch = FetchType.LAZY)
