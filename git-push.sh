@@ -1,11 +1,16 @@
 #!/bin/bash
+set -euo pipefail
 
 # Add all changes (respects .gitignore)
 git add .
 
 # Commit with a message (use first argument or default)
-MSG="${1:-Create delivery event entity}"
-git commit -m "$MSG"
+MSG="${1:-update project}"
+if git diff --cached --quiet; then
+  echo "No changes to commit."
+else
+  git commit -m "$MSG"
+fi
 
-# Force push to origin main
-git push --force origin main
+# Push the current commit to GitHub main.
+git push --force-with-lease origin HEAD:main
