@@ -12,6 +12,8 @@ const NAV_ITEMS = [
   { label: "គម្រោងថវិកា", path: "/expenses", icon: "💰" },
   { label: "ចងដៃមង្គល", path: "/gifts", icon: "🎁" },
   { label: "បន្ថែមគម្រូ", path: "/templates/browse", icon: "🎨" },
+  { label: "កញ្ចប់", path: "/dashboard/packages", icon: "📦" },
+  { label: "ក្រុម", path: "/dashboard/organizations", icon: "🏢" },
 ];
 
 export default function HostNav() {

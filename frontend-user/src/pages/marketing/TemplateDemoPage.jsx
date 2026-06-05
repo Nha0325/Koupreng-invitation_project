@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import TemplateExperience from "../../features/templates/template-experience/TemplateExperience";
-import { getTemplateById } from "../../features/templates/data/templatesData";
+import { getTemplateById, isTemplatePremium } from "../../features/templates/data/templatesData";
 import {
     resolveVariant,
     VARIANT_ROUTE_ALIASES,
@@ -29,7 +29,10 @@ export default function TemplateDemoPage() {
     const forcedVariant = aliasTargetId ? id : undefined;
     const { isAuthenticated } = useAuth();
 
-    const createTemplatePath = `/create/wedding?template=${tpl.id}`;
+    const premium = isTemplatePremium(tpl.id);
+    const createTemplatePath = premium
+        ? `/templates/${tpl.id}/checkout`
+        : `/create/wedding?template=${tpl.id}`;
     const useTemplateLink = isAuthenticated
         ? createTemplatePath
         : `/login?next=${encodeURIComponent(createTemplatePath)}`;
@@ -41,6 +44,7 @@ export default function TemplateDemoPage() {
             tpl={tpl}
             useTemplateLink={useTemplateLink}
             variant={variant}
+            primaryCtaLabel={premium ? "ទិញគំរូ" : "ប្រើគំរូនេះ"}
         />
     );
 }

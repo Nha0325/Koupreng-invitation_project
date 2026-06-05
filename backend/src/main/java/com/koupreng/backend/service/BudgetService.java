@@ -34,6 +34,22 @@ public class BudgetService {
     private final BudgetItemRepository budgetItemRepository;
     private final UserInvitationRepository invitationRepository;
     private final InvitationService invitationService;
+    private final AuditLogService auditLogService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public BudgetService(
+            BudgetRepository budgetRepository,
+            BudgetItemRepository budgetItemRepository,
+            UserInvitationRepository invitationRepository,
+            InvitationService invitationService,
+            AuditLogService auditLogService
+    ) {
+        this.budgetRepository = budgetRepository;
+        this.budgetItemRepository = budgetItemRepository;
+        this.invitationRepository = invitationRepository;
+        this.invitationService = invitationService;
+        this.auditLogService = auditLogService;
+    }
 
     public BudgetService(
             BudgetRepository budgetRepository,
@@ -41,10 +57,7 @@ public class BudgetService {
             UserInvitationRepository invitationRepository,
             InvitationService invitationService
     ) {
-        this.budgetRepository = budgetRepository;
-        this.budgetItemRepository = budgetItemRepository;
-        this.invitationRepository = invitationRepository;
-        this.invitationService = invitationService;
+        this(budgetRepository, budgetItemRepository, invitationRepository, invitationService, null);
     }
 
     @Transactional
@@ -68,7 +81,17 @@ public class BudgetService {
         if (request.getNotes() != null) {
             budget.setNotes(trimToNull(request.getNotes()));
         }
-        return toResponse(budgetRepository.save(budget));
+        Budget saved = budgetRepository.save(budget);
+        if (auditLogService != null) {
+            auditLogService.logSystemEvent(
+                    "BUDGET_UPDATED",
+                    "BUDGET",
+                    saved.getId(),
+                    "Budget updated for invitation: " + invitationId + ", total budget: " + saved.getTotalBudget(),
+                    java.util.Map.of("invitationId", invitationId, "totalBudget", saved.getTotalBudget())
+            );
+        }
+        return toResponse(saved);
     }
 
     @Transactional
@@ -87,7 +110,16 @@ public class BudgetService {
         item.setActualCost(nonNegativeOrZero(request.getActualCost(), "Actual cost"));
         item.setVendorName(trimToNull(request.getVendorName()));
         item.setNotes(trimToNull(request.getNotes()));
-        budgetItemRepository.save(item);
+        BudgetItem saved = budgetItemRepository.save(item);
+        if (auditLogService != null) {
+            auditLogService.logSystemEvent(
+                    "BUDGET_ITEM_ADDED",
+                    "BUDGET_ITEM",
+                    saved.getId(),
+                    "Budget item added: " + saved.getItemName() + " to category: " + saved.getCategory() + " with cost: " + saved.getEstimatedCost(),
+                    java.util.Map.of("invitationId", invitationId, "category", saved.getCategory(), "itemName", saved.getItemName())
+            );
+        }
         return toResponse(budget);
     }
 
@@ -119,7 +151,16 @@ public class BudgetService {
         if (request.getNotes() != null) {
             item.setNotes(trimToNull(request.getNotes()));
         }
-        budgetItemRepository.save(item);
+        BudgetItem saved = budgetItemRepository.save(item);
+        if (auditLogService != null) {
+            auditLogService.logSystemEvent(
+                    "BUDGET_ITEM_UPDATED",
+                    "BUDGET_ITEM",
+                    saved.getId(),
+                    "Budget item updated: " + saved.getItemName() + " in category: " + saved.getCategory() + " with cost: " + saved.getEstimatedCost(),
+                    java.util.Map.of("invitationId", invitationId, "category", saved.getCategory(), "itemName", saved.getItemName())
+            );
+        }
         return toResponse(budget);
     }
 
@@ -129,6 +170,15 @@ public class BudgetService {
         Budget budget = findOrCreateBudget(invitation);
         BudgetItem item = requireItem(budget.getId(), itemId);
         budgetItemRepository.delete(item);
+        if (auditLogService != null) {
+            auditLogService.logSystemEvent(
+                    "BUDGET_ITEM_DELETED",
+                    "BUDGET_ITEM",
+                    itemId,
+                    "Budget item deleted: " + item.getItemName() + " from category: " + item.getCategory(),
+                    java.util.Map.of("invitationId", invitationId, "itemId", itemId)
+            );
+        }
     }
 
     @Transactional(readOnly = true)

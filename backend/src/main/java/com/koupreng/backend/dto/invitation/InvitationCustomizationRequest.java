@@ -1,9 +1,7 @@
 package com.koupreng.backend.dto.invitation;
 
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
-@Data
 public class InvitationCustomizationRequest {
 
     private Long templateId;
@@ -28,4 +26,68 @@ public class InvitationCustomizationRequest {
 
     @Size(max = 10000)
     private String layoutSettings;
+
+    public Long getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(Long templateId) {
+        this.templateId = templateId;
+    }
+
+    public String getLanguageMode() {
+        return languageMode;
+    }
+
+    public void setLanguageMode(String languageMode) {
+        this.languageMode = languageMode;
+    }
+
+    public String getDesignJson() {
+        return designJson;
+    }
+
+    public void setDesignJson(String designJson) {
+        this.designJson = designJson;
+    }
+
+    public String getContentJson() {
+        return contentJson;
+    }
+
+    public void setContentJson(String contentJson) {
+        this.contentJson = contentJson;
+    }
+
+    public String getCustomColors() {
+        return customColors;
+    }
+
+    public void setCustomColors(String customColors) {
+        this.customColors = customColors;
+    }
+
+    public String getCustomFonts() {
+        return customFonts;
+    }
+
+    public void setCustomFonts(String customFonts) {
+        this.customFonts = customFonts;
+    }
+
+    public String getEnabledSections() {
+        return enabledSections;
+    }
+
+    public void setEnabledSections(String enabledSections) {
+        this.enabledSections = enabledSections;
+    }
+
+    public String getLayoutSettings() {
+        return layoutSettings;
+    }
+
+    public void setLayoutSettings(String layoutSettings) {
+        this.layoutSettings = layoutSettings;
+    }
 }

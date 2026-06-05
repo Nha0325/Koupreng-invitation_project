@@ -13,6 +13,8 @@ const emptyGuest = {
     guestGroup: "",
     sideType: "",
     tableNumber: "",
+    seatCount: "",
+    note: "",
     sendStatus: "",
     contributionStatus: "",
     totalContributed: "",
@@ -30,8 +32,18 @@ function SummaryCard({ label, value }) {
 function toGuestPayload(form) {
     return {
         ...form,
+        seatCount: form.seatCount === "" ? null : Number(form.seatCount),
         totalContributed: form.totalContributed === "" ? null : Number(form.totalContributed),
     };
+}
+
+function downloadDataUri(dataUri, filename) {
+    const link = document.createElement("a");
+    link.href = dataUri;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 }
 
 export default function InvitationGuestsManager() {
@@ -43,6 +55,8 @@ export default function InvitationGuestsManager() {
     const [form, setForm] = useState(emptyGuest);
     const [editingId, setEditingId] = useState(null);
     const [keyword, setKeyword] = useState("");
+    const [importFile, setImportFile] = useState(null);
+    const [importResult, setImportResult] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
@@ -120,6 +134,8 @@ export default function InvitationGuestsManager() {
             guestGroup: guest.guestGroup || "",
             sideType: guest.sideType || "",
             tableNumber: guest.tableNumber || "",
+            seatCount: guest.seatCount ?? "",
+            note: guest.note || "",
             sendStatus: guest.sendStatus || "",
             contributionStatus: guest.contributionStatus || "",
             totalContributed: guest.totalContributed ?? "",
@@ -155,6 +171,65 @@ export default function InvitationGuestsManager() {
         }
     };
 
+    const uploadImportFile = async (event) => {
+        event.preventDefault();
+        if (!importFile) {
+            setError("Choose a CSV or XLSX file first");
+            return;
+        }
+        setSaving(true);
+        setError("");
+        setImportResult(null);
+        try {
+            const result = await guestService.importFileForInvitation(id, importFile);
+            setImportResult(result);
+            setGuests((current) => [...(result.guests || []), ...current]);
+            toast(`Imported ${result.importedCount || 0} guests`);
+        } catch (err) {
+            setError(err.message || "Could not import guests");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const exportGuests = async () => {
+        setSaving(true);
+        setError("");
+        try {
+            await guestService.exportForInvitation(id);
+        } catch (err) {
+            setError(err.message || "Could not export guests");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const downloadInvitationQr = async () => {
+        setSaving(true);
+        setError("");
+        try {
+            const qr = await guestService.invitationQr(id);
+            downloadDataUri(qr.qrCodeDataUri, `invitation-${id}-qr.png`);
+        } catch (err) {
+            setError(err.message || "Could not generate QR");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const downloadGuestQr = async (guest) => {
+        setSaving(true);
+        setError("");
+        try {
+            const qr = await guestService.guestQr(id, guest.id);
+            downloadDataUri(qr.qrCodeDataUri, `guest-${guest.id}-qr.png`);
+        } catch (err) {
+            setError(err.message || "Could not generate guest QR");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     if (loading) {
         return <div className="inv-page"><div className="inv-loading">Loading guests...</div></div>;
     }
@@ -167,9 +242,23 @@ export default function InvitationGuestsManager() {
                     <h1>{invitation?.title || "Invitation guests"}</h1>
                     <p>Manage guest records and track RSVP responses for this invitation.</p>
                 </div>
-                <button className="inv-secondary-btn" type="button" onClick={() => navigate("/dashboard/invitations")}>
-                    Back
-                </button>
+                <div className="inv-form-actions">
+                    <button className="inv-secondary-btn" type="button" onClick={() => navigate(`/dashboard/invitations/${id}/check-in`)}>
+                        Check-in
+                    </button>
+                    <button className="inv-secondary-btn" type="button" onClick={() => navigate(`/dashboard/invitations/${id}/seating`)}>
+                        Seating
+                    </button>
+                    <button className="inv-secondary-btn" type="button" disabled={saving} onClick={downloadInvitationQr}>
+                        Invitation QR
+                    </button>
+                    <button className="inv-secondary-btn" type="button" disabled={saving} onClick={exportGuests}>
+                        Export CSV
+                    </button>
+                    <button className="inv-secondary-btn" type="button" onClick={() => navigate("/dashboard/invitations")}>
+                        Back
+                    </button>
+                </div>
             </header>
 
             {summary && (
@@ -214,6 +303,15 @@ export default function InvitationGuestsManager() {
                             <input value={form.tableNumber} onChange={(event) => update("tableNumber", event.target.value)} />
                         </label>
                         <label>
+                            Seats
+                            <input
+                                type="number"
+                                min="0"
+                                value={form.seatCount}
+                                onChange={(event) => update("seatCount", event.target.value)}
+                            />
+                        </label>
+                        <label>
                             Contribution
                             <input
                                 type="number"
@@ -224,6 +322,10 @@ export default function InvitationGuestsManager() {
                             />
                         </label>
                     </div>
+                    <label>
+                        Note
+                        <textarea value={form.note} rows="3" onChange={(event) => update("note", event.target.value)} />
+                    </label>
                     <div className="guest-form-actions">
                         <button className="inv-primary-btn" type="submit" disabled={saving}>
                             {saving ? "Saving..." : editingId ? "Save Guest" : "Add Guest"}
@@ -237,6 +339,22 @@ export default function InvitationGuestsManager() {
                 </form>
 
                 <section className="guest-table-panel">
+                    <form className="guest-import-row" onSubmit={uploadImportFile}>
+                        <input
+                            type="file"
+                            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            onChange={(event) => setImportFile(event.target.files?.[0] || null)}
+                        />
+                        <button type="submit" className="inv-secondary-btn" disabled={saving}>Import CSV/XLSX</button>
+                    </form>
+                    {importResult && (
+                        <div className="guest-import-result">
+                            Imported {importResult.importedCount} · Skipped {importResult.skippedCount}
+                            {!!importResult.errorRows?.length && (
+                                <small>{importResult.errorRows.slice(0, 3).map((row) => `Row ${row.rowNumber}: ${row.reason}`).join(" | ")}</small>
+                            )}
+                        </div>
+                    )}
                     <form className="guest-search" onSubmit={search}>
                         <input
                             value={keyword}
@@ -254,6 +372,7 @@ export default function InvitationGuestsManager() {
                                     <th>Contact</th>
                                     <th>Group</th>
                                     <th>Table</th>
+                                    <th>Seats</th>
                                     <th>Invite link</th>
                                     <th></th>
                                 </tr>
@@ -268,6 +387,7 @@ export default function InvitationGuestsManager() {
                                         </td>
                                         <td>{guest.guestGroup || "None"}</td>
                                         <td>{guest.tableNumber || "None"}</td>
+                                        <td>{guest.seatCount ?? "—"}</td>
                                         <td>
                                             {guest.qrCodeUrl ? (
                                                 <a href={guest.qrCodeUrl} target="_blank" rel="noreferrer">Open</a>
@@ -275,6 +395,7 @@ export default function InvitationGuestsManager() {
                                         </td>
                                         <td>
                                             <div className="guest-row-actions">
+                                                <button type="button" onClick={() => downloadGuestQr(guest)} disabled={saving}>QR</button>
                                                 <button type="button" onClick={() => editGuest(guest)}>Edit</button>
                                                 <button type="button" className="danger" onClick={() => deleteGuest(guest)}>Delete</button>
                                             </div>

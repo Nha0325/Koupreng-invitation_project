@@ -41,6 +41,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -227,16 +228,28 @@ public class DashboardReportService {
     @Transactional(readOnly = true)
     public String exportGuestReportCsv(Authentication authentication, Long invitationId) {
         GuestStatusReportResponse report = getGuestStatusReport(authentication, invitationId);
+        Map<Long, Rsvp> rsvpsByGuestId = rsvpRepository.findByInvitationIdOrderByRespondedAtDesc(invitationId).stream()
+                .filter(rsvp -> rsvp.getGuest() != null && rsvp.getGuest().getId() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                        rsvp -> rsvp.getGuest().getId(),
+                        rsvp -> rsvp,
+                        (left, right) -> left
+                ));
         StringBuilder csv = new StringBuilder();
-        csv.append("guestId,guestName,email,phone,group,tableNumber,sendStatus,openedAt,contributionStatus,totalContributed\n");
+        csv.append("guestId,guestName,email,phone,group,seatCount,tableNumber,sendStatus,rsvpStatus,attendeeCount,lastSentAt,openedAt,contributionStatus,totalContributed\n");
         for (GuestResponse guest : report.getGuests()) {
+            Rsvp rsvp = rsvpsByGuestId.get(guest.getId());
             csv.append(csvValue(guest.getId()))
                     .append(',').append(csvValue(guest.getGuestName()))
                     .append(',').append(csvValue(guest.getEmail()))
                     .append(',').append(csvValue(guest.getPhone()))
                     .append(',').append(csvValue(guest.getGuestGroup()))
+                    .append(',').append(csvValue(guest.getSeatCount()))
                     .append(',').append(csvValue(guest.getTableNumber()))
                     .append(',').append(csvValue(guest.getSendStatus()))
+                    .append(',').append(csvValue(rsvp == null ? null : rsvp.getResponseStatus()))
+                    .append(',').append(csvValue(rsvp == null ? null : rsvp.getAttendeeCount()))
+                    .append(',').append(csvValue(guest.getLastSentAt()))
                     .append(',').append(csvValue(guest.getInvitationViewedAt()))
                     .append(',').append(csvValue(guest.getContributionStatus()))
                     .append(',').append(csvValue(guest.getTotalContributed()))

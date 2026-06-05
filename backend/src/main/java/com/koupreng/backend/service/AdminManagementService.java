@@ -7,9 +7,13 @@ import com.koupreng.backend.dto.admin.AdminTemplatePremiumRequest;
 import com.koupreng.backend.dto.admin.AdminTemplateRequest;
 import com.koupreng.backend.dto.admin.AdminTemplateResponse;
 import com.koupreng.backend.dto.admin.AdminUserResponse;
+import com.koupreng.backend.dto.admin.SystemAuditLogResponse;
+import com.koupreng.backend.dto.checkin.CheckInResponse;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.payment.TemplatePaymentStatusResponse;
 import com.koupreng.backend.dto.rsvp.RsvpResponse;
+import com.koupreng.backend.entity.audit.SystemAuditLog;
+import com.koupreng.backend.entity.invitation.GuestCheckIn;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.payment.TemplatePaymentOrder;
@@ -20,10 +24,12 @@ import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.NotificationStatus;
 import com.koupreng.backend.enums.PaymentStatus;
 import com.koupreng.backend.repository.AppUserRepository;
+import com.koupreng.backend.repository.GuestCheckInRepository;
 import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.NotificationRepository;
 import com.koupreng.backend.repository.RsvpRepository;
+import com.koupreng.backend.repository.SystemAuditLogRepository;
 import com.koupreng.backend.repository.TemplatePaymentOrderRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +62,9 @@ public class AdminManagementService {
     private final TemplatePaymentOrderRepository paymentOrderRepository;
     private final RsvpRepository rsvpRepository;
     private final GuestRepository guestRepository;
+    private final GuestCheckInRepository guestCheckInRepository;
     private final NotificationRepository notificationRepository;
+    private final SystemAuditLogRepository systemAuditLogRepository;
     private final AuditLogService auditLogService;
 
     public AdminManagementService(
@@ -65,7 +74,9 @@ public class AdminManagementService {
             TemplatePaymentOrderRepository paymentOrderRepository,
             RsvpRepository rsvpRepository,
             GuestRepository guestRepository,
+            GuestCheckInRepository guestCheckInRepository,
             NotificationRepository notificationRepository,
+            SystemAuditLogRepository systemAuditLogRepository,
             AuditLogService auditLogService
     ) {
         this.userRepository = userRepository;
@@ -74,7 +85,9 @@ public class AdminManagementService {
         this.paymentOrderRepository = paymentOrderRepository;
         this.rsvpRepository = rsvpRepository;
         this.guestRepository = guestRepository;
+        this.guestCheckInRepository = guestCheckInRepository;
         this.notificationRepository = notificationRepository;
+        this.systemAuditLogRepository = systemAuditLogRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -374,6 +387,221 @@ public class AdminManagementService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public AdminReportResponse analyticsOverview() {
+        List<UserInvitation> invitations = invitationRepository.findAllByDeletedFalseOrderByCreatedAtDesc();
+        List<TemplatePaymentOrder> orders = paymentOrderRepository.findAll();
+        BigDecimal revenue = orders.stream()
+                .filter(order -> order.getStatus() == PaymentStatus.PAID)
+                .map(order -> order.getPaidAmount() == null ? order.getAmount() : order.getPaidAmount())
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        long totalGuests = guestRepository.count();
+        long totalRsvps = rsvpRepository.count();
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalUsers", userRepository.count());
+        summary.put("activeUsers", userRepository.findAll().stream().filter(AppUser::isActive).count());
+        summary.put("totalInvitations", invitations.size());
+        summary.put("publishedInvitations", countInvitations(invitations, InvitationStatus.PUBLISHED));
+        summary.put("totalGuests", totalGuests);
+        summary.put("totalRsvps", totalRsvps);
+        summary.put("rsvpConversion", totalGuests == 0 ? 0 : (double) totalRsvps / totalGuests);
+        summary.put("totalRevenue", revenue);
+        summary.put("failedPayments", orders.stream()
+                .filter(order -> order.getStatus() == PaymentStatus.FAILED || order.getStatus() == PaymentStatus.REJECTED)
+                .count());
+        return AdminReportResponse.builder()
+                .report("analytics-overview")
+                .generatedAt(Instant.now())
+                .summary(summary)
+                .rows(invitations.stream().limit(10).map(InvitationResponse::from).toList())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminReportResponse analyticsRevenue() {
+        return paymentsReport();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminReportResponse analyticsTemplates() {
+        List<AdminTemplateResponse> templates = listTemplates();
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalTemplates", templates.size());
+        summary.put("activeTemplates", templates.stream().filter(template -> statusEquals(template.getStatus(), TEMPLATE_STATUS_ACTIVE)).count());
+        summary.put("premiumTemplates", templates.stream().filter(AdminTemplateResponse::isPremium).count());
+        return AdminReportResponse.builder()
+                .report("analytics-templates")
+                .generatedAt(Instant.now())
+                .summary(summary)
+                .rows(templates)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminReportResponse analyticsDelivery() {
+        List<com.koupreng.backend.entity.invitation.Guest> guests = guestRepository.findAll();
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalGuests", guests.size());
+        summary.put("sent", guests.stream().filter(guest -> statusEquals(guest.getSendStatus(), "SENT")).count());
+        summary.put("delivered", guests.stream().filter(guest -> statusEquals(guest.getSendStatus(), "DELIVERED")).count());
+        summary.put("failed", guests.stream().filter(guest -> statusEquals(guest.getSendStatus(), "FAILED")).count());
+        summary.put("opened", guests.stream().filter(guest -> guest.getInvitationViewedAt() != null).count());
+        summary.put("failedNotifications", notificationRepository.countByStatus(NotificationStatus.FAILED));
+        return AdminReportResponse.builder()
+                .report("analytics-delivery")
+                .generatedAt(Instant.now())
+                .summary(summary)
+                .rows(List.of())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminReportResponse analyticsRsvp() {
+        List<RsvpResponse> rows = rsvpRepository.findAll().stream()
+                .map(RsvpResponse::from)
+                .toList();
+        long totalGuests = guestRepository.count();
+        long attending = rows.stream()
+                .filter(row -> row.getResponseStatus() == com.koupreng.backend.enums.RsvpStatus.ATTENDING)
+                .count();
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalGuests", totalGuests);
+        summary.put("totalRsvps", rows.size());
+        summary.put("attending", attending);
+        summary.put("declined", rows.stream()
+                .filter(row -> row.getResponseStatus() == com.koupreng.backend.enums.RsvpStatus.NOT_ATTENDING)
+                .count());
+        summary.put("maybe", rows.stream()
+                .filter(row -> row.getResponseStatus() == com.koupreng.backend.enums.RsvpStatus.MAYBE)
+                .count());
+        summary.put("rsvpConversion", totalGuests == 0 ? 0 : (double) rows.size() / totalGuests);
+        summary.put("attendingRate", totalGuests == 0 ? 0 : (double) attending / totalGuests);
+        return AdminReportResponse.builder()
+                .report("analytics-rsvp")
+                .generatedAt(Instant.now())
+                .summary(summary)
+                .rows(rows)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminReportResponse analyticsCheckIn() {
+        List<GuestCheckIn> checkIns = guestCheckInRepository.findAll().stream()
+                .sorted(Comparator.comparing(
+                        GuestCheckIn::getCheckedInAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ).reversed())
+                .toList();
+        long totalGuests = guestRepository.count();
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("totalGuests", totalGuests);
+        summary.put("checkedIn", checkIns.size());
+        summary.put("remaining", Math.max(0, totalGuests - checkIns.size()));
+        summary.put("checkInRate", totalGuests == 0 ? 0 : (double) checkIns.size() / totalGuests);
+        return AdminReportResponse.builder()
+                .report("analytics-check-in")
+                .generatedAt(Instant.now())
+                .summary(summary)
+                .rows(checkIns.stream().limit(50).map(checkIn -> CheckInResponse.from(checkIn, false)).toList())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminReportResponse systemHealth() {
+        long failedNotifications = notificationRepository.countByStatus(NotificationStatus.FAILED);
+        List<TemplatePaymentOrder> orders = paymentOrderRepository.findAll();
+        long pendingPayments = orders.stream()
+                .filter(order -> order.getStatus() == PaymentStatus.PENDING
+                        || order.getStatus() == PaymentStatus.PAID_PENDING_REVIEW)
+                .count();
+        long rejectedPayments = orders.stream()
+                .filter(order -> order.getStatus() == PaymentStatus.REJECTED
+                        || order.getStatus() == PaymentStatus.FAILED)
+                .count();
+
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("status", failedNotifications > 0 || rejectedPayments > 0 ? "WARN" : "OK");
+        summary.put("totalUsers", userRepository.count());
+        summary.put("totalInvitations", invitationRepository.count());
+        summary.put("failedNotifications", failedNotifications);
+        summary.put("pendingPayments", pendingPayments);
+        summary.put("rejectedPayments", rejectedPayments);
+        summary.put("auditLogEvents", systemAuditLogRepository.count());
+        return AdminReportResponse.builder()
+                .report("system-health")
+                .generatedAt(Instant.now())
+                .summary(summary)
+                .rows(List.of())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SystemAuditLogResponse> recentAuditLogs() {
+        return systemAuditLogRepository.findTop100ByOrderByCreatedAtDesc().stream()
+                .map(SystemAuditLogResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminReportResponse alerts() {
+        List<Map<String, Object>> rows = new ArrayList<>();
+        long failedNotifications = notificationRepository.countByStatus(NotificationStatus.FAILED);
+        if (failedNotifications > 0) {
+            rows.add(Map.of(
+                    "severity", "WARNING",
+                    "title", "Failed notifications",
+                    "count", failedNotifications,
+                    "description", "One or more notifications failed delivery."
+            ));
+        }
+        long pendingReviews = paymentOrderRepository.findAll().stream()
+                .filter(order -> order.getStatus() == PaymentStatus.PAID_PENDING_REVIEW)
+                .count();
+        if (pendingReviews > 0) {
+            rows.add(Map.of(
+                    "severity", "INFO",
+                    "title", "Payments waiting for review",
+                    "count", pendingReviews,
+                    "description", "Template payments were detected but need admin review."
+            ));
+        }
+        long recentSystemEvents = systemAuditLogRepository.findTop100ByOrderByCreatedAtDesc().stream()
+                .filter(this::isHighSignalSystemEvent)
+                .count();
+        if (recentSystemEvents > 0) {
+            rows.add(Map.of(
+                    "severity", "INFO",
+                    "title", "Recent system events",
+                    "count", recentSystemEvents,
+                    "description", "Recent system audit events are available for review."
+            ));
+        }
+        if (rows.isEmpty()) {
+            rows.add(Map.of(
+                    "severity", "OK",
+                    "title", "No active alerts",
+                    "count", 0,
+                    "description", "No failed delivery or payment review alerts are active."
+            ));
+        }
+
+        return AdminReportResponse.builder()
+                .report("alerts")
+                .generatedAt(Instant.now())
+                .summary(Map.of("totalAlerts", rows.size()))
+                .rows(rows)
+                .build();
+    }
+
+    private boolean isHighSignalSystemEvent(SystemAuditLog log) {
+        return log.getAction() != null
+                && (log.getAction().contains("CHECKED_IN")
+                || log.getAction().contains("PAYMENT")
+                || log.getAction().contains("FAILED"));
+    }
+
     private void applyTemplateRequest(InvitationTemplate template, AdminTemplateRequest requestBody) {
         template.setName(trimOrDefault(requestBody.getName(), "Untitled template"));
         template.setCategory(requestBody.getCategory());
@@ -390,6 +618,16 @@ public class AdminManagementService {
     private AppUser requireUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    private long countInvitations(List<UserInvitation> invitations, InvitationStatus status) {
+        return invitations.stream()
+                .filter(invitation -> invitation.getStatus() == status)
+                .count();
+    }
+
+    private boolean statusEquals(String value, String expected) {
+        return value != null && value.trim().equalsIgnoreCase(expected);
     }
 
     private InvitationTemplate requireTemplate(Long templateId) {

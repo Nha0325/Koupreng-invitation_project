@@ -119,7 +119,29 @@ public class TemplatePaymentService {
     private final PaymentProperties paymentProperties;
     private final AbaPayWayService abaPayWayService;
     private final ObjectMapper objectMapper;
+    private final AuditLogService auditLogService;
     private final SecureRandom random = new SecureRandom();
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public TemplatePaymentService(
+            TemplatePaymentOrderRepository orderRepository,
+            UserTemplateAccessRepository accessRepository,
+            InvitationTemplateRepository templateRepository,
+            CurrentUserService currentUserService,
+            PaymentProperties paymentProperties,
+            AbaPayWayService abaPayWayService,
+            ObjectMapper objectMapper,
+            AuditLogService auditLogService
+    ) {
+        this.orderRepository = orderRepository;
+        this.accessRepository = accessRepository;
+        this.templateRepository = templateRepository;
+        this.currentUserService = currentUserService;
+        this.paymentProperties = paymentProperties;
+        this.abaPayWayService = abaPayWayService;
+        this.objectMapper = objectMapper;
+        this.auditLogService = auditLogService;
+    }
 
     public TemplatePaymentService(
             TemplatePaymentOrderRepository orderRepository,
@@ -130,13 +152,7 @@ public class TemplatePaymentService {
             AbaPayWayService abaPayWayService,
             ObjectMapper objectMapper
     ) {
-        this.orderRepository = orderRepository;
-        this.accessRepository = accessRepository;
-        this.templateRepository = templateRepository;
-        this.currentUserService = currentUserService;
-        this.paymentProperties = paymentProperties;
-        this.abaPayWayService = abaPayWayService;
-        this.objectMapper = objectMapper;
+        this(orderRepository, accessRepository, templateRepository, currentUserService, paymentProperties, abaPayWayService, objectMapper, null);
     }
 
     @Transactional
@@ -508,6 +524,15 @@ public class TemplatePaymentService {
         order.setPaidAt(now);
         orderRepository.save(order);
         unlockTemplate(order);
+        if (auditLogService != null) {
+            auditLogService.logSystemEvent(
+                    "PAYMENT_CONFIRMED",
+                    "PAYMENT",
+                    order.getId(),
+                    "Payment confirmed via " + confirmSource + " by " + confirmedBy + " for amount: " + paidAmount + " " + order.getCurrency(),
+                    java.util.Map.of("orderCode", order.getOrderCode(), "confirmSource", confirmSource, "confirmedBy", confirmedBy)
+            );
+        }
     }
 
     private void applyTelegramMetadata(

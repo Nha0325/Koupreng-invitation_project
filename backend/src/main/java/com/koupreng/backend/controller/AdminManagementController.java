@@ -10,6 +10,11 @@ import com.koupreng.backend.dto.admin.AdminUpdateUserRoleRequest;
 import com.koupreng.backend.dto.admin.AdminUserResponse;
 import com.koupreng.backend.dto.admin.SystemAuditLogResponse;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
+import com.koupreng.backend.dto.subscription.SubscriptionPackageResponse;
+import com.koupreng.backend.dto.subscription.SubscriptionPackageRequest;
+import com.koupreng.backend.dto.payments.PaymentHistoryResponse;
+import com.koupreng.backend.service.SubscriptionService;
+import com.koupreng.backend.service.PaymentHistoryService;
 import com.koupreng.backend.service.AdminManagementService;
 import com.koupreng.backend.service.AuditLogService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,13 +44,19 @@ public class AdminManagementController {
 
     private final AdminManagementService adminManagementService;
     private final AuditLogService auditLogService;
+    private final SubscriptionService subscriptionService;
+    private final PaymentHistoryService paymentHistoryService;
 
     public AdminManagementController(
             AdminManagementService adminManagementService,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            SubscriptionService subscriptionService,
+            PaymentHistoryService paymentHistoryService
     ) {
         this.adminManagementService = adminManagementService;
         this.auditLogService = auditLogService;
+        this.subscriptionService = subscriptionService;
+        this.paymentHistoryService = paymentHistoryService;
     }
 
     @GetMapping("/users")
@@ -272,8 +283,148 @@ public class AdminManagementController {
         ));
     }
 
+    @GetMapping("/analytics/overview")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> analyticsOverview() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Admin analytics overview fetched successfully",
+                adminManagementService.analyticsOverview()
+        ));
+    }
+
+    @GetMapping("/analytics/revenue")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> analyticsRevenue() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Admin revenue analytics fetched successfully",
+                adminManagementService.analyticsRevenue()
+        ));
+    }
+
+    @GetMapping("/analytics/templates")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> analyticsTemplates() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Admin template analytics fetched successfully",
+                adminManagementService.analyticsTemplates()
+        ));
+    }
+
+    @GetMapping("/analytics/delivery")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> analyticsDelivery() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Admin delivery analytics fetched successfully",
+                adminManagementService.analyticsDelivery()
+        ));
+    }
+
+    @GetMapping("/analytics/rsvp")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> analyticsRsvp() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Admin RSVP analytics fetched successfully",
+                adminManagementService.analyticsRsvp()
+        ));
+    }
+
+    @GetMapping("/analytics/check-in")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> analyticsCheckIn() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Admin check-in analytics fetched successfully",
+                adminManagementService.analyticsCheckIn()
+        ));
+    }
+
+    @GetMapping("/system-health")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> systemHealth() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "System health fetched successfully",
+                adminManagementService.systemHealth()
+        ));
+    }
+
+    @GetMapping("/audit-logs/recent")
+    public ResponseEntity<ApiResponse<List<SystemAuditLogResponse>>> recentAuditLogs() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Recent audit logs fetched successfully",
+                adminManagementService.recentAuditLogs()
+        ));
+    }
+
+    @GetMapping("/alerts")
+    public ResponseEntity<ApiResponse<AdminReportResponse>> alerts() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Admin alerts fetched successfully",
+                adminManagementService.alerts()
+        ));
+    }
+
     @GetMapping("/system-logs")
     public ResponseEntity<ApiResponse<List<SystemAuditLogResponse>>> systemLogs() {
         return ResponseEntity.ok(ApiResponse.success("System logs fetched successfully", auditLogService.listLogs()));
+    }
+
+    @GetMapping("/packages")
+    public ResponseEntity<ApiResponse<List<SubscriptionPackageResponse>>> listPackages() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Subscription packages fetched successfully",
+                subscriptionService.listAllPackages()
+        ));
+    }
+
+    @PostMapping("/packages")
+    public ResponseEntity<ApiResponse<SubscriptionPackageResponse>> createPackage(
+            @Valid @RequestBody SubscriptionPackageRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(
+                "Subscription package created successfully",
+                subscriptionService.createPackage(request)
+        ));
+    }
+
+    @PutMapping("/packages/{packageId}")
+    public ResponseEntity<ApiResponse<SubscriptionPackageResponse>> updatePackage(
+            @PathVariable Long packageId,
+            @Valid @RequestBody SubscriptionPackageRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Subscription package updated successfully",
+                subscriptionService.updatePackage(packageId, request)
+        ));
+    }
+
+    @PatchMapping("/packages/{packageId}/activate")
+    public ResponseEntity<ApiResponse<SubscriptionPackageResponse>> activatePackage(
+            @PathVariable Long packageId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Subscription package activated successfully",
+                subscriptionService.activatePackage(packageId)
+        ));
+    }
+
+    @PatchMapping("/packages/{packageId}/deactivate")
+    public ResponseEntity<ApiResponse<SubscriptionPackageResponse>> deactivatePackage(
+            @PathVariable Long packageId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Subscription package deactivated successfully",
+                subscriptionService.deactivatePackage(packageId)
+        ));
+    }
+
+    @GetMapping("/payments")
+    public ResponseEntity<ApiResponse<List<PaymentHistoryResponse>>> listAllPayments() {
+        return ResponseEntity.ok(ApiResponse.success(
+                "All payments fetched successfully",
+                paymentHistoryService.listAll()
+        ));
+    }
+
+    @GetMapping("/payments/{orderCode}")
+    public ResponseEntity<ApiResponse<PaymentHistoryResponse>> getPayment(
+            Authentication authentication,
+            @PathVariable String orderCode
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Payment order fetched successfully",
+                paymentHistoryService.get(authentication, orderCode)
+        ));
     }
 }

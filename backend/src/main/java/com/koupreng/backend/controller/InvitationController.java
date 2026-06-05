@@ -3,6 +3,8 @@ package com.koupreng.backend.controller;
 import com.koupreng.backend.dto.ApiResponse;
 import com.koupreng.backend.dto.invitation.InvitationCustomizationRequest;
 import com.koupreng.backend.dto.invitation.InvitationCustomizationResponse;
+import com.koupreng.backend.dto.invitation.InvitationAccessVerifyRequest;
+import com.koupreng.backend.dto.invitation.InvitationAccessVerifyResponse;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.InvitationSummaryResponse;
@@ -170,10 +172,36 @@ public class InvitationController {
     }
 
     @GetMapping("/public/invitations/{slug}")
-    public ResponseEntity<ApiResponse<PublicInvitationResponse>> publicInvitation(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<PublicInvitationResponse>> publicInvitation(
+            @PathVariable String slug,
+            @RequestParam(required = false) String accessToken,
+            @RequestParam(required = false, name = "token") String inviteToken
+    ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Invitation fetched successfully",
-                invitationService.publicBySlug(slug)
+                invitationService.publicBySlug(slug, accessToken, inviteToken)
+        ));
+    }
+
+    @GetMapping("/public/invitations/{slug}/guest-view")
+    public ResponseEntity<ApiResponse<com.koupreng.backend.dto.invitation.GuestInvitationViewResponse>> publicGuestInvitationView(
+            @PathVariable String slug,
+            @RequestParam(required = false, name = "token") String inviteToken
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Personalized guest invitation fetched successfully",
+                invitationService.guestView(slug, inviteToken)
+        ));
+    }
+
+    @PostMapping("/public/invitations/{slug}/access/verify")
+    public ResponseEntity<ApiResponse<InvitationAccessVerifyResponse>> verifyPublicAccess(
+            @PathVariable String slug,
+            @Valid @RequestBody InvitationAccessVerifyRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Invitation access verified successfully",
+                invitationService.verifyPublicAccess(slug, request)
         ));
     }
 }

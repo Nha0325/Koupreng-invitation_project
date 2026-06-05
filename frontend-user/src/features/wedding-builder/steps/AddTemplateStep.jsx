@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AddTemplateStep.css";
-import { getTemplateById } from "../../templates/data/templatesData";
+import { getTemplateById, isTemplatePremium } from "../../templates/data/templatesData";
 import { VARIANT_ROUTE_ALIASES } from "../../templates/template-experience/templateExperienceThemes";
 
 /**
@@ -144,6 +144,7 @@ function getCardImage(template) {
 function TemplateCard({ template, onSelect, onView }) {
     const category = getCategoryInfo(template.eventType);
     const cardImage = getCardImage(template);
+    const isPaid = isTemplatePremium(getViewTemplateId(template)) || template.image === null;
 
     return (
         <div className="at-card">
@@ -173,7 +174,7 @@ function TemplateCard({ template, onSelect, onView }) {
             {/* Info */}
             <div className="at-card-body">
                 <h4 className="at-card-name">{template.name}</h4>
-                {template.image === null ? (
+                {isPaid ? (
                     <span className="at-card-price at-card-price--paid">ត្រូវការចំណាយ</span>
                 ) : (
                     <span className="at-card-price">ឥតគិតថ្លៃ</span>
@@ -187,8 +188,8 @@ function TemplateCard({ template, onSelect, onView }) {
                         <span className="at-btn-check">✓</span> បានបន្ថែមរួចហើយ
                     </span>
                 ) : (
-                    <button className="at-btn at-btn--select" onClick={() => onSelect(template)}>
-                        + ជ្រើសរើស
+                    <button className={`at-btn ${isPaid ? "at-btn--buy" : "at-btn--select"}`} onClick={() => onSelect(template)}>
+                        {isPaid ? "💎 ទិញគំរូ" : "+ ជ្រើសរើស"}
                     </button>
                 )}
                 <button className="at-btn at-btn--view" onClick={() => onView(template)}>
@@ -213,11 +214,17 @@ export default function AddTemplateStep() {
     const [selectedTemplates, setSelectedTemplates] = useState(["W01"]);
 
     const handleSelect = (template) => {
+        const viewId = getViewTemplateId(template);
+        // Paid templates must be purchased before use.
+        if (isTemplatePremium(viewId)) {
+            navigate(`/templates/${viewId}/checkout`);
+            return;
+        }
         setSelectedTemplates((current) =>
             current.includes(template.id) ? current : [...current, template.id]
         );
         // Start the wedding builder with the chosen template.
-        navigate(`/create/wedding?template=${getViewTemplateId(template)}`);
+        navigate(`/create/wedding?template=${viewId}`);
     };
 
     const handleView = (template) => {

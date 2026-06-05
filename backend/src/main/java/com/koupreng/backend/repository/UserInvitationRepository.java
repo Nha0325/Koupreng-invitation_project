@@ -34,6 +34,8 @@ public interface UserInvitationRepository extends JpaRepository<UserInvitation, 
 
     boolean existsBySlugAndIdNot(String slug, Long id);
 
+    boolean existsByAccessToken(String accessToken);
+
     long countByUserIdAndDeletedFalse(Long userId);
 
     long countByUserIdAndStatusAndDeletedFalse(Long userId, InvitationStatus status);

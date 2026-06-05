@@ -27,7 +27,12 @@ export const invitationService = {
     preview: (id) => api.get(`/v1/invitations/${id}/preview`).then(unwrap),
     getCustomization: (id) => api.get(`/v1/invitations/${id}/customization`).then(unwrap),
     updateCustomization: (id, data) => api.put(`/v1/invitations/${id}/customization`, data).then(unwrap),
-    publicBySlug: (slug) => api.get(`/v1/public/invitations/${encodeURIComponent(slug)}`, { auth: false }).then(unwrap),
+    publicBySlug: (slug, params = {}) => api
+        .get(`/v1/public/invitations/${encodeURIComponent(slug)}${toQuery(params)}`, { auth: false })
+        .then(unwrap),
+    verifyPublicAccess: (slug, data) => api
+        .post(`/v1/public/invitations/${encodeURIComponent(slug)}/access/verify`, data, { auth: false })
+        .then(unwrap),
 };
 
 export default invitationService;

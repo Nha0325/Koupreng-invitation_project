@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -37,10 +38,14 @@ public class RsvpController {
     @PostMapping("/public/invitations/{slug}/rsvp")
     public ResponseEntity<ApiResponse<RsvpResponse>> publicRsvp(
             @PathVariable String slug,
+            @RequestParam(required = false) String accessToken,
             @Valid @RequestBody RsvpRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("RSVP submitted successfully", rsvpService.submitPublic(slug, request)));
+                .body(ApiResponse.success(
+                        "RSVP submitted successfully",
+                        rsvpService.submitPublic(slug, accessToken, request)
+                ));
     }
 
     @PostMapping("/public/invitations/{slug}/guests/{inviteToken}/rsvp")
@@ -57,18 +62,26 @@ public class RsvpController {
     }
 
     @GetMapping("/public/invitations/{slug}/rsvp-summary-public")
-    public ResponseEntity<ApiResponse<RsvpSummaryResponse>> publicSummary(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<RsvpSummaryResponse>> publicSummary(
+            @PathVariable String slug,
+            @RequestParam(required = false) String accessToken,
+            @RequestParam(required = false, name = "token") String inviteToken
+    ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Public RSVP summary fetched successfully",
-                rsvpService.publicSummary(slug)
+                rsvpService.publicSummary(slug, accessToken, inviteToken)
         ));
     }
 
     @GetMapping("/public/invitations/{slug}/wishes")
-    public ResponseEntity<ApiResponse<List<WishResponse>>> publicWishes(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<List<WishResponse>>> publicWishes(
+            @PathVariable String slug,
+            @RequestParam(required = false) String accessToken,
+            @RequestParam(required = false, name = "token") String inviteToken
+    ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Wishes fetched successfully",
-                rsvpService.publicWishes(slug)
+                rsvpService.publicWishes(slug, accessToken, inviteToken)
         ));
     }
 

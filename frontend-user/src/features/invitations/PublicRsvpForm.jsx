@@ -10,24 +10,69 @@ const initialForm = {
     message: "",
 };
 
-async function fetchPublicWishes(slug) {
+const LABELS = {
+    en: {
+        rsvp: "RSVP",
+        question: "Will you attend?",
+        guestName: "Guest name",
+        phone: "Phone",
+        email: "Email",
+        response: "Response",
+        attending: "Attending",
+        notAttending: "Not attending",
+        maybe: "Maybe",
+        attendeeCount: "Attendee count",
+        message: "Message",
+        submit: "Submit RSVP",
+        submitting: "Submitting...",
+        received: "RSVP received",
+        thanks: "Your response has been saved.",
+        wishes: "Wishes",
+        noWishes: "No wishes yet.",
+    },
+    km: {
+        rsvp: "RSVP",
+        question: "តើលោកអ្នកនឹងចូលរួមទេ?",
+        guestName: "ឈ្មោះភ្ញៀវ",
+        phone: "លេខទូរស័ព្ទ",
+        email: "អ៊ីមែល",
+        response: "ការឆ្លើយតប",
+        attending: "ចូលរួម",
+        notAttending: "មិនចូលរួម",
+        maybe: "មិនទាន់ប្រាកដ",
+        attendeeCount: "ចំនួនអ្នកចូលរួម",
+        message: "សារជូនពរ",
+        submit: "ផ្ញើ RSVP",
+        submitting: "កំពុងផ្ញើ...",
+        received: "បានទទួល RSVP",
+        thanks: "ការឆ្លើយតបរបស់លោកអ្នកត្រូវបានរក្សាទុក។",
+        wishes: "សារជូនពរ",
+        noWishes: "មិនទាន់មានសារជូនពរទេ។",
+    },
+};
+
+function languageFromMode(languageMode) {
+    return (languageMode || "").toLowerCase().includes("en") ? "en" : "km";
+}
+
+async function fetchPublicWishes(slug, params) {
     if (!slug) {
         return [];
     }
-    return rsvpService.publicWishes(slug);
+    return rsvpService.publicWishes(slug, params);
 }
 
-export default function PublicRsvpForm({ slug, inviteToken }) {
+export default function PublicRsvpForm({ slug, inviteToken, accessToken, languageMode }) {
+    const labels = LABELS[languageFromMode(languageMode)];
     const [form, setForm] = useState(initialForm);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [submitted, setSubmitted] = useState(null);
     const [wishes, setWishes] = useState([]);
     const [wishesError, setWishesError] = useState("");
-
     const refreshWishes = async () => {
         try {
-            setWishes(await fetchPublicWishes(slug));
+            setWishes(await fetchPublicWishes(slug, { accessToken, token: inviteToken }));
             setWishesError("");
         } catch (err) {
             setWishesError(err.message || "Could not load wishes");
@@ -36,7 +81,7 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
 
     useEffect(() => {
         let active = true;
-        fetchPublicWishes(slug)
+        fetchPublicWishes(slug, { accessToken, token: inviteToken })
             .then((data) => {
                 if (active) {
                     setWishes(data);
@@ -51,7 +96,7 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
         return () => {
             active = false;
         };
-    }, [slug]);
+    }, [slug, accessToken, inviteToken]);
 
     const update = (field, value) => {
         setForm((current) => ({ ...current, [field]: value }));
@@ -68,7 +113,7 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
             };
             const response = inviteToken
                 ? await rsvpService.submitPublicWithToken(slug, inviteToken, payload)
-                : await rsvpService.submitPublic(slug, payload);
+                : await rsvpService.submitPublic(slug, payload, { accessToken });
             setSubmitted(response);
             await refreshWishes();
         } catch (err) {
@@ -82,10 +127,10 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
         return (
             <>
                 <div className="pub-rsvp-done">
-                    <h2>RSVP received</h2>
-                    <p>Thank you{submitted.guestName ? `, ${submitted.guestName}` : ""}. Your response has been saved.</p>
+                    <h2>{labels.received}</h2>
+                    <p>{submitted.guestName ? `${submitted.guestName}, ` : ""}{labels.thanks}</p>
                 </div>
-                <WishesWall wishes={wishes} error={wishesError} />
+                <WishesWall wishes={wishes} error={wishesError} labels={labels} />
             </>
         );
     }
@@ -94,13 +139,13 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
         <>
             <form className="pub-rsvp-form" onSubmit={submit}>
                 <div>
-                    <p className="pub-kicker">RSVP</p>
-                    <h2>Will you attend?</h2>
+                    <p className="pub-kicker">{labels.rsvp}</p>
+                    <h2>{labels.question}</h2>
                 </div>
                 {!inviteToken && (
                     <div className="inv-form-grid">
                         <label>
-                            Guest name
+                            {labels.guestName}
                             <input
                                 value={form.guestName}
                                 onChange={(event) => update("guestName", event.target.value)}
@@ -108,14 +153,14 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
                             />
                         </label>
                         <label>
-                            Phone
+                            {labels.phone}
                             <input
                                 value={form.phone}
                                 onChange={(event) => update("phone", event.target.value)}
                             />
                         </label>
                         <label>
-                            Email
+                            {labels.email}
                             <input
                                 type="email"
                                 value={form.email}
@@ -126,7 +171,7 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
                 )}
                 <div className="inv-form-grid">
                     <label>
-                        Response
+                        {labels.response}
                         <select
                             value={form.responseStatus}
                             onChange={(event) => {
@@ -139,13 +184,13 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
                                 }
                             }}
                         >
-                            <option value="ATTENDING">Attending</option>
-                            <option value="NOT_ATTENDING">Not attending</option>
-                            <option value="MAYBE">Maybe</option>
+                            <option value="ATTENDING">{labels.attending}</option>
+                            <option value="NOT_ATTENDING">{labels.notAttending}</option>
+                            <option value="MAYBE">{labels.maybe}</option>
                         </select>
                     </label>
                     <label>
-                        Attendee count
+                        {labels.attendeeCount}
                         <input
                             type="number"
                             min={form.responseStatus === "ATTENDING" ? "1" : "0"}
@@ -156,7 +201,7 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
                     </label>
                 </div>
                 <label>
-                    Message
+                    {labels.message}
                     <textarea
                         value={form.message}
                         onChange={(event) => update("message", event.target.value)}
@@ -165,15 +210,15 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
                 </label>
                 {error && <div className="inv-error">{error}</div>}
                 <button className="inv-primary-btn" type="submit" disabled={loading}>
-                    {loading ? "Submitting..." : "Submit RSVP"}
+                    {loading ? labels.submitting : labels.submit}
                 </button>
             </form>
-            <WishesWall wishes={wishes} error={wishesError} />
+            <WishesWall wishes={wishes} error={wishesError} labels={labels} />
         </>
     );
 }
 
-function WishesWall({ wishes, error }) {
+function WishesWall({ wishes, error, labels }) {
     if (error) {
         return <div className="inv-error">{error}</div>;
     }
@@ -181,17 +226,20 @@ function WishesWall({ wishes, error }) {
     return (
         <section className="pub-wishes-wall">
             <div>
-                <p className="pub-kicker">Wishes</p>
-                <h2>សារជូនពរ</h2>
+                <p className="pub-kicker">{labels.wishes}</p>
+                <h2>{labels.wishes}</h2>
             </div>
             <div className="pub-wishes-list">
                 {wishes.map((wish) => (
                     <article key={wish.rsvpId} className="pub-wish-card">
                         <p>{wish.message}</p>
                         <strong>{wish.guestName || "Guest"}</strong>
+                        {wish.respondedAt && (
+                            <time>{new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(wish.respondedAt))}</time>
+                        )}
                     </article>
                 ))}
-                {!wishes.length && <div className="pub-wish-empty">No wishes yet.</div>}
+                {!wishes.length && <div className="pub-wish-empty">{labels.noWishes}</div>}
             </div>
         </section>
     );

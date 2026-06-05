@@ -95,6 +95,9 @@ public class UserInvitation {
     @Column(name = "access_password")
     private String accessPassword;
 
+    @Column(name = "access_token", unique = true, length = 80)
+    private String accessToken;
+
     @Column(name = "rsvp_deadline")
     private LocalDate rsvpDeadline;
 

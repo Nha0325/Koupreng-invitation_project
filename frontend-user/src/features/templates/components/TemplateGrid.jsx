@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import "../templates.css";
-import { TEMPLATES } from "../data/templatesData";
+import { TEMPLATES, isTemplatePremium } from "../data/templatesData";
 import { useAuth } from "../../../pages/auth/context/useAuth";
 import heroBg from "../../../assets/icons/background.png";
 
@@ -81,9 +81,15 @@ export default function TemplateGrid() {
                         const createPath = getUseTemplatePath(t.id, isAuthenticated);
                         const coverImage = TEMPLATE_CARD_COVER[t.id] || t.image;
 
+                        const premium = isTemplatePremium(t.id);
+                        const actionPath = premium
+                            ? (isAuthenticated ? `/templates/${t.id}/checkout` : `/login?next=${encodeURIComponent(`/templates/${t.id}/checkout`)}`)
+                            : createPath;
+
                         return (
-                            <div key={t.id} className="tp-card">
+                            <div key={t.id} className={`tp-card${premium ? " tp-card--premium" : ""}`}>
                                 {t.popular && <div className="tp-popular-tag">✨ ពេញនិយម</div>}
+                                {premium && <div className="tp-premium-tag">💎 Premium</div>}
 
                                 {/* Category badge */}
                                 <div className={`tp-category-badge tp-category-badge--${t.category}`}>
@@ -108,8 +114,8 @@ export default function TemplateGrid() {
                                     </span>
                                     <p className="tp-card-benefit">{getTemplateBenefit(t)}</p>
                                     <div className="tp-card-actions">
-                                        <Link to={createPath} className="tp-action-btn">
-                                            ប្រើគំរូនេះ
+                                        <Link to={actionPath} className={`tp-action-btn${premium ? " tp-action-btn--buy" : ""}`}>
+                                            {premium ? "ទិញគំរូ" : "ប្រើគំរូនេះ"}
                                         </Link>
                                         <Link to={`/templates/${t.id}`} className="tp-detail-btn">
                                             មើលលម្អិត

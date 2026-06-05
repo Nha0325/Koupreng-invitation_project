@@ -50,6 +50,16 @@ public class RsvpService {
     @Transactional
     public RsvpResponse submitPublic(String slug, RsvpRequest request) {
         UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(slug, false);
+        return submitPublicForInvitation(invitation, request);
+    }
+
+    @Transactional
+    public RsvpResponse submitPublic(String slug, String accessToken, RsvpRequest request) {
+        UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(slug, false, accessToken, null);
+        return submitPublicForInvitation(invitation, request);
+    }
+
+    private RsvpResponse submitPublicForInvitation(UserInvitation invitation, RsvpRequest request) {
         validateDeadline(invitation);
         Guest guest = reusableGuest(invitation.getId(), request)
                 .orElseGet(() -> createPublicGuest(invitation, request));
@@ -77,8 +87,30 @@ public class RsvpService {
     }
 
     @Transactional(readOnly = true)
+    public RsvpSummaryResponse publicSummary(String slug, String accessToken, String inviteToken) {
+        UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(
+                slug,
+                false,
+                accessToken,
+                inviteToken
+        );
+        return summaryForInvitation(invitation.getId());
+    }
+
+    @Transactional(readOnly = true)
     public List<WishResponse> publicWishes(String slug) {
         UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(slug, false);
+        return wishesForInvitation(invitation.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<WishResponse> publicWishes(String slug, String accessToken, String inviteToken) {
+        UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(
+                slug,
+                false,
+                accessToken,
+                inviteToken
+        );
         return wishesForInvitation(invitation.getId());
     }
 
