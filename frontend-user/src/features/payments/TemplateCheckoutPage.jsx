@@ -36,6 +36,12 @@ export default function TemplateCheckoutPage() {
 
         try {
             const response = await paymentService.createStaticPaymentOrder(checkout);
+            if (!response?.paymentLink) {
+                console.warn(
+                    "Static ABA payment response did not include paymentLink; using configured fallback link.",
+                    { orderCode: response?.orderCode }
+                );
+            }
             const paymentLink = response?.paymentLink || ABA_STATIC_LINK;
 
             const orderSnapshot = {

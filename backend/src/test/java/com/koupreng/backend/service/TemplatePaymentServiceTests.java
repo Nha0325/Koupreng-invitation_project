@@ -3,7 +3,6 @@ package com.koupreng.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.PaymentProperties;
-import com.koupreng.backend.config.payment.AbaPayWayProperties;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentResponse;
 import com.koupreng.backend.dto.payment.PayWayCallbackResponse;
@@ -17,7 +16,6 @@ import com.koupreng.backend.enums.PaymentStatus;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.TemplatePaymentOrderRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
-import com.koupreng.backend.service.payment.AbaPayWayCheckout;
 import com.koupreng.backend.service.payment.AbaPayWayService;
 import com.koupreng.backend.service.payment.PayWayTransactionVerification;
 import org.junit.jupiter.api.Test;
@@ -44,33 +42,23 @@ class TemplatePaymentServiceTests {
     private static final String STATIC_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
 
     @Test
-    void createPaywayCheckoutCreatesDynamicQrForAuthenticatedUser() {
+    void createPaywayCheckoutKeepsStaticFlowEvenWhenProviderModeIsNonStatic() {
         Fixture fixture = fixture();
         fixture.paymentProperties.setProviderMode("dynamic");
-        when(fixture.abaPayWayService.createCheckout(any(), any(), any()))
-                .thenReturn(new AbaPayWayCheckout(
-                        "abamobilebank://ababank.com?type=payway&qrcode=ABA123",
-                        "ABA123",
-                        "data:image/png;base64,abc",
-                        "abamobilebank://ababank.com?type=payway&qrcode=ABA123",
-                        "{\"tran_id\":\"PW26052612000011\"}",
-                        "{\"qrString\":\"ABA123\"}",
-                        Map.of("tran_id", "PW26052612000011", "hash", "signed")
-                ));
 
         CreateTemplatePaymentResponse response = fixture.service.createPaywayCheckout(
                 fixture.authentication,
-                createDynamicRequest()
+                createStaticRequest()
         );
 
         assertTrue(response.getOrderCode().matches("EVT\\d{9,10}"));
         assertNotNull(response.getTransactionId());
         assertEquals(10L, response.getTemplateId());
-        assertEquals(new BigDecimal("5.00"), response.getAmount());
-        assertEquals(PaymentStatus.QR_CREATED, response.getStatus());
-        assertEquals("ABA123", response.getQrString());
-        assertEquals("data:image/png;base64,abc", response.getQrImageUrl());
-        assertEquals(TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_DYNAMIC_QR_SANDBOX, response.getProvider());
+        assertEquals(new BigDecimal("0.01"), response.getAmount());
+        assertEquals(STATIC_PAYMENT_LINK, response.getPaymentLink());
+        assertEquals(PaymentStatus.PENDING, response.getStatus());
+        assertEquals(TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_STATIC_TELEGRAM, response.getProvider());
+        verify(fixture.abaPayWayService, never()).createCheckout(any(), any(), any());
     }
 
     @Test
@@ -132,7 +120,7 @@ class TemplatePaymentServiceTests {
 
         ApiException exception = assertThrows(
                 ApiException.class,
-                () -> fixture.service.createPaywayCheckout(fixture.authentication, createDynamicRequest())
+                () -> fixture.service.createPaywayCheckout(fixture.authentication, createStaticRequest())
         );
 
         assertEquals(HttpStatus.CONFLICT, exception.getStatus());
@@ -151,6 +139,21 @@ class TemplatePaymentServiceTests {
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("Static ABA payment amount must be USD 0.01", exception.getMessage());
+    }
+
+    @Test
+    void createStaticPaymentOrderRejectsUnknownTemplateWhenCatalogExists() {
+        Fixture fixture = fixture();
+        when(fixture.templateRepository.count()).thenReturn(1L);
+        when(fixture.templateRepository.existsById(10L)).thenReturn(false);
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.createStaticPaymentOrder(fixture.authentication, createStaticRequest())
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        assertEquals("Template not found", exception.getMessage());
     }
 
     @Test
@@ -252,6 +255,55 @@ class TemplatePaymentServiceTests {
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("Static ABA payment amount must be USD 0.01", exception.getMessage());
         assertEquals(PaymentStatus.PENDING, order.getStatus());
+        verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
+    }
+
+    @Test
+    void telegramDetectRejectsUnknownOrderWithoutUnlockingTemplate() {
+        Fixture fixture = fixture();
+        when(fixture.orderRepository.findByOrderCode("EVT260526001")).thenReturn(Optional.empty());
+
+        TelegramDetectPaymentRequest request = telegramDetectRequest("EVT260526001");
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.detectPaymentFromTelegram(request)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        assertEquals("Order not found", exception.getMessage());
+        verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
+    }
+
+    @Test
+    void telegramDetectExpiresExpiredOrderWithoutUnlockingTemplate() {
+        Fixture fixture = fixture();
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.PENDING, new BigDecimal("0.01"));
+        order.setExpiresAt(Instant.now().minusSeconds(1));
+        when(fixture.orderRepository.findByOrderCode(order.getOrderCode())).thenReturn(Optional.of(order));
+
+        PaymentConfirmResponse response = fixture.service.detectPaymentFromTelegram(
+                telegramDetectRequest(order.getOrderCode())
+        );
+
+        assertEquals(PaymentStatus.EXPIRED, response.getStatus());
+        assertEquals(PaymentStatus.EXPIRED, order.getStatus());
+        verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
+    }
+
+    @Test
+    void telegramDetectRejectsAlreadyPaidDuplicateWithoutUnlockingAgain() {
+        Fixture fixture = fixture();
+        TemplatePaymentOrder order = order(fixture.owner, PaymentStatus.PAID, new BigDecimal("0.01"));
+        when(fixture.orderRepository.findByOrderCode(order.getOrderCode())).thenReturn(Optional.of(order));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.detectPaymentFromTelegram(telegramDetectRequest(order.getOrderCode()))
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatus());
+        assertEquals("Order is already paid", exception.getMessage());
         verify(fixture.accessRepository, never()).save(any(UserTemplateAccess.class));
     }
 
@@ -401,7 +453,6 @@ class TemplatePaymentServiceTests {
         paymentProperties.setAutoConfirmTelegramDetected(true);
         paymentProperties.setOrderExpiryMinutes(60);
         paymentProperties.getAba().setStaticLink(STATIC_PAYMENT_LINK);
-        AbaPayWayProperties payWayProperties = new AbaPayWayProperties();
         Authentication authentication = mock(Authentication.class);
         AppUser owner = user(1L, Role.USER);
         TemplatePaymentService service = new TemplatePaymentService(
@@ -410,7 +461,6 @@ class TemplatePaymentServiceTests {
                 templateRepository,
                 currentUserService,
                 paymentProperties,
-                payWayProperties,
                 abaPayWayService,
                 new ObjectMapper()
         );
@@ -432,22 +482,13 @@ class TemplatePaymentServiceTests {
                 service,
                 orderRepository,
                 accessRepository,
+                templateRepository,
                 currentUserService,
                 abaPayWayService,
                 paymentProperties,
                 authentication,
                 owner
         );
-    }
-
-    private CreateTemplatePaymentRequest createDynamicRequest() {
-        CreateTemplatePaymentRequest request = new CreateTemplatePaymentRequest();
-        request.setTemplateId(10L);
-        request.setTemplateName("Khmer Wedding Gold");
-        request.setPackageName("Premium");
-        request.setAmount(new BigDecimal("5.00"));
-        request.setCurrency("USD");
-        return request;
     }
 
     private CreateTemplatePaymentRequest createStaticRequest() {
@@ -457,6 +498,18 @@ class TemplatePaymentServiceTests {
         request.setPackageName("Premium");
         request.setAmount(new BigDecimal("0.01"));
         request.setCurrency("USD");
+        return request;
+    }
+
+    private TelegramDetectPaymentRequest telegramDetectRequest(String orderCode) {
+        TelegramDetectPaymentRequest request = new TelegramDetectPaymentRequest();
+        request.setRawMessage("ABA PayWay payment received USD 0.01 Note: " + orderCode);
+        request.setDetectedBy("telegram-payway-bot:PayWayByABA_bot");
+        request.setDetectedOrderCode(orderCode);
+        request.setDetectedAmount(new BigDecimal("0.01"));
+        request.setDetectedCurrency("USD");
+        request.setTelegramSenderUsername("PayWayByABA_bot");
+        request.setTelegramSenderId("123456");
         return request;
     }
 
@@ -489,6 +542,7 @@ class TemplatePaymentServiceTests {
             TemplatePaymentService service,
             TemplatePaymentOrderRepository orderRepository,
             UserTemplateAccessRepository accessRepository,
+            InvitationTemplateRepository templateRepository,
             CurrentUserService currentUserService,
             AbaPayWayService abaPayWayService,
             PaymentProperties paymentProperties,

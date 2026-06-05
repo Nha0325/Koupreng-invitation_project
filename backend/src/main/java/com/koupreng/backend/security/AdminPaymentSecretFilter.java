@@ -21,8 +21,8 @@ public class AdminPaymentSecretFilter extends OncePerRequestFilter {
 
     public static final String ADMIN_PAYMENT_SECRET_HEADER = "X-ADMIN-PAYMENT-SECRET";
     private static final Set<String> PROTECTED_POST_PATHS = Set.of(
-            "/api/v1/admin/template-payments/confirm",
-            "/api/v1/admin/template-payments/telegram-detect"
+            "/api/v1/internal/template-payments/confirm",
+            "/api/v1/internal/template-payments/telegram-detect"
     );
 
     private final PaymentProperties paymentProperties;

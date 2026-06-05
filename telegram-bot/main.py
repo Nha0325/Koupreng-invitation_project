@@ -312,7 +312,7 @@ async def handle_paid_command(chat_id: str, message_id: str, text: str, username
         return
 
     result = await post_to_backend(
-        "/api/v1/admin/template-payments/confirm",
+        "/api/v1/internal/template-payments/confirm",
         {
             "orderCode": order_code,
             "amount": amount,
@@ -337,7 +337,7 @@ async def handle_detect_message(
         return
 
     result = await post_to_backend(
-        "/api/v1/admin/template-payments/telegram-detect",
+        "/api/v1/internal/template-payments/telegram-detect",
         {
             "rawMessage": text,
             "detectedBy": detected_by,

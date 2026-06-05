@@ -18,7 +18,9 @@ import com.koupreng.backend.dto.MessageResponse;
 import com.koupreng.backend.dto.UserResponse;
 import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.security.AuthCookieService;
+import com.koupreng.backend.service.AccountService;
 import com.koupreng.backend.service.AuthService;
+import com.koupreng.backend.service.UserService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -30,7 +32,7 @@ class AuthControllerCookieTests {
     @Test
     void loginReturnsJsonTokenWithoutCookieWhenCookieAuthDisabled() {
         AuthService authService = mock(AuthService.class);
-        AuthController controller = new AuthController(authService, new AuthCookieService(appProperties(false)));
+        AuthController controller = controller(authService, false);
         AuthResponse authResponse = authResponse();
         when(authService.login(any(LoginRequest.class))).thenReturn(authResponse);
 
@@ -43,7 +45,7 @@ class AuthControllerCookieTests {
     @Test
     void loginSetsHttpOnlyCookieWhenCookieAuthEnabled() {
         AuthService authService = mock(AuthService.class);
-        AuthController controller = new AuthController(authService, new AuthCookieService(appProperties(true)));
+        AuthController controller = controller(authService, true);
         when(authService.login(any(LoginRequest.class))).thenReturn(authResponse());
 
         ResponseEntity<AuthResponse> response = controller.login(new LoginRequest("user@example.com", "password123"));
@@ -61,7 +63,7 @@ class AuthControllerCookieTests {
     void logoutClearsCookieWhenCookieAuthEnabled() {
         AuthService authService = mock(AuthService.class);
         Authentication authentication = mock(Authentication.class);
-        AuthController controller = new AuthController(authService, new AuthCookieService(appProperties(true)));
+        AuthController controller = controller(authService, true);
         doNothing().when(authService).logout(authentication);
 
         ResponseEntity<MessageResponse> response = controller.logout(authentication);
@@ -83,6 +85,15 @@ class AuthControllerCookieTests {
         appProperties.getAuth().getCookie().setSameSite("Lax");
         appProperties.getAuth().getCookie().setMaxAgeSeconds(900);
         return appProperties;
+    }
+
+    private AuthController controller(AuthService authService, boolean cookieEnabled) {
+        return new AuthController(
+                authService,
+                mock(AccountService.class),
+                mock(UserService.class),
+                new AuthCookieService(appProperties(cookieEnabled))
+        );
     }
 
     private AuthResponse authResponse() {

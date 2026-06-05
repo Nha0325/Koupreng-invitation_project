@@ -17,12 +17,12 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
     private String publicKey = "";
     private String rsaPublicKey = "";
     private String rsaPrivateKey = "";
-    private String apiUrl = "https://checkout-sandbox.payway.com.kh/api/payment-gateway/v1/payments/purchase";
-    private String returnUrl = "http://localhost:5173/payments/return";
-    private String cancelUrl = "http://localhost:5173/payments/cancel";
-    private String continueSuccessUrl = "http://localhost:5173/payments/success";
-    private String callbackUrl = "http://localhost:8080/api/v1/payway/callback";
-    private boolean sandbox = true;
+    private String apiUrl = "";
+    private String returnUrl = "";
+    private String cancelUrl = "";
+    private String continueSuccessUrl = "";
+    private String callbackUrl = "";
+    private boolean sandbox = false;
     private String paymentOption = "abapay_deeplink";
     private long orderExpiryMinutes = 15;
 
@@ -33,11 +33,7 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-<<<<<<< HEAD
         if (!isProductionProfile() || isStaticProviderMode()) {
-=======
-        if (!isProductionProfile()) {
->>>>>>> 244f66d (Guest Management)
             return;
         }
         List<String> missing = new java.util.ArrayList<>();
@@ -65,7 +61,6 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
                         || "production".equalsIgnoreCase(profile));
     }
 
-<<<<<<< HEAD
     private boolean isStaticProviderMode() {
         if (environment == null) {
             return true;
@@ -73,8 +68,6 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
         return "static".equalsIgnoreCase(trim(environment.getProperty("app.payment.provider-mode", "static")));
     }
 
-=======
->>>>>>> 244f66d (Guest Management)
     public String getMerchantId() {
         return trim(merchantId);
     }
