@@ -5,6 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import java.util.Set;
 @Component
 public class AdminPaymentSecretFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminPaymentSecretFilter.class);
     public static final String ADMIN_PAYMENT_SECRET_HEADER = "X-ADMIN-PAYMENT-SECRET";
     private static final Set<String> PROTECTED_POST_PATHS = Set.of(
             "/api/v1/internal/template-payments/confirm",
@@ -51,15 +54,21 @@ public class AdminPaymentSecretFilter extends OncePerRequestFilter {
         String expectedSecret = paymentProperties.getAdminSecret();
 
         if (providedSecret == null || providedSecret.isBlank()) {
+            log.warn("Rejected internal payment request path={} reason=missing-secret remote={}",
+                    request.getRequestURI(), request.getRemoteAddr());
             writeError(response, HttpStatus.UNAUTHORIZED, "Admin payment secret is required");
             return;
         }
 
         if (!constantTimeEquals(providedSecret, expectedSecret)) {
+            log.warn("Rejected internal payment request path={} reason=invalid-secret remote={}",
+                    request.getRequestURI(), request.getRemoteAddr());
             writeError(response, HttpStatus.FORBIDDEN, "Admin payment secret is invalid");
             return;
         }
 
+        log.info("Accepted internal payment request path={} remote={}",
+                request.getRequestURI(), request.getRemoteAddr());
         filterChain.doFilter(request, response);
     }
 

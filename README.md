@@ -15,6 +15,8 @@ Koupreng-invitation_project/
 ├── git-pull.sh           ← Linux/macOS safe pull script
 ├── git-push.ps1          ← Windows safe push script
 ├── git-push.sh           ← Linux/macOS safe push script
+├── git-sync.ps1          ← Windows safe pull + push script
+├── git-sync.sh           ← Linux/macOS safe pull + push script
 └── README.md
 ```
 
@@ -81,14 +83,20 @@ Push safely:
 powershell -ExecutionPolicy Bypass -File .\git-push.ps1 "my commit message"
 ```
 
-The push script always rebases on `origin/main`, commits your local changes, and pushes to `origin/main`.
+Pull and push safely in one command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\git-sync.ps1 "my commit message"
+```
+
+The push and sync scripts always rebase on `origin/main`, commit your local changes, and push to `origin/main`. They only run from the local `main` branch.
 
 ### Linux/macOS
 
 Make scripts executable:
 
 ```bash
-chmod +x setup.sh git-pull.sh git-push.sh
+chmod +x setup.sh git-pull.sh git-push.sh git-sync.sh
 ```
 
 Run setup:
@@ -109,7 +117,13 @@ Push safely:
 ./git-push.sh "my commit message"
 ```
 
-The push script always rebases on `origin/main`, commits your local changes, and pushes to `origin/main`.
+Pull and push safely in one command:
+
+```bash
+./git-sync.sh "my commit message"
+```
+
+The push and sync scripts always rebase on `origin/main`, commit your local changes, and push to `origin/main`. They only run from the local `main` branch.
 
 ### Manual Start Commands
 
@@ -411,9 +425,24 @@ Linux/macOS:
 ./git-push.sh "my commit message"
 ```
 
+Or pull and push in one command:
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\git-sync.ps1 "my commit message"
+```
+
+Linux/macOS:
+
+```bash
+./git-sync.sh "my commit message"
+```
+
 Team rules:
 - Use `git-pull` before coding.
 - Use `git-push` to rebase on `origin/main`, commit, and push to `origin/main`.
+- Use `git-sync` when you want one command that pulls first, then commits and pushes.
 - Never commit `.env` files.
 - Never commit secrets like DB password, JWT secret, Telegram bot token, Google OAuth secrets, ABA PayWay credentials, or merchant credentials.
 - Do not force push.

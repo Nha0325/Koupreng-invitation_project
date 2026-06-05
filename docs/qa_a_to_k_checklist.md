@@ -51,7 +51,7 @@ Use this checklist with a local or staging backend. Replace `{id}`, `{slug}`, `{
 | RSVP | GET | `/api/v1/public/invitations/{slug}/wishes` | Public | none | Public wishes wall | [ ] |
 | RSVP | GET | `/api/v1/invitations/{id}/rsvps` | Owner | none | Owner RSVP list | [ ] |
 | RSVP | GET | `/api/v1/invitations/{id}/rsvps/summary` | Owner | none | Owner RSVP summary | [ ] |
-| RSVP | PUT | `/api/v1/invitations/{id}/rsvps/{rsvpId}` | Owner | `{"responseStatus":"DECLINED","attendeeCount":0,"message":"Sorry"}` | RSVP updated | [ ] |
+| RSVP | PATCH | `/api/v1/invitations/{id}/rsvps/{rsvpId}` | Owner | `{"responseStatus":"DECLINED","attendeeCount":0,"message":"Sorry"}` | RSVP updated | [ ] |
 | RSVP | DELETE | `/api/v1/invitations/{id}/rsvps/{rsvpId}` | Owner | none | RSVP deleted | [ ] |
 | Notification | GET | `/api/v1/notifications` | USER | none | Only user's notifications | [ ] |
 | Notification | GET | `/api/v1/notifications/summary` | USER | none | User notification counts | [ ] |

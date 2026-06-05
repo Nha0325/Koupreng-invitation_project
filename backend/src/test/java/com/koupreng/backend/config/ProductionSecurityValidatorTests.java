@@ -60,7 +60,7 @@ class ProductionSecurityValidatorTests {
         ProductionSecurityValidator validator = validator(
                 "a".repeat(64),
                 "jdbc:mysql://db.example.com:3306/koupreng_db?sslMode=VERIFY_IDENTITY&serverTimezone=UTC",
-                "change-me-local-only",
+                "change_this_to_random_secret",
                 "static"
         );
 

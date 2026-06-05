@@ -25,6 +25,7 @@ public class ProductionSecurityValidator implements ApplicationRunner {
     private static final String REQUIRED_STATIC_ABA_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
     private static final Set<String> PLACEHOLDER_ADMIN_PAYMENT_SECRETS = Set.of(
             "change-me-local-only",
+            "change_this_to_random_secret",
             "change_this_to_a_random_secret",
             "change_this_to_a_random_secret_here",
             "change-me",
