@@ -1,6 +1,7 @@
 package com.koupreng.backend.entity.invitation;
 
 import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import jakarta.persistence.*;
@@ -69,6 +70,24 @@ public class UserInvitation {
     @Column(name = "language_mode", length = 20)
     private String languageMode;
 
+    @Column(name = "design_json", columnDefinition = "TEXT")
+    private String designJson;
+
+    @Column(name = "content_json", columnDefinition = "TEXT")
+    private String contentJson;
+
+    @Column(name = "custom_colors", columnDefinition = "TEXT")
+    private String customColors;
+
+    @Column(name = "custom_fonts", columnDefinition = "TEXT")
+    private String customFonts;
+
+    @Column(name = "enabled_sections", columnDefinition = "TEXT")
+    private String enabledSections;
+
+    @Column(name = "layout_settings", columnDefinition = "TEXT")
+    private String layoutSettings;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private InvitationVisibility visibility = InvitationVisibility.PUBLIC;
@@ -76,12 +95,19 @@ public class UserInvitation {
     @Column(name = "access_password")
     private String accessPassword;
 
+    @Column(name = "access_token", unique = true, length = 80)
+    private String accessToken;
+
     @Column(name = "rsvp_deadline")
     private LocalDate rsvpDeadline;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private InvitationStatus status = InvitationStatus.DRAFT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "moderation_status", length = 30)
+    private InvitationModerationStatus moderationStatus = InvitationModerationStatus.ACTIVE;
 
     @Column(nullable = false)
     private boolean deleted = false;
@@ -102,6 +128,9 @@ public class UserInvitation {
         }
         if (visibility == null) {
             visibility = InvitationVisibility.PUBLIC;
+        }
+        if (moderationStatus == null) {
+            moderationStatus = InvitationModerationStatus.ACTIVE;
         }
         createdAt = Instant.now();
         updatedAt = Instant.now();

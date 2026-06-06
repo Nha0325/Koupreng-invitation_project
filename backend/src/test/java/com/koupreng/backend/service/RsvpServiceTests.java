@@ -4,6 +4,7 @@ import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.rsvp.RsvpRequest;
 import com.koupreng.backend.dto.rsvp.RsvpResponse;
 import com.koupreng.backend.dto.rsvp.RsvpSummaryResponse;
+import com.koupreng.backend.dto.rsvp.RsvpUpdateRequest;
 import com.koupreng.backend.entity.invitation.Guest;
 import com.koupreng.backend.entity.invitation.Rsvp;
 import com.koupreng.backend.entity.invitation.UserInvitation;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class RsvpServiceTests {
@@ -48,6 +50,52 @@ class RsvpServiceTests {
         assertEquals(88L, response.getId());
         assertEquals(RsvpStatus.ATTENDING, response.getResponseStatus());
         assertEquals(2, response.getAttendeeCount());
+        verify(fixture.notificationService).sendRsvpConfirmation(existing);
+        verify(fixture.notificationService).notifyOwnerRsvpReceived(existing);
+    }
+
+    @Test
+    void attendingRsvpRequiresAtLeastOneAttendee() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = invitation(LocalDate.now().plusDays(5));
+        Guest guest = guest(invitation);
+        when(fixture.invitationService.requirePublishedInvitationForRsvp("samnang-sreyneang", true))
+                .thenReturn(invitation);
+        when(fixture.guestRepository.findByInvitationIdAndInviteToken(10L, "token"))
+                .thenReturn(Optional.of(guest));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.submitPublicWithToken("samnang-sreyneang", "token", request(RsvpStatus.ATTENDING, 0))
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    }
+
+    @Test
+    void ownerCanUpdateRsvpStatus() {
+        Fixture fixture = fixture();
+        Authentication authentication = mock(Authentication.class);
+        Rsvp existing = new Rsvp();
+        existing.setId(88L);
+        existing.setInvitation(invitation(LocalDate.now().plusDays(5)));
+        existing.setGuest(guest(existing.getInvitation()));
+        existing.setResponseStatus(RsvpStatus.MAYBE);
+        existing.setAttendeeCount(0);
+
+        when(fixture.rsvpRepository.findByIdAndInvitationId(88L, 10L))
+                .thenReturn(Optional.of(existing));
+
+        RsvpUpdateRequest request = new RsvpUpdateRequest();
+        request.setResponseStatus(RsvpStatus.ATTENDING);
+        request.setAttendeeCount(2);
+        request.setMessage("See you soon");
+
+        RsvpResponse response = fixture.service.update(authentication, 10L, 88L, request);
+
+        assertEquals(RsvpStatus.ATTENDING, response.getResponseStatus());
+        assertEquals(2, response.getAttendeeCount());
+        assertEquals("See you soon", response.getMessage());
     }
 
     @Test
@@ -100,7 +148,13 @@ class RsvpServiceTests {
         RsvpRepository rsvpRepository = mock(RsvpRepository.class);
         GuestRepository guestRepository = mock(GuestRepository.class);
         InvitationService invitationService = mock(InvitationService.class);
-        RsvpService service = new RsvpService(rsvpRepository, guestRepository, invitationService);
+        NotificationService notificationService = mock(NotificationService.class);
+        RsvpService service = new RsvpService(
+                rsvpRepository,
+                guestRepository,
+                invitationService,
+                notificationService
+        );
 
         when(rsvpRepository.save(any(Rsvp.class))).thenAnswer(invocation -> {
             Rsvp rsvp = invocation.getArgument(0);
@@ -110,7 +164,7 @@ class RsvpServiceTests {
             return rsvp;
         });
 
-        return new Fixture(service, rsvpRepository, guestRepository, invitationService);
+        return new Fixture(service, rsvpRepository, guestRepository, invitationService, notificationService);
     }
 
     private RsvpRequest request(RsvpStatus status, Integer count) {
@@ -142,7 +196,8 @@ class RsvpServiceTests {
             RsvpService service,
             RsvpRepository rsvpRepository,
             GuestRepository guestRepository,
-            InvitationService invitationService
+            InvitationService invitationService,
+            NotificationService notificationService
     ) {
     }
 }

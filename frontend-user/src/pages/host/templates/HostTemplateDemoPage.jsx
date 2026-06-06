@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import TemplateExperience from "../../../features/templates/template-experience/TemplateExperience";
-import { getTemplateById } from "../../../features/templates/data/templatesData";
+import { getTemplateById, isTemplatePremium } from "../../../features/templates/data/templatesData";
 import {
     resolveVariant,
     VARIANT_ROUTE_ALIASES,
@@ -25,8 +25,11 @@ export default function HostTemplateDemoPage() {
     const tpl = getTemplateById(aliasTargetId || id);
     const forcedVariant = aliasTargetId ? id : undefined;
 
-    // Logged-in host: go straight to the wedding builder.
-    const useTemplateLink = `/create/wedding?template=${tpl.id}`;
+    // Logged-in host: premium templates go to checkout, free go to builder.
+    const premium = isTemplatePremium(tpl.id);
+    const useTemplateLink = premium
+        ? `/templates/${tpl.id}/checkout`
+        : `/create/wedding?template=${tpl.id}`;
     const variant = resolveVariant(tpl, forcedVariant);
 
     return (
@@ -38,6 +41,7 @@ export default function HostTemplateDemoPage() {
                 tpl={tpl}
                 useTemplateLink={useTemplateLink}
                 variant={variant}
+                primaryCtaLabel={premium ? "ទិញគំរូ" : "ប្រើគំរូ"}
                 breadcrumbItems={[
                     { label: "ផ្ទាំងគ្រប់គ្រង", to: "/dashboard" },
                     { label: "បន្ថែមគម្រូ", to: "/templates/browse" },
@@ -49,3 +53,4 @@ export default function HostTemplateDemoPage() {
         </div>
     );
 }
+

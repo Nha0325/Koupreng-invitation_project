@@ -47,6 +47,8 @@ Dashboard សម្រាប់ម្ចាស់កាត (host)។ ប្រ�
 | Path | Component | Description |
 |------|-----------|-------------|
 | `/dashboard` | `DashboardPage` | ទិដ្ឋភាពទូទៅ |
+| `/dashboard/profile` | `ProfilePage` | កែប្រែប្រវត្តិរូប |
+| `/dashboard/change-password` | `ChangePasswordPage` | ប្តូរលេខសម្ងាត់ |
 | `/guests` | `GuestsPage` | គ្រប់គ្រងភ្ញៀវ |
 | `/events` | `EventsPage` | កម្មវិធីទាំងអស់ |
 | `/events/create` | `CreateEventPage` | បង្កើតកម្មវិធីថ្មី |
@@ -64,6 +66,9 @@ Pages សម្រាប់ authentication។ ប្រើ **AuthShell** layout�
 | `/login` | `LoginPage` | ចូលគណនី |
 | `/register` | `RegisterPage` | បង្កើតគណនី |
 | `/forgot-password` | `ForgotPasswordPage` | ភ្លេចពាក្យសម្ងាត់ |
+| `/reset-password` | `ResetPasswordPage` | កំណត់លេខសម្ងាត់ថ្មី |
+| `/auth/forgot-password` | `ForgotPasswordPage` | Alias for forgot password |
+| `/auth/reset-password` | `ResetPasswordPage` | Alias for reset password |
 
 ---
 

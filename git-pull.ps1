@@ -6,6 +6,9 @@ $ErrorActionPreference = "Stop"
 $TargetRemote = "origin"
 $TargetBranch = "main"
 
+$ScriptDir = Split-Path -Parent $PSCommandPath
+Set-Location $ScriptDir
+
 function Stop-Script {
     param([string]$Text)
 
@@ -60,12 +63,15 @@ function Test-LocalChanges {
 }
 
 function Test-OriginBranchExists {
-    param([string]$BranchName)
+    param(
+        [string]$RemoteName,
+        [string]$BranchName
+    )
 
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "SilentlyContinue"
-        & git ls-remote --exit-code --heads origin $BranchName *> $null
+        & git ls-remote --exit-code --heads $RemoteName $BranchName *> $null
         return $LASTEXITCODE -eq 0
     }
     finally {
@@ -186,6 +192,9 @@ if ([string]::IsNullOrWhiteSpace($branch)) {
 }
 
 Write-Host "Current branch: $branch"
+if ($branch -ne $TargetBranch) {
+    Stop-Script "This script only pulls into the $TargetBranch branch. Run: git checkout $TargetBranch"
+}
 
 Write-Host ""
 Write-Host "[2/4] Fetching latest code"
@@ -193,7 +202,7 @@ Invoke-Git fetch $TargetRemote --prune
 
 Write-Host ""
 Write-Host "[3/4] Selecting pull target"
-if (-not (Test-OriginBranchExists $TargetBranch)) {
+if (-not (Test-OriginBranchExists $TargetRemote $TargetBranch)) {
     Stop-Script "$TargetRemote/$TargetBranch was not found."
 }
 Write-Host "Pull target: $TargetRemote/$TargetBranch"

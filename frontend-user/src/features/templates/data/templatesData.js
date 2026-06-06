@@ -795,6 +795,22 @@ const BASE_TEMPLATES = [
     },
 ];
 
+/**
+ * Premium template IDs — these require purchase before use.
+ * Mirrors the `is_premium` flag on backend InvitationTemplate entities.
+ */
+export const PREMIUM_TEMPLATE_IDS = new Set([
+    "angkor-spirit",
+    "midnight-luxe",
+    "celestial",
+    "velvet-touch",
+    "art-deco-now",
+]);
+
+export function isTemplatePremium(templateId) {
+    return PREMIUM_TEMPLATE_IDS.has(templateId);
+}
+
 const TEMPLATE_MEDIA_GROUPS = [
     { folder: "01-card", count: 4 },
     { folder: "02-card", count: 9 },

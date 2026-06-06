@@ -29,6 +29,9 @@ public class AppProperties {
     @Valid
     private final RateLimit rateLimit = new RateLimit();
 
+    @Valid
+    private final Invitation invitation = new Invitation();
+
     public Jwt getJwt() {
         return jwt;
     }
@@ -43,6 +46,10 @@ public class AppProperties {
 
     public RateLimit getRateLimit() {
         return rateLimit;
+    }
+
+    public Invitation getInvitation() {
+        return invitation;
     }
 
     public static class Jwt {
@@ -341,6 +348,20 @@ public class AppProperties {
         public enum Backend {
             MEMORY,
             REDIS
+        }
+    }
+
+    public static class Invitation {
+
+        @NotBlank
+        private String publicBaseUrl = "http://localhost:5173";
+
+        public String getPublicBaseUrl() {
+            return publicBaseUrl;
+        }
+
+        public void setPublicBaseUrl(String publicBaseUrl) {
+            this.publicBaseUrl = publicBaseUrl;
         }
     }
 }

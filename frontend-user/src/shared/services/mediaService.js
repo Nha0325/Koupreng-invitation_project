@@ -4,6 +4,17 @@ function unwrap(response) {
     return response?.data ?? response;
 }
 
+function toQuery(params) {
+    const search = new URLSearchParams();
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            search.set(key, value);
+        }
+    });
+    const query = search.toString();
+    return query ? `?${query}` : "";
+}
+
 function fileForm(file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -21,8 +32,8 @@ function galleryForm(files, sortOrder) {
 
 export const mediaService = {
     list: (invitationId) => api.get(`/v1/invitations/${invitationId}/media`).then(unwrap),
-    publicBySlug: (slug) => api
-        .get(`/v1/public/invitations/${encodeURIComponent(slug)}/media`, { auth: false })
+    publicBySlug: (slug, params = {}) => api
+        .get(`/v1/public/invitations/${encodeURIComponent(slug)}/media${toQuery(params)}`, { auth: false })
         .then(unwrap),
     uploadCover: (invitationId, file) => api
         .post(`/v1/invitations/${invitationId}/media/cover`, fileForm(file))

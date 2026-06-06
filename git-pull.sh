@@ -24,8 +24,9 @@ has_local_changes() {
 }
 
 origin_branch_exists() {
-    local branch="$1"
-    git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1
+    local remote="$1"
+    local branch="$2"
+    git ls-remote --exit-code --heads "$remote" "$branch" >/dev/null 2>&1
 }
 
 show_unfinished_help() {
@@ -125,13 +126,16 @@ fi
 
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
 [ -n "$branch" ] || fail "You are in detached HEAD mode. Checkout a branch before pulling."
+if [ "$branch" != "$TARGET_BRANCH" ]; then
+    fail "This script only pulls into the $TARGET_BRANCH branch. Run: git checkout $TARGET_BRANCH"
+fi
 
 printf 'Safe Team Git Pull\n'
 printf 'Current branch: %s\n' "$branch"
 printf 'Target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
 
 git fetch "$TARGET_REMOTE" --prune
-origin_branch_exists "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
+origin_branch_exists "$TARGET_REMOTE" "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
 
 printf 'Pull target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
 safe_pull explicit "$TARGET_REMOTE" "$TARGET_BRANCH"

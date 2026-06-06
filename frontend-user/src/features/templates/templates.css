@@ -533,6 +533,40 @@
     font-weight: 600;
 }
 
+/* ─── Premium Template Badge & Lock ─── */
+.tp-premium-tag {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.92), rgba(168, 85, 247, 0.92));
+    backdrop-filter: blur(8px);
+    padding: 6px 15px;
+    border-radius: 50px;
+    font-size: 9px;
+    font-weight: 900;
+    color: #fff;
+    z-index: 20;
+    box-shadow: 0 5px 15px rgba(124, 58, 237, 0.25);
+    letter-spacing: 1px;
+}
+
+.tp-card--premium {
+    border: 1px solid rgba(124, 58, 237, 0.18);
+}
+
+.tp-card--premium:hover {
+    box-shadow: 0 30px 60px rgba(124, 58, 237, 0.12);
+}
+
+.tp-action-btn--buy {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+.tp-action-btn--buy:hover {
+    background: linear-gradient(135deg, #6d28d9, #9333ea);
+    box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .tp-title {

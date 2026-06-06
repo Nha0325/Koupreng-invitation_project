@@ -1,15 +1,19 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../pages/auth/context/useAuth";
+import NotificationBell from "../../features/notifications/NotificationBell";
 import logo from "../../assets/logo.png";
 
 const NAV_ITEMS = [
   { label: "កម្មវិធី", path: "/events", icon: "📋" },
   { label: "ផ្ទាំងគ្រប់គ្រង", path: "/dashboard", icon: "📊" },
+  { label: "ជូនដំណឹង", path: "/dashboard/notifications", icon: "🔔" },
   { label: "បញ្ជីភ្ញៀវ", path: "/guests", icon: "👥" },
   { label: "គម្រោងថវិកា", path: "/expenses", icon: "💰" },
   { label: "ចងដៃមង្គល", path: "/gifts", icon: "🎁" },
   { label: "បន្ថែមគម្រូ", path: "/templates/browse", icon: "🎨" },
+  { label: "កញ្ចប់", path: "/dashboard/packages", icon: "📦" },
+  { label: "ក្រុម", path: "/dashboard/organizations", icon: "🏢" },
 ];
 
 export default function HostNav() {
@@ -402,6 +406,7 @@ export default function HostNav() {
             >
               ចាកចេញ
             </button>
+            <NotificationBell />
             <Link to="/profile" className="host-profile-circle">
               {user?.fullName?.charAt(0) || user?.full_name?.charAt(0) || user?.name?.charAt(0) || "K"}
             </Link>

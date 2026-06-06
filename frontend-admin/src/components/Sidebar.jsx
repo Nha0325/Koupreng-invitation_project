@@ -1,11 +1,13 @@
 import { NavLink } from "react-router-dom";
 
 const links = [
-    { to: "/dashboard", label: "ផ្ទាំងគ្រប់គ្រង", icon: "📊" },
-    { to: "/users", label: "អ្នកប្រើប្រាស់", icon: "👥" },
-    { to: "/events", label: "ព្រឹត្តិការណ៍", icon: "🎉" },
-    { to: "/invitations", label: "ធៀបការ", icon: "💌" },
-    { to: "/payments", label: "ការទូទាត់", icon: "💳" },
+    { to: "/admin/dashboard", label: "ផ្ទាំងគ្រប់គ្រង", icon: "📊" },
+    { to: "/admin/users", label: "អ្នកប្រើប្រាស់", icon: "👥" },
+    { to: "/admin/templates", label: "គំរូ", icon: "🎨" },
+    { to: "/admin/invitations", label: "ធៀបការ", icon: "💌" },
+    { to: "/admin/notifications", label: "ជូនដំណឹង", icon: "🔔" },
+    { to: "/admin/reports", label: "របាយការណ៍", icon: "📈" },
+    { to: "/admin/system-logs", label: "System logs", icon: "🧾" },
 ];
 
 export default function Sidebar() {

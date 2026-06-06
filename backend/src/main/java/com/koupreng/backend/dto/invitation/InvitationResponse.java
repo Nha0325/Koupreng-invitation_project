@@ -3,6 +3,7 @@ package com.koupreng.backend.dto.invitation;
 import com.koupreng.backend.entity.invitation.EventType;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
+import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import lombok.AllArgsConstructor;
@@ -39,9 +40,16 @@ public class InvitationResponse {
     private String brideName;
     private String storyText;
     private String languageMode;
+    private String designJson;
+    private String contentJson;
+    private String customColors;
+    private String customFonts;
+    private String enabledSections;
+    private String layoutSettings;
     private InvitationVisibility visibility;
     private LocalDate rsvpDeadline;
     private InvitationStatus status;
+    private InvitationModerationStatus moderationStatus;
     private boolean published;
     private boolean draft;
     private Instant createdAt;
@@ -70,9 +78,16 @@ public class InvitationResponse {
                 .brideName(invitation.getBrideName())
                 .storyText(invitation.getStoryText())
                 .languageMode(invitation.getLanguageMode())
+                .designJson(invitation.getDesignJson())
+                .contentJson(invitation.getContentJson())
+                .customColors(invitation.getCustomColors())
+                .customFonts(invitation.getCustomFonts())
+                .enabledSections(invitation.getEnabledSections())
+                .layoutSettings(invitation.getLayoutSettings())
                 .visibility(invitation.getVisibility())
                 .rsvpDeadline(invitation.getRsvpDeadline())
                 .status(invitation.getStatus())
+                .moderationStatus(invitation.getModerationStatus())
                 .published(invitation.getStatus() == InvitationStatus.PUBLISHED)
                 .draft(invitation.getStatus() == InvitationStatus.DRAFT)
                 .createdAt(invitation.getCreatedAt())

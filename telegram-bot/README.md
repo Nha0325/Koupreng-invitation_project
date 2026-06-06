@@ -2,7 +2,7 @@
 
 FastAPI webhook helper for ABA PayWay static KHQR template payments.
 
-The bot listens for ABA PayWay bot alerts in the Telegram payment group. When a trusted ABA PayWay bot message contains an exact amount and an `EVT...` order code, it calls the Spring Boot backend at `POST /api/v1/admin/template-payments/telegram-detect`. The backend verifies the order, amount, currency, expiry, and status before marking an order `PAID` and unlocking the template.
+The bot listens for ABA PayWay bot alerts in the Telegram payment group. When a trusted ABA PayWay bot message contains an exact amount and an `EVT...` order code, it calls the Spring Boot backend at `POST /api/v1/internal/template-payments/telegram-detect`. The backend verifies the internal payment secret, order, amount, currency, expiry, and status before marking an order `PAID` and unlocking the template.
 
 The frontend never marks an order paid and never unlocks a template.
 
