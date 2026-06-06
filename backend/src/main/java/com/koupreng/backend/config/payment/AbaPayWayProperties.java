@@ -33,11 +33,7 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-<<<<<<< HEAD
         if (!isProductionProfile() || isStaticProviderMode()) {
-=======
-        if (!isProductionProfile()) {
->>>>>>> 244f66d (Guest Management)
             return;
         }
         List<String> missing = new java.util.ArrayList<>();
@@ -61,11 +57,10 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
     private boolean isProductionProfile() {
         return environment != null
                 && Arrays.stream(environment.getActiveProfiles())
-                .anyMatch(profile -> "prod".equalsIgnoreCase(profile)
-                        || "production".equalsIgnoreCase(profile));
+                        .anyMatch(profile -> "prod".equalsIgnoreCase(profile)
+                                || "production".equalsIgnoreCase(profile));
     }
 
-<<<<<<< HEAD
     private boolean isStaticProviderMode() {
         if (environment == null) {
             return true;
@@ -73,8 +68,6 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
         return "static".equalsIgnoreCase(trim(environment.getProperty("app.payment.provider-mode", "static")));
     }
 
-=======
->>>>>>> 244f66d (Guest Management)
     public String getMerchantId() {
         return trim(merchantId);
     }
@@ -190,7 +183,7 @@ public class AbaPayWayProperties implements EnvironmentAware, InitializingBean {
         String trimmed = value.trim();
         if (trimmed.length() >= 2
                 && ((trimmed.startsWith("\"") && trimmed.endsWith("\""))
-                || (trimmed.startsWith("'") && trimmed.endsWith("'")))) {
+                        || (trimmed.startsWith("'") && trimmed.endsWith("'")))) {
             return trimmed.substring(1, trimmed.length() - 1).trim();
         }
         return trimmed;

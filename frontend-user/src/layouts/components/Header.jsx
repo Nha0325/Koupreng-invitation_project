@@ -94,18 +94,18 @@ export default function Header() {
 
       <div className="header-wrapper">
         <header className="header-container">
-          <Link to="/" className="logo-box" aria-label="គូព្រេង — ត្រឡប់ទៅទំព័រដើម">
+          <Link to="/" className="logo-box" aria-label="Koupreng — Back to home">
             <img
               src={logo}
-              alt="គូព្រេង"
+              alt="Koupreng"
               style={{
                 height: "90px",
                 width: "auto",
                 objectFit: "contain",
               }}
             />
-            {/* <span className="logo-text">គូព្រេង</span> */}
-            <span className="logo-tip" role="tooltip">ត្រឡប់ទៅទំព័រដើម</span>
+            <span className="logo-text">Koupreng</span>
+            <span className="logo-tip" role="tooltip">Back to home</span>
           </Link>
 
           <nav className="nav-links">

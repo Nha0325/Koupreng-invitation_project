@@ -158,6 +158,9 @@ export default function InvitationsList() {
                             <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/guests`)}>
                                 Guests
                             </button>
+                            <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/delivery`)}>
+                                Delivery
+                            </button>
                             <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/media`)}>
                                 Media
                             </button>

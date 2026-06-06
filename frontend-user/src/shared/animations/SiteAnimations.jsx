@@ -5,8 +5,6 @@ import { useLocation } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import "./siteAnimations.css";
 
-const PRELOADER_KEY = "koupreng.site.preloader.seen";
-
 const REVEAL_SELECTORS = [
   "main section",
   "main article",
@@ -32,12 +30,7 @@ const REVEAL_SELECTORS = [
 
 function getInitialPreloaderState() {
   if (typeof window === "undefined") return true;
-
-  try {
-    return window.sessionStorage.getItem(PRELOADER_KEY) !== "1";
-  } catch {
-    return true;
-  }
+  return true;
 }
 
 function LogoPreloader({ disabled = false }) {
@@ -48,11 +41,6 @@ function LogoPreloader({ disabled = false }) {
     if (disabled || !visible) return undefined;
 
     const timer = window.setTimeout(() => {
-      try {
-        window.sessionStorage.setItem(PRELOADER_KEY, "1");
-      } catch {
-        // Session storage can be disabled.
-      }
       setVisible(false);
     }, 1800);
 
@@ -82,7 +70,11 @@ function LogoPreloader({ disabled = false }) {
             className="kp-site-preloader__line"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
-            transition={{ delay: 0.22, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              delay: 0.22,
+              duration: 1.2,
+              ease: [0.22, 1, 0.36, 1],
+            }}
           />
         </motion.div>
       )}
@@ -107,7 +99,9 @@ function KineticGrid() {
       });
     };
 
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: true,
+    });
     return () => {
       if (frameRef.current) window.cancelAnimationFrame(frameRef.current);
       window.removeEventListener("pointermove", handlePointerMove);
@@ -146,13 +140,19 @@ function useSiteReveal() {
     const timeout = window.setTimeout(() => {
       if (cancelled) return;
 
-      const targets = Array.from(document.querySelectorAll(selector)).filter((target) => {
-        return !target.closest(".tpl-royal-invitation, .kp-site-preloader, .kp-kinetic-grid");
-      });
+      const targets = Array.from(document.querySelectorAll(selector)).filter(
+        (target) => {
+          return !target.closest(
+            ".tpl-royal-invitation, .kp-site-preloader, .kp-kinetic-grid",
+          );
+        },
+      );
 
       if (!targets.length) return;
 
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
       targets.forEach((target, index) => {
         target.classList.add("kp-reveal");
         target.style.setProperty("--kp-reveal-index", String(index % 8));
@@ -166,10 +166,13 @@ function useSiteReveal() {
       observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            entry.target.classList.toggle("kp-reveal-visible", entry.isIntersecting);
+            entry.target.classList.toggle(
+              "kp-reveal-visible",
+              entry.isIntersecting,
+            );
           });
         },
-        { rootMargin: "0px 0px -8% 0px", threshold: 0.12 }
+        { rootMargin: "0px 0px -8% 0px", threshold: 0.12 },
       );
 
       targets.forEach((target) => observer.observe(target));
@@ -185,7 +188,9 @@ function useSiteReveal() {
 
 export default function SiteAnimations() {
   const location = useLocation();
-  const skipPreloader = /^\/templates\/[^/]+(?:\/(?:demo|preview))?\/?$/.test(location.pathname);
+  const skipPreloader = /^\/templates\/[^/]+(?:\/(?:demo|preview))?\/?$/.test(
+    location.pathname,
+  );
 
   useSiteReveal();
 

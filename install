@@ -13,3 +13,10 @@ git log --oneline -10
 git log --oneline -15
 git branch -a
 git rebase --abort
+
+
+
+cd ~/Desktop/Koupreng-invitation_project/backend
+chmod +x mvnw
+./mvnw -DskipTests compile
+./mvnw spring-boot:run

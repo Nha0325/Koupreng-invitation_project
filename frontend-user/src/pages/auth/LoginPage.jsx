@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "./context/useAuth";
 import { useToggle } from "../../shared/hooks/useToggle";
 import authService from "../../services/remote/authService";
+import SocialAuthButtons from "./SocialAuthButtons";
 import "./AuthPage.css";
 
 function getSafeRedirect(searchParams) {
@@ -152,6 +153,12 @@ function Login() {
             {loading ? "កំពុងចូល..." : "ចូលគណនី"}
           </button>
         </form>
+
+        {/* Divider */}
+        <p className="auth-divider">ឬ បន្តជាមួយ</p>
+
+        {/* Social buttons */}
+        <SocialAuthButtons redirectTo={redirectTo} />
 
         {/* Forgot password */}
         <div className="auth-footer">

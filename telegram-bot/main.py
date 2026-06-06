@@ -11,6 +11,7 @@ load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 SPRING_API_BASE_URL = os.getenv("SPRING_API_BASE_URL", "http://localhost:8080").rstrip("/")
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173").rstrip("/")
 ADMIN_PAYMENT_SECRET = os.getenv("ADMIN_PAYMENT_SECRET", "")
 TELEGRAM_ALLOWED_GROUP_IDS = {
     value
@@ -108,6 +109,18 @@ async def telegram_webhook(request: Request):
         trusted_payment_sender,
         short_text(text),
     )
+
+    if command_payload(text, "/start"):
+        await send_message(
+            chat_id,
+            (
+                "Welcome to Koupreng Invitation!\n\n"
+                f"Open the website to login and manage invitations:\n{FRONTEND_BASE_URL}\n\n"
+                "Use the website login page to authenticate with Google or Telegram."
+            ),
+            message_id,
+        )
+        return {"ok": True}
 
     if text.startswith("/id") or text.startswith("/debug"):
         await send_message(

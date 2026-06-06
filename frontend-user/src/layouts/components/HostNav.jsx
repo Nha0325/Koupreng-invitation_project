@@ -374,9 +374,9 @@ export default function HostNav() {
 
       <div className="host-header-wrapper">
         <header className="host-header-container">
-          <Link to="/" className="host-logo-box" aria-label="គូព្រេង — ទៅផ្ទាំងគ្រប់គ្រង">
-            <img src={logo} alt="គូព្រេង" />
-            <span className="host-logo-tip" role="tooltip">ទៅផ្ទាំងគ្រប់គ្រង</span>
+          <Link to="/" className="host-logo-box" aria-label="Koupreng — Back to dashboard">
+            <img src={logo} alt="Koupreng" />
+            <span className="host-logo-tip" role="tooltip">Back to dashboard</span>
           </Link>
 
           {/* Desktop nav links */}

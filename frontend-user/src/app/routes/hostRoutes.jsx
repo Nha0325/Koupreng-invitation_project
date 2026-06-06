@@ -13,6 +13,7 @@ import InvitationEditPage from "../../pages/host/invitations/InvitationEditPage"
 import InvitationGuestsPage from "../../pages/host/invitations/InvitationGuestsPage";
 import InvitationMediaPage from "../../pages/host/invitations/InvitationMediaPage";
 import InvitationPreviewPage from "../../pages/host/invitations/InvitationPreviewPage";
+import InvitationDeliveryPage from "../../pages/host/invitations/InvitationDeliveryPage";
 import MyInvitationsPage from "../../pages/host/invitations/MyInvitationsPage";
 import ProfilePage from "../../pages/host/ProfilePage";
 import WeddingGiftPage from "../../pages/host/WeddingGiftPage";
@@ -33,6 +34,7 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
       <Route path="/dashboard/invitations/:id/guests" element={<InvitationGuestsPage />} />
+      <Route path="/dashboard/invitations/:id/delivery" element={<InvitationDeliveryPage />} />
       <Route path="/dashboard/invitations/:id/media" element={<InvitationMediaPage />} />
       <Route path="/dashboard/templates/paid" element={<PaidTemplatesPage />} />
       <Route path="/guests" element={<GuestsPage />} />
