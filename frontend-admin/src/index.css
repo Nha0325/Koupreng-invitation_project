@@ -145,7 +145,7 @@ textarea {
   }
 
   .topbar {
-    @apply sticky top-0 z-20 flex min-h-[72px] items-center justify-between gap-4 border-b border-amber-900/10 bg-white/85 px-4 py-3 shadow-sm backdrop-blur;
+    @apply sticky top-0 z-20 flex min-h-18 items-center justify-between gap-4 border-b border-amber-900/10 bg-white/85 px-4 py-3 shadow-sm backdrop-blur;
   }
 
   .mobile-menu-btn {
@@ -173,7 +173,7 @@ textarea {
   }
 
   .topbar-user-name {
-    @apply block max-w-[180px] truncate text-sm font-bold text-stone-900;
+    @apply block max-w-45 truncate text-sm font-bold text-stone-900;
   }
 
   .topbar-user-role {
@@ -239,7 +239,7 @@ textarea {
   }
 
   .admin-feature-card strong {
-    @apply mt-2 block break-words text-2xl font-bold text-[#3d2461];
+    @apply mt-2 block wrap-break-word text-2xl font-bold text-[#3d2461];
   }
 
   .admin-muted {
@@ -447,7 +447,7 @@ textarea {
   }
 
   .admin-detail-cell strong {
-    @apply mt-2 block break-words text-sm font-bold text-stone-900;
+    @apply mt-2 block wrap-break-word text-sm font-bold text-stone-900;
   }
 
   .admin-json {
