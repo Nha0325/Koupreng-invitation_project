@@ -98,7 +98,7 @@ public class AuthService {
         return issueToken(userRepository.save(user));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         try {
             AppUser user = findByIdentifier(request.identifier())
