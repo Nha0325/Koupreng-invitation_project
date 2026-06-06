@@ -185,7 +185,7 @@ public class SecurityConfig {
         }
 
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.copyOf(corsProperties.getAllowedOrigins()));
+        configuration.setAllowedOriginPatterns(List.copyOf(corsProperties.getAllowedOrigins()));
         configuration.setAllowedMethods(List.copyOf(corsProperties.getAllowedMethods()));
         configuration.setAllowedHeaders(List.copyOf(corsProperties.getAllowedHeaders()));
         configuration.setExposedHeaders(List.copyOf(corsProperties.getExposedHeaders()));
