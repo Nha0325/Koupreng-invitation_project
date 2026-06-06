@@ -61,9 +61,12 @@ The **Koupreng E-Invitation Platform** repository has been fully audited and har
 
 ---
 
-## 5. Database Migrations Added
-- [V14__supporting_features_security_checkin.sql](file:///d:/Koupreng-invitation_project/backend/src/main/resources/db/migration/V14__supporting_features_security_checkin.sql) (Seating tables, assignments, and check-in tables).
-- [V15__enterprise_foundations.sql](file:///d:/Koupreng-invitation_project/backend/src/main/resources/db/migration/V15__enterprise_foundations.sql) (Packages and organization structures).
+## 5. Database Migrations
+The Flyway history has since been consolidated into a fresh development baseline:
+- [V1__core_schema.sql](file:///d:/Koupreng-invitation_project/backend/src/main/resources/db/migration/V1__core_schema.sql)
+- [V2__planning_and_operations_schema.sql](file:///d:/Koupreng-invitation_project/backend/src/main/resources/db/migration/V2__planning_and_operations_schema.sql)
+- [V3__payments_subscriptions_and_audit_schema.sql](file:///d:/Koupreng-invitation_project/backend/src/main/resources/db/migration/V3__payments_subscriptions_and_audit_schema.sql)
+- [V4__seed_initial_data.sql](file:///d:/Koupreng-invitation_project/backend/src/main/resources/db/migration/V4__seed_initial_data.sql)
 
 ---
 
