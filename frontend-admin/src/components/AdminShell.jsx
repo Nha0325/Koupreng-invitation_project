@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../auth/AuthContext";
@@ -23,6 +24,7 @@ function initials(name = "") {
 export default function AdminShell() {
     const { user, logout } = useAuth();
     const location = useLocation();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const title =
         TITLES[Object.keys(TITLES).find((key) => location.pathname.startsWith(key))] ||
         "រដ្ឋបាលគូព្រេង";
@@ -31,14 +33,26 @@ export default function AdminShell() {
 
     return (
         <div className="admin-layout">
-            <Sidebar />
+            <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             <div className="admin-main">
                 <header className="topbar">
+                    <button
+                        type="button"
+                        className="mobile-menu-btn"
+                        aria-label="Open admin navigation"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <span className="mobile-menu-lines" aria-hidden="true">
+                            <span />
+                            <span />
+                            <span />
+                        </span>
+                    </button>
                     <div className="topbar-title">{title}</div>
                     <div className="topbar-user">
                         <div className="topbar-user-info">
                             <span className="topbar-user-name">{displayName}</span>
-                            <span className="topbar-user-role">👑 Admin</span>
+                            <span className="topbar-user-role">Admin</span>
                         </div>
                         <div className="avatar">{initials(displayName)}</div>
                         <button type="button" className="logout-btn" onClick={logout}>

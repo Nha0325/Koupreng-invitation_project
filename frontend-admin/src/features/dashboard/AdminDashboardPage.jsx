@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { AdminPageHeader, StatCard, StatusBadge } from "../../components/AdminUI";
 import { Loading, ErrorState } from "../../components/States";
 import { useResource } from "../../hooks/useResource";
 import { formatMoney, formatDateTime } from "../../lib/format";
@@ -53,32 +54,26 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h2 className="page-title">ផ្ទាំងគ្រប់គ្រង Admin</h2>
-          <p className="page-subtitle">System analytics, recent activity, and operational health</p>
-        </div>
-        <button type="button" className="btn btn-ghost" onClick={reload}>Refresh</button>
-      </div>
+      <AdminPageHeader
+        title="ផ្ទាំងគ្រប់គ្រង Admin"
+        subtitle="System analytics, recent activity, and operational health"
+        actions={<button type="button" className="btn btn-ghost" onClick={reload}>Refresh</button>}
+      />
 
       <section className="admin-feature-grid">
         {stats.map(([label, value, note]) => (
-          <article key={label} className="admin-feature-card">
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <p className="admin-muted">{note}</p>
-          </article>
+          <StatCard key={label} label={label} value={value} note={note} />
         ))}
       </section>
 
       <section className="admin-feature-grid">
-        <AnalyticsCard label="RSVP conversion" value={percent(analytics.overview?.summary?.rsvpConversion)} note="Responses divided by guests" />
-        <AnalyticsCard label="RSVP attending" value={analytics.rsvp?.summary?.attending ?? "—"} note={`${percent(analytics.rsvp?.summary?.attendingRate)} attending rate`} />
-        <AnalyticsCard label="Check-in rate" value={percent(analytics.checkIn?.summary?.checkInRate)} note={`${analytics.checkIn?.summary?.checkedIn || 0} checked in`} />
-        <AnalyticsCard label="Delivery opened" value={analytics.delivery?.summary?.opened ?? "—"} note={`${analytics.delivery?.summary?.failed || 0} failed deliveries`} />
-        <AnalyticsCard label="Premium templates" value={analytics.templates?.summary?.premiumTemplates ?? "—"} note={`${analytics.templates?.summary?.activeTemplates || 0} active templates`} />
-        <AnalyticsCard label="Paid revenue" value={formatMoney(analytics.revenue?.summary?.totalRevenue || 0)} note={`${analytics.revenue?.summary?.failedPayments || 0} failed payments`} />
-        <AnalyticsCard label="System health" value={analytics.health?.summary?.status || "—"} note={`${analytics.health?.summary?.failedNotifications || 0} failed notifications`} />
+        <StatCard label="RSVP conversion" value={percent(analytics.overview?.summary?.rsvpConversion)} note="Responses divided by guests" />
+        <StatCard label="RSVP attending" value={analytics.rsvp?.summary?.attending ?? "—"} note={`${percent(analytics.rsvp?.summary?.attendingRate)} attending rate`} />
+        <StatCard label="Check-in rate" value={percent(analytics.checkIn?.summary?.checkInRate)} note={`${analytics.checkIn?.summary?.checkedIn || 0} checked in`} />
+        <StatCard label="Delivery opened" value={analytics.delivery?.summary?.opened ?? "—"} note={`${analytics.delivery?.summary?.failed || 0} failed deliveries`} />
+        <StatCard label="Premium templates" value={analytics.templates?.summary?.premiumTemplates ?? "—"} note={`${analytics.templates?.summary?.activeTemplates || 0} active templates`} />
+        <StatCard label="Paid revenue" value={formatMoney(analytics.revenue?.summary?.totalRevenue || 0)} note={`${analytics.revenue?.summary?.failedPayments || 0} failed payments`} />
+        <StatCard label="System health" value={analytics.health?.summary?.status || "—"} note={`${analytics.health?.summary?.failedNotifications || 0} failed notifications`} />
       </section>
 
       <div className="stat-grid">
@@ -95,7 +90,7 @@ export default function AdminDashboardPage() {
               <tbody>
                 {(analytics.alerts?.rows || []).map((alert) => (
                   <tr key={`${alert.severity}-${alert.title}`}>
-                    <td><span className={`badge ${alert.severity === "OK" ? "badge-green" : alert.severity === "WARNING" ? "badge-red" : "badge-amber"}`}>{alert.severity}</span></td>
+                    <td><StatusBadge status={alert.severity} /></td>
                     <td>{alert.title}</td>
                     <td>{alert.count}</td>
                     <td>{alert.description}</td>
@@ -129,7 +124,7 @@ export default function AdminDashboardPage() {
                 {(data.recentPayments || []).map((payment) => (
                   <tr key={payment.orderCode}>
                     <td>{payment.orderCode}</td>
-                    <td><span className={`badge ${payment.status === "PAID" ? "badge-green" : "badge-amber"}`}>{payment.status}</span></td>
+                    <td><StatusBadge status={payment.status} /></td>
                     <td>{formatMoney(payment.paidAmount ?? payment.amount, payment.currency)}</td>
                     <td>{formatDateTime(payment.paidAt)}</td>
                   </tr>
@@ -141,16 +136,6 @@ export default function AdminDashboardPage() {
         </section>
       </div>
     </div>
-  );
-}
-
-function AnalyticsCard({ label, value, note }) {
-  return (
-    <article className="admin-feature-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <p className="admin-muted">{note}</p>
-    </article>
   );
 }
 

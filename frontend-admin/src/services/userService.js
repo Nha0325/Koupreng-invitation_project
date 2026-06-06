@@ -1,14 +1,14 @@
 import { api } from "../lib/api";
 
 /**
- * Admin user management — backed by /api/admin/users (ROLE_ADMIN only).
+ * Legacy admin user screens, kept on the current /api/v1/admin route family.
  */
 export const userService = {
-    /** GET /admin/users — list every user */
-    list: () => api.get("/admin/users"),
+    /** GET /v1/admin/users — list every user */
+    list: () => api.get("/v1/admin/users"),
 
-    /** PATCH /admin/users/{id}/role — promote/demote a user ("USER" | "ADMIN") */
-    updateRole: (userId, role) => api.patch(`/admin/users/${userId}/role`, { role }),
+    /** PATCH /v1/admin/users/{id}/role — promote/demote a user ("USER" | "ADMIN") */
+    updateRole: (userId, role) => api.patch(`/v1/admin/users/${userId}/role`, { role }),
 };
 
 export default userService;
