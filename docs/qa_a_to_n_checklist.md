@@ -100,7 +100,11 @@ Use this checklist with a local or staging backend. Replace `{id}`, `{slug}`, `{
 | **M. Advanced** | POST | `/api/v1/ai/invitation/translate` | USER | `{"generatedText":"Welcome"}` | AI generated translation copy | [ ] |
 | **M. Advanced** | POST | `/api/v1/ai/invitation/timeline-suggestion` | USER | `{"eventType":"wedding"}` | AI timeline itinerary | [ ] |
 | **M. Advanced** | PATCH | `/api/v1/organizations/{orgId}/members/{memberId}/role` | Org Owner | `{"role":"MANAGER"}` | Updates organization member role | [ ] |
-| **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | No secret | Telegram payload | 401 Unauthorized | [ ] |
-| **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | Wrong secret | Telegram payload | 403 Forbidden | [ ] |
+| **N. Security** | POST | `/api/v1/internal/template-payments/confirm` | No secret | Confirm payload | 401 Unauthorized before service call | [x] |
+| **N. Security** | POST | `/api/v1/internal/template-payments/confirm` | Wrong secret | Confirm payload | 403 Forbidden before service call | [x] |
+| **N. Security** | POST | `/api/v1/internal/template-payments/confirm` | Valid secret, no JWT | Confirm payload | Controller/service reached | [x] |
+| **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | No secret | Telegram payload | 401 Unauthorized before service call | [x] |
+| **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | Wrong secret | Telegram payload | 403 Forbidden before service call | [x] |
+| **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | Valid secret, no JWT | Telegram payload | Controller/service reached | [x] |
 | **N. Security** | GET | `/api/v1/admin/users` | Normal User | none | 403 Forbidden | [ ] |
 | **N. Security** | GET | `/api/v1/invitations/{otherUserInvitationId}` | User B | none | 403 or 404 access validation | [ ] |

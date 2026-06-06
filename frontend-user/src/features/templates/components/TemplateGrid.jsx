@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../templates.css";
 import { TEMPLATES, isTemplatePremium } from "../data/templatesData";
 import { useAuth } from "../../../pages/auth/context/useAuth";
 import heroBg from "../../../assets/icons/background.png";
+import templateService from "../templateService";
+import { getTemplateRouteId, isBackendPremium, mergeBackendTemplate } from "../templateCatalogAdapter";
 
 const FEATURED_TEMPLATE_IDS = [
     "royal",
@@ -49,9 +52,31 @@ function getTemplateBenefit(template) {
  */
 export default function TemplateGrid() {
     const { isAuthenticated } = useAuth();
-    const visibleTemplates = FEATURED_TEMPLATE_IDS
-        .map((templateId) => TEMPLATES.find((template) => template.id === templateId))
-        .filter(Boolean);
+    const [remoteTemplates, setRemoteTemplates] = useState([]);
+
+    useEffect(() => {
+        let mounted = true;
+        templateService.listPublic()
+            .then((templates) => {
+                if (mounted) {
+                    setRemoteTemplates(Array.isArray(templates) ? templates : []);
+                }
+            })
+            .catch(() => {
+                if (mounted) {
+                    setRemoteTemplates([]);
+                }
+            });
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const visibleTemplates = remoteTemplates.length
+        ? remoteTemplates.map((template) => mergeBackendTemplate(template)).filter(Boolean)
+        : FEATURED_TEMPLATE_IDS
+            .map((templateId) => TEMPLATES.find((template) => template.id === templateId))
+            .filter(Boolean);
 
     return (
         <div className="tp-page">
@@ -78,12 +103,13 @@ export default function TemplateGrid() {
 
                 <div className="tp-grid">
                     {visibleTemplates.map((t) => {
-                        const createPath = getUseTemplatePath(t.id, isAuthenticated);
+                        const routeId = t.backendId ? getTemplateRouteId(t) : t.id;
+                        const createPath = getUseTemplatePath(routeId, isAuthenticated);
                         const coverImage = TEMPLATE_CARD_COVER[t.id] || t.image;
 
-                        const premium = isTemplatePremium(t.id);
+                        const premium = t.backendId ? isBackendPremium(t) : isTemplatePremium(t.id);
                         const actionPath = premium
-                            ? (isAuthenticated ? `/templates/${t.id}/checkout` : `/login?next=${encodeURIComponent(`/templates/${t.id}/checkout`)}`)
+                            ? (isAuthenticated ? `/templates/${routeId}/checkout` : `/login?next=${encodeURIComponent(`/templates/${routeId}/checkout`)}`)
                             : createPath;
 
                         return (
@@ -96,7 +122,7 @@ export default function TemplateGrid() {
                                     {categoryLabels[t.category]}
                                 </div>
 
-                                <Link to={`/templates/${t.id}`} className="tp-image-box">
+                                <Link to={`/templates/${routeId}`} className="tp-image-box">
                                     <img
                                         src={coverImage}
                                         alt={t.name}
@@ -117,7 +143,7 @@ export default function TemplateGrid() {
                                         <Link to={actionPath} className={`tp-action-btn${premium ? " tp-action-btn--buy" : ""}`}>
                                             {premium ? "ទិញគំរូ" : "ប្រើគំរូនេះ"}
                                         </Link>
-                                        <Link to={`/templates/${t.id}`} className="tp-detail-btn">
+                                        <Link to={`/templates/${routeId}`} className="tp-detail-btn">
                                             មើលលម្អិត
                                         </Link>
                                     </div>

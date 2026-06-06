@@ -1,6 +1,7 @@
 package com.koupreng.backend.entity.invitation;
 
 import com.koupreng.backend.entity.user.AppUser;
+import com.koupreng.backend.entity.organization.Organization;
 import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
@@ -26,6 +27,10 @@ public class UserInvitation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_id")
     private InvitationTemplate template;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
 
     @Column(nullable = false)
     private String title;

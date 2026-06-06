@@ -2,7 +2,7 @@ import { api } from "../../shared/api/client";
 import { ApiError } from "../../shared/api/errors";
 import { getAccessToken, isCookieAuthStorage } from "../../shared/services/authStorage";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function unwrap(response) {
     return response?.data ?? response;

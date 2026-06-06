@@ -9,6 +9,8 @@ import AdminInvitationDetailPage from "./features/admin/AdminInvitationDetailPag
 import AdminInvitationsPage from "./features/admin/AdminInvitationsPage";
 import AdminReportsPage from "./features/admin/AdminReportsPage";
 import AdminSystemLogsPage from "./features/admin/AdminSystemLogsPage";
+import AdminPaymentsPage from "./features/admin/AdminPaymentsPage";
+import AdminPackagesPage from "./features/admin/AdminPackagesPage";
 import AdminTemplateEditPage from "./features/admin/AdminTemplateEditPage";
 import AdminTemplatesPage from "./features/admin/AdminTemplatesPage";
 import AdminUserDetailPage from "./features/admin/AdminUserDetailPage";
@@ -38,11 +40,14 @@ export default function App() {
             <Route path="/admin/invitations/:invitationId" element={<AdminInvitationDetailPage />} />
             <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
             <Route path="/admin/reports" element={<AdminReportsPage />} />
+            <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+            <Route path="/admin/packages" element={<AdminPackagesPage />} />
             <Route path="/admin/system-logs" element={<AdminSystemLogsPage />} />
             <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="/users" element={<Navigate to="/admin/users" replace />} />
             <Route path="/invitations" element={<Navigate to="/admin/invitations" replace />} />
-            <Route path="/payments" element={<Navigate to="/admin/reports" replace />} />
+            <Route path="/payments" element={<Navigate to="/admin/payments" replace />} />
+            <Route path="/packages" element={<Navigate to="/admin/packages" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
         </Routes>

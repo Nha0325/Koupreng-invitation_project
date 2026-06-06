@@ -7,6 +7,8 @@ const links = [
     { to: "/admin/invitations", label: "ធៀបការ", icon: "💌" },
     { to: "/admin/notifications", label: "ជូនដំណឹង", icon: "🔔" },
     { to: "/admin/reports", label: "របាយការណ៍", icon: "📈" },
+    { to: "/admin/payments", label: "Payments", icon: "💳" },
+    { to: "/admin/packages", label: "Packages", icon: "📦" },
     { to: "/admin/system-logs", label: "System logs", icon: "🧾" },
 ];
 

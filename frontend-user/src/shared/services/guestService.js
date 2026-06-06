@@ -2,7 +2,7 @@ import { api } from "../api/client";
 import { ApiError } from "../api/errors";
 import { getAccessToken, isCookieAuthStorage } from "./authStorage";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function unwrap(response) {
     return response?.data ?? response;
@@ -40,10 +40,6 @@ function fileForm(file) {
 }
 
 export const guestService = {
-    list: () => api.get("/guests"),
-    create: (guest) => api.post("/guests", guest),
-    update: (id, guest) => api.put(`/guests/${id}`, guest),
-    remove: (id) => api.delete(`/guests/${id}`),
     listByInvitation: (invitationId) => api.get(`/v1/invitations/${invitationId}/guests`).then(unwrap),
     getByInvitation: (invitationId, guestId) => api.get(`/v1/invitations/${invitationId}/guests/${guestId}`).then(unwrap),
     createForInvitation: (invitationId, guest) => api.post(`/v1/invitations/${invitationId}/guests`, guest).then(unwrap),

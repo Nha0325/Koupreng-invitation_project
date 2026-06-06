@@ -10,6 +10,7 @@ import java.time.LocalTime;
 public class InvitationRequest {
 
     private Long templateId;
+    private Long organizationId;
 
     @NotBlank(message = "Invitation title is required")
     private String title;
@@ -48,6 +49,14 @@ public class InvitationRequest {
 
     public void setTemplateId(Long templateId) {
         this.templateId = templateId;
+    }
+
+    public Long getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(Long organizationId) {
+        this.organizationId = organizationId;
     }
 
     public String getTitle() {

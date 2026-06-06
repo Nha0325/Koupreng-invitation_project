@@ -9,6 +9,8 @@ const TITLES = {
     "/admin/invitations": "គ្រប់គ្រងធៀបការ",
     "/admin/notifications": "គ្រប់គ្រងការជូនដំណឹង",
     "/admin/reports": "របាយការណ៍",
+    "/admin/payments": "គ្រប់គ្រងការទូទាត់",
+    "/admin/packages": "គ្រប់គ្រងកញ្ចប់សេវាកម្ម",
     "/admin/system-logs": "System audit logs",
 };
 

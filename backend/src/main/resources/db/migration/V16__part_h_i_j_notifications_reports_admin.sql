@@ -51,34 +51,6 @@ CREATE INDEX idx_notifications_created_at ON notifications (created_at);
 ALTER TABLE invitations
     ADD COLUMN moderation_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE' AFTER status;
 
-ALTER TABLE guests
-    ADD COLUMN seat_count INT NULL AFTER table_number,
-    ADD COLUMN last_sent_at DATETIME(6) NULL AFTER seat_count,
-    ADD COLUMN last_reminder_at DATETIME(6) NULL AFTER last_sent_at,
-    ADD COLUMN reminder_count INT NULL DEFAULT 0 AFTER last_reminder_at,
-    ADD COLUMN last_send_channel VARCHAR(50) NULL AFTER reminder_count,
-    ADD COLUMN last_send_error VARCHAR(1000) NULL AFTER last_send_channel;
-
-UPDATE guests
-SET reminder_count = COALESCE(reminder_count, 0);
-
-CREATE TABLE IF NOT EXISTS invitation_delivery_events (
-    delivery_event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    invitation_id BIGINT NOT NULL,
-    guest_id BIGINT NOT NULL,
-    event_type VARCHAR(50) NOT NULL,
-    channel VARCHAR(50) NULL,
-    status VARCHAR(50) NULL,
-    error_message VARCHAR(1000) NULL,
-    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-    CONSTRAINT fk_delivery_events_invitation FOREIGN KEY (invitation_id) REFERENCES invitations(invitation_id) ON DELETE CASCADE,
-    CONSTRAINT fk_delivery_events_guest FOREIGN KEY (guest_id) REFERENCES guests(guest_id) ON DELETE CASCADE,
-    INDEX idx_delivery_events_invitation_id (invitation_id),
-    INDEX idx_delivery_events_guest_id (guest_id),
-    INDEX idx_delivery_events_event_type (event_type),
-    INDEX idx_delivery_events_created_at (created_at)
-);
-
 CREATE TABLE IF NOT EXISTS system_audit_logs (
     log_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     actor_user_id BIGINT NULL,

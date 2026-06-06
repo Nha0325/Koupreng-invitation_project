@@ -159,6 +159,7 @@ public class ProductionSecurityValidator implements ApplicationRunner {
         String databaseUrl = nullToEmpty(environment.getProperty("spring.datasource.url"));
         String ddlAuto = nullToEmpty(environment.getProperty("spring.jpa.hibernate.ddl-auto", "none"))
                 .toLowerCase(Locale.ROOT);
+        boolean flywayEnabled = environment.getProperty("spring.flyway.enabled", Boolean.class, true);
 
         if (databaseUrl.isBlank()) {
             failures.add("DB_URL must be configured in production");
@@ -168,6 +169,9 @@ public class ProductionSecurityValidator implements ApplicationRunner {
 
         if (!Set.of("none", "validate").contains(ddlAuto)) {
             failures.add("JPA_DDL_AUTO must be none or validate in production");
+        }
+        if (!flywayEnabled) {
+            failures.add("FLYWAY_ENABLED must be true in production");
         }
     }
 

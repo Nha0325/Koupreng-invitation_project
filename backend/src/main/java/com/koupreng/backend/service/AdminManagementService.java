@@ -607,6 +607,21 @@ public class AdminManagementService {
         template.setCategory(requestBody.getCategory());
         template.setThumbnailUrl(trimToNull(requestBody.getThumbnailUrl()));
         template.setPreviewUrl(trimToNull(requestBody.getPreviewUrl()));
+        if (requestBody.getCode() != null) {
+            template.setCode(trimToNull(requestBody.getCode()));
+        }
+        if (requestBody.getDescription() != null) {
+            template.setDescription(trimToNull(requestBody.getDescription()));
+        }
+        if (requestBody.getPrice() != null) {
+            template.setPrice(requestBody.getPrice());
+        }
+        if (requestBody.getCurrency() != null) {
+            template.setCurrency(trimToNull(requestBody.getCurrency()));
+        }
+        if (requestBody.getSortOrder() != null) {
+            template.setSortOrder(requestBody.getSortOrder());
+        }
         if (requestBody.getPremium() != null) {
             template.setPremium(requestBody.getPremium());
         }

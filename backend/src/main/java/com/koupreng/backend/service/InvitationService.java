@@ -18,11 +18,14 @@ import com.koupreng.backend.entity.invitation.GuestSeatAssignment;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.invitation.Rsvp;
+import com.koupreng.backend.entity.organization.Organization;
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
+import com.koupreng.backend.repository.OrganizationMemberRepository;
+import com.koupreng.backend.repository.OrganizationRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
 import com.koupreng.backend.repository.GuestRepository;
@@ -60,6 +63,8 @@ public class InvitationService {
     private final MediaFileRepository mediaFileRepository;
     private final AuditLogService auditLogService;
     private final AppProperties appProperties;
+    private final OrganizationRepository organizationRepository;
+    private final OrganizationMemberRepository organizationMemberRepository;
 
     @Autowired
     public InvitationService(
@@ -73,7 +78,9 @@ public class InvitationService {
             RsvpRepository rsvpRepository,
             MediaFileRepository mediaFileRepository,
             AuditLogService auditLogService,
-            AppProperties appProperties
+            AppProperties appProperties,
+            OrganizationRepository organizationRepository,
+            OrganizationMemberRepository organizationMemberRepository
     ) {
         this.invitationRepository = invitationRepository;
         this.templateRepository = templateRepository;
@@ -86,6 +93,26 @@ public class InvitationService {
         this.mediaFileRepository = mediaFileRepository;
         this.auditLogService = auditLogService;
         this.appProperties = appProperties;
+        this.organizationRepository = organizationRepository;
+        this.organizationMemberRepository = organizationMemberRepository;
+    }
+
+    public InvitationService(
+            UserInvitationRepository invitationRepository,
+            InvitationTemplateRepository templateRepository,
+            UserTemplateAccessRepository templateAccessRepository,
+            GuestRepository guestRepository,
+            GuestSeatAssignmentRepository seatAssignmentRepository,
+            CurrentUserService currentUserService,
+            PasswordEncoder passwordEncoder,
+            RsvpRepository rsvpRepository,
+            MediaFileRepository mediaFileRepository,
+            AuditLogService auditLogService,
+            AppProperties appProperties
+    ) {
+        this(invitationRepository, templateRepository, templateAccessRepository, guestRepository,
+                seatAssignmentRepository, currentUserService, passwordEncoder, rsvpRepository,
+                mediaFileRepository, auditLogService, appProperties, null, null);
     }
 
     public InvitationService(
@@ -382,6 +409,7 @@ public class InvitationService {
     private void applyRequest(UserInvitation invitation, InvitationRequest request, AppUser user) {
         invitation.setTitle(trimToNull(request.getTitle()));
         invitation.setTemplate(resolveTemplate(request.getTemplateId(), user));
+        invitation.setOrganization(resolveOrganization(request.getOrganizationId(), user));
         invitation.setEventType(request.getEventType());
         invitation.setEventDate(request.getEventDate());
         invitation.setEventTime(request.getEventTime());
@@ -426,6 +454,23 @@ public class InvitationService {
             throw new ApiException(HttpStatus.FORBIDDEN, "Premium template access is required");
         }
         return template;
+    }
+
+    private Organization resolveOrganization(Long organizationId, AppUser user) {
+        if (organizationId == null) {
+            return null;
+        }
+        if (organizationRepository == null || organizationMemberRepository == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Organization support is not available");
+        }
+        Organization organization = organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Organization not found"));
+        boolean owner = organization.getOwner() != null && organization.getOwner().getId().equals(user.getId());
+        boolean member = organizationMemberRepository.existsByOrganizationIdAndUserId(organizationId, user.getId());
+        if (!owner && !member) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Organization access is required");
+        }
+        return organization;
     }
 
     private InvitationVisibility parseVisibility(String value) {

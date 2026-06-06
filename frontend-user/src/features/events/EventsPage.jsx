@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getTemplateById } from "../templates/data/templatesData";
-import { listDrafts, deleteDraft } from "../../services/weddingStorage";
+import { invitationService } from "../../shared/services/invitationService";
 import "./EventsPage.css";
 
 function getTitle(draft) {
@@ -112,7 +112,7 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                         Edit
                     </button>
                     <Link
-                        to={`/event/${draft.id}`}
+                        to={draft.backendInvitationId ? `/dashboard/invitations/${draft.backendInvitationId}/preview` : `/event/${draft.id}`}
                         className="event-card-preview-btn"
                         onClick={(event) => event.stopPropagation()}
                     >
@@ -126,21 +126,79 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
 
 export default function EventsPage() {
     const navigate = useNavigate();
-    const [drafts, setDrafts] = useState(listDrafts());
+    const [drafts, setDrafts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let active = true;
+        invitationService.listMine()
+            .then((items) => {
+                if (active) {
+                    setDrafts((items || []).map((invitation) => ({
+                        id: `inv-${invitation.id}`,
+                        backendInvitationId: invitation.id,
+                        templateId: invitation.templateId || "royal",
+                        title: invitation.title,
+                        slug: invitation.slug,
+                        status: invitation.status,
+                        publishedAt: invitation.status === "PUBLISHED" ? invitation.publishedAt || Date.now() : null,
+                        couple: {
+                            groom: invitation.groomName,
+                            bride: invitation.brideName,
+                        },
+                        event: {
+                            date: invitation.eventDate,
+                            receptionTime: invitation.eventTime,
+                            venueName: invitation.venueName,
+                            venueAddress: invitation.venueAddress,
+                        },
+                    })));
+                    setError("");
+                }
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load invitations");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoading(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleSee = (draft) => {
+        if (draft.backendInvitationId) {
+            navigate(`/dashboard/invitations/${draft.backendInvitationId}/preview`);
+            return;
+        }
         navigate(`/event/${draft.id}`);
     };
 
     const handleManage = (draft) => {
+        if (draft.backendInvitationId) {
+            navigate(`/dashboard/invitations/${draft.backendInvitationId}`);
+            return;
+        }
         navigate(`/event/${draft.id}/manage`, { state: { backTo: "/events" } });
     };
 
-    const handleDelete = (draft) => {
+    const handleDelete = async (draft) => {
         const confirmed = window.confirm(`តើអ្នកពិតជាចង់លុប "${getTitle(draft)}" មែនទេ?`);
         if (!confirmed) return;
-        deleteDraft(draft.id);
-        setDrafts(listDrafts());
+        try {
+            if (draft.backendInvitationId) {
+                await invitationService.remove(draft.backendInvitationId);
+            }
+            setDrafts((current) => current.filter((item) => item.id !== draft.id));
+        } catch (err) {
+            setError(err.message || "Could not delete invitation");
+        }
     };
 
     return (
@@ -149,18 +207,23 @@ export default function EventsPage() {
                 <div>
                     <span>Koupreng invitations</span>
                     <h1>កម្មវិធីសន្លឹកការរបស់អ្នក</h1>
-                    <p>ទិន្នន័យនេះអានពី wedding draft storage ដូចគ្នានឹង dashboard និង builder។</p>
+                    <p>ទិន្នន័យនេះអានពី backend invitations ដូចគ្នានឹង dashboard និង guest/budget managers។</p>
                 </div>
                 <Link to="/create/wedding" className="events-create-btn">
                     + បង្កើតកម្មវិធី
                 </Link>
             </header>
 
-            {drafts.length === 0 ? (
+            {error && <section className="events-empty"><p>{error}</p></section>}
+            {loading ? (
+                <section className="events-empty">
+                    <p>Loading invitations...</p>
+                </section>
+            ) : drafts.length === 0 ? (
                 <section className="events-empty">
                     <div className="events-empty-icon">គូព្រេង</div>
                     <h2>មិនទាន់មានកម្មវិធី</h2>
-                    <p>ចាប់ផ្តើមបង្កើតកម្មវិធីដំបូង ហើយរក្សាទុកក្នុង wedding draft storage។</p>
+                    <p>ចាប់ផ្តើមបង្កើតកម្មវិធីដំបូង ហើយរក្សាទុកក្នុង backend invitations។</p>
                     <Link to="/create/wedding" className="events-create-btn">
                         + បង្កើតកម្មវិធី
                     </Link>

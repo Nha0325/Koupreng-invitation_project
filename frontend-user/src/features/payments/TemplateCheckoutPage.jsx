@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getTemplateById, TEMPLATES } from "../templates/data/templatesData";
 import { paymentService } from "./paymentService";
 import "./PaymentPages.css";
-
-const ABA_STATIC_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
+import templateService from "../templates/templateService";
+import { mergeBackendTemplate } from "../templates/templateCatalogAdapter";
 
 function numericTemplateId(templateId) {
     const parsed = Number(templateId);
@@ -17,13 +17,41 @@ function numericTemplateId(templateId) {
 
 export default function TemplateCheckoutPage() {
     const { templateId } = useParams();
-    const template = getTemplateById(templateId);
+    const [remoteTemplate, setRemoteTemplate] = useState(null);
+    const fallbackTemplate = getTemplateById(templateId);
+
+    useEffect(() => {
+        let mounted = true;
+        const numericId = Number(templateId);
+        const request = Number.isInteger(numericId) && numericId > 0
+            ? templateService.getPublic(numericId)
+            : templateService.getPublicBySlug(templateId);
+        request
+            .then((template) => {
+                if (mounted) {
+                    setRemoteTemplate(template || null);
+                }
+            })
+            .catch(() => {
+                if (mounted) {
+                    setRemoteTemplate(null);
+                }
+            });
+        return () => {
+            mounted = false;
+        };
+    }, [templateId]);
+
+    const template = useMemo(
+        () => remoteTemplate ? mergeBackendTemplate(remoteTemplate, fallbackTemplate.id) : fallbackTemplate,
+        [fallbackTemplate, remoteTemplate]
+    );
     const checkout = useMemo(() => ({
-        templateId: numericTemplateId(templateId),
+        templateId: template?.backendId || numericTemplateId(templateId),
         templateName: template?.name || "Khmer Wedding Gold",
         packageName: "Premium",
-        amount: "0.01",
-        currency: "USD",
+        amount: String(template?.price ?? "0.01"),
+        currency: template?.currency || "USD",
     }), [template, templateId]);
     const [lastOrder, setLastOrder] = useState(null);
     const [creating, setCreating] = useState(false);
@@ -37,12 +65,9 @@ export default function TemplateCheckoutPage() {
         try {
             const response = await paymentService.createStaticPaymentOrder(checkout);
             if (!response?.paymentLink) {
-                console.warn(
-                    "Static ABA payment response did not include paymentLink; using configured fallback link.",
-                    { orderCode: response?.orderCode }
-                );
+                throw new Error("Payment link was not returned by the backend");
             }
-            const paymentLink = response?.paymentLink || ABA_STATIC_LINK;
+            const paymentLink = response.paymentLink;
 
             const orderSnapshot = {
                 orderCode: response?.orderCode,

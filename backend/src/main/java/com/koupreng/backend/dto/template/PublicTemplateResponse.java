@@ -1,5 +1,6 @@
-package com.koupreng.backend.dto.admin;
+package com.koupreng.backend.dto.template;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.TemplateCategory;
 import lombok.AllArgsConstructor;
@@ -8,45 +9,41 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminTemplateResponse {
+public class PublicTemplateResponse {
 
     private Long id;
-    private String name;
     private String code;
+    private String slug;
+    private String name;
     private TemplateCategory category;
     private String description;
     private String thumbnailUrl;
     private String previewUrl;
+    @JsonProperty("isPremium")
+    private boolean premium;
     private BigDecimal price;
     private String currency;
-    private boolean premium;
     private String status;
-    private Integer sortOrder;
-    private Instant createdAt;
-    private Instant updatedAt;
 
-    public static AdminTemplateResponse from(InvitationTemplate template) {
-        return AdminTemplateResponse.builder()
+    public static PublicTemplateResponse from(InvitationTemplate template) {
+        return PublicTemplateResponse.builder()
                 .id(template.getId())
-                .name(template.getName())
                 .code(template.getCode())
+                .slug(template.getCode())
+                .name(template.getName())
                 .category(template.getCategory())
                 .description(template.getDescription())
                 .thumbnailUrl(template.getThumbnailUrl())
                 .previewUrl(template.getPreviewUrl())
+                .premium(template.isPremium())
                 .price(template.getPrice())
                 .currency(template.getCurrency())
-                .premium(template.isPremium())
                 .status(template.getStatus())
-                .sortOrder(template.getSortOrder())
-                .createdAt(template.getCreatedAt())
-                .updatedAt(template.getUpdatedAt())
                 .build();
     }
 }

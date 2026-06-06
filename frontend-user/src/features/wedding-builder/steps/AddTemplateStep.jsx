@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AddTemplateStep.css";
 import { getTemplateById, isTemplatePremium } from "../../templates/data/templatesData";
 import { VARIANT_ROUTE_ALIASES } from "../../templates/template-experience/templateExperienceThemes";
+import templateService from "../../templates/templateService";
+import { getTemplateRouteId, isBackendPremium, mergeBackendTemplate } from "../../templates/templateCatalogAdapter";
 
 /**
  * Event type template categories with free/paid templates
@@ -126,6 +128,9 @@ const VIEW_TEMPLATE_ID = {
 };
 
 function getViewTemplateId(template) {
+    if (template.viewId) {
+        return template.viewId;
+    }
     return VIEW_TEMPLATE_ID[template.id] || "classic";
 }
 
@@ -135,6 +140,9 @@ function getViewTemplateId(template) {
  * Falls back to the card's own placeholder image when no real cover exists.
  */
 function getCardImage(template) {
+    if (template.backendId && template.image) {
+        return template.image;
+    }
     const viewId = getViewTemplateId(template);
     const realId = VARIANT_ROUTE_ALIASES[viewId] || viewId;
     const tpl = getTemplateById(realId);
@@ -144,7 +152,7 @@ function getCardImage(template) {
 function TemplateCard({ template, onSelect, onView }) {
     const category = getCategoryInfo(template.eventType);
     const cardImage = getCardImage(template);
-    const isPaid = isTemplatePremium(getViewTemplateId(template)) || template.image === null;
+    const isPaid = template.isPaid ?? (isTemplatePremium(getViewTemplateId(template)) || template.image === null);
 
     return (
         <div className="at-card">
@@ -212,11 +220,31 @@ function EyeIcon() {
 export default function AddTemplateStep() {
     const navigate = useNavigate();
     const [selectedTemplates, setSelectedTemplates] = useState(["W01"]);
+    const [backendTemplates, setBackendTemplates] = useState([]);
+
+    useEffect(() => {
+        let mounted = true;
+        templateService.listPublic()
+            .then((templates) => {
+                if (!mounted) {
+                    return;
+                }
+                setBackendTemplates(Array.isArray(templates) ? templates : []);
+            })
+            .catch(() => {
+                if (mounted) {
+                    setBackendTemplates([]);
+                }
+            });
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const handleSelect = (template) => {
         const viewId = getViewTemplateId(template);
         // Paid templates must be purchased before use.
-        if (isTemplatePremium(viewId)) {
+        if (template.isPaid || isTemplatePremium(viewId)) {
             navigate(`/templates/${viewId}/checkout`);
             return;
         }
@@ -224,7 +252,8 @@ export default function AddTemplateStep() {
             current.includes(template.id) ? current : [...current, template.id]
         );
         // Start the wedding builder with the chosen template.
-        navigate(`/create/wedding?template=${viewId}`);
+        const builderTemplateId = template.localTemplateId || viewId;
+        navigate(`/create/wedding?template=${encodeURIComponent(builderTemplateId)}${template.backendId ? `&templateId=${encodeURIComponent(template.backendId)}` : ""}`);
     };
 
     const handleView = (template) => {
@@ -233,12 +262,32 @@ export default function AddTemplateStep() {
         navigate(`/templates/browse/${getViewTemplateId(template)}`);
     };
 
-    const freeTemplates = FREE_TEMPLATES.map((t) => ({
+    const backendCards = backendTemplates.map((template) => {
+        const merged = mergeBackendTemplate(template);
+        const routeId = getTemplateRouteId(merged);
+        return {
+            id: routeId,
+            backendId: merged.backendId,
+            localTemplateId: merged.localTemplateId,
+            eventType: "wedding",
+            name: merged.name,
+            code: merged.code,
+            image: merged.thumbnailUrl || merged.image,
+            added: selectedTemplates.includes(routeId),
+            isPaid: isBackendPremium(merged),
+            viewId: routeId,
+        };
+    });
+
+    const freeSource = backendCards.length ? backendCards.filter((template) => !template.isPaid) : FREE_TEMPLATES;
+    const paidSource = backendCards.length ? backendCards.filter((template) => template.isPaid) : PAID_TEMPLATES;
+
+    const freeTemplates = freeSource.map((t) => ({
         ...t,
         added: selectedTemplates.includes(t.id),
     }));
 
-    const paidTemplates = PAID_TEMPLATES.map((t) => ({
+    const paidTemplates = paidSource.map((t) => ({
         ...t,
         added: selectedTemplates.includes(t.id),
     }));

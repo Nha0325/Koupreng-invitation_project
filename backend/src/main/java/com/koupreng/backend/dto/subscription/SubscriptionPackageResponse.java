@@ -26,6 +26,7 @@ public class SubscriptionPackageResponse {
     private Integer maxGuests;
     private Integer maxGuestsPerInvitation;
     private Integer maxTeamMembers;
+    private String featuresJson;
     private boolean premiumTemplatesEnabled;
     private boolean qrInvitationsEnabled;
     private boolean qrCheckInEnabled;
@@ -34,6 +35,9 @@ public class SubscriptionPackageResponse {
     private boolean customBrandingEnabled;
     private boolean teamMembersEnabled;
     private boolean aiAssistantEnabled;
+    private boolean active;
+    private String status;
+    private Integer sortOrder;
 
     public static SubscriptionPackageResponse from(SubscriptionPackage plan) {
         return SubscriptionPackageResponse.builder()
@@ -49,6 +53,7 @@ public class SubscriptionPackageResponse {
                 .maxGuests(plan.getMaxGuests())
                 .maxGuestsPerInvitation(plan.getMaxGuestsPerInvitation())
                 .maxTeamMembers(plan.getMaxTeamMembers())
+                .featuresJson(plan.getFeaturesJson())
                 .premiumTemplatesEnabled(plan.isPremiumTemplatesEnabled())
                 .qrInvitationsEnabled(plan.isQrInvitationsEnabled())
                 .qrCheckInEnabled(plan.isQrCheckInEnabled())
@@ -57,6 +62,9 @@ public class SubscriptionPackageResponse {
                 .customBrandingEnabled(plan.isCustomBrandingEnabled())
                 .teamMembersEnabled(plan.isTeamMembersEnabled())
                 .aiAssistantEnabled(plan.isAiAssistantEnabled())
+                .active(plan.isActive())
+                .status(plan.getStatus())
+                .sortOrder(plan.getSortOrder())
                 .build();
     }
 }

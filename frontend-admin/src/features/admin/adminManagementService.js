@@ -31,6 +31,15 @@ export const adminManagementService = {
 
   report: (name) => api.get(`/v1/admin/reports/${name}`).then(unwrap),
   systemLogs: () => api.get("/v1/admin/system-logs").then(unwrap),
+
+  payments: () => api.get("/v1/admin/payments").then(unwrap),
+  payment: (orderCode) => api.get(`/v1/admin/payments/${encodeURIComponent(orderCode)}`).then(unwrap),
+
+  packages: () => api.get("/v1/admin/packages").then(unwrap),
+  createPackage: (payload) => api.post("/v1/admin/packages", payload).then(unwrap),
+  updatePackage: (packageId, payload) => api.put(`/v1/admin/packages/${packageId}`, payload).then(unwrap),
+  activatePackage: (packageId) => api.patch(`/v1/admin/packages/${packageId}/activate`, {}).then(unwrap),
+  deactivatePackage: (packageId) => api.patch(`/v1/admin/packages/${packageId}/deactivate`, {}).then(unwrap),
 };
 
 export default adminManagementService;
