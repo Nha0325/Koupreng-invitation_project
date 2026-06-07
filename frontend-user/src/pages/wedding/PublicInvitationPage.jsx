@@ -50,8 +50,8 @@ export default function PublicInvitationPage() {
         setMedia(null);
 
         Promise.all([
-            invitationService.publicBySlug(slug),
-            mediaService.publicBySlug(slug).catch(() => null),
+            invitationService.publicBySlug(slug, inviteToken),
+            mediaService.publicBySlug(slug, inviteToken).catch(() => null),
         ])
             .then(([invitationData, mediaData]) => {
                 if (active) {
@@ -74,7 +74,7 @@ export default function PublicInvitationPage() {
         return () => {
             active = false;
         };
-    }, [slug]);
+    }, [slug, inviteToken]);
 
     useEffect(() => {
         if (!slug) {

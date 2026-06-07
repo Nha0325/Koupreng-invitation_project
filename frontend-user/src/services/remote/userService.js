@@ -13,6 +13,10 @@ export const userService = {
         formData.append("file", file);
         return api.post("/users/me/profile-image", formData);
     },
+
+    /** POST /users/me/change-password — change account password */
+    changePassword: (currentPassword, newPassword) =>
+        api.post("/users/me/change-password", { currentPassword, newPassword }),
 };
 
 export default userService;

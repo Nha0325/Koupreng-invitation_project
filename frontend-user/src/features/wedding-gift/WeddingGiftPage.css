@@ -55,11 +55,21 @@
 }
 
 .wg-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: 0 0 8px;
     color: #2a1f10;
     font-size: 32px;
     font-weight: 800;
     line-height: 1.2;
+}
+
+.wg-title svg {
+    width: 30px;
+    height: 30px;
+    color: #B0926A;
+    flex-shrink: 0;
 }
 
 .wg-subtitle {
@@ -96,6 +106,14 @@
 
 .wg-add-btn:active {
     transform: translateY(0);
+}
+
+.wg-add-btn svg,
+.wg-secondary-btn svg,
+.wg-action-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 
 /* ─── Summary stats ─── */
@@ -192,10 +210,20 @@
 }
 
 .wg-form-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0 0 20px;
     font-size: 16px;
     font-weight: 700;
     color: #2a1f10;
+}
+
+.wg-form-title svg {
+    width: 18px;
+    height: 18px;
+    color: #B0926A;
+    flex-shrink: 0;
 }
 
 .wg-form-grid {
@@ -288,11 +316,21 @@
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 14px;
     pointer-events: none;
+    color: #B0926A;
 }
 
-.wg-search input {
+.wg-search-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.wg-search input,
+.wg-search select {
     width: 100%;
     padding: 12px 14px 12px 42px;
     border: 1.5px solid #eadfce;
@@ -306,9 +344,17 @@
     box-sizing: border-box;
 }
 
-.wg-search input:focus {
+.wg-search input:focus,
+.wg-search select:focus {
     border-color: #B0926A;
     box-shadow: 0 0 0 3px rgba(176, 146, 106, 0.12);
+}
+
+.wg-add-btn:disabled,
+.wg-action-btn:disabled,
+.wg-search select:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .wg-filters {
@@ -452,11 +498,17 @@
 .wg-method-badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     padding: 5px 12px;
     border-radius: 50px;
     font-size: 11px;
     font-weight: 700;
+}
+
+.wg-method-badge svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .wg-card-note {
@@ -478,6 +530,10 @@
 }
 
 .wg-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
     flex: 1;
     padding: 8px 12px;
     background: #f5efe5;
@@ -514,9 +570,24 @@
 }
 
 .wg-empty-icon {
-    font-size: 56px;
-    margin-bottom: 12px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    color: #B0926A;
     opacity: 0.5;
+}
+
+.wg-empty-icon svg {
+    width: 48px;
+    height: 48px;
+}
+
+.wg-sum-icon svg {
+    width: 24px;
+    height: 24px;
 }
 
 .wg-empty h3 {
@@ -549,6 +620,11 @@
         font-size: 24px;
     }
 
+    .wg-title svg {
+        width: 24px;
+        height: 24px;
+    }
+
     .wg-add-btn {
         width: 100%;
         justify-content: center;
@@ -567,6 +643,11 @@
         width: 38px;
         height: 38px;
         font-size: 18px;
+    }
+
+    .wg-sum-icon svg {
+        width: 20px;
+        height: 20px;
     }
 
     .wg-sum-value {
@@ -663,6 +744,14 @@
 .wg-muted {
     color: #888;
     font-size: 12.5px;
+}
+
+.wg-muted svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    vertical-align: -2px;
+    color: #B0926A;
 }
 
 .wg-note-cell {

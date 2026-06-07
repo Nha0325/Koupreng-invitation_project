@@ -12,6 +12,7 @@ import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
+import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,6 +34,7 @@ public class InvitationService {
 
     private final UserInvitationRepository invitationRepository;
     private final InvitationTemplateRepository templateRepository;
+    private final GuestRepository guestRepository;
     private final UserTemplateAccessRepository templateAccessRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
@@ -40,12 +42,14 @@ public class InvitationService {
     public InvitationService(
             UserInvitationRepository invitationRepository,
             InvitationTemplateRepository templateRepository,
+            GuestRepository guestRepository,
             UserTemplateAccessRepository templateAccessRepository,
             CurrentUserService currentUserService,
             PasswordEncoder passwordEncoder
     ) {
         this.invitationRepository = invitationRepository;
         this.templateRepository = templateRepository;
+        this.guestRepository = guestRepository;
         this.templateAccessRepository = templateAccessRepository;
         this.currentUserService = currentUserService;
         this.passwordEncoder = passwordEncoder;
@@ -140,17 +144,22 @@ public class InvitationService {
 
     @Transactional(readOnly = true)
     public PublicInvitationResponse publicBySlug(String slug) {
+        return publicBySlug(slug, null);
+    }
+
+    @Transactional(readOnly = true)
+    public PublicInvitationResponse publicBySlug(String slug, String inviteToken) {
+        return PublicInvitationResponse.from(requirePublicInvitationForView(slug, inviteToken));
+    }
+
+    @Transactional(readOnly = true)
+    public UserInvitation requirePublicInvitationForView(String slug, String inviteToken) {
         UserInvitation invitation = invitationRepository
                 .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
 
-        if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
-        }
-        if (invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
-        }
-        return PublicInvitationResponse.from(invitation);
+        validatePublicViewAccess(invitation, inviteToken);
+        return invitation;
     }
 
     @Transactional(readOnly = true)
@@ -281,6 +290,23 @@ public class InvitationService {
         if (trimToNull(value) == null) {
             missing.add(field);
         }
+    }
+
+    private void validatePublicViewAccess(UserInvitation invitation, String inviteToken) {
+        if (invitation.getVisibility() == InvitationVisibility.PUBLIC || hasGuestAccess(invitation, inviteToken)) {
+            return;
+        }
+        if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
+        }
+        if (invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
+        }
+    }
+
+    private boolean hasGuestAccess(UserInvitation invitation, String inviteToken) {
+        String token = trimToNull(inviteToken);
+        return token != null && guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), token).isPresent();
     }
 
     private void ensureSlug(UserInvitation invitation) {

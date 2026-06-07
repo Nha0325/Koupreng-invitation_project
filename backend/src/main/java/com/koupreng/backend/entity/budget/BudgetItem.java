@@ -3,6 +3,7 @@ package com.koupreng.backend.entity.budget;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @Entity
@@ -28,6 +29,12 @@ public class BudgetItem {
 
     @Column(name = "actual_cost", precision = 12, scale = 2)
     private BigDecimal actualCost;
+
+    @Column(name = "expense_date")
+    private LocalDate expenseDate;
+
+    @Column(length = 50)
+    private String status;
 
     @Column(name = "vendor_name")
     private String vendorName;

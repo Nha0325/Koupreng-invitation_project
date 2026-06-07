@@ -38,6 +38,7 @@ public class AuthService {
     private final AppProperties appProperties;
     private final GoogleIdentityVerifier googleIdentityVerifier;
     private final TelegramIdentityVerifier telegramIdentityVerifier;
+    private final MessageService msg;
 
     public AuthService(
             AppUserRepository userRepository,
@@ -45,7 +46,8 @@ public class AuthService {
             JwtEncoder jwtEncoder,
             AppProperties appProperties,
             GoogleIdentityVerifier googleIdentityVerifier,
-            TelegramIdentityVerifier telegramIdentityVerifier
+            TelegramIdentityVerifier telegramIdentityVerifier,
+            MessageService msg
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -53,6 +55,7 @@ public class AuthService {
         this.appProperties = appProperties;
         this.googleIdentityVerifier = googleIdentityVerifier;
         this.telegramIdentityVerifier = telegramIdentityVerifier;
+        this.msg = msg;
     }
 
     @Transactional
@@ -62,13 +65,13 @@ public class AuthService {
         String phone = normalizePhone(request.phone());
 
         if (email == null && phone == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Phone or email is required");
+            throw new ApiException(HttpStatus.BAD_REQUEST, msg.get("auth.phone-or-email-required"));
         }
         if (email != null && userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ApiException(HttpStatus.CONFLICT, "Email is already registered");
+            throw new ApiException(HttpStatus.CONFLICT, msg.get("auth.email-taken"));
         }
         if (phone != null && userRepository.existsByPhone(phone)) {
-            throw new ApiException(HttpStatus.CONFLICT, "Phone number is already registered");
+            throw new ApiException(HttpStatus.CONFLICT, msg.get("auth.phone-taken"));
         }
 
         AppUser user = new AppUser();
@@ -85,14 +88,14 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         AppUser user = findByIdentifier(request.identifier())
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+                .orElseThrow(() -> new BadCredentialsException(msg.get("auth.invalid-credentials")));
 
         if (!user.isActive()) {
-            throw new BadCredentialsException("Account is disabled");
+            throw new BadCredentialsException(msg.get("auth.account-disabled"));
         }
         if (user.getPasswordHash() == null
                 || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new BadCredentialsException("Invalid credentials");
+            throw new BadCredentialsException(msg.get("auth.invalid-credentials"));
         }
 
         return issueToken(user);

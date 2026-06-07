@@ -25,7 +25,9 @@ export const invitationService = {
     publish: (id) => api.patch(`/v1/invitations/${id}/publish`).then(unwrap),
     unpublish: (id) => api.patch(`/v1/invitations/${id}/unpublish`).then(unwrap),
     preview: (id) => api.get(`/v1/invitations/${id}/preview`).then(unwrap),
-    publicBySlug: (slug) => api.get(`/v1/public/invitations/${encodeURIComponent(slug)}`, { auth: false }).then(unwrap),
+    publicBySlug: (slug, token) => api
+        .get(`/v1/public/invitations/${encodeURIComponent(slug)}${toQuery({ token })}`, { auth: false })
+        .then(unwrap),
 };
 
 export default invitationService;

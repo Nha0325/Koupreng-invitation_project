@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import QRCode from "react-qr-code";
+import { QRCode } from "react-qr-code";
 import {
   IoAdd,
   IoCheckmark,
@@ -24,6 +24,7 @@ import {
   listManualGuests,
   saveManualGuests,
 } from "../../services/hostPlanningStorage";
+import { invitationService } from "../../shared/services/invitationService";
 import "./GuestsPage.css";
 
 const DEFAULT_GROUPS = [
@@ -150,11 +151,27 @@ function initials(name) {
   );
 }
 
-function guestInviteUrl(draft, guest) {
+function guestInviteUrl(draft, guest, publicInvitation) {
   const base = typeof window === "undefined" ? "" : window.location.origin;
-  const slug = draft?.slug || draft?.id || "invitation";
-  const token = guest.inviteToken || guest.id;
-  return `${base}/i/${slug}?i=${token}`;
+  const slug = publicInvitation?.slug || draft?.slug || draft?.id || "invitation";
+  const token = guest?.inviteToken;
+  const query = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `${base}/i/${encodeURIComponent(slug)}${query}`;
+}
+
+function pickPublicInvitation(invitations, draft) {
+  const published = (invitations || []).filter(
+    (invitation) => invitation?.status === "PUBLISHED" && invitation?.slug,
+  );
+
+  if (!published.length) return null;
+
+  const draftId = draft?.backendInvitationId || draft?.invitationId || draft?.id;
+  return (
+    published.find((invitation) => String(invitation.id) === String(draftId)) ||
+    published.find((invitation) => invitation.slug === draft?.slug) ||
+    published[0]
+  );
 }
 
 async function copyText(text) {
@@ -469,6 +486,26 @@ export default function GuestsList() {
   const [menuGuestId, setMenuGuestId] = useState(null);
   const [qrGuest, setQrGuest] = useState(null);
   const [toast, setToast] = useState("");
+  const [publicInvitation, setPublicInvitation] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    invitationService
+      .listMine("PUBLISHED")
+      .then((items) => {
+        if (active) {
+          setPublicInvitation(pickPublicInvitation(items, currentDraft));
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setPublicInvitation(null);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [currentDraft]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -584,8 +621,8 @@ export default function GuestsList() {
     const nextGuest = toManualGuest(form, editingId);
     const nextGuests = editingId
       ? manualGuests.map((guest) =>
-          guest.id === editingId ? nextGuest : guest,
-        )
+        guest.id === editingId ? nextGuest : guest,
+      )
       : [nextGuest, ...manualGuests];
 
     persistManualGuests(nextGuests);
@@ -685,7 +722,7 @@ export default function GuestsList() {
   };
 
   const copyInvite = async (guest) => {
-    await copyText(guestInviteUrl(currentDraft, guest));
+    await copyText(guestInviteUrl(currentDraft, guest, publicInvitation));
     setToast("បានចម្លងតំណភ្ជាប់");
   };
 
@@ -695,7 +732,7 @@ export default function GuestsList() {
     );
     if (!selectedGuests.length) return;
     const links = selectedGuests
-      .map((guest) => `${guest.name}: ${guestInviteUrl(currentDraft, guest)}`)
+      .map((guest) => `${guest.name}: ${guestInviteUrl(currentDraft, guest, publicInvitation)}`)
       .join("\n");
     await copyText(links);
     setToast("បានចម្លងតំណភ្ជាប់ដែលបានជ្រើស");
@@ -819,7 +856,7 @@ export default function GuestsList() {
               </thead>
               <tbody>
                 {filtered.map((guest) => {
-                  const inviteUrl = guestInviteUrl(currentDraft, guest);
+                  const inviteUrl = guestInviteUrl(currentDraft, guest, publicInvitation);
                   return (
                     <tr key={guest.id}>
                       <td className="pe-check-col">
@@ -1133,7 +1170,7 @@ export default function GuestsList() {
             <div className="pe-qr-card">
               <div className="pe-qr-code">
                 <QRCode
-                  value={guestInviteUrl(currentDraft, qrGuest)}
+                  value={guestInviteUrl(currentDraft, qrGuest, publicInvitation)}
                   size={174}
                   level="M"
                 />

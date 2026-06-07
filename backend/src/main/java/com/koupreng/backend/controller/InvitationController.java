@@ -145,10 +145,13 @@ public class InvitationController {
     }
 
     @GetMapping("/public/invitations/{slug}")
-    public ResponseEntity<ApiResponse<PublicInvitationResponse>> publicInvitation(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<PublicInvitationResponse>> publicInvitation(
+            @PathVariable String slug,
+            @RequestParam(required = false) String token
+    ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Invitation fetched successfully",
-                invitationService.publicBySlug(slug)
+                invitationService.publicBySlug(slug, token)
         ));
     }
 }

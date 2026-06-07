@@ -1,31 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    createHostRecordId,
-    listBudgetExpenses,
-    saveBudgetExpenses,
-} from "../../services/hostPlanningStorage";
+    IoAddOutline,
+    IoCalendarClearOutline,
+    IoCarOutline,
+    IoCashOutline,
+    IoCheckmarkCircleOutline,
+    IoCloseOutline,
+    IoColorPaletteOutline,
+    IoCreateOutline,
+    IoCubeOutline,
+    IoFastFoodOutline,
+    IoMapOutline,
+    IoSaveOutline,
+    IoSearchOutline,
+    IoShirtOutline,
+    IoStatsChartOutline,
+    IoTimeOutline,
+    IoTrashOutline,
+    IoWalletOutline,
+    IoWarningOutline,
+} from "react-icons/io5";
+import { Link } from "react-router-dom";
+import { invitationService } from "../../shared/services/invitationService";
+import { planningService } from "../../shared/services/planningService";
 import { DatePicker } from "../../shared/ui/DatePicker";
 import "./ExpensesPage.css";
 
 const categories = ["ទាំងអស់", "អាហារ", "តុបតែង", "ឈុតខ្លួន", "ការដឹកជញ្ជូន", "ផ្សេងៗ"];
 
 const CATEGORY_STYLES = {
-    "អាហារ": { bg: "#fff7ed", color: "#c2410c", icon: "🍽️" },
-    "តុបតែង": { bg: "#fdf4ff", color: "#a21caf", icon: "🌸" },
-    "ឈុតខ្លួន": { bg: "#eff6ff", color: "#1d4ed8", icon: "👗" },
-    "ការដឹកជញ្ជូន": { bg: "#ecfeff", color: "#0e7490", icon: "🚗" },
-    "ផ្សេងៗ": { bg: "#f5f3ff", color: "#6d28d9", icon: "📦" },
+    "អាហារ": { bg: "#fff7ed", color: "#c2410c", Icon: IoFastFoodOutline },
+    "តុបតែង": { bg: "#fdf4ff", color: "#a21caf", Icon: IoColorPaletteOutline },
+    "ឈុតខ្លួន": { bg: "#eff6ff", color: "#1d4ed8", Icon: IoShirtOutline },
+    "ការដឹកជញ្ជូន": { bg: "#ecfeff", color: "#0e7490", Icon: IoCarOutline },
+    "ផ្សេងៗ": { bg: "#f5f3ff", color: "#6d28d9", Icon: IoCubeOutline },
 };
-
-const defaultExpenses = [
-    { id: 1, name: "ម្ហូបអាហារ", category: "អាហារ", amount: 3500, budget: 4000, date: "2026-01-10", status: "paid" },
-    { id: 2, name: "តុបតែងផ្កា", category: "តុបតែង", amount: 1200, budget: 1500, date: "2026-01-12", status: "paid" },
-    { id: 3, name: "ឈុតស្វាមីភរិយា", category: "ឈុតខ្លួន", amount: 800, budget: 1000, date: "2026-01-15", status: "pending" },
-    { id: 4, name: "រថយន្តដឹកភ្ញៀវ", category: "ការដឹកជញ្ជូន", amount: 600, budget: 600, date: "2026-01-18", status: "paid" },
-    { id: 5, name: "ថតរូប & វីដេអូ", category: "ផ្សេងៗ", amount: 1500, budget: 2000, date: "2026-01-20", status: "pending" },
-    { id: 6, name: "តន្ត្រី & MC", category: "ផ្សេងៗ", amount: 900, budget: 1000, date: "2026-01-22", status: "paid" },
-    { id: 7, name: "ការ៉ូ & ស្ករ", category: "អាហារ", amount: 450, budget: 500, date: "2026-01-25", status: "paid" },
-];
 
 const emptyExpenseForm = {
     name: "",
@@ -36,16 +45,26 @@ const emptyExpenseForm = {
     status: "pending",
 };
 
-function toExpense(form, existingId) {
+function toExpensePayload(form) {
     return {
-        id: existingId || createHostRecordId("expense"),
         name: form.name.trim(),
         category: form.category,
         budget: Math.max(0, Number(form.budget) || 0),
         amount: Math.max(0, Number(form.amount) || 0),
         date: form.date || new Date().toISOString().slice(0, 10),
         status: form.status,
-        updatedAt: Date.now(),
+    };
+}
+
+function normalizeExpense(expense) {
+    return {
+        id: expense.id,
+        name: expense.name || "",
+        category: expense.category || "ផ្សេងៗ",
+        budget: Number(expense.budget) || 0,
+        amount: Number(expense.amount) || 0,
+        date: expense.date || "",
+        status: expense.status || "pending",
     };
 }
 
@@ -62,10 +81,72 @@ function formatDate(dateStr) {
 function ExpensesList() {
     const [catFilter, setCat] = useState("ទាំងអស់");
     const [searchQuery, setSearchQuery] = useState("");
-    const [expenses, setExpenses] = useState(() => listBudgetExpenses(defaultExpenses));
+    const [invitations, setInvitations] = useState([]);
+    const [selectedInvitationId, setSelectedInvitationId] = useState("");
+    const [expenses, setExpenses] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyExpenseForm);
+    const [loadingInvitations, setLoadingInvitations] = useState(true);
+    const [loadingExpenses, setLoadingExpenses] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let active = true;
+        setLoadingInvitations(true);
+        invitationService.listMine()
+            .then((items) => {
+                if (!active) return;
+                const nextInvitations = items || [];
+                setInvitations(nextInvitations);
+                setSelectedInvitationId((current) => current || (nextInvitations[0]?.id ? String(nextInvitations[0].id) : ""));
+                setError("");
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load invitations");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoadingInvitations(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!selectedInvitationId) {
+            setExpenses([]);
+            return undefined;
+        }
+
+        let active = true;
+        setLoadingExpenses(true);
+        planningService.listBudgetItems(selectedInvitationId)
+            .then((items) => {
+                if (active) {
+                    setExpenses((items || []).map(normalizeExpense));
+                    setError("");
+                }
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load budget items");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoadingExpenses(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, [selectedInvitationId]);
 
     const filtered = expenses.filter((expense) => {
         const matchesCat = catFilter === "ទាំងអស់" || expense.category === catFilter;
@@ -77,6 +158,7 @@ function ExpensesList() {
     const totalBudget = expenses.reduce((sum, expense) => sum + (Number(expense.budget) || 0), 0);
     const remaining = totalBudget - totalSpent;
     const pct = totalBudget ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0;
+    const RemainingIcon = remaining >= 0 ? IoWalletOutline : IoWarningOutline;
 
     const updateForm = (field, value) => {
         setForm((current) => ({ ...current, [field]: value }));
@@ -88,18 +170,27 @@ function ExpensesList() {
         setShowForm(false);
     };
 
-    const submitExpense = (event) => {
+    const submitExpense = async (event) => {
         event.preventDefault();
-        if (!form.name.trim()) return;
+        if (!form.name.trim() || !selectedInvitationId) return;
 
-        const nextExpense = toExpense(form, editingId);
-        const nextExpenses = editingId
-            ? expenses.map((expense) => (expense.id === editingId ? nextExpense : expense))
-            : [nextExpense, ...expenses];
-
-        setExpenses(nextExpenses);
-        saveBudgetExpenses(nextExpenses);
-        resetForm();
+        setSaving(true);
+        setError("");
+        try {
+            const payload = toExpensePayload(form);
+            const saved = editingId
+                ? await planningService.updateBudgetItem(selectedInvitationId, editingId, payload)
+                : await planningService.createBudgetItem(selectedInvitationId, payload);
+            const nextExpense = normalizeExpense(saved);
+            setExpenses((current) => editingId
+                ? current.map((expense) => (expense.id === editingId ? nextExpense : expense))
+                : [nextExpense, ...current]);
+            resetForm();
+        } catch (err) {
+            setError(err.message || "Could not save budget item");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const editExpense = (expense) => {
@@ -115,11 +206,19 @@ function ExpensesList() {
         setShowForm(true);
     };
 
-    const deleteExpense = (expenseId) => {
+    const deleteExpense = async (expenseId) => {
         if (!window.confirm("តើអ្នកពិតជាចង់លុបការចំណាយនេះមែនទេ?")) return;
-        const nextExpenses = expenses.filter((expense) => expense.id !== expenseId);
-        setExpenses(nextExpenses);
-        saveBudgetExpenses(nextExpenses);
+        if (!selectedInvitationId) return;
+        setSaving(true);
+        setError("");
+        try {
+            await planningService.removeBudgetItem(selectedInvitationId, expenseId);
+            setExpenses((current) => current.filter((expense) => expense.id !== expenseId));
+        } catch (err) {
+            setError(err.message || "Could not delete budget item");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -128,40 +227,91 @@ function ExpensesList() {
             <div className="ep-hero">
                 <div className="ep-hero-content">
                     <span className="ep-hero-tag">Budget Planning</span>
-                    <h1 className="ep-title">💰 គម្រោងថវិកា</h1>
+                    <h1 className="ep-title">
+                        <IoCashOutline aria-hidden="true" />
+                        គម្រោងថវិកា
+                    </h1>
                     <p className="ep-subtitle">បន្ថែម និងតាមដានការចំណាយរបស់ព្រឹត្តិការណ៍</p>
                 </div>
                 <button
                     type="button"
                     className="ep-add-btn"
+                    disabled={!selectedInvitationId || saving}
                     onClick={() => {
                         setShowForm((value) => !value);
                         setEditingId(null);
                         setForm(emptyExpenseForm);
                     }}
                 >
-                    {showForm ? "✕ បិទ" : "+ បន្ថែមការចំណាយ"}
+                    {showForm ? (
+                        <>
+                            <IoCloseOutline aria-hidden="true" />
+                            បិទ
+                        </>
+                    ) : (
+                        <>
+                            <IoAddOutline aria-hidden="true" />
+                            បន្ថែមការចំណាយ
+                        </>
+                    )}
                 </button>
             </div>
 
+            <div className="ep-toolbar">
+                <div className="ep-search">
+                    <span className="ep-search-icon"><IoMapOutline aria-hidden="true" /></span>
+                    <select
+                        value={selectedInvitationId}
+                        onChange={(event) => {
+                            setSelectedInvitationId(event.target.value);
+                            resetForm();
+                        }}
+                        disabled={loadingInvitations || invitations.length === 0}
+                    >
+                        {invitations.length === 0 ? (
+                            <option value="">មិនមានសន្លឹកការនៅ Database</option>
+                        ) : (
+                            invitations.map((invitation) => (
+                                <option key={invitation.id} value={invitation.id}>
+                                    {invitation.title || `Invitation #${invitation.id}`}
+                                </option>
+                            ))
+                        )}
+                    </select>
+                </div>
+            </div>
+
+            {error && <div className="ep-empty">{error}</div>}
+
+            {!loadingInvitations && invitations.length === 0 && (
+                <div className="ep-empty">
+                    <div className="ep-empty-icon"><IoCashOutline aria-hidden="true" /></div>
+                    <h3>មិនទាន់មានសន្លឹកការពី Database</h3>
+                    <p>បង្កើតសន្លឹកការជាមុន ដើម្បីរក្សាទុកគម្រោងថវិកាទៅ Database។</p>
+                    <Link to="/dashboard/invitations/new" className="ep-add-btn">
+                        បង្កើតសន្លឹកការ
+                    </Link>
+                </div>
+            )}
+
             {/* Stats summary */}
-            <div className="ep-summary">
+            {selectedInvitationId && <div className="ep-summary">
                 <div className="ep-sum-card ep-sum-total">
-                    <div className="ep-sum-icon">💵</div>
+                    <div className="ep-sum-icon"><IoWalletOutline aria-hidden="true" /></div>
                     <div>
                         <span className="ep-sum-label">ថវិកាសរុប</span>
                         <span className="ep-sum-value">${totalBudget.toLocaleString()}</span>
                     </div>
                 </div>
                 <div className="ep-sum-card">
-                    <div className="ep-sum-icon">💸</div>
+                    <div className="ep-sum-icon"><IoCashOutline aria-hidden="true" /></div>
                     <div>
                         <span className="ep-sum-label">បានចំណាយ</span>
                         <span className="ep-sum-value">${totalSpent.toLocaleString()}</span>
                     </div>
                 </div>
                 <div className="ep-sum-card">
-                    <div className="ep-sum-icon">{remaining >= 0 ? "💰" : "⚠️"}</div>
+                    <div className="ep-sum-icon"><RemainingIcon aria-hidden="true" /></div>
                     <div>
                         <span className="ep-sum-label">នៅសល់</span>
                         <span className={`ep-sum-value ${remaining < 0 ? "ep-over" : ""}`}>
@@ -170,16 +320,16 @@ function ExpensesList() {
                     </div>
                 </div>
                 <div className="ep-sum-card">
-                    <div className="ep-sum-icon">📊</div>
+                    <div className="ep-sum-icon"><IoStatsChartOutline aria-hidden="true" /></div>
                     <div>
                         <span className="ep-sum-label">ភាគរយ</span>
                         <span className="ep-sum-value">{pct}%</span>
                     </div>
                 </div>
-            </div>
+            </div>}
 
             {/* Progress bar */}
-            <div className="ep-progress-card">
+            {selectedInvitationId && <div className="ep-progress-card">
                 <div className="ep-progress-header">
                     <span>បានប្រើ {pct}% នៃថវិកាសរុប</span>
                     <span>${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}</span>
@@ -190,13 +340,23 @@ function ExpensesList() {
                         style={{ width: `${Math.min(100, pct)}%` }}
                     />
                 </div>
-            </div>
+            </div>}
 
             {/* Form */}
-            {showForm && (
+            {showForm && selectedInvitationId && (
                 <form className="ep-form" onSubmit={submitExpense}>
                     <h3 className="ep-form-title">
-                        {editingId ? "✏️ កែប្រែការចំណាយ" : "➕ បន្ថែមការចំណាយថ្មី"}
+                        {editingId ? (
+                            <>
+                                <IoCreateOutline aria-hidden="true" />
+                                កែប្រែការចំណាយ
+                            </>
+                        ) : (
+                            <>
+                                <IoAddOutline aria-hidden="true" />
+                                បន្ថែមការចំណាយថ្មី
+                            </>
+                        )}
                     </h3>
                     <div className="ep-form-grid">
                         <label>
@@ -257,17 +417,27 @@ function ExpensesList() {
                         <button type="button" className="ep-secondary-btn" onClick={resetForm}>
                             បោះបង់
                         </button>
-                        <button type="submit" className="ep-add-btn">
-                            {editingId ? "💾 រក្សាទុក" : "➕ បន្ថែម"}
+                        <button type="submit" className="ep-add-btn" disabled={saving}>
+                            {saving ? "កំពុងរក្សាទុក..." : editingId ? (
+                                <>
+                                    <IoSaveOutline aria-hidden="true" />
+                                    រក្សាទុក
+                                </>
+                            ) : (
+                                <>
+                                    <IoAddOutline aria-hidden="true" />
+                                    បន្ថែម
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>
             )}
 
             {/* Toolbar (search + filters) */}
-            <div className="ep-toolbar">
+            {selectedInvitationId && <div className="ep-toolbar">
                 <div className="ep-search">
-                    <span className="ep-search-icon">🔍</span>
+                    <span className="ep-search-icon"><IoSearchOutline aria-hidden="true" /></span>
                     <input
                         type="text"
                         placeholder="ស្វែងរកការចំណាយ..."
@@ -292,16 +462,18 @@ function ExpensesList() {
                         </button>
                     ))}
                 </div>
-            </div>
+            </div>}
 
             {/* Table */}
-            {filtered.length === 0 ? (
+            {loadingExpenses ? (
+                <div className="ep-empty">កំពុងទាញទិន្នន័យពី Database...</div>
+            ) : selectedInvitationId && filtered.length === 0 ? (
                 <div className="ep-empty">
-                    <div className="ep-empty-icon">💰</div>
+                    <div className="ep-empty-icon"><IoCashOutline aria-hidden="true" /></div>
                     <h3>មិនមានការចំណាយ</h3>
-                    <p>មិនទាន់មានការចំណាយណាមួយត្រូវនឹងលក្ខខណ្ឌស្វែងរកទេ</p>
+                    <p>មិនទាន់មានទិន្នន័យនៅក្នុង Database សម្រាប់សន្លឹកការនេះទេ។</p>
                 </div>
-            ) : (
+            ) : selectedInvitationId ? (
                 <div className="ep-table-wrap">
                     <table className="ep-table">
                         <thead>
@@ -318,6 +490,7 @@ function ExpensesList() {
                         <tbody>
                             {filtered.map((expense) => {
                                 const catStyle = CATEGORY_STYLES[expense.category] || CATEGORY_STYLES["ផ្សេងៗ"];
+                                const CategoryIcon = catStyle.Icon;
                                 const overBudget = Number(expense.amount) > Number(expense.budget);
                                 return (
                                     <tr key={expense.id}>
@@ -327,10 +500,14 @@ function ExpensesList() {
                                                 className="ep-cat-badge"
                                                 style={{ background: catStyle.bg, color: catStyle.color }}
                                             >
-                                                {catStyle.icon} {expense.category}
+                                                <CategoryIcon aria-hidden="true" />
+                                                {expense.category}
                                             </span>
                                         </td>
-                                        <td data-label="ថ្ងៃទី" className="ep-muted">📅 {formatDate(expense.date)}</td>
+                                        <td data-label="ថ្ងៃទី" className="ep-muted">
+                                            <IoCalendarClearOutline aria-hidden="true" />
+                                            {formatDate(expense.date)}
+                                        </td>
                                         <td data-label="ថវិកា" className="ep-muted">${expense.budget.toLocaleString()}</td>
                                         <td data-label="ចំណាយពិត">
                                             <span className={`ep-amount${overBudget ? " ep-amount-over" : ""}`}>
@@ -339,7 +516,17 @@ function ExpensesList() {
                                         </td>
                                         <td data-label="ស្ថានភាព">
                                             <span className={`ep-status ${expense.status === "paid" ? "ep-paid" : "ep-pending"}`}>
-                                                {expense.status === "paid" ? "✓ បានបង់" : "⏳ រង់ចាំ"}
+                                                {expense.status === "paid" ? (
+                                                    <>
+                                                        <IoCheckmarkCircleOutline aria-hidden="true" />
+                                                        បានបង់
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <IoTimeOutline aria-hidden="true" />
+                                                        រង់ចាំ
+                                                    </>
+                                                )}
                                             </span>
                                         </td>
                                         <td data-label="សកម្មភាព">
@@ -349,14 +536,17 @@ function ExpensesList() {
                                                     className="ep-action-btn"
                                                     onClick={() => editExpense(expense)}
                                                 >
-                                                    ✏️ កែ
+                                                    <IoCreateOutline aria-hidden="true" />
+                                                    កែ
                                                 </button>
                                                 <button
                                                     type="button"
                                                     className="ep-action-btn ep-danger-btn"
+                                                    disabled={saving}
                                                     onClick={() => deleteExpense(expense.id)}
                                                 >
-                                                    🗑️ លុប
+                                                    <IoTrashOutline aria-hidden="true" />
+                                                    លុប
                                                 </button>
                                             </div>
                                         </td>
@@ -366,7 +556,7 @@ function ExpensesList() {
                         </tbody>
                     </table>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 }

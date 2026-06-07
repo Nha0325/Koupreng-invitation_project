@@ -1,27 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-    createHostRecordId,
-    listWeddingGifts,
-    saveWeddingGifts,
-} from "../../services/hostPlanningStorage";
+    IoAddOutline,
+    IoCalendarClearOutline,
+    IoCardOutline,
+    IoCashOutline,
+    IoCloseOutline,
+    IoCreateOutline,
+    IoGiftOutline,
+    IoMapOutline,
+    IoPeopleOutline,
+    IoPhonePortraitOutline,
+    IoSaveOutline,
+    IoSearchOutline,
+    IoStarOutline,
+    IoStatsChartOutline,
+    IoTrashOutline,
+    IoWalletOutline,
+} from "react-icons/io5";
+import { Link } from "react-router-dom";
+import { invitationService } from "../../shared/services/invitationService";
+import { planningService } from "../../shared/services/planningService";
 import { DatePicker } from "../../shared/ui/DatePicker";
 import "./WeddingGiftPage.css";
-
-const defaultGifts = [
-    { id: 1, name: "ចន្ទ្រា សុខ", amount: 150, method: "Bakong QR", date: "2026-01-10", note: "សូមអបអរ!" },
-    { id: 2, name: "លក្ខណ៍ ធារា", amount: 200, method: "សាច់ប្រាក់", date: "2026-01-12", note: "" },
-    { id: 3, name: "ស្រីពៅ ចាន់", amount: 80, method: "Bakong QR", date: "2026-01-15", note: "រីករាយ!" },
-    { id: 4, name: "ស្រីណា ចាន់", amount: 120, method: "ABA", date: "2026-01-18", note: "" },
-    { id: 5, name: "ភក្ត្រ ស្រីមុំ", amount: 60, method: "Bakong QR", date: "2026-01-20", note: "ជូនពរ!" },
-    { id: 6, name: "វិចិត្រ ដារ៉ា", amount: 100, method: "ABA", date: "2026-01-22", note: "" },
-];
 
 const methods = ["ទាំងអស់", "Bakong QR", "ABA", "សាច់ប្រាក់"];
 
 const METHOD_STYLES = {
-    "Bakong QR": { bg: "#e0f2fe", color: "#0369a1", icon: "📱" },
-    "ABA": { bg: "#fef3c7", color: "#b45309", icon: "💳" },
-    "សាច់ប្រាក់": { bg: "#dcfce7", color: "#15803d", icon: "💵" },
+    "Bakong QR": { bg: "#e0f2fe", color: "#0369a1", Icon: IoPhonePortraitOutline },
+    "ABA": { bg: "#fef3c7", color: "#b45309", Icon: IoCardOutline },
+    "សាច់ប្រាក់": { bg: "#dcfce7", color: "#15803d", Icon: IoCashOutline },
 };
 
 const emptyGiftForm = {
@@ -32,15 +39,24 @@ const emptyGiftForm = {
     note: "",
 };
 
-function toGift(form, existingId) {
+function toGiftPayload(form) {
     return {
-        id: existingId || createHostRecordId("gift"),
         name: form.name.trim(),
         amount: Math.max(0, Number(form.amount) || 0),
         method: form.method,
         date: form.date || new Date().toISOString().slice(0, 10),
         note: form.note.trim(),
-        updatedAt: Date.now(),
+    };
+}
+
+function normalizeGift(gift) {
+    return {
+        id: gift.id,
+        name: gift.name || "",
+        amount: Number(gift.amount) || 0,
+        method: gift.method || "Bakong QR",
+        date: gift.date || "",
+        note: gift.note || "",
     };
 }
 
@@ -57,10 +73,72 @@ function formatDate(dateStr) {
 function WeddingGiftList() {
     const [methodFilter, setMethod] = useState("ទាំងអស់");
     const [searchQuery, setSearchQuery] = useState("");
-    const [gifts, setGifts] = useState(() => listWeddingGifts(defaultGifts));
+    const [invitations, setInvitations] = useState([]);
+    const [selectedInvitationId, setSelectedInvitationId] = useState("");
+    const [gifts, setGifts] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyGiftForm);
+    const [loadingInvitations, setLoadingInvitations] = useState(true);
+    const [loadingGifts, setLoadingGifts] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let active = true;
+        setLoadingInvitations(true);
+        invitationService.listMine()
+            .then((items) => {
+                if (!active) return;
+                const nextInvitations = items || [];
+                setInvitations(nextInvitations);
+                setSelectedInvitationId((current) => current || (nextInvitations[0]?.id ? String(nextInvitations[0].id) : ""));
+                setError("");
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load invitations");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoadingInvitations(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!selectedInvitationId) {
+            setGifts([]);
+            return undefined;
+        }
+
+        let active = true;
+        setLoadingGifts(true);
+        planningService.listGifts(selectedInvitationId)
+            .then((items) => {
+                if (active) {
+                    setGifts((items || []).map(normalizeGift));
+                    setError("");
+                }
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load wedding gifts");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoadingGifts(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, [selectedInvitationId]);
 
     const filtered = gifts.filter((gift) => {
         const matchesMethod = methodFilter === "ទាំងអស់" || gift.method === methodFilter;
@@ -82,18 +160,27 @@ function WeddingGiftList() {
         setShowForm(false);
     };
 
-    const submitGift = (event) => {
+    const submitGift = async (event) => {
         event.preventDefault();
-        if (!form.name.trim()) return;
+        if (!form.name.trim() || !selectedInvitationId) return;
 
-        const nextGift = toGift(form, editingId);
-        const nextGifts = editingId
-            ? gifts.map((gift) => (gift.id === editingId ? nextGift : gift))
-            : [nextGift, ...gifts];
-
-        setGifts(nextGifts);
-        saveWeddingGifts(nextGifts);
-        resetForm();
+        setSaving(true);
+        setError("");
+        try {
+            const payload = toGiftPayload(form);
+            const saved = editingId
+                ? await planningService.updateGift(selectedInvitationId, editingId, payload)
+                : await planningService.createGift(selectedInvitationId, payload);
+            const nextGift = normalizeGift(saved);
+            setGifts((current) => editingId
+                ? current.map((gift) => (gift.id === editingId ? nextGift : gift))
+                : [nextGift, ...current]);
+            resetForm();
+        } catch (err) {
+            setError(err.message || "Could not save wedding gift");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const editGift = (gift) => {
@@ -108,11 +195,19 @@ function WeddingGiftList() {
         setShowForm(true);
     };
 
-    const deleteGift = (giftId) => {
+    const deleteGift = async (giftId) => {
         if (!window.confirm("តើអ្នកពិតជាចង់លុបចងដៃនេះមែនទេ?")) return;
-        const nextGifts = gifts.filter((gift) => gift.id !== giftId);
-        setGifts(nextGifts);
-        saveWeddingGifts(nextGifts);
+        if (!selectedInvitationId) return;
+        setSaving(true);
+        setError("");
+        try {
+            await planningService.removeGift(selectedInvitationId, giftId);
+            setGifts((current) => current.filter((gift) => gift.id !== giftId));
+        } catch (err) {
+            setError(err.message || "Could not delete wedding gift");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -121,59 +216,120 @@ function WeddingGiftList() {
             <div className="wg-hero">
                 <div className="wg-hero-content">
                     <span className="wg-hero-tag">Wedding Gifts</span>
-                    <h1 className="wg-title">🎁 ចងដៃមង្គល</h1>
+                    <h1 className="wg-title">
+                        <IoGiftOutline aria-hidden="true" />
+                        ចងដៃមង្គល
+                    </h1>
                     <p className="wg-subtitle">តាមដាន និងគ្រប់គ្រងចងដៃមង្គលរបស់អ្នកមួយកន្លែង</p>
                 </div>
                 <button
                     type="button"
                     className="wg-add-btn"
+                    disabled={!selectedInvitationId || saving}
                     onClick={() => {
                         setShowForm((value) => !value);
                         setEditingId(null);
                         setForm(emptyGiftForm);
                     }}
                 >
-                    {showForm ? "✕ បិទ" : "+ បន្ថែមចងដៃថ្មី"}
+                    {showForm ? (
+                        <>
+                            <IoCloseOutline aria-hidden="true" />
+                            បិទ
+                        </>
+                    ) : (
+                        <>
+                            <IoAddOutline aria-hidden="true" />
+                            បន្ថែមចងដៃថ្មី
+                        </>
+                    )}
                 </button>
             </div>
 
+            <div className="wg-toolbar">
+                <div className="wg-search">
+                    <span className="wg-search-icon"><IoMapOutline aria-hidden="true" /></span>
+                    <select
+                        value={selectedInvitationId}
+                        onChange={(event) => {
+                            setSelectedInvitationId(event.target.value);
+                            resetForm();
+                        }}
+                        disabled={loadingInvitations || invitations.length === 0}
+                    >
+                        {invitations.length === 0 ? (
+                            <option value="">មិនមានសន្លឹកការនៅ Database</option>
+                        ) : (
+                            invitations.map((invitation) => (
+                                <option key={invitation.id} value={invitation.id}>
+                                    {invitation.title || `Invitation #${invitation.id}`}
+                                </option>
+                            ))
+                        )}
+                    </select>
+                </div>
+            </div>
+
+            {error && <div className="wg-empty">{error}</div>}
+
+            {!loadingInvitations && invitations.length === 0 && (
+                <div className="wg-empty">
+                    <div className="wg-empty-icon"><IoGiftOutline aria-hidden="true" /></div>
+                    <h3>មិនទាន់មានសន្លឹកការពី Database</h3>
+                    <p>បង្កើតសន្លឹកការជាមុន ដើម្បីរក្សាទុកចងដៃមង្គលទៅ Database។</p>
+                    <Link to="/dashboard/invitations/new" className="wg-add-btn">
+                        បង្កើតសន្លឹកការ
+                    </Link>
+                </div>
+            )}
+
             {/* Stats summary */}
-            <div className="wg-summary">
+            {selectedInvitationId && <div className="wg-summary">
                 <div className="wg-sum-card wg-sum-total">
-                    <div className="wg-sum-icon">💰</div>
+                    <div className="wg-sum-icon"><IoWalletOutline aria-hidden="true" /></div>
                     <div>
                         <span className="wg-sum-label">ចងដៃសរុប</span>
                         <span className="wg-sum-value">${total.toLocaleString()}</span>
                     </div>
                 </div>
                 <div className="wg-sum-card">
-                    <div className="wg-sum-icon">👥</div>
+                    <div className="wg-sum-icon"><IoPeopleOutline aria-hidden="true" /></div>
                     <div>
                         <span className="wg-sum-label">អ្នកផ្ញើ</span>
                         <span className="wg-sum-value">{gifts.length} នាក់</span>
                     </div>
                 </div>
                 <div className="wg-sum-card">
-                    <div className="wg-sum-icon">📊</div>
+                    <div className="wg-sum-icon"><IoStatsChartOutline aria-hidden="true" /></div>
                     <div>
                         <span className="wg-sum-label">មធ្យមភាគ</span>
                         <span className="wg-sum-value">${average}</span>
                     </div>
                 </div>
                 <div className="wg-sum-card">
-                    <div className="wg-sum-icon">⭐</div>
+                    <div className="wg-sum-icon"><IoStarOutline aria-hidden="true" /></div>
                     <div>
                         <span className="wg-sum-label">ច្រើនបំផុត</span>
                         <span className="wg-sum-value">${maxGift}</span>
                     </div>
                 </div>
-            </div>
+            </div>}
 
             {/* Form (shown when adding/editing) */}
-            {showForm && (
+            {showForm && selectedInvitationId && (
                 <form className="wg-form" onSubmit={submitGift}>
                     <h3 className="wg-form-title">
-                        {editingId ? "✏️ កែប្រែចងដៃ" : "➕ បន្ថែមចងដៃថ្មី"}
+                        {editingId ? (
+                            <>
+                                <IoCreateOutline aria-hidden="true" />
+                                កែប្រែចងដៃ
+                            </>
+                        ) : (
+                            <>
+                                <IoAddOutline aria-hidden="true" />
+                                បន្ថែមចងដៃថ្មី
+                            </>
+                        )}
                     </h3>
                     <div className="wg-form-grid">
                         <label>
@@ -226,17 +382,27 @@ function WeddingGiftList() {
                         <button type="button" className="wg-secondary-btn" onClick={resetForm}>
                             បោះបង់
                         </button>
-                        <button type="submit" className="wg-add-btn">
-                            {editingId ? "💾 រក្សាទុក" : "➕ បន្ថែម"}
+                        <button type="submit" className="wg-add-btn" disabled={saving}>
+                            {saving ? "កំពុងរក្សាទុក..." : editingId ? (
+                                <>
+                                    <IoSaveOutline aria-hidden="true" />
+                                    រក្សាទុក
+                                </>
+                            ) : (
+                                <>
+                                    <IoAddOutline aria-hidden="true" />
+                                    បន្ថែម
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>
             )}
 
             {/* Search + filter bar */}
-            <div className="wg-toolbar">
+            {selectedInvitationId && <div className="wg-toolbar">
                 <div className="wg-search">
-                    <span className="wg-search-icon">🔍</span>
+                    <span className="wg-search-icon"><IoSearchOutline aria-hidden="true" /></span>
                     <input
                         type="text"
                         placeholder="ស្វែងរកតាមឈ្មោះ..."
@@ -261,16 +427,18 @@ function WeddingGiftList() {
                         </button>
                     ))}
                 </div>
-            </div>
+            </div>}
 
             {/* Gift table */}
-            {filtered.length === 0 ? (
+            {loadingGifts ? (
+                <div className="wg-empty">កំពុងទាញទិន្នន័យពី Database...</div>
+            ) : selectedInvitationId && filtered.length === 0 ? (
                 <div className="wg-empty">
-                    <div className="wg-empty-icon">🎁</div>
+                    <div className="wg-empty-icon"><IoGiftOutline aria-hidden="true" /></div>
                     <h3>មិនមានចងដៃ</h3>
-                    <p>មិនទាន់មានចងដៃណាមួយត្រូវនឹងលក្ខខណ្ឌស្វែងរកទេ</p>
+                    <p>មិនទាន់មានទិន្នន័យនៅក្នុង Database សម្រាប់សន្លឹកការនេះទេ។</p>
                 </div>
-            ) : (
+            ) : selectedInvitationId ? (
                 <div className="wg-table-wrap">
                     <table className="wg-table">
                         <thead>
@@ -286,6 +454,7 @@ function WeddingGiftList() {
                         <tbody>
                             {filtered.map((gift) => {
                                 const methodStyle = METHOD_STYLES[gift.method] || METHOD_STYLES["Bakong QR"];
+                                const MethodIcon = methodStyle.Icon;
                                 return (
                                     <tr key={gift.id}>
                                         <td data-label="ឈ្មោះ">
@@ -301,10 +470,14 @@ function WeddingGiftList() {
                                                 className="wg-method-badge"
                                                 style={{ background: methodStyle.bg, color: methodStyle.color }}
                                             >
-                                                {methodStyle.icon} {gift.method}
+                                                <MethodIcon aria-hidden="true" />
+                                                {gift.method}
                                             </span>
                                         </td>
-                                        <td data-label="ថ្ងៃទទួល" className="wg-muted">📅 {formatDate(gift.date)}</td>
+                                        <td data-label="ថ្ងៃទទួល" className="wg-muted">
+                                            <IoCalendarClearOutline aria-hidden="true" />
+                                            {formatDate(gift.date)}
+                                        </td>
                                         <td data-label="កំណត់ចំណាំ" className="wg-muted wg-note-cell">
                                             {gift.note || <span className="wg-dash">—</span>}
                                         </td>
@@ -315,14 +488,17 @@ function WeddingGiftList() {
                                                     className="wg-action-btn"
                                                     onClick={() => editGift(gift)}
                                                 >
-                                                    ✏️ កែ
+                                                    <IoCreateOutline aria-hidden="true" />
+                                                    កែ
                                                 </button>
                                                 <button
                                                     type="button"
                                                     className="wg-action-btn wg-danger-btn"
+                                                    disabled={saving}
                                                     onClick={() => deleteGift(gift.id)}
                                                 >
-                                                    🗑️ លុប
+                                                    <IoTrashOutline aria-hidden="true" />
+                                                    លុប
                                                 </button>
                                             </div>
                                         </td>
@@ -332,7 +508,7 @@ function WeddingGiftList() {
                         </tbody>
                     </table>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 }

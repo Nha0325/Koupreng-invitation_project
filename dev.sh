@@ -3,19 +3,23 @@
 # dev.sh — Start everything for Koupreng local development
 #
 # Usage:
-#   ./dev.sh              # start all services
-#   ./dev.sh --no-ngrok   # skip ngrok
-#   ./dev.sh --no-bot     # skip telegram bot
+#   ./dev.sh                # start all services with ngrok (40 req/min limit)
+#   ./dev.sh --cloudflare   # use Cloudflare Tunnel (unlimited, recommended)
+#   ./dev.sh --no-ngrok     # skip public tunnel, localhost only
+#   ./dev.sh --no-bot       # skip telegram bot
 #
 # Services started:
 #   1. Spring Boot backend      → http://localhost:8080
 #   2. frontend-user            → http://localhost:5173
 #   3. frontend-admin           → http://localhost:5174
 #   4. Telegram bot             → http://localhost:8000
-#   5. ngrok (port 5173)        → public HTTPS URL for frontend-user
+#   5. Public tunnel            → HTTPS URL for frontend-user
+#      - ngrok (default)        → 40 requests/minute limit
+#      - cloudflare (--cloudflare) → unlimited, free forever
 #                                  /telegram is proxied to telegram-bot
 #
-# Requires: java, mvn/mvnw, node, npm, python3, ngrok (in PATH)
+# Requires: java, mvn/mvnw, node, npm, python3
+# Optional: ngrok (in PATH) OR cloudflared (in PATH)
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -54,11 +58,13 @@ fi
 
 # ── Parse flags ──────────────────────────────────────────────────────────────
 USE_NGROK=true
+USE_CLOUDFLARE=false
 USE_BOT=true
 for arg in "$@"; do
   case "$arg" in
-    --no-ngrok) USE_NGROK=false ;;
-    --no-bot)   USE_BOT=false   ;;
+    --no-ngrok)    USE_NGROK=false ;;
+    --cloudflare)  USE_CLOUDFLARE=true; USE_NGROK=false ;;
+    --no-bot)      USE_BOT=false   ;;
   esac
 done
 
@@ -200,6 +206,12 @@ if [ "$USE_NGROK" = true ]; then
   free_project_port "$NGROK_API_PORT" "ngrok"
 fi
 
+# Kill any existing cloudflared processes if using Cloudflare
+if [ "$USE_CLOUDFLARE" = true ]; then
+  pkill -f "cloudflared tunnel" 2>/dev/null || true
+  sleep 1
+fi
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Spring Boot backend
 # ─────────────────────────────────────────────────────────────────────────────
@@ -263,13 +275,74 @@ if [ "$USE_BOT" = true ]; then
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. ngrok tunnels
+# 6. ngrok tunnels OR cloudflare tunnel
 # ─────────────────────────────────────────────────────────────────────────────
-if [ "$USE_NGROK" = true ]; then
+PUBLIC_FRONTEND_URL=""
+
+if [ "$USE_CLOUDFLARE" = true ]; then
+  if ! command -v cloudflared &>/dev/null; then
+    err "cloudflared not found in PATH"
+    err "Install: wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && sudo dpkg -i cloudflared-linux-amd64.deb"
+    err "See CLOUDFLARE-TUNNEL-SETUP.md for full setup guide"
+  else
+    log "Starting Cloudflare Tunnel for frontend-user (port $FRONTEND_USER_PORT)..."
+    cloudflared tunnel --url "http://localhost:$FRONTEND_USER_PORT" --no-autoupdate > "$LOG_DIR/cloudflare-tunnel.log" 2>&1 &
+    PIDS+=($!)
+    
+    # Wait for tunnel URL to appear in logs
+    for i in {1..30}; do
+      sleep 1
+      if grep -q "https://" "$LOG_DIR/cloudflare-tunnel.log" 2>/dev/null; then
+        PUBLIC_FRONTEND_URL=$(grep -oP 'https://[a-z0-9-]+\.trycloudflare\.com' "$LOG_DIR/cloudflare-tunnel.log" | head -1)
+        break
+      fi
+    done
+
+    if [ -n "$PUBLIC_FRONTEND_URL" ]; then
+      log "frontend-user public URL: ${YELLOW}$PUBLIC_FRONTEND_URL${NC}"
+      
+      # Update telegram-bot/.env FRONTEND_BASE_URL
+      ENV_FILE="$PROJECT_ROOT/telegram-bot/.env"
+      if [ -f "$ENV_FILE" ]; then
+        sed -i "s|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=$PUBLIC_FRONTEND_URL|" "$ENV_FILE"
+        log "Updated telegram-bot/.env FRONTEND_BASE_URL → $PUBLIC_FRONTEND_URL"
+
+        if [ "$USE_BOT" = true ]; then
+          TELEGRAM_BOT_TOKEN=$(
+            awk -F= '/^TELEGRAM_BOT_TOKEN=/{print substr($0, index($0, "=") + 1); exit}' "$ENV_FILE" \
+              | tr -d '\r'
+          )
+
+          if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
+            WEBHOOK_URL="$PUBLIC_FRONTEND_URL/telegram/webhook"
+            WEBHOOK_RESPONSE=$(
+              curl -sS -G --config - 2>/dev/null <<EOF || true
+url = "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook"
+data-urlencode = "url=$WEBHOOK_URL"
+EOF
+            )
+
+            if printf '%s' "$WEBHOOK_RESPONSE" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin).get("ok") else 1)' 2>/dev/null; then
+              log "Telegram webhook registered: $WEBHOOK_URL"
+              log "Telegram webhook routes through frontend-user to telegram-bot port $TELEGRAM_BOT_PORT"
+            else
+              warn "Telegram webhook registration failed. Check logs/cloudflare-tunnel.log."
+            fi
+          fi
+        fi
+      fi
+    else
+      warn "Could not get Cloudflare Tunnel URL. Check logs/cloudflare-tunnel.log"
+    fi
+  fi
+
+elif [ "$USE_NGROK" = true ]; then
   if ! command -v ngrok &>/dev/null; then
     warn "ngrok not found in PATH — skipping tunnels"
   else
     log "Starting ngrok tunnel for frontend-user (port $FRONTEND_USER_PORT)..."
+    warn "⚠️  Ngrok free tier: 40 requests/minute limit"
+    warn "⚠️  Use --cloudflare flag for unlimited free tunneling"
     ngrok http "$FRONTEND_USER_PORT" --log=stdout > "$LOG_DIR/ngrok-frontend.log" 2>&1 &
     PIDS+=($!)
     sleep 3
@@ -286,6 +359,7 @@ for t in d.get('tunnels', []):
 " 2>/dev/null || echo "")
 
     if [ -n "$NGROK_FRONTEND" ]; then
+      PUBLIC_FRONTEND_URL="$NGROK_FRONTEND"
       log "frontend-user public URL: ${YELLOW}$NGROK_FRONTEND${NC}"
 
       # Update telegram-bot/.env FRONTEND_BASE_URL automatically
@@ -338,8 +412,8 @@ echo -e "  ${CYAN}Frontend    ${NC}→ http://localhost:$FRONTEND_USER_PORT"
 echo -e "  ${CYAN}Admin       ${NC}→ http://localhost:$FRONTEND_ADMIN_PORT"
 [ "$USE_BOT" = true ] && \
 echo -e "  ${CYAN}Telegram bot${NC}→ http://localhost:$TELEGRAM_BOT_PORT"
-[ -n "${NGROK_FRONTEND:-}" ] && \
-echo -e "  ${CYAN}Public URL  ${NC}→ $NGROK_FRONTEND"
+[ -n "$PUBLIC_FRONTEND_URL" ] && \
+echo -e "  ${CYAN}Public URL  ${NC}→ $PUBLIC_FRONTEND_URL"
 [ -n "${WEBHOOK_URL:-}" ] && \
 echo -e "  ${CYAN}Bot webhook ${NC}→ $WEBHOOK_URL → localhost:$TELEGRAM_BOT_PORT"
 echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"

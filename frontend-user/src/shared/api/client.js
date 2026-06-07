@@ -3,6 +3,15 @@ import { getAccessToken, isCookieAuthStorage } from "../services/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
+function getLang() {
+    try {
+        const v = localStorage.getItem("koupreng.lang") || localStorage.getItem("koupreng.locale");
+        return v === "en" ? "en" : "km";
+    } catch {
+        return "km";
+    }
+}
+
 async function request(path, { method = "GET", body, headers = {}, auth = true, credentials, ...rest } = {}) {
     const token = getAccessToken();
     const useCookieAuth = isCookieAuthStorage();
@@ -11,6 +20,7 @@ async function request(path, { method = "GET", body, headers = {}, auth = true, 
         method,
         headers: {
             ...(!isFormData ? { "Content-Type": "application/json" } : {}),
+            "Accept-Language": getLang(),
             ...(!useCookieAuth && auth && token ? { Authorization: `Bearer ${token}` } : {}),
             ...headers,
         },

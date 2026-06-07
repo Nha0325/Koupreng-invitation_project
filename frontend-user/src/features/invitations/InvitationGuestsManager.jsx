@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { QRCode } from "react-qr-code";
+import { IoClose, IoDownloadOutline, IoQrCodeOutline } from "react-icons/io5";
 import { guestService } from "../../shared/services/guestService";
 import { invitationService } from "../../shared/services/invitationService";
 import { rsvpService } from "../../shared/services/rsvpService";
@@ -17,6 +19,20 @@ const emptyGuest = {
     contributionStatus: "",
     totalContributed: "",
 };
+
+function currentOriginUrl(value) {
+    if (!value) return "";
+
+    const origin = typeof window === "undefined" ? "" : window.location.origin;
+    if (!origin) return value;
+
+    try {
+        const url = new URL(value, origin);
+        return `${origin}${url.pathname}${url.search}${url.hash}`;
+    } catch {
+        return value.startsWith("/") ? `${origin}${value}` : value;
+    }
+}
 
 function SummaryCard({ label, value }) {
     return (
@@ -46,6 +62,7 @@ export default function InvitationGuestsManager() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [qrGuest, setQrGuest] = useState(null);
 
     const loadData = useCallback(() => {
         let active = true;
@@ -155,6 +172,62 @@ export default function InvitationGuestsManager() {
         }
     };
 
+    const openQr = (guest) => {
+        const fullUrl = getFullQrUrl(guest);
+        console.log("=== QR CODE DEBUG ===");
+        console.log("Guest data:", guest);
+        console.log("Guest qrCodeUrl:", guest.qrCodeUrl);
+        console.log("Full QR URL:", fullUrl);
+        console.log("===================");
+        setQrGuest(guest);
+    };
+
+    const getFullQrUrl = (guest) => {
+        return currentOriginUrl(guest?.qrCodeUrl);
+    };
+
+    const downloadQr = () => {
+        const svg = document.querySelector(".pe-qr-code svg");
+        if (!svg || !qrGuest) return;
+        const data = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${qrGuest.guestName || "guest"}-qr.svg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast("QR Code បានទាញយក");
+    };
+
+    const copyInvite = async (guest) => {
+        const inviteUrl = getFullQrUrl(guest);
+        if (!inviteUrl) {
+            toast("Invite link not ready");
+            return;
+        }
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(inviteUrl);
+            } else {
+                const field = document.createElement("textarea");
+                field.value = inviteUrl;
+                field.setAttribute("readonly", "");
+                field.style.position = "fixed";
+                field.style.top = "-9999px";
+                document.body.appendChild(field);
+                field.select();
+                document.execCommand("copy");
+                document.body.removeChild(field);
+            }
+            toast("បានចម្លងតំណភ្ជាប់");
+        } catch (err) {
+            toast("Could not copy link");
+        }
+    };
+
     if (loading) {
         return <div className="inv-page"><div className="inv-loading">Loading guests...</div></div>;
     }
@@ -254,7 +327,7 @@ export default function InvitationGuestsManager() {
                                     <th>Contact</th>
                                     <th>Group</th>
                                     <th>Table</th>
-                                    <th>Invite link</th>
+                                    <th>QR</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -270,8 +343,15 @@ export default function InvitationGuestsManager() {
                                         <td>{guest.tableNumber || "None"}</td>
                                         <td>
                                             {guest.qrCodeUrl ? (
-                                                <a href={guest.qrCodeUrl} target="_blank" rel="noreferrer">Open</a>
-                                            ) : "Not ready"}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openQr(guest)}
+                                                    className="inv-icon-btn"
+                                                    title="Show QR Code"
+                                                >
+                                                    <IoQrCodeOutline />
+                                                </button>
+                                            ) : "N/A"}
                                         </td>
                                         <td>
                                             <div className="guest-row-actions">
@@ -287,6 +367,48 @@ export default function InvitationGuestsManager() {
                     </div>
                 </section>
             </section>
+
+            {qrGuest && (
+                <div className="pe-modal-layer">
+                    <section className="pe-qr-modal">
+                        <button
+                            type="button"
+                            className="pe-modal-x"
+                            onClick={() => setQrGuest(null)}
+                            aria-label="Close"
+                        >
+                            <IoClose aria-hidden="true" />
+                        </button>
+                        <h2>QR Code</h2>
+                        <div className="pe-qr-card">
+                            <div className="pe-qr-code">
+                                {qrGuest.qrCodeUrl ? (
+                                    <QRCode
+                                        value={getFullQrUrl(qrGuest)}
+                                        size={174}
+                                        level="M"
+                                    />
+                                ) : (
+                                    <div>QR not available</div>
+                                )}
+                            </div>
+                            <strong>{qrGuest.guestName}</strong>
+                        </div>
+                        <button
+                            type="button"
+                            className="inv-primary-btn"
+                            onClick={downloadQr}
+                            style={{
+                                marginTop: "8px",
+                                minWidth: "200px"
+                            }}
+                        >
+                            <IoDownloadOutline aria-hidden="true" />
+                            ទាញយក QR ផ្ញើរ
+                        </button>
+                    </section>
+                </div>
+            )}
         </div>
     );
 }

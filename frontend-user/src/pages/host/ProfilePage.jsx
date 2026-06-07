@@ -4,14 +4,15 @@ import { useAuthStore } from "../../stores/useAuthStore";
 import { userService } from "../../services/remote/userService";
 
 /**
- * ProfilePage — create or edit user profile.
+ * ProfilePage — create or edit user profile + change password.
  * Maps to `users` table: full_name, email, phone, profile_image, status.
  */
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const login = useAuthStore((s) => s.login);
   const accessToken = useAuthStore((s) => s.accessToken);
 
+  // ── Profile state ──────────────────────────────────────────────────────────
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [profileImage, setProfileImage] = useState("");
@@ -21,6 +22,15 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+
+  // ── Password state ─────────────────────────────────────────────────────────
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwSaved, setPwSaved] = useState(false);
+  const [pwError, setPwError] = useState("");
 
   const hasProfile = Boolean(user?.fullName?.trim() || user?.full_name?.trim());
 
@@ -33,7 +43,6 @@ export default function ProfilePage() {
         setPhone(data.phone || "");
         setProfileImage(data.profileImage || data.profile_image || "");
       } catch {
-        // If API fails, use local user data
         setFullName(user?.fullName || user?.full_name || user?.name || "");
         setPhone(user?.phone || "");
         setProfileImage(user?.profileImage || user?.profile_image || "");
@@ -44,7 +53,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [user]);
 
-  // Handle image file selection
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -62,14 +71,12 @@ export default function ProfilePage() {
     setSaved(false);
 
     try {
-      // Upload image first if selected
       let imageUrl = profileImage;
       if (imageFile) {
         const uploadRes = await userService.uploadProfileImage(imageFile);
         imageUrl = uploadRes.url || uploadRes.profileImage || uploadRes.profile_image || imageUrl;
       }
 
-      // Update profile
       const profileData = {
         fullName: fullName.trim(),
         phone: phone.trim(),
@@ -78,7 +85,6 @@ export default function ProfilePage() {
 
       const updatedUser = await userService.updateProfile(profileData);
 
-      // Update local auth store
       login({
         accessToken,
         user: {
@@ -106,8 +112,41 @@ export default function ProfilePage() {
     }
   };
 
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwError("");
+    setPwSaved(false);
+
+    if (newPassword !== confirmPassword) {
+      setPwError("ពាក្យសម្ងាត់ថ្មីមិនត្រូវគ្នា។ សូមពិនិត្យឡើងវិញ។");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwError("ពាក្យសម្ងាត់ថ្មីត្រូវមានយ៉ាងហោចណាស់ 8 តួអក្សរ។");
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      await userService.changePassword(currentPassword, newPassword);
+      setPwSaved(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      // Backend invalidated old tokens — log out after short delay
+      setTimeout(() => logout(), 2000);
+    } catch (err) {
+      setPwError(err.message || "មានបញ្ហាក្នុងការផ្លាស់ប្តូរពាក្យសម្ងាត់។ សូមព្យាយាមម្តងទៀត។");
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
   const displayImage = imagePreview || profileImage;
-  const displayInitial = fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
+  const displayInitial =
+    fullName?.charAt(0)?.toUpperCase() ||
+    user?.email?.charAt(0)?.toUpperCase() ||
+    "?";
 
   if (loading) {
     return (
@@ -255,10 +294,78 @@ export default function ProfilePage() {
           animation: profileFadeIn 0.3s;
         }
         .profile-msg.success { color: #2e7d32; }
-        .profile-msg.error { color: #c62828; }
+        .profile-msg.error   { color: #c62828; }
+
+        /* ── Password section ───────────────────────────────────────────────── */
+        .profile-section-divider {
+          border: none;
+          border-top: 1px solid rgba(176, 146, 106, 0.2);
+          margin: 36px 0 0;
+        }
+        .profile-pw-toggle {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: none;
+          border: none;
+          padding: 18px 0 0;
+          cursor: pointer;
+          font-family: 'Kantumruy Pro', sans-serif;
+          font-size: 16px;
+          font-weight: 700;
+          color: #333;
+          text-align: left;
+        }
+        .profile-pw-toggle svg {
+          transition: transform 0.25s;
+          flex-shrink: 0;
+        }
+        .profile-pw-toggle.open svg {
+          transform: rotate(180deg);
+        }
+        .profile-pw-section {
+          overflow: hidden;
+          max-height: 0;
+          transition: max-height 0.35s ease, opacity 0.3s ease;
+          opacity: 0;
+        }
+        .profile-pw-section.open {
+          max-height: 600px;
+          opacity: 1;
+        }
+        .profile-pw-hint {
+          font-family: 'Kantumruy Pro', sans-serif;
+          font-size: 13px;
+          color: #888;
+          margin: 6px 0 20px;
+        }
+        .profile-pw-btn {
+          width: 100%;
+          padding: 14px;
+          background: transparent;
+          color: #B0926A;
+          border: 2px solid #B0926A;
+          border-radius: 12px;
+          font-family: 'Kantumruy Pro', sans-serif;
+          font-weight: 700;
+          font-size: 15px;
+          cursor: pointer;
+          transition: 0.2s;
+          margin-top: 4px;
+        }
+        .profile-pw-btn:hover {
+          background: #B0926A;
+          color: #fff;
+        }
+        .profile-pw-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         @keyframes profileFadeIn {
           from { opacity: 0; transform: translateY(-5px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
 
@@ -270,6 +377,7 @@ export default function ProfilePage() {
             : "បំពេញព័ត៌មានផ្ទាល់ខ្លួនដើម្បីចាប់ផ្តើមប្រើប្រាស់"}
         </p>
 
+        {/* ── Avatar ── */}
         <div className="profile-avatar-section">
           <div className="profile-avatar">
             {displayImage ? (
@@ -291,6 +399,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* ── Profile form ── */}
         <form onSubmit={handleSave}>
           <div className="profile-form-group">
             <label>ឈ្មោះពេញ (full_name)</label>
@@ -342,6 +451,84 @@ export default function ProfilePage() {
             <p className="profile-msg error">{error}</p>
           )}
         </form>
+
+        {/* ── Change password ── */}
+        <hr className="profile-section-divider" />
+
+        <button
+          type="button"
+          className={`profile-pw-toggle${showPasswordSection ? " open" : ""}`}
+          onClick={() => setShowPasswordSection((v) => !v)}
+          aria-expanded={showPasswordSection}
+        >
+          <span>🔒 ផ្លាស់ប្តូរពាក្យសម្ងាត់</span>
+          {/* chevron */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B0926A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        <div className={`profile-pw-section${showPasswordSection ? " open" : ""}`}>
+          <p className="profile-pw-hint">
+            បន្ទាប់ពីផ្លាស់ប្តូរជោគជ័យ អ្នកនឹងត្រូវចូលក្នុងគណនីម្តងទៀត។
+          </p>
+
+          <form onSubmit={handleChangePassword}>
+            <div className="profile-form-group">
+              <label>ពាក្យសម្ងាត់បច្ចុប្បន្ន</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+              />
+            </div>
+
+            <div className="profile-form-group">
+              <label>ពាក្យសម្ងាត់ថ្មី (យ៉ាងហោចណាស់ 8 តួ)</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={8}
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div className="profile-form-group">
+              <label>បញ្ជាក់ពាក្យសម្ងាត់ថ្មី</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                autoComplete="new-password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="profile-pw-btn"
+              disabled={pwSaving || !currentPassword || !newPassword || !confirmPassword}
+            >
+              {pwSaving ? "កំពុងផ្លាស់ប្តូរ..." : "ផ្លាស់ប្តូរពាក្យសម្ងាត់"}
+            </button>
+
+            {pwSaved && (
+              <p className="profile-msg success">
+                ✓ ផ្លាស់ប្តូរដោយជោគជ័យ! កំពុងចេញពីគណនី...
+              </p>
+            )}
+            {pwError && (
+              <p className="profile-msg error">{pwError}</p>
+            )}
+          </form>
+        </div>
       </div>
     </>
   );

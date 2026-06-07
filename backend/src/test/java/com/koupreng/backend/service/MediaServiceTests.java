@@ -132,12 +132,12 @@ class MediaServiceTests {
     @Test
     void listPublicUsesPublishedPublicInvitationCheck() {
         Fixture fixture = fixture();
-        when(fixture.invitationService.requirePublishedInvitationForRsvp("samnang-sreyneang", false))
+        when(fixture.invitationService.requirePublicInvitationForView("samnang-sreyneang", "token"))
                 .thenReturn(fixture.invitation);
         when(fixture.mediaFileRepository.findByInvitationIdOrderBySortOrderAscCreatedAtAsc(10L))
                 .thenReturn(List.of(media(fixture.invitation, MediaType.GALLERY_IMAGE, "gallery")));
 
-        MediaListResponse response = fixture.service.listPublic("samnang-sreyneang");
+        MediaListResponse response = fixture.service.listPublic("samnang-sreyneang", "token");
 
         assertEquals(1, response.getGalleryImages().size());
     }

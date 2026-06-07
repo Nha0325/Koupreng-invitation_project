@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "../../shared/ui/toast";
 import { invitationService } from "../../shared/services/invitationService";
 import "./InvitationPages.css";
@@ -64,7 +64,12 @@ function toPayload(form) {
 
 export default function InvitationForm({ invitation }) {
     const navigate = useNavigate();
-    const [form, setForm] = useState(() => invitation ? fromInvitation(invitation) : emptyForm);
+    const [searchParams] = useSearchParams();
+    const [form, setForm] = useState(() => {
+        if (invitation) return fromInvitation(invitation);
+        const templateId = searchParams.get("templateId") || "";
+        return { ...emptyForm, templateId };
+    });
     const [currentStatus, setCurrentStatus] = useState(invitation?.status || "DRAFT");
     const [saving, setSaving] = useState("");
     const [error, setError] = useState("");
