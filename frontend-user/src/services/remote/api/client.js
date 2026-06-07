@@ -31,16 +31,20 @@ async function request(
     });
 
     let data = null;
+    let text = "";
     const contentType = res.headers.get("Content-Type") || "";
 
     if (contentType.includes("application/json")) {
         data = await res.json().catch(() => null);
-    } 
+    } else {
+        text = await res.text().catch(() => "");
+    }
 
     if (!res.ok) {
     const message = 
         data?.message ||
         data?.error ||
+        text ||
         res.statusText ||
         "Request failed";
 

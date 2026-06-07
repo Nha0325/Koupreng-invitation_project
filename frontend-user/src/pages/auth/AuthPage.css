@@ -205,6 +205,7 @@
     gap: 10px;
 }
 
+/* Base button — full-width, 44 px tall */
 .auth-social-btn {
     display: flex;
     align-items: center;
@@ -217,26 +218,30 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    color: #333;
     font-family: inherit;
-    transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+    transition: box-shadow 0.2s, opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+    text-decoration: none;
+    box-sizing: border-box;
 }
 
 .auth-social-btn:active:not(:disabled) {
-    transform: translateY(0);
+    transform: scale(0.985);
 }
 
+/* Google */
 .auth-social-btn.google {
     background: #ffffff;
     color: #202124;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-    border: 1px solid rgba(66, 133, 244, 0.18);
+    border: 1px solid rgba(66, 133, 244, 0.22);
 }
 
 .auth-social-btn.google:hover:not(:disabled) {
-    opacity: 0.95;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.13);
 }
 
+/* Telegram */
 .auth-social-btn.telegram {
     background: linear-gradient(135deg, #0088cc 0%, #006fa3 100%);
     color: #ffffff;
@@ -244,106 +249,79 @@
 }
 
 .auth-social-btn.telegram:hover:not(:disabled) {
+    box-shadow: 0 4px 14px rgba(0, 136, 204, 0.4);
     opacity: 0.95;
 }
 
 .auth-social-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.45;
     cursor: not-allowed;
+    box-shadow: none;
 }
 
-.auth-social-widget {
+/* ── Google GSI wrapper ──────────────────────────────────────
+   The real (invisible) GSI button lives in .auth-gsi-host so
+   Google's credential callback fires. Our styled button sits
+   on top and programmatically clicks the hidden one.
+──────────────────────────────────────────────────────────── */
+.auth-google-wrap {
     position: relative;
     width: 100%;
-    height: 44px;
-    border-radius: 12px;
-    overflow: hidden;
 }
 
-.auth-social-widget.telegram {
-    background: transparent;
-    box-shadow: none;
-    border: none;
-}
-
-.auth-social-widget.google {
-    background: #ffffff;
-    border: 1px solid rgba(66, 133, 244, 0.18);
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-}
-
-.auth-social-widget.google:hover:not(.loading) {
-    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
-}
-
-.auth-social-widget.telegram:hover:not(.loading) {
-    box-shadow: none;
-}
-
-.auth-social-widget.loading {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-.auth-social-widget.google .auth-social-placeholder {
-    color: #202124;
-}
-
-.auth-social-widget.google .auth-social-provider-host {
-    min-height: 44px;
-}
-
-.auth-social-widget.google .auth-social-provider-host iframe {
-    width: 100% !important;
-    height: 100% !important;
-    border: 0;
-}
-
-.auth-social-provider-host {
+.auth-gsi-host {
     position: absolute;
     inset: 0;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.auth-social-provider-host.pending {
+    z-index: 0;
+    overflow: hidden;
+    border-radius: 12px;
     opacity: 0;
     pointer-events: none;
 }
 
-.auth-social-provider-host.telegram iframe {
+.auth-gsi-host iframe,
+.auth-gsi-host>div {
     width: 100% !important;
-    height: 100% !important;
-    border: 0;
+    height: 44px !important;
+    border: none !important;
 }
 
-.auth-social-widget.google .auth-social-provider-host iframe {
-    width: 100% !important;
-    height: 100% !important;
-    border: 0;
-}
-
-.auth-social-provider-host:not(.pending) + .auth-social-placeholder {
-    display: none;
-}
-
-.auth-social-placeholder {
-    position: absolute;
-    inset: 0;
+.auth-google-wrap .auth-social-btn.google {
+    position: relative;
     z-index: 1;
+    width: 100%;
+}
+
+.auth-social-widget-tg {
+    position: relative;
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+    overflow: visible;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
 }
 
-.auth-social-widget.telegram .auth-social-placeholder {
-    color: #ffffff;
+.auth-tg-iframe-host {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-tg-iframe-host iframe {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 44px !important;
+    border: none !important;
+}
+
+.auth-tg-fake-btn {
+    display: none;
 }
 
 /* ── Footer links ── */

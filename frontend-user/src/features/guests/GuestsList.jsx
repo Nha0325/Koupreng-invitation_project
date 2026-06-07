@@ -567,6 +567,7 @@ export default function GuestsList() {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        setToast("QR Code បានទាញយក");
     };
 
     const copyInvite = async (guest) => {
@@ -921,17 +922,23 @@ export default function GuestsList() {
                         <button type="button" className="pe-modal-x" onClick={() => setQrGuest(null)} aria-label="Close">
                             <IoClose aria-hidden="true" />
                         </button>
-                        <h2>QR Code</h2>
+                        <h2>QR Code ការអញ្ជើញ</h2>
                         <div className="pe-qr-card">
                             <div className="pe-qr-code">
                                 <QRCode value={guestInviteUrl(currentDraft, qrGuest)} size={174} level="M" />
                             </div>
                             <strong>{qrGuest.name}</strong>
                         </div>
-                        <button type="button" className="pe-secondary-btn pe-qr-download" onClick={downloadQr}>
-                            <IoDownloadOutline aria-hidden="true" />
-                            ទាញយក QR កូដ
-                        </button>
+                        <div style={{ display: "flex", gap: "12px", width: "100%", justifyContent: "center" }}>
+                            <button type="button" className="pe-secondary-btn pe-qr-download" onClick={() => copyInvite(qrGuest)}>
+                                <IoCopyOutline aria-hidden="true" />
+                                ចម្លងលីង
+                            </button>
+                            <button type="button" className="pe-secondary-btn pe-qr-download" onClick={downloadQr}>
+                                <IoDownloadOutline aria-hidden="true" />
+                                ទាញយក QR
+                            </button>
+                        </div>
                     </section>
                 </div>
             )}

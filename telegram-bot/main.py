@@ -2,17 +2,20 @@ import logging
 import os
 import re
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 
-load_dotenv()
+BOT_DIR = Path(__file__).resolve().parent
+load_dotenv(BOT_DIR / ".env")
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 SPRING_API_BASE_URL = os.getenv("SPRING_API_BASE_URL", "http://localhost:8080").rstrip("/")
 FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173").rstrip("/")
 ADMIN_PAYMENT_SECRET = os.getenv("ADMIN_PAYMENT_SECRET", "")
+WELCOME_PHOTO_FILE_ID = os.getenv("WELCOME_PHOTO_FILE_ID", "")
 TELEGRAM_ALLOWED_GROUP_IDS = {
     value
     for value in (item.strip() for item in os.getenv("TELEGRAM_ALLOWED_GROUP_IDS", "").split(","))
@@ -38,6 +41,7 @@ TELEGRAM_ALLOWED_PAYMENT_BOT_USERNAMES = {
 }
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger("koupreng.telegram_bot")
 
 ORDER_CODE_RE = re.compile(r"\bEVT[0-9]{9,10}\b", re.IGNORECASE)
@@ -64,7 +68,99 @@ AMOUNT_PATTERNS = [
     ),
 ]
 
+PRICING_PLANS = [
+    {
+        "id": "basic",
+        "name": "កញ្ចប់មង្គល",
+        "price": "ឥតគិតថ្លៃ",
+        "desc": "សាកសមសម្រាប់គូស្វាមីភរិយាដែលចង់រៀបចំផែនការដំបូង",
+        "features": [
+            "បញ្ជីការងារ ៥ ចំណុច",
+            "គ្រប់គ្រងភ្ញៀវ ៤០ នាក់",
+            "សន្លឹកការឌីជីថល (Basic)",
+            "Dashboard ផ្ទាល់ខ្លួន",
+        ],
+        "button": "ចាប់ផ្ដើមឥឡូវនេះ",
+        "path": "/register",
+    },
+    {
+        "id": "pro",
+        "name": "កញ្ចប់មាស",
+        "price": "$169",
+        "desc": "ជម្រើសដ៏ល្អបំផុតសម្រាប់ភាពឥតខ្ចោះ និងស៊ីវិល័យ",
+        "features": [
+            "គ្រប់គ្រងភ្ញៀវមិនដែនកំណត់",
+            "ការទូទាត់ QR បាគង (Bakong)",
+            "សន្លឹកការ Premium Design",
+            "Gallery រូបភាព និងវីដេអូ",
+            "គាំទ្របច្ចេកទេស ២៤/៧",
+        ],
+        "button": "ជ្រើសរើសកញ្ចប់មាស",
+        "path": "/register",
+    },
+    {
+        "id": "enterprise",
+        "name": "កញ្ចប់ពេជ្រ",
+        "price": "តម្លៃពិគ្រោះ",
+        "desc": "សម្រាប់សហគ្រាស និងក្រុមហ៊ុនរៀបចំអាពាហ៍ពិពាហ៍",
+        "features": [
+            "គ្រប់គ្រងព្រឹត្តិការណ៍ច្រើន",
+            "White-label (ដាក់ Logo ខ្លួនឯង)",
+            "Custom Domain ផ្ទាល់ខ្លួន",
+            "របាយការណ៍លម្អិត",
+            "ជំនួយការផ្ទាល់ (Manager)",
+        ],
+        "button": "មើលលម្អិត",
+        "path": "/pricing",
+    },
+]
+PRICING_PLAN_BY_ID = {plan["id"]: plan for plan in PRICING_PLANS}
+
+MAIN_MENU_REPLY_KEYBOARD = {
+    "keyboard": [
+        [
+            {"text": "🎴 មើលគំរូ"},
+            {"text": "💰 មើលតម្លៃ"},
+        ],
+        [
+            {"text": "❓ ជំនួយ"},
+            {"text": "👤 គណនីខ្ញុំ"},
+        ],
+    ],
+    "resize_keyboard": True,
+    "is_persistent": False,
+}
+
 app = FastAPI(title="Koupreng payment Telegram webhook")
+
+
+@app.on_event("startup")
+async def on_startup():
+    await set_bot_commands()
+
+
+async def set_bot_commands():
+    """Register bot command menu entries."""
+    if not TELEGRAM_BOT_TOKEN:
+        return
+    commands = [
+        {"command": "start", "description": "Start the bot / Profile"},
+        {"command": "menu", "description": "Show main menu"},
+        {"command": "help",  "description": "How to use & Support"},
+    ]
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setMyCommands"
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(url, json={"commands": commands})
+            result = resp.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        logger.warning("Failed to set bot commands: %s", exc)
+        return
+
+    if result.get("ok"):
+        logger.info("Bot commands registered: /start, /menu, /help")
+    else:
+        logger.warning("Failed to set bot commands: %s", result)
 
 
 @app.get("/health")
@@ -75,21 +171,24 @@ async def health():
 @app.post("/telegram/webhook")
 async def telegram_webhook(request: Request):
     update = await request.json()
+    callback_query = update.get("callback_query") or {}
+    callback_query_id = str(callback_query.get("id") or "")
     message = (
         update.get("message")
         or update.get("edited_message")
         or update.get("channel_post")
         or update.get("edited_channel_post")
+        or callback_query.get("message")
         or {}
     )
     chat = message.get("chat") or {}
-    sender = message.get("from") or {}
+    sender = callback_query.get("from") or message.get("from") or {}
     chat_id = str(chat.get("id") or "")
     sender_id = str(sender.get("id") or "")
     username = str(sender.get("username") or "").lstrip("@")
     sender_display = username or str(sender.get("first_name") or "").strip() or sender_id or "telegram"
     message_id = str(message.get("message_id") or "")
-    text = (message.get("text") or message.get("caption") or "").strip()
+    text = (callback_query.get("data") or message.get("text") or message.get("caption") or "").strip()
     trusted_payment_sender = payment_sender_allowed(sender)
 
     if not chat_id or not text:
@@ -110,16 +209,83 @@ async def telegram_webhook(request: Request):
         short_text(text),
     )
 
-    if command_payload(text, "/start"):
-        await send_message(
-            chat_id,
-            (
-                "Welcome to Koupreng Invitation!\n\n"
-                f"Open the website to login and manage invitations:\n{FRONTEND_BASE_URL}\n\n"
-                "Use the website login page to authenticate with Google or Telegram."
-            ),
-            message_id,
+    if command_name(text) == "/start":
+        import datetime as _dt
+        first_name = str(sender.get("first_name") or "").strip()
+        last_name  = str(sender.get("last_name")  or "").strip()
+        full_name  = f"{first_name} {last_name}".strip() or sender_display
+        now        = _dt.datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
+
+        welcome_text = (
+            f"👋 សូមស្វាគមន៍ {full_name}!\n"
+            f"🎊 ស្វាគមន៍មកកាន់ Koupreng Invitation\n\n"
+            f"🕐 {now}\n\n"
+            f"👤 ព័ត៌មានអ្នកប្រើ:\n"
+            f"🆔 ID : {sender_id}\n"
+            f"📛 Username : @{username or '(none)'}\n\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🌸 សូមជ្រើសរើសជម្រើសខាងក្រោម 👇"
         )
+
+        # Inline URL buttons shown inside the message
+        inline_keyboard = {
+            "inline_keyboard": [
+                [
+                    {"text": "🎴 មើលគំរូ",       "url": f"{FRONTEND_BASE_URL}/templates"},
+                    {"text": "💰 មើលតម្លៃ",      "callback_data": "koupreng:pricing"},
+                ],
+                [
+                    {"text": "❓ ជំនួយ",          "callback_data": "koupreng:help"},
+                    {"text": "👤 គណនីខ្ញុំ",     "callback_data": "koupreng:profile"},
+                ],
+            ]
+        }
+
+        # Use Telegram file_id only to avoid region-blocked external URL previews.
+        photo = WELCOME_PHOTO_FILE_ID.strip()
+        if photo:
+            sent = await send_photo(chat_id, photo, welcome_text, inline_keyboard)
+        else:
+            sent = False
+        if not sent:
+            await send_message_with_keyboard(chat_id, welcome_text, inline_keyboard, message_id)
+
+        # Send persistent bottom keyboard
+        await send_main_menu(chat_id)
+        return {"ok": True}
+
+    if callback_query_id:
+        await answer_callback_query(callback_query_id)
+
+    if text in ("/menu", "Menu", "ម៉ឺនុយ", "📋 ម៉ឺនុយ", "koupreng:menu"):
+        await send_main_menu(chat_id, message_id)
+        return {"ok": True}
+
+    if text in ("🎴 មើលគំរូ", "🎴 View Templates", "View Templates"):
+        await send_menu_link(
+            chat_id,
+            message_id,
+            "🎴 គំរូសន្លឹកការ\nមើលគំរូសន្លឹកការទាំងអស់របស់ Koupreng Invitation។",
+            "🎴 មើលគំរូ",
+            "/templates",
+        )
+        return {"ok": True}
+
+    if text in ("💰 មើលតម្លៃ", "💰 View Pricing", "View Pricing", "koupreng:pricing"):
+        await send_pricing_menu(chat_id, message_id)
+        return {"ok": True}
+
+    if text.startswith("koupreng:pricing:"):
+        plan_id = text.rsplit(":", 1)[-1]
+        await send_pricing_plan_detail(chat_id, message_id, plan_id)
+        return {"ok": True}
+
+    if text in ("👤 គណនីខ្ញុំ", "👤 My Profile", "👤 Profile", "Profile", "koupreng:profile"):
+        await send_profile_card(chat_id, message_id, sender, sender_id, username)
+        return {"ok": True}
+
+    if text in ("❓ ជំនួយ", "❓ Help", "Help", "koupreng:help") or command_name(text) == "/help":
+        await send_help_message(chat_id, message_id)
         return {"ok": True}
 
     if text.startswith("/id") or text.startswith("/debug"):
@@ -300,10 +466,16 @@ def sender_identity(username: str, sender_id: str) -> str:
 
 def command_payload(text: str, command: str) -> str:
     first, *rest = text.split(maxsplit=1)
-    command_name = first.split("@", 1)[0]
-    if command_name != command:
+    current_command = first.split("@", 1)[0]
+    if current_command != command:
         return ""
     return rest[0].strip() if rest else ""
+
+
+def command_name(text: str) -> str:
+    if not text:
+        return ""
+    return text.split(maxsplit=1)[0].split("@", 1)[0]
 
 
 def short_text(text: str, limit: int = 180) -> str:
@@ -445,11 +617,222 @@ async def reply_from_backend(chat_id: str, message_id: str, result: dict, succes
 
 async def send_message(chat_id: str, text: str, reply_to_message_id: str | None = None):
     if not TELEGRAM_BOT_TOKEN:
-        return
+        logger.warning("sendMessage skipped: TELEGRAM_BOT_TOKEN is empty")
+        return False
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": chat_id, "text": text}
     if reply_to_message_id:
         payload["reply_to_message_id"] = reply_to_message_id
         payload["allow_sending_without_reply"] = True
-    async with httpx.AsyncClient(timeout=10) as client:
-        await client.post(url, json=payload)
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(url, json=payload)
+            result = resp.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        logger.warning("sendMessage failed for chat_id=%s: %s", chat_id, exc)
+        return False
+    if not result.get("ok"):
+        logger.warning("sendMessage rejected for chat_id=%s: %s", chat_id, result.get("description"))
+        return False
+    logger.info("sendMessage delivered chat_id=%s message_id=%s", chat_id, result.get("result", {}).get("message_id"))
+    return True
+
+
+async def send_menu_link(chat_id: str, message_id: str, text: str, button_text: str, path: str):
+    reply_markup = {
+        "inline_keyboard": [
+            [{"text": button_text, "url": f"{FRONTEND_BASE_URL}{path}"}],
+        ]
+    }
+    await send_message_with_keyboard(chat_id, text, reply_markup, message_id)
+
+
+async def send_main_menu(chat_id: str, message_id: str | None = None):
+    await send_message_with_keyboard(chat_id, "📋 ម៉ឺនុយ:", MAIN_MENU_REPLY_KEYBOARD, message_id)
+
+
+async def send_profile_card(
+    chat_id: str,
+    message_id: str | None,
+    sender: dict,
+    sender_id: str,
+    username: str,
+):
+    first_name = str(sender.get("first_name") or "").strip()
+    last_name = str(sender.get("last_name") or "").strip()
+    full_name = " ".join(f"{first_name} {last_name}".split()) or "Telegram User"
+    username_text = f"@{username}" if username else "មិនទាន់មាន"
+    user_type = "Bot" if sender.get("is_bot") else "Telegram User"
+    language = str(sender.get("language_code") or "").strip() or "មិនទាន់មាន"
+
+    profile_text = (
+        "👤 KOUPRENG PROFILE\n\n"
+        "┌────────────────────\n"
+        f"│ Name: {full_name}\n"
+        f"│ Telegram ID: {sender_id or 'មិនទាន់មាន'}\n"
+        f"│ Username: {username_text}\n"
+        f"│ Type: {user_type}\n"
+        f"│ Language: {language}\n"
+        "└────────────────────\n\n"
+        "Manage your Koupreng account below."
+    )
+    reply_markup = {
+        "inline_keyboard": [
+            [
+                {"text": "👤 បើក Profile", "url": f"{FRONTEND_BASE_URL}/profile"},
+                {"text": "📊 Dashboard", "url": f"{FRONTEND_BASE_URL}/dashboard"},
+            ],
+            [
+                {"text": "💰 មើលតម្លៃ", "callback_data": "koupreng:pricing"},
+                {"text": "📋 ម៉ឺនុយ", "callback_data": "koupreng:menu"},
+            ],
+        ]
+    }
+    await send_message_with_keyboard(chat_id, profile_text, reply_markup, message_id)
+
+
+async def send_pricing_menu(chat_id: str, message_id: str | None = None):
+    pricing_text = (
+        "💰 មើលតម្លៃ Koupreng Invitation\n\n"
+        "🛒 PRICE FORM\n"
+        "┌────────────────────\n"
+        "│ Product: សន្លឹកការឌីជីថល\n"
+        "│ Packages: 3 កញ្ចប់\n"
+        "│ Recommended: កញ្ចប់មាស ($169)\n"
+        "└────────────────────\n\n"
+        "Select package:\n"
+        "• កញ្ចប់មង្គល - ឥតគិតថ្លៃ\n"
+        "• កញ្ចប់មាស - $169\n"
+        "• កញ្ចប់ពេជ្រ - តម្លៃពិគ្រោះ"
+    )
+    reply_markup = {
+        "inline_keyboard": [
+            [{"text": "កញ្ចប់មង្គល - ឥតគិតថ្លៃ", "callback_data": "koupreng:pricing:basic"}],
+            [{"text": "⭐ កញ្ចប់មាស - $169", "callback_data": "koupreng:pricing:pro"}],
+            [{"text": "កញ្ចប់ពេជ្រ - តម្លៃពិគ្រោះ", "callback_data": "koupreng:pricing:enterprise"}],
+            [{"text": "🌐 មើលទំព័រតម្លៃ", "url": f"{FRONTEND_BASE_URL}/pricing"}],
+        ]
+    }
+    await send_message_with_keyboard(chat_id, pricing_text, reply_markup, message_id)
+
+
+async def send_pricing_plan_detail(chat_id: str, message_id: str | None, plan_id: str):
+    plan = PRICING_PLAN_BY_ID.get(plan_id)
+    if not plan:
+        await send_pricing_menu(chat_id, message_id)
+        return
+
+    features = "\n".join(f"• {feature}" for feature in plan["features"])
+    detail_text = (
+        "🧾 PACKAGE DETAIL\n"
+        "┌────────────────────\n"
+        f"│ Plan: {plan['name']}\n"
+        f"│ Price: {plan['price']}\n"
+        "└────────────────────\n\n"
+        f"{plan['desc']}\n\n"
+        f"{features}"
+    )
+    reply_markup = {
+        "inline_keyboard": [
+            [{"text": plan["button"], "url": f"{FRONTEND_BASE_URL}{plan['path']}"}],
+            [{"text": "« ត្រឡប់ទៅតម្លៃ", "callback_data": "koupreng:pricing"}],
+        ]
+    }
+    await send_message_with_keyboard(chat_id, detail_text, reply_markup, message_id)
+
+
+async def send_help_message(chat_id: str, message_id: str | None = None):
+    reply_markup = {
+        "inline_keyboard": [
+            [
+                {"text": "🎴 មើលគំរូ", "url": f"{FRONTEND_BASE_URL}/templates"},
+                {"text": "💰 មើលតម្លៃ", "callback_data": "koupreng:pricing"},
+            ],
+            [
+                {"text": "👤 គណនីខ្ញុំ", "callback_data": "koupreng:profile"},
+                {"text": "📋 ម៉ឺនុយ", "callback_data": "koupreng:menu"},
+            ],
+            [
+                {"text": "📩 Contact @ny_panha", "url": "https://t.me/ny_panha"},
+            ],
+        ]
+    }
+    await send_message_with_keyboard(
+        chat_id,
+        (
+            "❓ KOUPRENG HELP & SUPPORT\n\n"
+            "For assistance, contact admin: @ny_panha\n\n"
+            "Steps:\n"
+            "1. Click 🎴 មើលគំរូ to browse invitation templates\n"
+            "2. Click 💰 មើលតម្លៃ to view packages\n"
+            "3. Click 👤 គណនីខ្ញុំ to open your profile\n"
+            "4. Login or register on the website\n"
+            "5. Customize and share your invitation\n\n"
+            f"🌐 Website: {FRONTEND_BASE_URL}"
+        ),
+        reply_markup,
+        message_id,
+    )
+
+
+async def answer_callback_query(callback_query_id: str):
+    if not TELEGRAM_BOT_TOKEN or not callback_query_id:
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery"
+    payload = {"callback_query_id": callback_query_id}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            await client.post(url, json=payload)
+    except httpx.HTTPError as exc:
+        logger.warning("answerCallbackQuery failed: %s", exc)
+
+
+async def send_photo(chat_id: str, photo: str, caption: str, reply_markup: dict | None = None) -> bool:
+    """Send a photo with optional caption and inline keyboard. Returns True on success."""
+    if not TELEGRAM_BOT_TOKEN:
+        return False
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+    payload: dict = {"chat_id": chat_id, "photo": photo, "caption": caption}
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(url, json=payload)
+            result = resp.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        logger.warning("sendPhoto failed: %s; falling back to text", exc)
+        return False
+    if not result.get("ok"):
+        logger.warning("sendPhoto failed: %s; falling back to text", result.get("description"))
+        return False
+    return True
+
+
+async def send_message_with_keyboard(
+    chat_id: str,
+    text: str,
+    reply_markup: dict | None = None,
+    reply_to_message_id: str | None = None,
+):
+    if not TELEGRAM_BOT_TOKEN:
+        logger.warning("sendMessage skipped: TELEGRAM_BOT_TOKEN is empty")
+        return False
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload: dict = {"chat_id": chat_id, "text": text}
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    if reply_to_message_id:
+        payload["reply_to_message_id"] = reply_to_message_id
+        payload["allow_sending_without_reply"] = True
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(url, json=payload)
+            result = resp.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        logger.warning("sendMessage with keyboard failed for chat_id=%s: %s", chat_id, exc)
+        return await send_message(chat_id, text, reply_to_message_id)
+    if not result.get("ok"):
+        logger.warning("sendMessage with keyboard rejected for chat_id=%s: %s", chat_id, result.get("description"))
+        return await send_message(chat_id, text, reply_to_message_id)
+    logger.info("sendMessage with keyboard delivered chat_id=%s message_id=%s", chat_id, result.get("result", {}).get("message_id"))
+    return True

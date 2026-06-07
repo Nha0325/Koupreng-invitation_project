@@ -20,3 +20,35 @@ cd ~/Desktop/Koupreng-invitation_project/backend
 chmod +x mvnw
 ./mvnw -DskipTests compile
 ./mvnw spring-boot:run
+
+
+
+
+
+
+~/Desktop/Koupreng-invitation_project/telegram-bot$ python -m uvicorn main:app --host 0.0.0.0 --port 8000
+~/Desktop/Koupreng-invitation_project/telegram-bot$ python -m uvicorn main:app --host 0.0.0.0 --port 8000
+
+
+
+~/Desktop/Koupreng-invitation_project$ curl -s "https://api.telegram.org/bot8973041657:AAFfIZqDI0iFsU4vJ2GMGFQ5pW2KW0B19NY/getWebhookInfo"
+~/Desktop/Koupreng-invitation_project/telegram-bot$ python start.py
+
+
+
+update in telegram-bot/start.py
+(base) star@star-ThinkPad-T470p:~/Desktop/Koupreng-invitation_project$ python3 -m py_compile telegram-bot/main.py telegram-bot/start.py
+(base) star@star-ThinkPad-T470p:~/Desktop/Koupreng-invitation_project$ git diff --check -- telegram-bot/main.py telegram-bot/start.py
+
+
+
+
+
+
+cd (base) star@star-ThinkPad-T470p:~/Desktop/Koupreng-invitation_project$ cd telegram-bot/
+(base) star@star-ThinkPad-T470p:~/Desktop/Koupreng-invitation_project/telegram-bot$ python start.py
+
+
+
+cd (base) star@star-ThinkPad-T470p:~/Desktop/Koupreng-invitation_project$ cd backend/
+(base) star@star-ThinkPad-T470p:~/Desktop/Koupreng-invitation_project/backend$ ./mvnw clean spring-boot:run
