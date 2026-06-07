@@ -5,7 +5,7 @@ set -euo pipefail
 git add .
 
 # Commit with a message (use first argument or default)
-MSG="${1:-Update Flow F.}"
+MSG="${1:-Update Bot.}"
 if git diff --cached --quiet; then
   echo "No changes to commit."
 else
