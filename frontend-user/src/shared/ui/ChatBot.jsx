@@ -14,6 +14,7 @@ const TRANSLATIONS = {
     opt2Desc: "Speak to a live agent to upgrade your account to Gold or Diamond.",
     opt3Title: "Need technical support",
     opt3Desc: "Get helpful tips, guides, and assistance for using our platform.",
+    adminSayHi: "Hi! 👋 How can I help you today?",
     inputPlaceholder: "Enter message...",
     poweredBy: "powered by"
   },
@@ -27,6 +28,7 @@ const TRANSLATIONS = {
     opt2Desc: "ជជែកជាមួយភ្នាក់ងារដើម្បីដំឡើងទៅកញ្ចប់មាស ឬពេជ្រ។",
     opt3Title: "ត្រូវការជំនួយបច្ចេកទេស",
     opt3Desc: "ទទួលបានគន្លឹះ និងការណែនាំសម្រាប់ការប្រើប្រាស់ប្រព័ន្ធ។",
+    adminSayHi: "សួស្តី! 👋 តើខ្ញុំអាចជួយអ្វីអ្នកបានទេថ្ងៃនេះ?",
     inputPlaceholder: "វាយបញ្ចូលសារ...",
     poweredBy: "គាំទ្រដោយ"
   }
@@ -80,6 +82,15 @@ export default function ChatBot() {
             <div className="chat-body">
               <div className="chat-greeting-internal">
                 {t.internal}
+              </div>
+              
+              <div className="chat-message-row">
+                <div className="chat-avatar">
+                  <span className="avatar-text">K</span>
+                </div>
+                <div className="chat-bubble admin-bubble">
+                  {t.adminSayHi}
+                </div>
               </div>
               
               <div className="chat-options">
