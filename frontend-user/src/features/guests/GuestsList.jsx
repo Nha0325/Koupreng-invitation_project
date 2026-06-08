@@ -24,7 +24,7 @@ import {
   getActiveEventId,
   listManualGuests,
   saveManualGuests,
-} 
+}
 
 from "../../services/hostPlanningStorage";
 import { invitationService } from "../../shared/services/invitationService";
