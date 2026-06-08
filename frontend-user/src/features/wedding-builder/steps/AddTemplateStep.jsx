@@ -1,162 +1,155 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+    IoAddOutline,
+    IoCheckmarkCircleOutline,
+    IoDiamondOutline,
+    IoEyeOutline,
+    IoImageOutline,
+} from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-import "./AddTemplateStep.css";
-import { getTemplateById, isTemplatePremium } from "../../templates/data/templatesData";
+import { templateCatalogService } from "../../../shared/services/templateCatalogService";
+import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
+import { getTemplateById, isTemplatePremium, TEMPLATES } from "../../templates/data/templatesData";
 import { VARIANT_ROUTE_ALIASES } from "../../templates/template-experience/templateExperienceThemes";
-import templateService from "../../templates/templateService";
 import { getTemplateRouteId, isBackendPremium, mergeBackendTemplate } from "../../templates/templateCatalogAdapter";
+import "./AddTemplateStep.css";
 
-/**
- * Event type template categories with free/paid templates
- */
-const EVENT_CATEGORIES = [
-    {
-        id: "wedding",
-        label: "Wedding",
-        labelKh: "គម្រូអាពាហ៍ពិពាហ៍",
-        color: "#dc2626",
-        bg: "rgba(220, 38, 38, 0.08)",
-        border: "rgba(220, 38, 38, 0.3)",
+const TEMPLATES_FALLBACK = {
+    km: {
+        title: "បន្ថែមគម្រូ",
+        subtitle: "ជ្រើសរើសគម្រូសម្រាប់ប្រើជាមួយសន្លឹកការរបស់អ្នក។",
+        freeSection: "ឥតគិតថ្លៃ",
+        paidSection: "ត្រូវការចំណាយ",
+        noPriceTag: "ឥតគិតថ្លៃ",
+        priceTag: "ត្រូវការចំណាយ",
+        selectBtn: "ជ្រើសរើស",
+        buyBtn: "ទិញគំរូ",
+        viewBtn: "មើល",
+        addedBtn: "បានបន្ថែមរួចហើយ",
+        noImage: "មិនមានរូបភាព",
+        loading: "កំពុងទាញគម្រូ...",
+        error: "មិនអាចទាញគម្រូបាន",
     },
-    {
-        id: "engagement",
-        label: "Engagement",
-        labelKh: "គម្រូភ្ជាប់ពាក្យ",
-        color: "#d97706",
-        bg: "rgba(217, 119, 6, 0.08)",
-        border: "rgba(217, 119, 6, 0.3)",
+    en: {
+        title: "Add Template",
+        subtitle: "Choose a template for your invitation.",
+        freeSection: "Free",
+        paidSection: "Paid",
+        noPriceTag: "Free",
+        priceTag: "Paid",
+        selectBtn: "Select",
+        buyBtn: "Buy template",
+        viewBtn: "View",
+        addedBtn: "Already Added",
+        noImage: "No image",
+        loading: "Loading templates...",
+        error: "Could not load templates",
     },
-    {
-        id: "birthday",
-        label: "Birthday",
-        labelKh: "គម្រូខួបកំណើត",
-        color: "#7c3aed",
-        bg: "rgba(124, 58, 237, 0.08)",
-        border: "rgba(124, 58, 237, 0.3)",
-    },
-    {
-        id: "housewarming",
-        label: "Housewarming",
-        labelKh: "គម្រូពិធីឡើងផ្ទះ",
-        color: "#059669",
-        bg: "rgba(5, 150, 105, 0.08)",
-        border: "rgba(5, 150, 105, 0.3)",
-    },
-    {
-        id: "anniversary",
-        label: "Anniversary",
-        labelKh: "គម្រូខួបអាពាហ៍ពិពាហ៍",
-        color: "#b45309",
-        bg: "rgba(180, 83, 9, 0.08)",
-        border: "rgba(180, 83, 9, 0.3)",
-    },
-];
-
-/**
- * Template cards data — free and paid
- */
-const FREE_TEMPLATES = [
-    {
-        id: "W01",
-        eventType: "wedding",
-        name: "គម្រូអាពាហ៍ពិពាហ៍ (ឥតគិតថ្លៃ)",
-        code: "W01",
-        image: "/image/a1.png",
-        added: true,
-    },
-    {
-        id: "E01",
-        eventType: "engagement",
-        name: "គម្រូភ្ជាប់ពាក្យ​ (ឥតគិតថ្លៃ)",
-        code: "E01",
-        image: "/image/a2.png",
-        added: false,
-    },
-    {
-        id: "B01",
-        eventType: "birthday",
-        name: "គម្រូខួបកំណើត ឥតគិតថ្លៃ",
-        code: "B01",
-        image: "/image/a3.png",
-        added: false,
-    },
-    {
-        id: "H01",
-        eventType: "housewarming",
-        name: "គម្រូពិធីឡើងផ្ទះ ឥតគិតថ្លៃ",
-        code: "H01",
-        image: "/image/a4.png",
-        added: false,
-    },
-    {
-        id: "A01",
-        eventType: "anniversary",
-        name: "គម្រូខួបអាពាហ៍ពិពាហ៍ ឥតគិតថ្លៃ",
-        code: "A01",
-        image: "/image/a5.png",
-        added: false,
-    },
-];
-
-const PAID_TEMPLATES = [
-    {
-        id: "W02",
-        eventType: "wedding",
-        name: "សំបុត្រអាពាហ៍ពិពាហ៍ ប្រណិត (ពហុភាសា)",
-        code: "W02",
-        image: null,
-        added: false,
-    },
-];
-
-function getCategoryInfo(eventType) {
-    return EVENT_CATEGORIES.find((cat) => cat.id === eventType) || EVENT_CATEGORIES[0];
-}
-
-/**
- * Map each demo template code to a real template id so the "View" button opens
- * the full immersive TemplateExperience page (/templates/:id) — the same UI as
- * /templates/classic — instead of the old phone-frame preview.
- */
-const VIEW_TEMPLATE_ID = {
-    W01: "royal",
-    W02: "luxury",
-    E01: "garden",
-    B01: "modern-khmer",
-    H01: "classic",
-    A01: "vintage-gold",
 };
 
-function getViewTemplateId(template) {
-    if (template.viewId) {
-        return template.viewId;
-    }
-    return VIEW_TEMPLATE_ID[template.id] || "classic";
+const CATEGORY_STYLES = {
+    MODERN: {
+        label: "Modern",
+        color: "#0f766e",
+        bg: "rgba(15, 118, 110, 0.08)",
+        border: "rgba(15, 118, 110, 0.28)",
+    },
+    TRADITIONAL: {
+        label: "Traditional",
+        color: "#b45309",
+        bg: "rgba(180, 83, 9, 0.08)",
+        border: "rgba(180, 83, 9, 0.28)",
+    },
+    ANCIENT: {
+        label: "Ancient",
+        color: "#b45309",
+        bg: "rgba(180, 83, 9, 0.08)",
+        border: "rgba(180, 83, 9, 0.28)",
+    },
+    CONTEMPORARY: {
+        label: "Contemporary",
+        color: "#be185d",
+        bg: "rgba(190, 24, 93, 0.08)",
+        border: "rgba(190, 24, 93, 0.28)",
+    },
+    MINIMALIST: {
+        label: "Minimalist",
+        color: "#475569",
+        bg: "rgba(71, 85, 105, 0.08)",
+        border: "rgba(71, 85, 105, 0.28)",
+    },
+    FLORAL: {
+        label: "Floral",
+        color: "#be185d",
+        bg: "rgba(190, 24, 93, 0.08)",
+        border: "rgba(190, 24, 93, 0.28)",
+    },
+    LUXURY: {
+        label: "Luxury",
+        color: "#7c3aed",
+        bg: "rgba(124, 58, 237, 0.08)",
+        border: "rgba(124, 58, 237, 0.28)",
+    },
+    OTHER: {
+        label: "Other",
+        color: "#334155",
+        bg: "rgba(51, 65, 85, 0.08)",
+        border: "rgba(51, 65, 85, 0.28)",
+    },
+};
+
+function getCategoryInfo(category) {
+    const key = String(category || "OTHER").trim().toUpperCase();
+    return CATEGORY_STYLES[key] || CATEGORY_STYLES.OTHER;
 }
 
-/**
- * Resolve the REAL cover image of the template each card opens, so the browse
- * card thumbnail matches the actual template experience instead of generic art.
- * Falls back to the card's own placeholder image when no real cover exists.
- */
+function getViewTemplateId(template) {
+    return template.viewId || template.localTemplateId || template.id || "classic";
+}
+
 function getCardImage(template) {
-    if (template.backendId && template.image) {
-        return template.image;
+    if (template.thumbnailUrl || template.image) {
+        return template.thumbnailUrl || template.image;
     }
     const viewId = getViewTemplateId(template);
     const realId = VARIANT_ROUTE_ALIASES[viewId] || viewId;
     const tpl = getTemplateById(realId);
-    return tpl?.mainImage || tpl?.phoneCoverImage || template.image;
+    return tpl?.mainImage || tpl?.phoneCoverImage || null;
 }
 
-function TemplateCard({ template, onSelect, onView }) {
-    const category = getCategoryInfo(template.eventType);
+function normalizeRemoteTemplate(template) {
+    const merged = mergeBackendTemplate(template);
+    const routeId = getTemplateRouteId(merged) || String(template.id);
+    const paid = isBackendPremium(merged);
+    return {
+        ...merged,
+        id: routeId,
+        backendId: merged.backendId || template.id,
+        viewId: routeId,
+        isPaid: paid,
+        premium: paid,
+    };
+}
+
+function normalizeLocalTemplate(template) {
+    const paid = isTemplatePremium(template.id);
+    return {
+        ...template,
+        viewId: template.id,
+        localTemplateId: template.id,
+        isPaid: paid,
+        premium: paid,
+        thumbnailUrl: template.phoneCoverImage || template.mainImage || template.image,
+    };
+}
+
+function TemplateCard({ template, onSelect, onView, t }) {
+    const category = getCategoryInfo(template.category);
     const cardImage = getCardImage(template);
-    const isPaid = template.isPaid ?? (isTemplatePremium(getViewTemplateId(template)) || template.image === null);
+    const isPaid = Boolean(template.isPaid || template.premium);
 
     return (
         <div className="at-card">
-            {/* Category badge */}
             <span
                 className="at-card-badge"
                 style={{
@@ -168,183 +161,180 @@ function TemplateCard({ template, onSelect, onView }) {
                 {category.label}
             </span>
 
-            {/* Image */}
             <div className="at-card-image">
                 {cardImage ? (
                     <img src={cardImage} alt={template.name} />
                 ) : (
                     <div className="at-card-no-image">
-                        <span>មិនមានរូបភាព</span>
+                        <IoImageOutline aria-hidden="true" />
+                        <span>{t("noImage")}</span>
                     </div>
                 )}
             </div>
 
-            {/* Info */}
             <div className="at-card-body">
                 <h4 className="at-card-name">{template.name}</h4>
                 {isPaid ? (
-                    <span className="at-card-price at-card-price--paid">ត្រូវការចំណាយ</span>
+                    <span className="at-card-price at-card-price--paid">{t("priceTag")}</span>
                 ) : (
-                    <span className="at-card-price">ឥតគិតថ្លៃ</span>
+                    <span className="at-card-price">{t("noPriceTag")}</span>
                 )}
             </div>
 
-            {/* Actions */}
             <div className="at-card-actions">
                 {template.added ? (
                     <span className="at-btn at-btn--added">
-                        <span className="at-btn-check">✓</span> បានបន្ថែមរួចហើយ
+                        <IoCheckmarkCircleOutline className="at-btn-check" aria-hidden="true" />
+                        {t("addedBtn")}
                     </span>
                 ) : (
-                    <button className={`at-btn ${isPaid ? "at-btn--buy" : "at-btn--select"}`} onClick={() => onSelect(template)}>
-                        {isPaid ? "💎 ទិញគំរូ" : "+ ជ្រើសរើស"}
+                    <button
+                        className={`at-btn ${isPaid ? "at-btn--buy" : "at-btn--select"}`}
+                        onClick={() => onSelect(template)}
+                    >
+                        {isPaid ? <IoDiamondOutline aria-hidden="true" /> : <IoAddOutline aria-hidden="true" />}
+                        {isPaid ? t("buyBtn") : t("selectBtn")}
                     </button>
                 )}
                 <button className="at-btn at-btn--view" onClick={() => onView(template)}>
-                    <EyeIcon /> មើល
+                    <IoEyeOutline aria-hidden="true" />
+                    {t("viewBtn")}
                 </button>
             </div>
         </div>
     );
 }
 
-function EyeIcon() {
-    return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-        </svg>
-    );
-}
-
 export default function AddTemplateStep() {
+    const { text: t } = useBackendMessages("templates", TEMPLATES_FALLBACK);
     const navigate = useNavigate();
-    const [selectedTemplates, setSelectedTemplates] = useState(["W01"]);
-    const [backendTemplates, setBackendTemplates] = useState([]);
+    const [remoteTemplates, setRemoteTemplates] = useState([]);
+    const [selectedTemplates, setSelectedTemplates] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        let mounted = true;
-        templateService.listPublic()
-            .then((templates) => {
-                if (!mounted) {
-                    return;
+        let active = true;
+        setLoading(true);
+        templateCatalogService.list()
+            .then((items) => {
+                if (active) {
+                    setRemoteTemplates(Array.isArray(items) ? items : []);
+                    setError("");
                 }
-                setBackendTemplates(Array.isArray(templates) ? templates : []);
             })
-            .catch(() => {
-                if (mounted) {
-                    setBackendTemplates([]);
+            .catch((err) => {
+                if (active) {
+                    setRemoteTemplates([]);
+                    setError(err.message || t("error"));
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoading(false);
                 }
             });
         return () => {
-            mounted = false;
+            active = false;
         };
-    }, []);
+    }, [t]);
+
+    const templates = useMemo(() => {
+        const source = remoteTemplates.length
+            ? remoteTemplates.map(normalizeRemoteTemplate)
+            : TEMPLATES.map(normalizeLocalTemplate);
+
+        return source.map((template) => ({
+            ...template,
+            added: selectedTemplates.includes(String(template.id)),
+        }));
+    }, [remoteTemplates, selectedTemplates]);
 
     const handleSelect = (template) => {
         const viewId = getViewTemplateId(template);
-        // Paid templates must be purchased before use.
-        if (template.isPaid || isTemplatePremium(viewId)) {
+        if (template.isPaid || template.premium || isTemplatePremium(viewId)) {
             navigate(`/templates/${viewId}/checkout`);
             return;
         }
+
+        const templateId = String(template.id);
         setSelectedTemplates((current) =>
-            current.includes(template.id) ? current : [...current, template.id]
+            current.includes(templateId) ? current : [...current, templateId]
         );
-        // Start the wedding builder with the chosen template.
+
         const builderTemplateId = template.localTemplateId || viewId;
         navigate(`/create/wedding?template=${encodeURIComponent(builderTemplateId)}${template.backendId ? `&templateId=${encodeURIComponent(template.backendId)}` : ""}`);
     };
 
     const handleView = (template) => {
-        // Open the full immersive TemplateExperience inside the dashboard shell
-        // (keeps the host navigation), instead of the public marketing layout.
-        navigate(`/templates/browse/${getViewTemplateId(template)}`);
+        const viewId = getViewTemplateId(template);
+        if (template.previewUrl) {
+            if (template.previewUrl.startsWith("/")) {
+                navigate(template.previewUrl);
+            } else {
+                window.open(template.previewUrl, "_blank", "noopener,noreferrer");
+            }
+            return;
+        }
+        navigate(`/templates/browse/${viewId}`);
     };
 
-    const backendCards = backendTemplates.map((template) => {
-        const merged = mergeBackendTemplate(template);
-        const routeId = getTemplateRouteId(merged);
-        return {
-            id: routeId,
-            backendId: merged.backendId,
-            localTemplateId: merged.localTemplateId,
-            eventType: "wedding",
-            name: merged.name,
-            code: merged.code,
-            image: merged.thumbnailUrl || merged.image,
-            added: selectedTemplates.includes(routeId),
-            isPaid: isBackendPremium(merged),
-            viewId: routeId,
-        };
-    });
-
-    const freeSource = backendCards.length ? backendCards.filter((template) => !template.isPaid) : FREE_TEMPLATES;
-    const paidSource = backendCards.length ? backendCards.filter((template) => template.isPaid) : PAID_TEMPLATES;
-
-    const freeTemplates = freeSource.map((t) => ({
-        ...t,
-        added: selectedTemplates.includes(t.id),
-    }));
-
-    const paidTemplates = paidSource.map((t) => ({
-        ...t,
-        added: selectedTemplates.includes(t.id),
-    }));
+    const freeTemplates = templates.filter((template) => !template.isPaid && !template.premium);
+    const paidTemplates = templates.filter((template) => template.isPaid || template.premium);
 
     return (
         <div className="at-root">
-            <h2>បន្ថែមគម្រូ</h2>
-            <p className="at-subtitle">
-                បន្ថែមគម្រូសន្លឹកការណ៍សម្រាប់កម្មវិធីរបស់អ្នក។ រំកិលដើម្បីមើលគម្រូទាំងអស់។
-            </p>
+            <h2>{t("title")}</h2>
+            <p className="at-subtitle">{t("subtitle")}</p>
 
-            {/* Free Templates Section */}
-            <section className="at-section">
-                <div className="at-section-header">
-                    <span className="at-section-icon">✓</span>
-                    <h3 className="at-section-title">ឥតគិតថ្លៃ</h3>
-                    <span className="at-section-count">{freeTemplates.length}</span>
-                </div>
+            {error && <div className="at-empty-state">{error}</div>}
+            {loading && <div className="at-empty-state">{t("loading")}</div>}
 
-                <div className="at-scroll-container">
-                    <div className="at-cards-row">
-                        {freeTemplates.map((template) => (
-                            <TemplateCard
-                                key={template.id}
-                                template={template}
-                                onSelect={handleSelect}
-                                onView={handleView}
-                            />
-                        ))}
+            {!loading && freeTemplates.length > 0 && (
+                <section className="at-section">
+                    <div className="at-section-header">
+                        <span className="at-section-icon"><IoCheckmarkCircleOutline aria-hidden="true" /></span>
+                        <h3 className="at-section-title">{t("freeSection")}</h3>
+                        <span className="at-section-count">{freeTemplates.length}</span>
                     </div>
-                </div>
-            </section>
-
-            {/* Paid Templates Section */}
-            <section className="at-section at-section--paid">
-                <div className="at-section-header">
-                    <span className="at-section-icon at-section-icon--paid">💎</span>
-                    <h3 className="at-section-title">ត្រូវការចំណាយ</h3>
-                    <span className="at-section-count">{paidTemplates.length}</span>
-                </div>
-
-                <div className="at-scroll-container">
-                    <div className="at-cards-row">
-                        {paidTemplates.map((template) => (
-                            <TemplateCard
-                                key={template.id}
-                                template={{
-                                    ...template,
-                                    added: selectedTemplates.includes(template.id),
-                                }}
-                                onSelect={handleSelect}
-                                onView={handleView}
-                            />
-                        ))}
+                    <div className="at-scroll-container">
+                        <div className="at-cards-row">
+                            {freeTemplates.map((template) => (
+                                <TemplateCard
+                                    key={template.id}
+                                    template={template}
+                                    onSelect={handleSelect}
+                                    onView={handleView}
+                                    t={t}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
+
+            {!loading && paidTemplates.length > 0 && (
+                <section className="at-section at-section--paid">
+                    <div className="at-section-header">
+                        <span className="at-section-icon at-section-icon--paid"><IoDiamondOutline aria-hidden="true" /></span>
+                        <h3 className="at-section-title">{t("paidSection")}</h3>
+                        <span className="at-section-count">{paidTemplates.length}</span>
+                    </div>
+                    <div className="at-scroll-container">
+                        <div className="at-cards-row">
+                            {paidTemplates.map((template) => (
+                                <TemplateCard
+                                    key={template.id}
+                                    template={template}
+                                    onSelect={handleSelect}
+                                    onView={handleView}
+                                    t={t}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

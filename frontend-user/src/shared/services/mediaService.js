@@ -32,9 +32,12 @@ function galleryForm(files, sortOrder) {
 
 export const mediaService = {
     list: (invitationId) => api.get(`/v1/invitations/${invitationId}/media`).then(unwrap),
-    publicBySlug: (slug, params = {}) => api
-        .get(`/v1/public/invitations/${encodeURIComponent(slug)}/media${toQuery(params)}`, { auth: false })
-        .then(unwrap),
+    publicBySlug: (slug, params = {}) => {
+        const queryParams = typeof params === "string" ? { token: params } : params;
+        return api
+            .get(`/v1/public/invitations/${encodeURIComponent(slug)}/media${toQuery(queryParams)}`, { auth: false })
+            .then(unwrap);
+    },
     uploadCover: (invitationId, file) => api
         .post(`/v1/invitations/${invitationId}/media/cover`, fileForm(file))
         .then(unwrap),

@@ -21,6 +21,17 @@
     line-height: 1.6;
 }
 
+.at-empty-state {
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px dashed rgba(176, 146, 106, 0.35);
+    border-radius: 12px;
+    background: #fff;
+    color: #7d6443;
+    font-size: 13px;
+    text-align: center;
+}
+
 /* ─── Section ─── */
 .at-section {
     margin-bottom: 36px;
@@ -46,6 +57,12 @@
     color: #16a34a;
     font-size: 13px;
     font-weight: 700;
+}
+
+.at-section-icon svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 
 .at-section-icon--paid {
@@ -163,14 +180,22 @@
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     background: linear-gradient(145deg, #f9f5ef, #ede5d8);
     color: #a89070;
     font-size: 12px;
     font-weight: 600;
     text-align: center;
     padding: 12px;
+}
+
+.at-card-no-image svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
 }
 
 /* ─── Body ─── */
@@ -229,6 +254,12 @@
     white-space: nowrap;
 }
 
+.at-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
 .at-btn--added {
     background: linear-gradient(135deg, #f0fdf4, #dcfce7);
     color: #15803d;
@@ -240,7 +271,8 @@
 }
 
 .at-btn--added .at-btn-check {
-    font-weight: 900;
+    width: 14px;
+    height: 14px;
     color: #16a34a;
 }
 

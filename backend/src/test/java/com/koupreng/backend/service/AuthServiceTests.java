@@ -2,6 +2,7 @@ package com.koupreng.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -120,6 +121,8 @@ class AuthServiceTests {
         JwtEncoder jwtEncoder = mock(JwtEncoder.class);
         GoogleIdentityVerifier googleIdentityVerifier = mock(GoogleIdentityVerifier.class);
         TelegramIdentityVerifier telegramIdentityVerifier = mock(TelegramIdentityVerifier.class);
+        MessageService messageService = mock(MessageService.class);
+        when(messageService.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
         AppProperties appProperties = new AppProperties();
         appProperties.getJwt().setIssuer("koupreng-backend");
         appProperties.getJwt().setSecret("local_test_jwt_secret_64_characters_or_longer_for_auth_service_tests_123456");
@@ -129,7 +132,8 @@ class AuthServiceTests {
                 jwtEncoder,
                 appProperties,
                 googleIdentityVerifier,
-                telegramIdentityVerifier
+                telegramIdentityVerifier,
+                messageService
         );
         return new Fixture(
                 authService,

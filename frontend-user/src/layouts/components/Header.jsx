@@ -2,23 +2,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../pages/auth/context/useAuth";
+import { useLanguageStore } from "../../stores/useLanguageStore";
+import { useT } from "../../shared/i18n/useT";
 import logo from "../../assets/logo.png";
-
-const PUBLIC_NAV_ITEMS = [
-  { label: "ទំព័រដើម", path: "/" },
-  { label: "គំរូសន្លឹកការ", path: "/templates" },
-  { label: "តម្លៃ", path: "/pricing" },
-  { label: "ទីកន្លែង", path: "/venues" },
-];
-
-const DASHBOARD_NAV_ITEMS = [
-  { label: "ផ្ទាំងគ្រប់គ្រង", path: "/dashboard" },
-  { label: "គំរូសន្លឹកការ", path: "/templates" },
-  // { label: "បង្កើតសន្លឹកការ", path: "/create/wedding" },
-  // { label: "បញ្ជីភ្ញៀវ", path: "/guests" },
-  // { label: "គម្រោងថវិកា", path: "/expenses" },
-  // { label: "ចងដៃមង្គល", path: "/gifts" },
-];
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -26,6 +12,22 @@ export default function Header() {
   const { isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const { lang, setLang } = useLanguageStore();
+  const t = useT();
+
+  const PUBLIC_NAV_ITEMS = [
+    { label: t.nav.home, path: "/" },
+    { label: t.nav.templates, path: "/templates" },
+    { label: t.nav.pricing, path: "/pricing" },
+    { label: t.nav.venues, path: "/venues" },
+  ];
+
+  const DASHBOARD_NAV_ITEMS = [
+    { label: t.nav.dashboard, path: "/dashboard" },
+    { label: t.nav.templates, path: "/templates" },
+  ];
+
   const navItems = isAuthenticated ? DASHBOARD_NAV_ITEMS : PUBLIC_NAV_ITEMS;
 
   useEffect(() => {
@@ -72,11 +74,14 @@ export default function Header() {
         .nav-links { display: flex; gap: 20px; align-items: center; }
         .nav-link { font-family: 'Kantumruy Pro', sans-serif; text-decoration: none; color: #333; font-weight: 700; font-size: 14px; transition: 0.3s; background: none; border: 0; cursor: pointer; padding: 0; }
         .nav-link:hover, .nav-link.active { color: #B0926A; }
+        .desktop-actions { display: flex; align-items: center; gap: 12px; }
         .user-actions { display: flex; align-items: center; gap: 12px; }
         .user-profile-circle { width: 40px; height: 40px; border-radius: 50%; background: #B0926A; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; text-decoration: none; }
         .logout-nav-btn { color: #8a3434; }
         .logout-nav-btn:hover { color: #c24141; }
         .cta-gold { background: linear-gradient(135deg, #B0926A 0%, #7D6443 100%); color: white; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(176, 146, 106, 0.3); }
+        .lang-toggle { background: rgba(176,146,106,0.12); border: 1px solid rgba(176,146,106,0.4); color: #7D6443; padding: 6px 14px; border-radius: 20px; font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s; line-height: 1; }
+        .lang-toggle:hover { background: rgba(176,146,106,0.25); }
         .burger-menu { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; z-index: 3001; }
         .burger-menu span { width: 25px; height: 3px; background-color: #7D6443; border-radius: 2px; transition: 0.3s; }
         .mobile-nav { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #FCF8F2; padding: 100px 30px; flex-direction: column; gap: 20px; z-index: 2999; pointer-events: auto; }
@@ -121,6 +126,15 @@ export default function Header() {
           </nav>
 
           <div className="desktop-actions">
+            <button
+              type="button"
+              className="lang-toggle"
+              onClick={() => setLang(lang === "km" ? "en" : "km")}
+              aria-label="Switch language"
+              title={lang === "km" ? "Switch to English" : "ប្តូរទៅភាសាខ្មែរ"}
+            >
+              {lang === "km" ? "EN" : "ខ្មែរ"}
+            </button>
             {isAuthenticated ? (
               <div className="user-actions">
                 <button
@@ -128,7 +142,7 @@ export default function Header() {
                   className="nav-link logout-nav-btn"
                   onClick={handleLogout}
                 >
-                  ចាកចេញ
+                  {t.nav.logout}
                 </button>
                 <Link to="/dashboard" className="user-profile-circle">
                   V
@@ -139,10 +153,10 @@ export default function Header() {
                 style={{ display: "flex", alignItems: "center", gap: "15px" }}
               >
                 <Link to="/login" className="nav-link">
-                  ចូលប្រើ
+                  {t.nav.login}
                 </Link>
                 <Link to="/register" className="cta-gold">
-                  ចាប់ផ្ដើមឥឡូវនេះ
+                  {t.nav.register}
                 </Link>
               </div>
             )}
@@ -191,7 +205,7 @@ export default function Header() {
               handleLogout();
             }}
           >
-            ចាកចេញ
+            {t.nav.logout}
           </button>
         ) : (
           <>
@@ -200,7 +214,7 @@ export default function Header() {
               className="nav-link"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              ចូលប្រើ
+              {t.nav.login}
             </Link>
             <Link
               to="/register"
@@ -208,10 +222,18 @@ export default function Header() {
               style={{ textAlign: "center" }}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              ចាប់ផ្ដើមឥឡូវនេះ
+              {t.nav.register}
             </Link>
           </>
         )}
+        <button
+          type="button"
+          className="lang-toggle"
+          style={{ marginTop: "10px", alignSelf: "flex-start" }}
+          onClick={() => setLang(lang === "km" ? "en" : "km")}
+        >
+          {lang === "km" ? "EN" : "ខ្មែរ"}
+        </button>
       </nav>
     </>
   );

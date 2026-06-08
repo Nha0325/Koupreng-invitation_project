@@ -105,6 +105,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/invitations/shared/**").permitAll()
                         .requestMatchers("/api/v1/templates",
                                 "/api/v1/templates/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/i18n/messages").permitAll()
                         .requestMatchers("/api/v1/public/invitations/**").permitAll()
                         .requestMatchers("/api/v1/payway/callback",
                                 "/api/v1/payway/return",

@@ -188,3 +188,12 @@ The bot must not log bot tokens, admin secrets, passwords, or JWT tokens.
 - If PayWay changed its username, update `TELEGRAM_ALLOWED_PAYMENT_BOT_USERNAMES`.
 - Prefer `TELEGRAM_ALLOWED_PAYMENT_BOT_IDS` after you discover the real ABA PayWay bot sender ID.
 - If Telegram does not deliver bot-to-bot messages, make your bot admin and check whether your BotFather settings support bot-to-bot group delivery.
+
+
+
+
+cd telegram-bot
+pip install -r requirements.txt
+python start.py
+
+ngrok http 8000

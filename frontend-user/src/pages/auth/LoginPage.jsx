@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "./context/useAuth";
 import { useToggle } from "../../shared/hooks/useToggle";
+import { useT } from "../../shared/i18n/useT";
 import authService from "../../services/remote/authService";
 import SocialAuthButtons from "./SocialAuthButtons";
 import "./AuthPage.css";
@@ -28,6 +29,7 @@ function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login } = useAuth();
+  const t = useT();
   const redirectTo = getSafeRedirect(searchParams);
 
   const handleSubmit = async (e) => {
@@ -35,7 +37,7 @@ function Login() {
     setError("");
 
     if (!identifier.trim() || !password) {
-      setError("សូមបញ្ចូលលេខទូរស័ព្ទ ឬ អ៊ីមែល និងលេខសម្ងាត់។");
+      setError(t.auth.requiredFields);
       return;
     }
 
@@ -45,7 +47,7 @@ function Login() {
       login(authData);
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err.message || "ការចូលគណនីបរាជ័យ។ សូមព្យាយាមម្ដងទៀត។");
+      setError(err.message || t.auth.loginFailed);
     } finally {
       setLoading(false);
     }
@@ -62,8 +64,8 @@ function Login() {
       <div className="auth-card">
         {/* Header */}
         <div className="auth-header">
-          <h1 className="auth-title">ចូលគណនី</h1>
-          <p className="auth-subtitle">ចូលទៅកាន់គណនី Koupreng របស់អ្នក</p>
+          <h1 className="auth-title">{t.auth.loginTitle}</h1>
+          <p className="auth-subtitle">{t.auth.loginSubtitle}</p>
         </div>
 
         {error && <p className="auth-error">{error}</p>}
@@ -73,14 +75,14 @@ function Login() {
           {/* Email / Phone */}
           <div className="auth-field">
             <label htmlFor={emailId} className="auth-label">
-              លេខទូរស័ព្ទ ឬ អ៊ីមែល
+              {t.auth.phoneOrEmail}
             </label>
             <input
               id={emailId}
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="បញ្ចូលលេខទូរស័ព្ទ ឬ អ៊ីមែល"
+              placeholder={t.auth.phoneOrEmailPlaceholder}
               className="auth-input"
             />
           </div>
@@ -88,7 +90,7 @@ function Login() {
           {/* Password */}
           <div className="auth-field">
             <label htmlFor={passwordId} className="auth-label">
-              លេខសម្ងាត់
+              {t.auth.password}
             </label>
             <div className="auth-input-wrap">
               <input
@@ -150,12 +152,12 @@ function Login() {
 
           {/* Submit */}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "កំពុងចូល..." : "ចូលគណនី"}
+            {loading ? t.auth.signingIn : t.auth.signIn}
           </button>
         </form>
 
         {/* Divider */}
-        <p className="auth-divider">ឬ បន្តជាមួយ</p>
+        <p className="auth-divider">{t.auth.orContinueWith}</p>
 
         {/* Social buttons */}
         <SocialAuthButtons redirectTo={redirectTo} />
@@ -163,13 +165,13 @@ function Login() {
         {/* Forgot password */}
         <div className="auth-footer">
           <Link to="/forgot-password" className="auth-footer-link">
-            ភ្លេចលេខសម្ងាត់?
+            {t.auth.forgotPassword}
           </Link>
         </div>
 
         {/* Register link */}
         <p className="auth-footer-text">
-          មិនទាន់មានគណនីមែនទេ? <Link to="/register">ចុះឈ្មោះ</Link>
+          {t.auth.noAccount} <Link to="/register">{t.nav.register}</Link>
         </p>
       </div>
     </div>

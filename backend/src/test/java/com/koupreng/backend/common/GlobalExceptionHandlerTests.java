@@ -1,10 +1,15 @@
 package com.koupreng.backend.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
 
+import com.koupreng.backend.service.MessageService;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +17,13 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 class GlobalExceptionHandlerTests {
 
-    private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
+    private final MessageService messageService = mock(MessageService.class);
+    private final GlobalExceptionHandler handler = new GlobalExceptionHandler(messageService);
+
+    @BeforeEach
+    void setUp() {
+        when(messageService.get("error.method-not-supported")).thenReturn("Request method is not supported");
+    }
 
     @Test
     void methodNotSupportedReturns405InsteadOfGeneric500() {

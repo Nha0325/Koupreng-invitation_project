@@ -2,7 +2,9 @@ package com.koupreng.backend.service;
 
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.template.PublicTemplateResponse;
+import com.koupreng.backend.dto.template.TemplateResponse;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,5 +41,12 @@ public class TemplateCatalogService {
         return templateRepository.findByCodeIgnoreCaseAndStatusIgnoreCase(code, STATUS_ACTIVE)
                 .map(PublicTemplateResponse::from)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Template not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<TemplateResponse> list() {
+        return templateRepository.findAll(Sort.by(Sort.Direction.ASC, "id")).stream()
+                .map(TemplateResponse::from)
+                .toList();
     }
 }

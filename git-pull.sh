@@ -1,14 +1,30 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# ─────────────────────────────────────────────────────────────────────────────
+# git-pull.sh — Safe team Git pull script for Koupreng
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$SCRIPT_DIR"
 
 TARGET_REMOTE="origin"
 TARGET_BRANCH="main"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Helper functions
+# ─────────────────────────────────────────────────────────────────────────────
+
 fail() {
-    printf '\n%s\n' "$1" >&2
+    echo -e "\n${RED}Error: $1${NC}" >&2
     exit 1
 }
 
@@ -30,51 +46,54 @@ origin_branch_exists() {
 }
 
 show_unfinished_help() {
-    cat >&2 <<'EOF'
+    cat >&2 <<EOF
 
-A rebase or merge is already in progress.
+${RED}A rebase or merge is already in progress.${NC}
 
-git status
-git rebase --continue
-git rebase --abort
-git merge --abort
+${YELLOW}To continue:${NC}
+  git status
+  git rebase --continue
+
+${YELLOW}To abort:${NC}
+  git rebase --abort
+  git merge --abort
 EOF
 }
 
 show_pull_conflict_help() {
-    cat >&2 <<'EOF'
+    cat >&2 <<EOF
 
-Pull stopped because collaborator code conflicts with your local work.
+${RED}Pull stopped because collaborator code conflicts with your local work.${NC}
 
-Fix:
-git status
-Edit conflicted files
-git add .
-git rebase --continue
+${YELLOW}To fix:${NC}
+  git status
+  Edit conflicted files (look for <<<<<<< markers)
+  git add .
+  git rebase --continue
 
-Cancel:
-git rebase --abort
+${YELLOW}To cancel:${NC}
+  git rebase --abort
 EOF
 }
 
 show_stash_conflict_help() {
-    cat >&2 <<'EOF'
+    cat >&2 <<EOF
 
-Your saved local changes conflicted with the latest code.
+${RED}Your saved local changes conflicted with the latest code.${NC}
 
-Fix:
-git status
-Edit conflicted files
-git add .
-git commit -m "resolve local conflict"
+${YELLOW}To fix:${NC}
+  git status
+  Edit conflicted files (look for <<<<<<< markers)
+  git add .
+  git commit -m "resolve local conflict"
 
-Your stash is kept as backup.
+${CYAN}Your stash is kept as backup.${NC}
 
-Check:
-git stash list
+${YELLOW}To check:${NC}
+  git stash list
 
-Drop after verification:
-git stash drop stash@{0}
+${YELLOW}To drop after verification:${NC}
+  git stash drop stash@{0}
 EOF
 }
 
@@ -86,15 +105,20 @@ safe_pull() {
     local stash_ref='stash@{0}'
 
     if has_local_changes; then
+        echo -e "${YELLOW}Stashing local changes...${NC}"
         git stash push --include-untracked -m "safe-pull auto-stash ${branch} $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         stash_created=1
+        echo -e "${GREEN}✓ Local changes stashed${NC}"
     fi
+
+    echo -e "${BLUE}Pulling and rebasing...${NC}"
 
     if [ "$pull_mode" = "upstream" ]; then
         if ! git pull --rebase; then
             show_pull_conflict_help
             if [ "$stash_created" -eq 1 ]; then
-                printf '\nYour uncommitted changes are still saved in the auto-stash.\nCheck it with:\ngit stash list\n' >&2
+                echo -e "\n${CYAN}Your uncommitted changes are still saved in the auto-stash.${NC}" >&2
+                echo -e "${CYAN}Check it with: git stash list${NC}" >&2
             fi
             exit 1
         fi
@@ -102,20 +126,27 @@ safe_pull() {
         if ! git pull --rebase "$remote" "$remote_branch"; then
             show_pull_conflict_help
             if [ "$stash_created" -eq 1 ]; then
-                printf '\nYour uncommitted changes are still saved in the auto-stash.\nCheck it with:\ngit stash list\n' >&2
+                echo -e "\n${CYAN}Your uncommitted changes are still saved in the auto-stash.${NC}" >&2
+                echo -e "${CYAN}Check it with: git stash list${NC}" >&2
             fi
             exit 1
         fi
     fi
 
     if [ "$stash_created" -eq 1 ]; then
+        echo -e "${BLUE}Restoring local changes...${NC}"
         if ! git stash apply "$stash_ref"; then
             show_stash_conflict_help
             exit 1
         fi
         git stash drop "$stash_ref"
+        echo -e "${GREEN}✓ Local changes restored${NC}"
     fi
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Main script
+# ─────────────────────────────────────────────────────────────────────────────
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "Not inside a Git repository."
 
@@ -130,15 +161,23 @@ if [ "$branch" != "$TARGET_BRANCH" ]; then
     fail "This script only pulls into the $TARGET_BRANCH branch. Run: git checkout $TARGET_BRANCH"
 fi
 
-printf 'Safe Team Git Pull\n'
-printf 'Current branch: %s\n' "$branch"
-printf 'Target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
+echo ""
+echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+echo -e "${CYAN}  Koupreng Safe Team Git Pull${NC}"
+echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}Current branch:${NC} ${YELLOW}$branch${NC}"
+echo -e "${GREEN}Pull target:${NC}    ${YELLOW}$TARGET_REMOTE/$TARGET_BRANCH${NC}"
+echo ""
 
+echo -e "${BLUE}Fetching latest changes from $TARGET_REMOTE...${NC}"
 git fetch "$TARGET_REMOTE" --prune
 origin_branch_exists "$TARGET_REMOTE" "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
 
-printf 'Pull target: %s/%s\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
 safe_pull explicit "$TARGET_REMOTE" "$TARGET_BRANCH"
 
-printf '\nPull completed successfully.\n'
-printf 'Your current branch has the latest %s/%s code.\n' "$TARGET_REMOTE" "$TARGET_BRANCH"
+echo ""
+echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}✓ Pull completed successfully!${NC}"
+echo -e "${GREEN}✓ Your branch '$branch' has the latest $TARGET_REMOTE/$TARGET_BRANCH code${NC}"
+echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
+echo ""

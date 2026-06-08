@@ -39,6 +39,7 @@ public class AuthService {
     private final GoogleIdentityVerifier googleIdentityVerifier;
     private final TelegramIdentityVerifier telegramIdentityVerifier;
     private final AuditLogService auditLogService;
+    private final MessageService msg;
 
     @org.springframework.beans.factory.annotation.Autowired
     public AuthService(
@@ -48,6 +49,7 @@ public class AuthService {
             AppProperties appProperties,
             GoogleIdentityVerifier googleIdentityVerifier,
             TelegramIdentityVerifier telegramIdentityVerifier,
+            MessageService msg,
             AuditLogService auditLogService
     ) {
         this.userRepository = userRepository;
@@ -56,6 +58,7 @@ public class AuthService {
         this.appProperties = appProperties;
         this.googleIdentityVerifier = googleIdentityVerifier;
         this.telegramIdentityVerifier = telegramIdentityVerifier;
+        this.msg = msg;
         this.auditLogService = auditLogService;
     }
 
@@ -65,9 +68,11 @@ public class AuthService {
             JwtEncoder jwtEncoder,
             AppProperties appProperties,
             GoogleIdentityVerifier googleIdentityVerifier,
-            TelegramIdentityVerifier telegramIdentityVerifier
+            TelegramIdentityVerifier telegramIdentityVerifier,
+            MessageService msg
     ) {
-        this(userRepository, passwordEncoder, jwtEncoder, appProperties, googleIdentityVerifier, telegramIdentityVerifier, null);
+        this(userRepository, passwordEncoder, jwtEncoder, appProperties,
+                googleIdentityVerifier, telegramIdentityVerifier, msg, null);
     }
 
     @Transactional
@@ -77,13 +82,13 @@ public class AuthService {
         String phone = normalizePhone(request.phone());
 
         if (email == null && phone == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Phone or email is required");
+            throw new ApiException(HttpStatus.BAD_REQUEST, msg.get("auth.phone-or-email-required"));
         }
         if (email != null && userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ApiException(HttpStatus.CONFLICT, "Email is already registered");
+            throw new ApiException(HttpStatus.CONFLICT, msg.get("auth.email-taken"));
         }
         if (phone != null && userRepository.existsByPhone(phone)) {
-            throw new ApiException(HttpStatus.CONFLICT, "Phone number is already registered");
+            throw new ApiException(HttpStatus.CONFLICT, msg.get("auth.phone-taken"));
         }
         requirePasswordPolicy(request.password());
 
@@ -106,21 +111,21 @@ public class AuthService {
                         if (auditLogService != null) {
                             auditLogService.logSystemEvent("LOGIN_FAILED", "USER", null, "Failed login attempt: user not found for identifier: " + request.identifier(), java.util.Map.of("identifier", request.identifier(), "reason", "USER_NOT_FOUND"));
                         }
-                        return new BadCredentialsException("Invalid credentials");
+                        return new BadCredentialsException(msg.get("auth.invalid-credentials"));
                     });
 
             if (!user.isActive()) {
                 if (auditLogService != null) {
                     auditLogService.logSystemEvent("LOGIN_FAILED", "USER", user.getId(), "Failed login attempt: account is disabled for identifier: " + request.identifier(), java.util.Map.of("identifier", request.identifier(), "userId", user.getId(), "reason", "ACCOUNT_DISABLED"));
                 }
-                throw new BadCredentialsException("Account is disabled");
+                throw new BadCredentialsException(msg.get("auth.account-disabled"));
             }
             if (user.getPasswordHash() == null
                     || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
                 if (auditLogService != null) {
                     auditLogService.logSystemEvent("LOGIN_FAILED", "USER", user.getId(), "Failed login attempt: password mismatch for identifier: " + request.identifier(), java.util.Map.of("identifier", request.identifier(), "userId", user.getId(), "reason", "BAD_CREDENTIALS"));
                 }
-                throw new BadCredentialsException("Invalid credentials");
+                throw new BadCredentialsException(msg.get("auth.invalid-credentials"));
             }
 
             return issueToken(user);

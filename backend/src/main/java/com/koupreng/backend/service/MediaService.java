@@ -143,8 +143,8 @@ public class MediaService {
     }
 
     @Transactional(readOnly = true)
-    public MediaListResponse listPublic(String slug) {
-        UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(slug, false);
+    public MediaListResponse listPublic(String slug, String token) {
+        UserInvitation invitation = invitationService.requirePublicInvitationForView(slug, token);
         return MediaListResponse.from(mediaFileRepository.findByInvitationIdOrderBySortOrderAscCreatedAtAsc(invitation.getId()));
     }
 

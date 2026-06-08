@@ -5,11 +5,13 @@ import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.PublicInvitationResponse;
 import com.koupreng.backend.entity.invitation.EventType;
+import com.koupreng.backend.entity.invitation.Guest;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
+import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
@@ -168,6 +170,74 @@ class InvitationServiceTests {
     }
 
     @Test
+    void publicSlugAllowsPrivateInvitationWithGuestToken() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PRIVATE);
+        Guest guest = new Guest();
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+        when(fixture.guestRepository.findByInvitationIdAndInviteToken(10L, "token"))
+                .thenReturn(Optional.of(guest));
+
+        PublicInvitationResponse response = fixture.service.publicBySlug("draft-invitation", "token");
+
+        assertEquals("draft-invitation", response.getSlug());
+    }
+
+    @Test
+    void publicSlugRejectsPrivateInvitationWithoutGuestToken() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PRIVATE);
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.publicBySlug("draft-invitation", null)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+    }
+
+    @Test
+    void publicSlugAllowsPasswordProtectedInvitationWithGuestToken() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PASSWORD_PROTECTED);
+        Guest guest = new Guest();
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+        when(fixture.guestRepository.findByInvitationIdAndInviteToken(10L, "token"))
+                .thenReturn(Optional.of(guest));
+
+        PublicInvitationResponse response = fixture.service.publicBySlug("draft-invitation", "token");
+
+        assertEquals("draft-invitation", response.getSlug());
+    }
+
+    @Test
+    void publicSlugRejectsPasswordProtectedInvitationWithoutGuestToken() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PASSWORD_PROTECTED);
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.publicBySlug("draft-invitation", null)
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    }
+
+    @Test
     void nonOwnerCannotUpdateInvitation() {
         Fixture fixture = fixture();
         AppUser otherUser = user(2L);
@@ -213,6 +283,7 @@ class InvitationServiceTests {
     private Fixture fixture() {
         UserInvitationRepository invitationRepository = mock(UserInvitationRepository.class);
         InvitationTemplateRepository templateRepository = mock(InvitationTemplateRepository.class);
+        GuestRepository guestRepository = mock(GuestRepository.class);
         UserTemplateAccessRepository templateAccessRepository = mock(UserTemplateAccessRepository.class);
         CurrentUserService currentUserService = mock(CurrentUserService.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
@@ -221,6 +292,7 @@ class InvitationServiceTests {
         InvitationService service = new InvitationService(
                 invitationRepository,
                 templateRepository,
+                guestRepository,
                 templateAccessRepository,
                 currentUserService,
                 passwordEncoder
@@ -241,6 +313,7 @@ class InvitationServiceTests {
                 service,
                 invitationRepository,
                 templateRepository,
+                guestRepository,
                 templateAccessRepository,
                 currentUserService,
                 authentication,
@@ -301,6 +374,7 @@ class InvitationServiceTests {
             InvitationService service,
             UserInvitationRepository invitationRepository,
             InvitationTemplateRepository templateRepository,
+            GuestRepository guestRepository,
             UserTemplateAccessRepository templateAccessRepository,
             CurrentUserService currentUserService,
             Authentication authentication,

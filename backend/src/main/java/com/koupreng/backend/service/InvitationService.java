@@ -24,11 +24,11 @@ import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
+import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.OrganizationMemberRepository;
 import com.koupreng.backend.repository.OrganizationRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
-import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.GuestSeatAssignmentRepository;
 import com.koupreng.backend.repository.MediaFileRepository;
 import com.koupreng.backend.repository.RsvpRepository;
@@ -54,8 +54,8 @@ public class InvitationService {
 
     private final UserInvitationRepository invitationRepository;
     private final InvitationTemplateRepository templateRepository;
-    private final UserTemplateAccessRepository templateAccessRepository;
     private final GuestRepository guestRepository;
+    private final UserTemplateAccessRepository templateAccessRepository;
     private final GuestSeatAssignmentRepository seatAssignmentRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
@@ -130,11 +130,13 @@ public class InvitationService {
     public InvitationService(
             UserInvitationRepository invitationRepository,
             InvitationTemplateRepository templateRepository,
+            GuestRepository guestRepository,
             UserTemplateAccessRepository templateAccessRepository,
             CurrentUserService currentUserService,
             PasswordEncoder passwordEncoder
     ) {
-        this(invitationRepository, templateRepository, templateAccessRepository, null, null, currentUserService, passwordEncoder, null, null, null, null);
+        this(invitationRepository, templateRepository, templateAccessRepository, guestRepository, null,
+                currentUserService, passwordEncoder, null, null, null, null);
     }
 
     @Transactional
@@ -258,9 +260,14 @@ public class InvitationService {
         return InvitationCustomizationResponse.from(save(invitation));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PublicInvitationResponse publicBySlug(String slug) {
         return publicBySlug(slug, null, null);
+    }
+
+    @Transactional
+    public PublicInvitationResponse publicBySlug(String slug, String inviteToken) {
+        return publicBySlug(slug, null, inviteToken);
     }
 
     @Transactional
@@ -279,6 +286,17 @@ public class InvitationService {
             guest.setInvitationViewedAt(Instant.now());
         }
         return PublicInvitationResponse.from(invitation, guest, assignment);
+    }
+
+    @Transactional(readOnly = true)
+    public UserInvitation requirePublicInvitationForView(String slug, String inviteToken) {
+        UserInvitation invitation = invitationRepository
+                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
+
+        requirePubliclyVisibleByModeration(invitation);
+        requirePublicInvitationAccess(invitation, null, inviteToken);
+        return invitation;
     }
 
     @Transactional
@@ -348,6 +366,9 @@ public class InvitationService {
         }
         if (hasInvitationAccess(invitation, accessToken, inviteToken)) {
             return;
+        }
+        if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
         }
         throw new ApiException(HttpStatus.FORBIDDEN, protectedMessage(invitation));
     }
@@ -528,6 +549,23 @@ public class InvitationService {
         if (trimToNull(value) == null) {
             missing.add(field);
         }
+    }
+
+    private void validatePublicViewAccess(UserInvitation invitation, String inviteToken) {
+        if (invitation.getVisibility() == InvitationVisibility.PUBLIC || hasGuestAccess(invitation, inviteToken)) {
+            return;
+        }
+        if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
+        }
+        if (invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
+        }
+    }
+
+    private boolean hasGuestAccess(UserInvitation invitation, String inviteToken) {
+        String token = trimToNull(inviteToken);
+        return token != null && guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), token).isPresent();
     }
 
     private void ensureSlug(UserInvitation invitation) {

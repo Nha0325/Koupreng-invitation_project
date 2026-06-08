@@ -1,411 +1,527 @@
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/useAuth";
 import authService from "../../services/remote/authService";
 
-const GOOGLE_SCRIPT_ID = "google-identity-services-script";
-const TELEGRAM_LOGIN_SCRIPT_ID = "telegram-login-script";
-const TELEGRAM_LOGIN_SCRIPT_SRC =
-  "https://oauth.telegram.org/js/telegram-login.js?5";
-const TELEGRAM_LEGACY_SCRIPT_SRC =
-  "https://telegram.org/js/telegram-widget.js?22";
-
+/* ─── env values ─────────────────────────────────────────── */
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
-const telegramClientId = import.meta.env.VITE_TELEGRAM_CLIENT_ID || "";
-const rawTelegramBot = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
-const telegramBotUsername =
-  rawTelegramBot === "your_bot_username" ? "" : rawTelegramBot;
+// Numeric Telegram client ID from BotFather → Web Login (preferred)
+const telegramClientId = (import.meta.env.VITE_TELEGRAM_CLIENT_ID || "").trim();
+// Numeric bot ID for the legacy popup fallback.
+const telegramBotId = (import.meta.env.VITE_TELEGRAM_BOT_ID || "").trim();
+const rawBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
+const telegramBot = rawBotUsername === "your_bot_username"
+  ? "" : rawBotUsername.trim().replace(/^@/, "");
+const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || "").trim();
 
+// OIDC flow: needs numeric client_id
+const hasTelegramClientId = /^\d+$/.test(telegramClientId);
+// Direct popup flow: needs numeric bot_id (same number as client_id for most bots)
+const hasTelegramBotId = /^\d+$/.test(telegramBotId);
+// Widget iframe flow: needs bot username + BotFather /setdomain configured
+const hasTelegramBot = Boolean(telegramBot) && !hasTelegramClientId && !hasTelegramBotId;
+
+const GOOGLE_GSI_ID = "google-gsi-script";
+const TELEGRAM_WIDGET_ID = "telegram-widget-script";
+const TELEGRAM_OAUTH_ORIGIN = "https://oauth.telegram.org";
+const TELEGRAM_WIDGET_SCRIPT_SRC = "https://telegram.org/js/telegram-widget.js?22";
+
+/* ─── Icons ──────────────────────────────────────────────── */
 function GoogleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
-      />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
     </svg>
   );
 }
 
 function TelegramIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="12" fill="white" />
-      <path
-        d="M17.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.07-.18c-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.2 3.45-.49.34-.94.5-1.35.49-.45-.01-1.32-.26-1.96-.47-.79-.26-1.42-.39-1.37-.83.03-.22.33-.44.91-.68 3.56-1.55 5.94-2.58 7.12-3.07 3.39-1.41 4.1-1.65 4.56-1.66.1 0 .32.02.46.12.12.09.15.22.16.32.01.07.02.16.02.24z"
-        fill="#0088cc"
-      />
+      <path d="M17.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.07-.18c-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.2 3.45-.49.34-.94.5-1.35.49-.45-.01-1.32-.26-1.96-.47-.79-.26-1.42-.39-1.37-.83.03-.22.33-.44.91-.68 3.56-1.55 5.94-2.58 7.12-3.07 3.39-1.41 4.1-1.65 4.56-1.66.1 0 .32.02.46.12.12.09.15.22.16.32.01.07.02.16.02.24z" fill="#0088cc" />
     </svg>
   );
 }
 
+/* ─── Script loader ──────────────────────────────────────── */
 function loadScript(id, src, isReady = () => false) {
-  const existingScript = document.getElementById(id);
-  if (existingScript) {
-    if (existingScript.dataset.status === "loaded" || isReady()) {
-      return Promise.resolve(existingScript);
-    }
-
-    if (existingScript.dataset.status === "loading") {
-      return new Promise((resolve, reject) => {
-        existingScript.addEventListener("load", () => resolve(existingScript), {
-          once: true,
-        });
-        existingScript.addEventListener("error", reject, { once: true });
+  const existing = document.getElementById(id);
+  if (existing) {
+    if (existing.dataset.src !== src) {
+      existing.remove();
+    } else if (existing.dataset.loaded || isReady()) {
+      return Promise.resolve();
+    } else {
+      return new Promise((res, rej) => {
+        existing.addEventListener("load", res, { once: true });
+        existing.addEventListener("error", rej, { once: true });
       });
     }
-
-    existingScript.remove();
   }
 
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = id;
-    script.src = src;
-    script.async = true;
-    script.defer = true;
-    script.dataset.status = "loading";
-    script.onload = () => {
-      script.dataset.status = "loaded";
-      resolve(script);
-    };
-    script.onerror = (event) => {
-      script.dataset.status = "error";
-      reject(event);
-    };
-    document.head.appendChild(script);
+  if (isReady()) return Promise.resolve();
+
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.id = id; s.src = src; s.async = true; s.dataset.src = src;
+    s.onload = () => { s.dataset.loaded = "1"; res(); };
+    s.onerror = rej;
+    document.head.appendChild(s);
   });
+}
+
+function loadTelegramWidgetScript() {
+  return loadScript(TELEGRAM_WIDGET_ID, TELEGRAM_WIDGET_SCRIPT_SRC);
+}
+
+function loadTelegramLegacyPopupScript() {
+  return loadTelegramWidgetScript();
+}
+
+function normalizeOrigin(value) {
+  if (!value) {
+    return "";
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+}
+
+function configuredTelegramOrigin() {
+  return normalizeOrigin(publicAppUrl) || window.location.origin;
+}
+
+function redirectToTelegramOrigin() {
+  const targetOrigin = configuredTelegramOrigin();
+  if (targetOrigin === window.location.origin) {
+    return false;
+  }
+
+  const target = new URL(window.location.pathname + window.location.search, targetOrigin);
+  window.location.assign(target.toString());
+  return true;
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const payload = token.split(".")[1];
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+    return JSON.parse(window.atob(padded));
+  } catch {
+    return null;
+  }
 }
 
 function normalizeTelegramUser(user) {
   return {
-    idToken: user.id_token,
     id: user.id,
-    first_name: user.first_name,
-    last_name: user.last_name,
+    first_name: user.first_name ?? user.firstName,
+    last_name: user.last_name ?? user.lastName,
     username: user.username,
-    photo_url: user.photo_url,
-    auth_date: user.auth_date,
+    photo_url: user.photo_url ?? user.photoUrl,
+    auth_date: user.auth_date ?? user.authDate,
     hash: user.hash,
   };
 }
 
-function openTelegramLogin(clientId, callback) {
-  if (!window.Telegram?.Login?.auth) {
-    callback({ error: "Telegram login script not loaded." });
-    return;
-  }
-
-  window.Telegram.Login.auth(
-    {
-      client_id: Number(clientId),
-      request_access: ["write"],
-      lang: "en",
-    },
-    (data) => callback(data || { error: "Telegram login failed." }),
-  );
+function isLegacyTelegramPayload(value) {
+  return Boolean(value?.id && (value.auth_date || value.authDate) && value.hash);
 }
 
-export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const telegramButtonRef = useRef(null);
-  const telegramCallbackId = useId();
-  const [error, setError] = useState("");
-  const [busyProvider, setBusyProvider] = useState("");
-  const [googleInitialized, setGoogleInitialized] = useState(false);
-  const [googleError, setGoogleError] = useState(false);
-  const [telegramReady, setTelegramReady] = useState(false);
-  const [telegramLoginReady, setTelegramLoginReady] = useState(false);
+function telegramAuthResult(data) {
+  if (data?.error) {
+    return { error: data.error };
+  }
 
-  const normalizedTelegramBot = telegramBotUsername.trim().replace(/^@/, "");
-  const normalizedTelegramClientId = telegramClientId.trim();
-  const hasTelegramClientId = /^\d+$/.test(normalizedTelegramClientId);
-
-  const telegramCallbackName = useMemo(
-    () => `kouprengTelegramAuth_${telegramCallbackId.replace(/\W/g, "_")}`,
-    [telegramCallbackId],
-  );
-
-  const completeLogin = useCallback(
-    (authData) => {
-      login(authData);
-      navigate(redirectTo, { replace: true });
-    },
-    [login, navigate, redirectTo],
-  );
-
-  const handleGoogleCredential = useCallback(
-    async (response) => {
-      if (!response?.credential) {
-        setError("Google did not return a login token.");
-        return;
-      }
-
-      setError("");
-      setBusyProvider("google");
-      try {
-        completeLogin(await authService.loginWithGoogle(response.credential));
-      } catch (err) {
-        setError(err.message || "Google login failed.");
-      } finally {
-        setBusyProvider("");
-      }
-    },
-    [completeLogin],
-  );
-
-  const handleTelegramAuth = useCallback(
-    async (telegramUser) => {
-      setError("");
-      setBusyProvider("telegram");
-      try {
-        completeLogin(
-          await authService.loginWithTelegram(
-            normalizeTelegramUser(telegramUser),
-          ),
-        );
-      } catch (err) {
-        setError(err.message || "Telegram login failed.");
-      } finally {
-        setBusyProvider("");
-      }
-    },
-    [completeLogin],
-  );
-
-  const handleTelegramOidcAuth = useCallback(
-    async (response) => {
-      if (!response || response.error) {
-        setError(response?.error || "Telegram login failed.");
-        return;
-      }
-
-      if (!response.id_token) {
-        setError("Telegram did not return a login token.");
-        return;
-      }
-
-      setError("");
-      setBusyProvider("telegram");
-      try {
-        completeLogin(
-          await authService.loginWithTelegram({ idToken: response.id_token }),
-        );
-      } catch (err) {
-        setError(err.message || "Telegram login failed.");
-      } finally {
-        setBusyProvider("");
-      }
-    },
-    [completeLogin],
-  );
-
-  useEffect(() => {
-    if (!googleClientId) {
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    loadScript(GOOGLE_SCRIPT_ID, "https://accounts.google.com/gsi/client", () =>
-      Boolean(window.google?.accounts?.id),
-    )
-      .then(() => {
-        if (cancelled) {
-          return;
-        }
-
-        if (!window.google?.accounts?.id) {
-          throw new Error("Google auth library not ready.");
-        }
-
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleCredential,
-          ux_mode: "popup",
-        });
-        setGoogleInitialized(true);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError("Google login script could not load.");
-          setGoogleError(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
+  const result = data?.result ?? data?.user ?? data;
+  if (typeof result === "string") {
+    return {
+      loginData: { idToken: result },
+      user: decodeJwtPayload(result),
     };
-  }, [handleGoogleCredential]);
+  }
 
-  const handleGoogleClick = useCallback(() => {
-    setError("");
-    if (!window.google?.accounts?.id) {
-      setError("Google auth is not ready.");
+  if (result?.id_token && typeof result.id_token === "string") {
+    return {
+      loginData: { idToken: result.id_token },
+      user: decodeJwtPayload(result.id_token),
+    };
+  }
+
+  if (isLegacyTelegramPayload(result)) {
+    return {
+      loginData: normalizeTelegramUser(result),
+      user: result,
+    };
+  }
+
+  return { error: "Telegram did not return usable login data." };
+}
+
+function openTelegramOidcLogin(clientId, onResult, onError) {
+  const redirectUri = `${window.location.origin}${window.location.pathname}`;
+  const authUrl = new URL("/auth", TELEGRAM_OAUTH_ORIGIN);
+  authUrl.searchParams.set("response_type", "post_message");
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("scope", "openid profile telegram:bot_access");
+  authUrl.searchParams.set("origin", window.location.origin);
+  authUrl.searchParams.set("lang", "en");
+
+  const width = 550;
+  const height = 650;
+  const left = Math.max(0, (window.screen.width - width) / 2) + (window.screen.availLeft || 0);
+  const top = Math.max(0, (window.screen.height - height) / 2) + (window.screen.availTop || 0);
+  const features = [
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    "status=0",
+    "location=0",
+    "menubar=0",
+    "toolbar=0",
+  ].join(",");
+
+  let popup = null;
+  let finished = false;
+  let closeTimer = null;
+
+  const cleanup = () => {
+    window.removeEventListener("message", handleMessage);
+    if (closeTimer) {
+      window.clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+  };
+
+  const finish = (handler) => {
+    if (finished) return;
+    finished = true;
+    cleanup();
+    handler();
+  };
+
+  const checkClose = () => {
+    if (!popup || popup.closed) {
+      finish(() => onError(new Error("Telegram login popup was closed.")));
+      return;
+    }
+    closeTimer = window.setTimeout(checkClose, 200);
+  };
+
+  function handleMessage(event) {
+    if (event.origin !== TELEGRAM_OAUTH_ORIGIN || event.source !== popup) {
       return;
     }
 
-    window.google.accounts.id.prompt();
-  }, []);
-
-  useEffect(() => {
-    if (!hasTelegramClientId) {
-      return undefined;
-    }
-
-    let cancelled = false;
-    loadScript(TELEGRAM_LOGIN_SCRIPT_ID, TELEGRAM_LOGIN_SCRIPT_SRC, () =>
-      Boolean(window.Telegram?.Login?.auth),
-    )
-      .then(() => {
-        if (!cancelled) {
-          setTelegramLoginReady(true);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError("Telegram login script could not load.");
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [hasTelegramClientId]);
-
-  useEffect(() => {
-    const host = telegramButtonRef.current;
-    if (hasTelegramClientId || !normalizedTelegramBot || !host) {
-      return undefined;
-    }
-
-    let cancelled = false;
-    let renderTimer;
-    window[telegramCallbackName] = handleTelegramAuth;
-
-    const updateReady = () => {
-      if (cancelled) {
+    let data = event.data;
+    if (typeof data === "string") {
+      try {
+        data = JSON.parse(data);
+      } catch {
         return;
       }
+    }
 
-      setTelegramReady(Boolean(host.querySelector("iframe")));
-      if (!host.querySelector("iframe")) {
-        renderTimer = window.setTimeout(updateReady, 150);
-      }
+    if (data?.event !== "auth_result") {
+      return;
+    }
+
+    const result = telegramAuthResult(data);
+    if (result?.error) {
+      finish(() => onError(new Error(result.error)));
+      return;
+    }
+
+    finish(() => onResult(result));
+  }
+
+  try {
+    window.addEventListener("message", handleMessage);
+    popup = window.open(authUrl.toString(), "telegram_oidc_login", features);
+    if (!popup) {
+      finish(() => onError(new Error("Telegram login popup was blocked.")));
+      return;
+    }
+    popup.focus();
+    checkClose();
+  } catch (error) {
+    finish(() => onError(error));
+  }
+}
+
+function openTelegramLegacyPopup(botId, onResult, onError) {
+  if (!window.Telegram?.Login?.auth) {
+    onError(new Error("Telegram login script is not ready."));
+    return;
+  }
+
+  try {
+    window.Telegram.Login.auth(
+      { bot_id: botId, request_access: "write" },
+      (authData) => {
+        const result = telegramAuthResult(authData);
+        if (result?.error) {
+          onError(new Error(result.error));
+          return;
+        }
+        onResult(result);
+      },
+    );
+  } catch (error) {
+    onError(error);
+  }
+}
+
+/* ─── Main component ─────────────────────────────────────── */
+export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+
+  // Telegram widget iframe (legacy — needs BotFather /setdomain)
+  const widgetHostRef = useRef(null);
+
+  /* ── Load Telegram legacy widget (bot username, no ID) ── */
+  useEffect(() => {
+    if (!hasTelegramBot) return;
+    const host = widgetHostRef.current;
+    if (!host) return;
+
+    const cbName = "_kouprengTgWidgetAuth";
+    window[cbName] = async (user) => {
+      setError(""); setBusy("telegram");
+      try {
+        const data = await authService.loginWithTelegram({
+          id: user.id, first_name: user.first_name, last_name: user.last_name,
+          username: user.username, photo_url: user.photo_url,
+          auth_date: user.auth_date, hash: user.hash,
+        });
+        login(data);
+        navigate(redirectTo, { replace: true });
+      } catch (e) {
+        setError(e.message || "Telegram login failed.");
+      } finally { setBusy(""); }
     };
 
     const script = document.createElement("script");
-    script.src = TELEGRAM_LEGACY_SCRIPT_SRC;
+    script.src = TELEGRAM_WIDGET_SCRIPT_SRC;
     script.async = true;
-    script.setAttribute("data-telegram-login", normalizedTelegramBot);
+    script.setAttribute("data-telegram-login", telegramBot);
     script.setAttribute("data-size", "large");
     script.setAttribute("data-radius", "10");
     script.setAttribute("data-userpic", "false");
     script.setAttribute("data-request-access", "write");
-    script.setAttribute("data-onauth", `${telegramCallbackName}(user)`);
-    script.onload = updateReady;
-    script.onerror = () => {
-      if (!cancelled) {
-        setError("Telegram login widget could not load.");
-      }
-    };
-
+    script.setAttribute("data-onauth", `${cbName}(user)`);
+    script.onerror = () => setError("Telegram widget failed to load.");
     host.innerHTML = "";
     host.appendChild(script);
 
-    return () => {
-      cancelled = true;
-      window.clearTimeout(renderTimer);
-      delete window[telegramCallbackName];
-      host.innerHTML = "";
-    };
-  }, [
-    handleTelegramAuth,
-    hasTelegramClientId,
-    normalizedTelegramBot,
-    telegramCallbackName,
-  ]);
+    return () => { delete window[cbName]; if (host) host.innerHTML = ""; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── shared completeLogin ── */
+  const completeLogin = useCallback(async (providerFn) => {
+    setError("");
+    try {
+      const data = await providerFn();
+      login(data); navigate(redirectTo, { replace: true });
+    } catch (e) {
+      setError(e.message || "Login failed.");
+    } finally { setBusy(""); }
+  }, [login, navigate, redirectTo]);
+
+  /* ── Telegram OAuth click (numeric client_id flow) ── */
+  const handleTelegramOidc = useCallback(() => {
+    if (busy) return;
+    setBusy("telegram"); setError("");
+
+    if (redirectToTelegramOrigin()) {
+      setBusy("");
+      return;
+    }
+
+    openTelegramOidcLogin(
+      telegramClientId,
+      (data) => {
+        completeLogin(() => authService.loginWithTelegram(data.loginData));
+      },
+      (err) => { setError(err.message || "Telegram login failed."); setBusy(""); },
+    );
+  }, [busy, completeLogin]);
+
+  /* ── Telegram popup click (numeric bot_id fallback) ── */
+  const handleTelegramPopup = useCallback(() => {
+    if (busy) return;
+    setBusy("telegram"); setError("");
+
+    if (redirectToTelegramOrigin()) {
+      setBusy("");
+      return;
+    }
+
+    loadTelegramLegacyPopupScript()
+      .then(() => {
+        openTelegramLegacyPopup(
+          telegramBotId,
+          (data) => {
+            completeLogin(() => authService.loginWithTelegram(data.loginData));
+          },
+          (err) => { setError(err.message || "Telegram login failed."); setBusy(""); },
+        );
+      })
+      .catch(() => { setError("Telegram login script failed to load."); setBusy(""); });
+  }, [busy, completeLogin]);
+
+  /* ─── Render ─────────────────────────────────────────────── */
+  // Determine which Telegram flow to use
+  const telegramMode =
+    hasTelegramBotId ? "popup" :
+      hasTelegramClientId ? "oidc" :
+        hasTelegramBot ? "widget" :
+          "none";
 
   return (
     <>
       <div className="auth-socials">
-        {googleClientId && !googleError ? (
-          <button
-            type="button"
-            className="auth-social-btn google"
-            disabled={busyProvider === "google" || !googleInitialized}
-            onClick={handleGoogleClick}
-          >
-            <GoogleIcon />
-            បន្តជាមួយ Google
-          </button>
+
+        {/* Google */}
+        {googleClientId ? (
+          <GoogleSignInButton
+            clientId={googleClientId}
+            onSuccess={(credential) => completeLogin(() => authService.loginWithGoogle(credential))}
+            onError={setError}
+            busy={busy === "google"}
+            onBusyChange={(v) => setBusy(v ? "google" : "")}
+          />
         ) : (
           <button type="button" className="auth-social-btn google" disabled>
-            <GoogleIcon />
-            Google មិនទាន់មាន
+            <GoogleIcon /> Google មិនទាន់កំណត់
           </button>
         )}
 
-        {hasTelegramClientId ? (
+        {/* Telegram — OAuth/OIDC popup (client_id known) */}
+        {telegramMode === "oidc" && (
           <button
             type="button"
             className="auth-social-btn telegram"
-            disabled={busyProvider === "telegram" || !telegramLoginReady}
-            onClick={() =>
-              openTelegramLogin(
-                normalizedTelegramClientId,
-                handleTelegramOidcAuth,
-              )
-            }
+            onClick={handleTelegramOidc}
+            disabled={busy === "telegram"}
           >
             <TelegramIcon />
-            បន្តជាមួយ Telegram
-          </button>
-        ) : normalizedTelegramBot ? (
-          <div
-            className={`auth-social-widget telegram${busyProvider === "telegram" ? " loading" : ""}`}
-          >
-            <div
-              ref={telegramButtonRef}
-              className={`auth-social-provider-host telegram${telegramReady ? "" : " pending"}`}
-            />
-            <span className="auth-social-placeholder">
-              <TelegramIcon />
-              បន្តជាមួយ Telegram
-            </span>
-          </div>
-        ) : (
-          <button type="button" className="auth-social-btn telegram" disabled>
-            <TelegramIcon />
-            Telegram មិនទាន់កំណត់
+            {busy === "telegram" ? "Logging in…" : "បន្តជាមួយ Telegram"}
           </button>
         )}
+
+        {/* Telegram — legacy direct popup (bot_id known) */}
+        {telegramMode === "popup" && (
+          <button
+            type="button"
+            className="auth-social-btn telegram"
+            onClick={handleTelegramPopup}
+            disabled={busy === "telegram"}
+          >
+            <TelegramIcon />
+            {busy === "telegram" ? "Logging in…" : "បន្តជាមួយ Telegram"}
+          </button>
+        )}
+
+        {/* Telegram — legacy widget iframe (bot username only) */}
+        {telegramMode === "widget" && (
+          <div className="auth-social-widget-tg">
+            <div ref={widgetHostRef} className="auth-tg-iframe-host" />
+            <div className="auth-social-btn telegram auth-tg-fake-btn" aria-hidden="true">
+              <TelegramIcon />
+              {busy === "telegram" ? "Logging in…" : "បន្តជាមួយ Telegram"}
+            </div>
+          </div>
+        )}
+
+        {/* Telegram — not configured */}
+        {telegramMode === "none" && (
+          <button type="button" className="auth-social-btn telegram" disabled>
+            <TelegramIcon /> Telegram មិនទាន់កំណត់
+          </button>
+        )}
+
       </div>
 
-      {busyProvider && (
-        <p className="auth-hint">Completing {busyProvider} login...</p>
-      )}
+      {busy && <p className="auth-hint">Completing {busy} login…</p>}
       {error && <p className="auth-error-msg">{error}</p>}
     </>
+  );
+}
+
+/* ─── GoogleSignInButton ─────────────────────────────────────
+   Renders a hidden real GSI button so credential callbacks fire,
+   our styled button programmatically clicks it.
+──────────────────────────────────────────────────────────── */
+function GoogleSignInButton({ clientId, onSuccess, onError, busy, onBusyChange }) {
+  const containerRef = useRef(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    function init() {
+      if (cancelled || !containerRef.current) return;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async (response) => {
+          if (!response?.credential) { onError("Google did not return a credential."); return; }
+          onBusyChange(true);
+          try { await onSuccess(response.credential); }
+          catch (e) { onError(e.message || "Google login failed."); }
+          finally { onBusyChange(false); }
+        },
+        ux_mode: "popup",
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      containerRef.current.innerHTML = "";
+      window.google.accounts.id.renderButton(containerRef.current, {
+        type: "standard", theme: "outline", size: "large",
+        text: "signin_with", shape: "rectangular",
+        width: containerRef.current.offsetWidth || 280,
+      });
+      if (!cancelled) setReady(true);
+    }
+    loadScript(GOOGLE_GSI_ID, "https://accounts.google.com/gsi/client",
+      () => Boolean(window.google?.accounts?.id))
+      .then(init)
+      .catch(() => { if (!cancelled) onError("Google script failed to load."); });
+    return () => { cancelled = true; };
+  }, [clientId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleClick = useCallback(() => {
+    if (!ready || busy) return;
+    const el = containerRef.current?.querySelector('[role="button"], button, div[tabindex="0"]');
+    if (el) el.click();
+  }, [ready, busy]);
+
+  return (
+    <div className="auth-google-wrap">
+      <div ref={containerRef} className="auth-gsi-host" aria-hidden="true" tabIndex={-1} />
+      <button
+        type="button"
+        className="auth-social-btn google"
+        onClick={handleClick}
+        disabled={busy || !ready}
+        aria-label="Continue with Google"
+      >
+        <GoogleIcon />
+        {busy ? "Logging in…" : "បន្តជាមួយ Google"}
+      </button>
+    </div>
   );
 }

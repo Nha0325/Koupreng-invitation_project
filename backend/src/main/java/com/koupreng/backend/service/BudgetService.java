@@ -1,6 +1,8 @@
 package com.koupreng.backend.service;
 
 import com.koupreng.backend.common.ApiException;
+import com.koupreng.backend.dto.budget.BudgetItemRequest;
+import com.koupreng.backend.dto.budget.BudgetItemResponse;
 import com.koupreng.backend.dto.budget.BudgetResponse;
 import com.koupreng.backend.dto.budget.BudgetSummaryResponse;
 import com.koupreng.backend.dto.budget.CreateBudgetItemRequest;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -88,7 +91,7 @@ public class BudgetService {
                     "BUDGET",
                     saved.getId(),
                     "Budget updated for invitation: " + invitationId + ", total budget: " + saved.getTotalBudget(),
-                    java.util.Map.of("invitationId", invitationId, "totalBudget", saved.getTotalBudget())
+                    Map.of("invitationId", invitationId, "totalBudget", saved.getTotalBudget())
             );
         }
         return toResponse(saved);
@@ -116,8 +119,9 @@ public class BudgetService {
                     "BUDGET_ITEM_ADDED",
                     "BUDGET_ITEM",
                     saved.getId(),
-                    "Budget item added: " + saved.getItemName() + " to category: " + saved.getCategory() + " with cost: " + saved.getEstimatedCost(),
-                    java.util.Map.of("invitationId", invitationId, "category", saved.getCategory(), "itemName", saved.getItemName())
+                    "Budget item added: " + saved.getItemName() + " to category: " + saved.getCategory()
+                            + " with cost: " + saved.getEstimatedCost(),
+                    Map.of("invitationId", invitationId, "category", saved.getCategory(), "itemName", saved.getItemName())
             );
         }
         return toResponse(budget);
@@ -157,8 +161,9 @@ public class BudgetService {
                     "BUDGET_ITEM_UPDATED",
                     "BUDGET_ITEM",
                     saved.getId(),
-                    "Budget item updated: " + saved.getItemName() + " in category: " + saved.getCategory() + " with cost: " + saved.getEstimatedCost(),
-                    java.util.Map.of("invitationId", invitationId, "category", saved.getCategory(), "itemName", saved.getItemName())
+                    "Budget item updated: " + saved.getItemName() + " in category: " + saved.getCategory()
+                            + " with cost: " + saved.getEstimatedCost(),
+                    Map.of("invitationId", invitationId, "category", saved.getCategory(), "itemName", saved.getItemName())
             );
         }
         return toResponse(budget);
@@ -176,7 +181,7 @@ public class BudgetService {
                     "BUDGET_ITEM",
                     itemId,
                     "Budget item deleted: " + item.getItemName() + " from category: " + item.getCategory(),
-                    java.util.Map.of("invitationId", invitationId, "itemId", itemId)
+                    Map.of("invitationId", invitationId, "itemId", itemId)
             );
         }
     }
@@ -194,13 +199,15 @@ public class BudgetService {
         Budget budget = requireBudget(invitationId);
         List<BudgetItem> items = budgetItemRepository.findByBudgetIdOrderByIdDesc(budget.getId());
         StringBuilder csv = new StringBuilder();
-        csv.append("itemId,category,itemName,estimatedCost,actualCost,vendorName,notes\n");
+        csv.append("itemId,category,itemName,estimatedCost,actualCost,date,status,vendorName,notes\n");
         for (BudgetItem item : items) {
             csv.append(csvValue(item.getId()))
                     .append(',').append(csvValue(item.getCategory()))
                     .append(',').append(csvValue(item.getItemName()))
                     .append(',').append(csvValue(item.getEstimatedCost()))
                     .append(',').append(csvValue(item.getActualCost()))
+                    .append(',').append(csvValue(item.getExpenseDate()))
+                    .append(',').append(csvValue(item.getStatus()))
                     .append(',').append(csvValue(item.getVendorName()))
                     .append(',').append(csvValue(item.getNotes()))
                     .append('\n');
@@ -217,6 +224,49 @@ public class BudgetService {
         return toResponse(budget);
     }
 
+    @Transactional(readOnly = true)
+    public List<BudgetItemResponse> list(Authentication authentication, Long invitationId) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        return budgetItemRepository.findAllByInvitationId(invitationId).stream()
+                .map(BudgetItemResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public BudgetItemResponse create(Authentication authentication, Long invitationId, BudgetItemRequest request) {
+        Budget budget = requireBudget(authentication, invitationId);
+        BudgetItem item = new BudgetItem();
+        item.setBudget(budget);
+        applyRequest(item, request);
+        BudgetItem saved = budgetItemRepository.save(item);
+        updateBudgetTotal(budget);
+        return BudgetItemResponse.from(saved);
+    }
+
+    @Transactional
+    public BudgetItemResponse update(
+            Authentication authentication,
+            Long invitationId,
+            Long itemId,
+            BudgetItemRequest request
+    ) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        BudgetItem item = requireItemByInvitation(invitationId, itemId);
+        applyRequest(item, request);
+        BudgetItem saved = budgetItemRepository.save(item);
+        updateBudgetTotal(item.getBudget());
+        return BudgetItemResponse.from(saved);
+    }
+
+    @Transactional
+    public void delete(Authentication authentication, Long invitationId, Long itemId) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        BudgetItem item = requireItemByInvitation(invitationId, itemId);
+        Budget budget = item.getBudget();
+        budgetItemRepository.delete(item);
+        updateBudgetTotal(budget);
+    }
+
     private Budget findOrCreateBudget(UserInvitation invitation) {
         return budgetRepository.findByInvitationId(invitation.getId())
                 .orElseGet(() -> {
@@ -227,6 +277,11 @@ public class BudgetService {
                 });
     }
 
+    private Budget requireBudget(Authentication authentication, Long invitationId) {
+        UserInvitation invitation = invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        return findOrCreateBudget(invitation);
+    }
+
     private Budget requireBudget(Long invitationId) {
         return budgetRepository.findByInvitationId(invitationId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Budget not found"));
@@ -235,6 +290,34 @@ public class BudgetService {
     private BudgetItem requireItem(Long budgetId, Long itemId) {
         return budgetItemRepository.findByIdAndBudgetId(itemId, budgetId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Budget item not found"));
+    }
+
+    private BudgetItem requireItemByInvitation(Long invitationId, Long itemId) {
+        return budgetItemRepository.findByIdAndInvitationId(itemId, invitationId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Budget item not found"));
+    }
+
+    private void applyRequest(BudgetItem item, BudgetItemRequest request) {
+        item.setItemName(requiredText(request.getName(), "Budget item name"));
+        item.setCategory(normalizeCategory(request.getCategory()));
+        item.setEstimatedCost(nonNegative(request.getBudget()));
+        item.setActualCost(nonNegative(request.getAmount()));
+        item.setExpenseDate(request.getDate() == null ? LocalDate.now() : request.getDate());
+        item.setStatus(trimToNull(request.getStatus()));
+        item.setVendorName(trimToNull(request.getVendorName()));
+        item.setNotes(trimToNull(request.getNotes()));
+    }
+
+    private void updateBudgetTotal(Budget budget) {
+        if (budget == null || budget.getInvitation() == null) {
+            return;
+        }
+        BigDecimal total = budgetItemRepository.findAllByInvitationId(budget.getInvitation().getId()).stream()
+                .map(BudgetItem::getEstimatedCost)
+                .map(this::nonNegative)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        budget.setTotalBudget(total);
+        budgetRepository.save(budget);
     }
 
     private BudgetResponse toResponse(Budget budget) {
@@ -282,6 +365,13 @@ public class BudgetService {
             throw new ApiException(HttpStatus.BAD_REQUEST, field + " must be zero or greater");
         }
         return normalized;
+    }
+
+    private BigDecimal nonNegative(BigDecimal value) {
+        if (value == null || value.signum() < 0) {
+            return BigDecimal.ZERO;
+        }
+        return value;
     }
 
     private BigDecimal valueOrZero(BigDecimal value) {
