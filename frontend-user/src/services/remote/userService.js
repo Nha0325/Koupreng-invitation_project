@@ -1,11 +1,11 @@
 import { api } from "./api/client";
 
 export const userService = {
-    /** GET /users/me/profile — fetch current user profile */
-    getProfile: () => api.get("/users/me/profile"),
+    /** GET /users/me — fetch current user profile */
+    getProfile: () => api.get("/users/me"),
 
-    /** PUT /users/me/profile — update profile (full_name, phone, profile_image) */
-    updateProfile: (profileData) => api.put("/users/me/profile", profileData),
+    /** PATCH /users/me — update profile (full_name, phone, profile_image) */
+    updateProfile: (profileData) => api.patch("/users/me", profileData),
 
     /** POST /users/me/profile-image — upload profile image (multipart) */
     uploadProfileImage: (file) => {

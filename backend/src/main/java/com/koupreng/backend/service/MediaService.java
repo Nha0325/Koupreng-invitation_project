@@ -241,7 +241,7 @@ public class MediaService {
 
     private String maxSizeMessage(MediaType mediaType) {
         return switch (mediaType) {
-            case COVER_IMAGE, GALLERY_IMAGE -> "Image file must be 5MB or smaller";
+            case COVER_IMAGE, GALLERY_IMAGE, PROFILE_IMAGE -> "Image file must be 5MB or smaller";
             case VIDEO -> "Video file must be 50MB or smaller";
             case BACKGROUND_MUSIC -> "Background music file must be 15MB or smaller";
         };

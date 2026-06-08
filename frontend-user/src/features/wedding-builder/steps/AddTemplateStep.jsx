@@ -11,38 +11,7 @@ import { templateCatalogService } from "../../../shared/services/templateCatalog
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 import "./AddTemplateStep.css";
 
-const TEMPLATES_FALLBACK = {
-    km: {
-        title: "បន្ថែមគម្រូ",
-        subtitle: "គម្រូទាំងនេះទាញពី Database សម្រាប់ប្រើជាមួយសន្លឹកការរបស់អ្នក។",
-        freeSection: "ឥតគិតថ្លៃ",
-        paidSection: "ត្រូវការចំណាយ",
-        noPriceTag: "ឥតគិតថ្លៃ",
-        priceTag: "ត្រូវការចំណាយ",
-        selectBtn: "ជ្រើសរើស",
-        viewBtn: "មើល",
-        addedBtn: "បានបន្ថែមរួចហើយ",
-        noImage: "មិនមានរូបភាព",
-        empty: "មិនទាន់មានគម្រូនៅក្នុង Database",
-        loading: "កំពុងទាញគម្រូពី Database...",
-        error: "មិនអាចទាញគម្រូបាន",
-    },
-    en: {
-        title: "Add Template",
-        subtitle: "These templates are fetched from the Database for use with your invitations.",
-        freeSection: "Free",
-        paidSection: "Paid",
-        noPriceTag: "Free",
-        priceTag: "Paid",
-        selectBtn: "Select",
-        viewBtn: "View",
-        addedBtn: "Already Added",
-        noImage: "No image",
-        empty: "No templates in the Database yet",
-        loading: "Loading templates from Database...",
-        error: "Could not load templates",
-    },
-};
+
 
 /**
  * Database template category styles.
@@ -157,7 +126,7 @@ function TemplateCard({ template, onSelect, onView, t }) {
 }
 
 export default function AddTemplateStep() {
-    const { text: t } = useBackendMessages("templates", TEMPLATES_FALLBACK);
+    const { text: t } = useBackendMessages("templates");
     const navigate = useNavigate();
     const [templates, setTemplates] = useState([]);
     const [selectedTemplates, setSelectedTemplates] = useState([]);

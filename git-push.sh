@@ -32,42 +32,44 @@ show_menu() {
   echo ""
   echo -e "${GREEN}Frontend User${NC}"
   echo -e "  ${YELLOW}6)${NC}  Update user interface/UI"
-  echo -e "  ${YELLOW}7)${NC}  Fix frontend-user bug"
-  echo -e "  ${YELLOW}8)${NC}  Add user-facing feature"
-  echo -e "  ${YELLOW}9)${NC}  Update invitation templates"
+  echo -e "  ${YELLOW}7)${NC}  update chat bot"
+  echo -e "  ${YELLOW}8)${NC}  update page page"
+  echo -e "  ${YELLOW}9)${NC}  Fix frontend-user bug"
+  echo -e "  ${YELLOW}10)${NC} Add user-facing feature"
+  echo -e "  ${YELLOW}11)${NC} Update invitation templates"
   echo ""
   echo -e "${GREEN}Frontend Admin${NC}"
-  echo -e "  ${YELLOW}10)${NC} Update admin dashboard"
-  echo -e "  ${YELLOW}11)${NC} Fix admin panel bug"
-  echo -e "  ${YELLOW}12)${NC} Add admin feature"
+  echo -e "  ${YELLOW}12)${NC} Update admin dashboard"
+  echo -e "  ${YELLOW}13)${NC} Fix admin panel bug"
+  echo -e "  ${YELLOW}14)${NC} Add admin feature"
   echo ""
   echo -e "${GREEN}Telegram Bot${NC}"
-  echo -e "  ${YELLOW}13)${NC} Update telegram bot"
-  echo -e "  ${YELLOW}14)${NC} Fix telegram bot webhook"
-  echo -e "  ${YELLOW}15)${NC} Add telegram bot feature"
+  echo -e "  ${YELLOW}15)${NC} Update telegram bot"
+  echo -e "  ${YELLOW}16)${NC} Fix telegram bot webhook"
+  echo -e "  ${YELLOW}17)${NC} Add telegram bot feature"
   echo ""
   echo -e "${GREEN}Infrastructure & Configuration${NC}"
-  echo -e "  ${YELLOW}16)${NC} Update environment configuration"
-  echo -e "  ${YELLOW}17)${NC} Update dependencies"
-  echo -e "  ${YELLOW}18)${NC} Update dev scripts (dev.sh, setup.sh)"
-  echo -e "  ${YELLOW}19)${NC} Update documentation"
+  echo -e "  ${YELLOW}18)${NC} Update environment configuration"
+  echo -e "  ${YELLOW}19)${NC} Update dependencies"
+  echo -e "  ${YELLOW}20)${NC} Update dev scripts (dev.sh, setup.sh)"
+  echo -e "  ${YELLOW}21)${NC} Update documentation"
   echo ""
   echo -e "${GREEN}Payment Integration${NC}"
-  echo -e "  ${YELLOW}20)${NC} Update payment flow"
-  echo -e "  ${YELLOW}21)${NC} Fix payment bug"
-  echo -e "  ${YELLOW}22)${NC} Add payment feature (ABA PayWay, etc.)"
+  echo -e "  ${YELLOW}22)${NC} Update payment flow"
+  echo -e "  ${YELLOW}23)${NC} Fix payment bug"
+  echo -e "  ${YELLOW}24)${NC} Add payment feature (ABA PayWay, etc.)"
   echo ""
   echo -e "${GREEN}General${NC}"
-  echo -e "  ${YELLOW}23)${NC} Refactor code"
-  echo -e "  ${YELLOW}24)${NC} Update tests"
-  echo -e "  ${YELLOW}25)${NC} Performance improvements"
-  echo -e "  ${YELLOW}26)${NC} Security updates"
-  echo -e "  ${YELLOW}27)${NC} General bug fixes"
-  echo -e "  ${YELLOW}28)${NC} Work in progress (WIP)"
+  echo -e "  ${YELLOW}25)${NC} Refactor code"
+  echo -e "  ${YELLOW}26)${NC} Update tests"
+  echo -e "  ${YELLOW}27)${NC} Performance improvements"
+  echo -e "  ${YELLOW}28)${NC} Security updates"
+  echo -e "  ${YELLOW}29)${NC} General bug fixes"
+  echo -e "  ${YELLOW}30)${NC} Work in progress (WIP)"
   echo ""
   echo -e "${GREEN}Quick Actions${NC}"
-  echo -e "  ${YELLOW}29)${NC} Quick commit (default message)"
-  echo -e "  ${YELLOW}30)${NC} Custom commit message"
+  echo -e "  ${YELLOW}31)${NC} Quick commit (default message)"
+  echo -e "  ${YELLOW}32)${NC} Custom commit message"
   echo ""
   echo -e "${RED}0)${NC}  Cancel and exit"
   echo ""
@@ -86,7 +88,7 @@ else
   show_menu
   
   # Get user choice
-  echo -n -e "${CYAN}Select an option [0-30]: ${NC}"
+  echo -n -e "${CYAN}Select an option [0-32]: ${NC}"
   read -r CHOICE
   
   case "$CHOICE" in
@@ -96,30 +98,32 @@ else
     4)  MSG="Update backend security/auth" ;;
     5)  MSG="Update database schema/migration" ;;
     6)  MSG="Update user interface/UI" ;;
-    7)  MSG="Fix frontend-user bug" ;;
-    8)  MSG="Add user-facing feature" ;;
-    9)  MSG="Update invitation templates" ;;
-    10) MSG="Update admin dashboard" ;;
-    11) MSG="Fix admin panel bug" ;;
-    12) MSG="Add admin feature" ;;
-    13) MSG="Update telegram bot" ;;
-    14) MSG="Fix telegram bot webhook" ;;
-    15) MSG="Add telegram bot feature" ;;
-    16) MSG="Update environment configuration" ;;
-    17) MSG="Update dependencies" ;;
-    18) MSG="Update dev scripts" ;;
-    19) MSG="Update documentation" ;;
-    20) MSG="Update payment flow" ;;
-    21) MSG="Fix payment bug" ;;
-    22) MSG="Add payment feature" ;;
-    23) MSG="Refactor code" ;;
-    24) MSG="Update tests" ;;
-    25) MSG="Performance improvements" ;;
-    26) MSG="Security updates" ;;
-    27) MSG="General bug fixes" ;;
-    28) MSG="WIP: Work in progress" ;;
-    29) MSG="Update project" ;;
-    30) 
+    7)  MSG="update chat bot" ;;
+    8)  MSG="update page page" ;;
+    9)  MSG="Fix frontend-user bug" ;;
+    10) MSG="Add user-facing feature" ;;
+    11) MSG="Update invitation templates" ;;
+    12) MSG="Update admin dashboard" ;;
+    13) MSG="Fix admin panel bug" ;;
+    14) MSG="Add admin feature" ;;
+    15) MSG="Update telegram bot" ;;
+    16) MSG="Fix telegram bot webhook" ;;
+    17) MSG="Add telegram bot feature" ;;
+    18) MSG="Update environment configuration" ;;
+    19) MSG="Update dependencies" ;;
+    20) MSG="Update dev scripts" ;;
+    21) MSG="Update documentation" ;;
+    22) MSG="Update payment flow" ;;
+    23) MSG="Fix payment bug" ;;
+    24) MSG="Add payment feature" ;;
+    25) MSG="Refactor code" ;;
+    26) MSG="Update tests" ;;
+    27) MSG="Performance improvements" ;;
+    28) MSG="Security updates" ;;
+    29) MSG="General bug fixes" ;;
+    30) MSG="WIP: Work in progress" ;;
+    31) MSG="Update project" ;;
+    32) 
       echo -n -e "${CYAN}Enter custom commit message: ${NC}"
       read -r MSG
       if [ -z "$MSG" ]; then

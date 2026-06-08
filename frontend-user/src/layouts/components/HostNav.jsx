@@ -32,48 +32,23 @@ const LANGUAGE_OPTIONS = [
   { code: "km", label: "ភាសាខ្មែរ", buttonLabel: "ភាសាខ្មែរ", flag: "kh", htmlLang: "km" },
 ];
 
-const HOST_NAV_FALLBACK = {
-  km: {
-    events: "កម្មវិធី",
-    dashboard: "ផ្ទាំងគ្រប់គ្រង",
-    guests: "បញ្ជីភ្ញៀវ",
-    expenses: "គម្រោងថវិកា",
-    gifts: "ចងដៃមង្គល",
-    templates: "បន្ថែមគម្រូ",
-    logout: "ចាកចេញ",
-    editProfile: "កែប្រែប្រវត្តិរូប",
-    createProfile: "បង្កើតប្រវត្តិរូប",
-  },
-  en: {
-    events: "Events",
-    dashboard: "Dashboard",
-    guests: "Guests",
-    expenses: "Budget",
-    gifts: "Wedding Gifts",
-    templates: "Add Template",
-    logout: "Sign Out",
-    editProfile: "Edit profile",
-    createProfile: "Create profile",
-  },
-};
-
 export default function HostNav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [languageOpen, setLanguageOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const language = useLanguageStore((state) => state.lang);
   const setLanguage = useLanguageStore((state) => state.setLang);
-  const languageRef = useRef(null);
+  const profileRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const { text: navText } = useBackendMessages("hostNav", HOST_NAV_FALLBACK);
+  const { text: navText } = useBackendMessages("hostNav");
   const selectedLanguage = LANGUAGE_OPTIONS.find((option) => option.code === language) || LANGUAGE_OPTIONS[1];
   const displayName = user?.fullName?.trim()
     || user?.full_name?.trim()
     || user?.name?.trim()
     || user?.email?.split("@")[0]
-    || "គណនី";
+    || navText("accountFallback") || "គណនី";
   const profileImage = user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || "";
   const profileInitial = displayName.charAt(0)?.toUpperCase() || "K";
 
@@ -89,13 +64,13 @@ export default function HostNav() {
 
   useEffect(() => {
     const handlePointerDown = (event) => {
-      if (!languageRef.current?.contains(event.target)) {
-        setLanguageOpen(false);
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
       }
     };
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        setLanguageOpen(false);
+        setProfileOpen(false);
       }
     };
 
@@ -134,7 +109,6 @@ export default function HostNav() {
 
   const handleSelectLanguage = (option) => {
     setLanguage(option.code);
-    setLanguageOpen(false);
   };
 
   return (
@@ -396,11 +370,16 @@ export default function HostNav() {
           font-family: 'Kantumruy Pro', sans-serif;
           font-size: 14px;
           font-weight: 800;
-          transition: background 0.2s ease, box-shadow 0.2s ease;
+          transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+          border: 1px solid transparent;
+          background: transparent;
+          cursor: pointer;
         }
-        .host-profile-pill:hover {
+        .host-profile-pill:hover,
+        .host-profile-pill.open {
           background: rgba(255, 255, 255, 0.72);
           box-shadow: 0 8px 24px rgba(93, 67, 32, 0.08);
+          border-color: rgba(176, 146, 106, 0.24);
         }
         .host-profile-avatar {
           width: 38px;
@@ -429,37 +408,61 @@ export default function HostNav() {
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .host-logout-nav-btn {
-          font-family: 'Kantumruy Pro', sans-serif;
-          text-decoration: none;
-          color: #8a3434;
-          font-weight: 700;
-          font-size: 14px;
-          transition: 0.3s;
-          background: none;
-          border: 0;
-          cursor: pointer;
-          padding: 0;
+        .host-profile-selector {
+          position: relative;
+          z-index: 20;
         }
-        .host-logout-nav-btn:hover {
-          color: #c24141;
+        .host-profile-chevron {
+          width: 14px !important;
+          height: 14px !important;
+          color: #7D6443;
+          margin-left: 2px;
         }
-        .host-profile-circle {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: #B0926A;
-          border: 2px solid #fff;
+        .host-profile-menu {
+          position: absolute;
+          top: calc(100% + 10px);
+          right: 0;
+          min-width: 180px;
+          padding: 10px;
+          border: 1px solid rgba(176, 146, 106, 0.16);
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 18px 42px rgba(42, 31, 16, 0.16);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+        }
+        .host-profile-menu-item {
+          width: 100%;
           display: flex;
           align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: bold;
+          gap: 10px;
+          padding: 12px 12px;
+          border: none;
+          border-radius: 12px;
+          background: transparent;
+          color: #222;
+          font-family: 'Kantumruy Pro', sans-serif;
+          font-size: 14px;
+          font-weight: 700;
+          text-align: left;
           cursor: pointer;
           text-decoration: none;
-          font-size: 14px;
-          position: relative;
-          z-index: 10;
+          transition: background 0.18s ease, color 0.18s ease;
+        }
+        .host-profile-menu-item:hover {
+          background: rgba(176, 146, 106, 0.1);
+          color: #7D6443;
+        }
+        .host-profile-menu-item.logout {
+          color: #e11d48;
+        }
+        .host-profile-menu-item.logout:hover {
+          background: rgba(225, 29, 72, 0.08);
+        }
+        .host-profile-menu-item svg {
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
         }
 
         /* Hamburger button - hidden on desktop */
@@ -608,10 +611,12 @@ export default function HostNav() {
             font-size: 12.5px;
           }
           .host-language-label,
-          .host-profile-name {
+          .host-profile-name,
+          .host-profile-chevron {
             display: none;
           }
-          .host-language-btn {
+          .host-language-btn,
+          .host-profile-pill {
             width: 44px;
             justify-content: center;
             padding: 0;
@@ -666,9 +671,9 @@ export default function HostNav() {
 
       <div className="host-header-wrapper">
         <header className="host-header-container">
-          <Link to="/" className="host-logo-box" aria-label="Koupreng — Back to dashboard">
+          <Link to="/" className="host-logo-box" aria-label={`Koupreng — ${navText("backToDashboard") || "Back to dashboard"}`}>
             <img src={logo} alt="Koupreng" />
-            <span className="host-logo-tip" role="tooltip">Back to dashboard</span>
+            <span className="host-logo-tip" role="tooltip">{navText("backToDashboard") || "Back to dashboard"}</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -687,52 +692,73 @@ export default function HostNav() {
           </nav>
 
           <div className="host-user-actions">
-            <div className="host-language-selector" ref={languageRef}>
+            <div className="host-profile-selector" ref={profileRef}>
               <button
                 type="button"
-                className={`host-language-btn${languageOpen ? " open" : ""}`}
-                aria-haspopup="listbox"
-                aria-expanded={languageOpen}
-                onClick={() => setLanguageOpen((value) => !value)}
+                className={`host-profile-pill${profileOpen ? " open" : ""}`}
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
+                onClick={() => setProfileOpen((value) => !value)}
               >
-                <IoGlobeOutline aria-hidden="true" />
-                <span className="host-language-label">{selectedLanguage.buttonLabel}</span>
-                <IoChevronDownOutline className="host-language-chevron" aria-hidden="true" />
+                <span className="host-profile-avatar">
+                  {profileImage ? <img src={profileImage} alt="" /> : profileInitial}
+                </span>
+                <span className="host-profile-name">{displayName}</span>
+                <IoChevronDownOutline className="host-profile-chevron" aria-hidden="true" />
               </button>
-              {languageOpen && (
-                <div className="host-language-menu" role="listbox" aria-label="Language">
+
+              {profileOpen && (
+                <div className="host-profile-menu" role="menu">
+                  <Link
+                    to="/profile"
+                    className="host-profile-menu-item"
+                    onClick={() => setProfileOpen(false)}
+                    role="menuitem"
+                  >
+                    <IoPersonOutline aria-hidden="true" />
+                    <span>
+                      {user?.fullName?.trim() || user?.full_name?.trim()
+                        ? navText("editProfile")
+                        : navText("createProfile")}
+                    </span>
+                  </Link>
+                  
+                  <div style={{ height: "1px", background: "rgba(176, 146, 106, 0.2)", margin: "8px 0" }} />
+                  
+                  <div style={{ padding: "4px 12px", fontSize: "12px", fontWeight: "700", color: "#888", textTransform: "uppercase" }}>
+                    {navText("language") || "Language"}
+                  </div>
                   {LANGUAGE_OPTIONS.map((option) => (
                     <button
                       key={option.code}
                       type="button"
-                      role="option"
-                      aria-selected={option.code === selectedLanguage.code}
-                      className={`host-language-option${option.code === selectedLanguage.code ? " active" : ""}`}
+                      role="menuitem"
+                      className={`host-profile-menu-item${option.code === selectedLanguage.code ? " active" : ""}`}
                       onClick={() => handleSelectLanguage(option)}
+                      style={{ padding: "8px 12px" }}
                     >
-                      <span className={`host-language-flag ${option.flag}`} aria-hidden="true" />
-                      <span className="host-language-option-label">{option.label}</span>
+                      <span className={`host-language-flag ${option.flag}`} aria-hidden="true" style={{ width: "22px", height: "15px" }} />
+                      <span style={{ flex: 1, textAlign: "left" }}>{option.label}</span>
                       {option.code === selectedLanguage.code && (
-                        <IoCheckmarkOutline className="host-language-check" aria-hidden="true" />
+                        <IoCheckmarkOutline aria-hidden="true" style={{ color: "#B0926A" }} />
                       )}
                     </button>
                   ))}
+
+                  <div style={{ height: "1px", background: "rgba(176, 146, 106, 0.2)", margin: "8px 0" }} />
+
+                  <button
+                    type="button"
+                    className="host-profile-menu-item logout"
+                    onClick={handleLogout}
+                    role="menuitem"
+                  >
+                    <IoLogOutOutline aria-hidden="true" />
+                    <span>{navText("logout")}</span>
+                  </button>
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              className="host-logout-nav-btn"
-              onClick={handleLogout}
-            >
-              {navText("logout")}
-            </button>
-            <Link to="/profile" className="host-profile-pill" aria-label="Profile">
-              <span className="host-profile-avatar">
-                {profileImage ? <img src={profileImage} alt="" /> : profileInitial}
-              </span>
-              <span className="host-profile-name">{displayName}</span>
-            </Link>
 
             {/* Hamburger button - mobile only */}
             <button

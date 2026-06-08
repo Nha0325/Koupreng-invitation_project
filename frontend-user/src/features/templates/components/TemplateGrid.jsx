@@ -3,6 +3,7 @@ import "../templates.css";
 import { TEMPLATES } from "../data/templatesData";
 import { useAuth } from "../../../pages/auth/context/useAuth";
 import heroBg from "../../../assets/icons/background.png";
+import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
 const FEATURED_TEMPLATE_IDS = [
     "royal",
@@ -20,11 +21,11 @@ const TEMPLATE_CARD_COVER = {
     terracotta: "/facebook/all/05-card/cover-card.jpg",
 };
 
-const categoryLabels = {
-    ancient: "បុរាណ",
-    modern: "ទំនើប",
-    contemporary: "សហសម័យ",
-};
+const getCategoryLabels = (t) => ({
+    ancient: t("catAncient") || "បុរាណ",
+    modern: t("catModern") || "ទំនើប",
+    contemporary: t("catContemporary") || "សហសម័យ",
+});
 
 function getCreatePath(path, isAuthenticated) {
     if (isAuthenticated) {
@@ -38,8 +39,8 @@ function getUseTemplatePath(templateId, isAuthenticated) {
     return getCreatePath(`/create/wedding?template=${templateId}`, isAuthenticated);
 }
 
-function getTemplateBenefit(template) {
-    return template.description?.split("។")[0] || "គំរូសន្លឹកការដែលរួចរាល់សម្រាប់បង្ហាញ និង RSVP";
+function getTemplateBenefit(template, t) {
+    return template.description?.split("។")[0] || t("templateBenefit") || "គំរូសន្លឹកការដែលរួចរាល់សម្រាប់បង្ហាញ និង RSVP";
 }
 
 /**
@@ -49,6 +50,9 @@ function getTemplateBenefit(template) {
  */
 export default function TemplateGrid() {
     const { isAuthenticated } = useAuth();
+    const { text: t } = useBackendMessages("templateGrid");
+    const categoryLabels = getCategoryLabels(t);
+
     const visibleTemplates = FEATURED_TEMPLATE_IDS
         .map((templateId) => TEMPLATES.find((template) => template.id === templateId))
         .filter(Boolean);
@@ -65,9 +69,9 @@ export default function TemplateGrid() {
 
             <div className="tp-container">
                 <header className="tp-header-section">
-                    <span className="tp-label">Koupreng Premium Templates</span>
+                    <span className="tp-label">{t("premiumLabel") || "Koupreng Premium Templates"}</span>
                     <h1 className="tp-title">
-                        ជ្រើសរើស<span>គ្រោងសន្លឹកការណ៍</span>
+                        {t("titleTemplates") || "ជ្រើសរើស"}<span>{t("titleTemplatesSpan") || "គ្រោងសន្លឹកការណ៍"}</span>
                     </h1>
                     <div className="tp-divider">
                         <div className="tp-line"></div>
@@ -77,42 +81,42 @@ export default function TemplateGrid() {
                 </header>
 
                 <div className="tp-grid">
-                    {visibleTemplates.map((t) => {
-                        const createPath = getUseTemplatePath(t.id, isAuthenticated);
-                        const coverImage = TEMPLATE_CARD_COVER[t.id] || t.image;
+                    {visibleTemplates.map((template) => {
+                        const createPath = getUseTemplatePath(template.id, isAuthenticated);
+                        const coverImage = TEMPLATE_CARD_COVER[template.id] || template.image;
 
                         return (
-                            <div key={t.id} className="tp-card">
-                                {t.popular && <div className="tp-popular-tag">✨ ពេញនិយម</div>}
+                            <div key={template.id} className="tp-card">
+                                {template.popular && <div className="tp-popular-tag">{t("popular") || "✨ ពេញនិយម"}</div>}
 
                                 {/* Category badge */}
-                                <div className={`tp-category-badge tp-category-badge--${t.category}`}>
-                                    {categoryLabels[t.category]}
+                                <div className={`tp-category-badge tp-category-badge--${template.category}`}>
+                                    {categoryLabels[template.category]}
                                 </div>
 
-                                <Link to={`/templates/${t.id}`} className="tp-image-box">
+                                <Link to={`/templates/${template.id}`} className="tp-image-box">
                                     <img
                                         src={coverImage}
-                                        alt={t.name}
+                                        alt={template.name}
                                         className="tp-main-img"
                                     />
                                     <div className="tp-overlay">
-                                        <span className="tp-view-btn">មើលលម្អិត</span>
+                                        <span className="tp-view-btn">{t("viewDetail") || "មើលលម្អិត"}</span>
                                     </div>
                                 </Link>
 
                                 <div className="tp-card-content">
-                                    <h3 className="tp-card-name">{t.name}</h3>
+                                    <h3 className="tp-card-name">{template.name}</h3>
                                     <span className="tp-style-name">
-                                        {categoryLabels[t.category]} / {t.style}
+                                        {categoryLabels[template.category]} / {template.style}
                                     </span>
-                                    <p className="tp-card-benefit">{getTemplateBenefit(t)}</p>
+                                    <p className="tp-card-benefit">{getTemplateBenefit(template, t)}</p>
                                     <div className="tp-card-actions">
                                         <Link to={createPath} className="tp-action-btn">
-                                            ប្រើគំរូនេះ
+                                            {t("useTemplate") || "ប្រើគំរូនេះ"}
                                         </Link>
-                                        <Link to={`/templates/${t.id}`} className="tp-detail-btn">
-                                            មើលលម្អិត
+                                        <Link to={`/templates/${template.id}`} className="tp-detail-btn">
+                                            {t("viewDetail") || "មើលលម្អិត"}
                                         </Link>
                                     </div>
                                 </div>
@@ -132,16 +136,16 @@ export default function TemplateGrid() {
                                 <div></div>
                             </div>
                             <div className="tp-overlay">
-                                <span className="tp-view-btn">ចាប់ផ្តើមបង្កើត</span>
+                                <span className="tp-view-btn">{t("startCreate") || "ចាប់ផ្តើមបង្កើត"}</span>
                             </div>
                         </Link>
 
                         <div className="tp-card-content">
-                            <h3 className="tp-card-name">បង្កើតផ្ទាល់ខ្លួន</h3>
-                            <span className="tp-style-name">Custom Wedding Card</span>
-                            <p className="tp-card-benefit">ចាប់ផ្តើមពីសន្លឹកទទេ ហើយកែតម្រូវព័ត៌មានតាមតម្រូវការ</p>
+                            <h3 className="tp-card-name">{t("createCustom") || "បង្កើតផ្ទាល់ខ្លួន"}</h3>
+                            <span className="tp-style-name">{t("customDesc") || "Custom Wedding Card"}</span>
+                            <p className="tp-card-benefit">{t("customBenefit") || "ចាប់ផ្តើមពីសន្លឹកទទេ ហើយកែតម្រូវព័ត៌មានតាមតម្រូវការ"}</p>
                             <Link to={getCreatePath("/create/wedding", isAuthenticated)} className="tp-action-btn tp-custom-action">
-                                ប្រើការរចនាផ្ទាល់ខ្លួន
+                                {t("useCustom") || "ប្រើការរចនាផ្ទាល់ខ្លួន"}
                             </Link>
                         </div>
                     </div>

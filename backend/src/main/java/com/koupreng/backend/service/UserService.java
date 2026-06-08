@@ -39,6 +39,12 @@ public class UserService {
     public UserResponse updateProfile(Authentication authentication, UpdateProfileRequest request) {
         AppUser user = currentUser(authentication);
         user.setFullName(request.fullName().trim());
+        if (request.phone() != null) {
+            user.setPhone(request.phone().trim());
+        }
+        if (request.profileImage() != null) {
+            user.setProfileImage(request.profileImage().trim());
+        }
         return UserResponse.from(user);
     }
 
