@@ -300,8 +300,8 @@ public class BudgetService {
     private void applyRequest(BudgetItem item, BudgetItemRequest request) {
         item.setItemName(requiredText(request.getName(), "Budget item name"));
         item.setCategory(normalizeCategory(request.getCategory()));
-        item.setEstimatedCost(nonNegative(request.getBudget()));
-        item.setActualCost(nonNegative(request.getAmount()));
+        item.setEstimatedCost(nonNegativeOrZero(request.getBudget(), "Estimated cost"));
+        item.setActualCost(nonNegativeOrZero(request.getAmount(), "Actual cost"));
         item.setExpenseDate(request.getDate() == null ? LocalDate.now() : request.getDate());
         item.setStatus(trimToNull(request.getStatus()));
         item.setVendorName(trimToNull(request.getVendorName()));

@@ -1,5 +1,6 @@
 package com.koupreng.backend.service;
 
+import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.budget.BudgetResponse;
 import com.koupreng.backend.dto.budget.CreateBudgetItemRequest;
 import com.koupreng.backend.dto.budget.UpdateBudgetRequest;
@@ -10,6 +11,7 @@ import com.koupreng.backend.repository.BudgetItemRepository;
 import com.koupreng.backend.repository.BudgetRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 
 import java.math.BigDecimal;
@@ -19,9 +21,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -110,13 +114,85 @@ class BudgetServiceTests {
         item.setBudget(budget);
         item.setCategory("VENUE");
         item.setItemName("Hall");
+        item.setEstimatedCost(new BigDecimal("900.00"));
         item.setActualCost(new BigDecimal("1200.00"));
 
         when(fixture.invitationService.requireOwnedInvitationEntity(authentication, 10L)).thenReturn(invitation);
         when(fixture.budgetRepository.findByInvitationId(10L)).thenReturn(Optional.of(budget));
         when(fixture.budgetItemRepository.findByBudgetIdOrderByIdDesc(40L)).thenReturn(List.of(item));
 
-        assertTrue(fixture.service.getBudgetSummary(authentication, 10L).isOverBudget());
+        var summary = fixture.service.getBudgetSummary(authentication, 10L);
+
+        assertEquals(new BigDecimal("1000.00"), summary.getTotalBudget());
+        assertEquals(new BigDecimal("900.00"), summary.getTotalEstimated());
+        assertEquals(new BigDecimal("1200.00"), summary.getTotalActual());
+        assertEquals(new BigDecimal("-200.00"), summary.getRemainingBudget());
+        assertTrue(summary.isOverBudget());
+    }
+
+    @Test
+    void userCannotAccessAnotherUsersBudget() {
+        Fixture fixture = fixture();
+        Authentication authentication = mock(Authentication.class);
+        when(fixture.invitationService.requireOwnedInvitationEntity(authentication, 10L))
+                .thenThrow(new ApiException(HttpStatus.FORBIDDEN, "You do not have access to this invitation"));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.getOrCreateBudget(authentication, 10L)
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    }
+
+    @Test
+    void addBudgetItemRejectsNegativeCosts() {
+        Fixture fixture = fixture();
+        Authentication authentication = mock(Authentication.class);
+        UserInvitation invitation = invitation();
+        Budget budget = budget(invitation);
+
+        when(fixture.invitationService.requireOwnedInvitationEntity(authentication, 10L)).thenReturn(invitation);
+        when(fixture.budgetRepository.findByInvitationId(10L)).thenReturn(Optional.of(budget));
+
+        CreateBudgetItemRequest request = new CreateBudgetItemRequest();
+        request.setItemName("Photographer");
+        request.setEstimatedCost(new BigDecimal("-1.00"));
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.addBudgetItem(authentication, 10L, request)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("Estimated cost must be zero or greater", exception.getMessage());
+        verify(fixture.budgetItemRepository, never()).save(any(BudgetItem.class));
+    }
+
+    @Test
+    void exportBudgetCsvReturnsHeaderAndEscapedRows() {
+        Fixture fixture = fixture();
+        Authentication authentication = mock(Authentication.class);
+        UserInvitation invitation = invitation();
+        Budget budget = budget(invitation);
+        BudgetItem item = new BudgetItem();
+        item.setId(55L);
+        item.setBudget(budget);
+        item.setCategory("FOOD");
+        item.setItemName("Dinner, VIP");
+        item.setEstimatedCost(new BigDecimal("350.00"));
+        item.setActualCost(new BigDecimal("375.50"));
+        item.setVendorName("Vendor \"A\"");
+
+        when(fixture.invitationService.requireOwnedInvitationEntity(authentication, 10L)).thenReturn(invitation);
+        when(fixture.budgetRepository.findByInvitationId(10L)).thenReturn(Optional.of(budget));
+        when(fixture.budgetItemRepository.findByBudgetIdOrderByIdDesc(40L)).thenReturn(List.of(item));
+
+        String csv = fixture.service.exportBudgetCsv(authentication, 10L);
+
+        assertTrue(csv.startsWith("itemId,category,itemName,estimatedCost,actualCost,date,status,vendorName,notes"));
+        assertTrue(csv.contains("\"Dinner, VIP\""));
+        assertTrue(csv.contains("\"Vendor \"\"A\"\"\""));
     }
 
     private Fixture fixture() {

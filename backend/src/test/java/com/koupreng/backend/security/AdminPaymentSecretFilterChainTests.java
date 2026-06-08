@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,6 +34,8 @@ class AdminPaymentSecretFilterChainTests {
 
     private static final String INTERNAL_CONFIRM_PATH = "/api/v1/internal/template-payments/confirm";
     private static final String INTERNAL_TELEGRAM_DETECT_PATH = "/api/v1/internal/template-payments/telegram-detect";
+    private static final String ADMIN_CONFIRM_PATH = "/api/v1/admin/template-payments/confirm";
+    private static final String ADMIN_TELEGRAM_DETECT_PATH = "/api/v1/admin/template-payments/telegram-detect";
     private static final String CONFIRM_REQUEST_BODY = """
             {
               "orderCode": "EVT260529001",
@@ -135,6 +138,54 @@ class AdminPaymentSecretFilterChainTests {
     void internalTelegramDetectEndpointAllowsValidSecretWithoutAdminJwt() throws Exception {
         mockMvc.perform(post(INTERNAL_TELEGRAM_DETECT_PATH)
                         .header(AdminPaymentSecretFilter.ADMIN_PAYMENT_SECRET_HEADER, "chain-secret")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(TELEGRAM_DETECT_REQUEST_BODY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.orderCode").value("EVT260529001"))
+                .andExpect(jsonPath("$.data.status").value("PAID"));
+
+        verify(templatePaymentService).detectPaymentFromTelegram(any(TelegramDetectPaymentRequest.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void normalUserCannotAccessAdminConfirmEndpoint() throws Exception {
+        mockMvc.perform(post(ADMIN_CONFIRM_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(CONFIRM_REQUEST_BODY))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(templatePaymentService);
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void normalUserCannotAccessAdminTelegramDetectEndpoint() throws Exception {
+        mockMvc.perform(post(ADMIN_TELEGRAM_DETECT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(TELEGRAM_DETECT_REQUEST_BODY))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(templatePaymentService);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminCanAccessAdminConfirmEndpoint() throws Exception {
+        mockMvc.perform(post(ADMIN_CONFIRM_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(CONFIRM_REQUEST_BODY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.orderCode").value("EVT260529001"))
+                .andExpect(jsonPath("$.data.status").value("PAID"));
+
+        verify(templatePaymentService).confirmManualPayment(any(ConfirmTemplatePaymentRequest.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminCanAccessAdminTelegramDetectEndpoint() throws Exception {
+        mockMvc.perform(post(ADMIN_TELEGRAM_DETECT_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(TELEGRAM_DETECT_REQUEST_BODY))
                 .andExpect(status().isOk())
