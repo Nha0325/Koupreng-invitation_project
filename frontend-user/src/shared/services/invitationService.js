@@ -1,19 +1,5 @@
 import { api } from "../api/client";
-
-function unwrap(response) {
-    return response?.data ?? response;
-}
-
-function toQuery(params) {
-    const search = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-            search.set(key, value);
-        }
-    });
-    const query = search.toString();
-    return query ? `?${query}` : "";
-}
+import { unwrap, toQuery } from "../api/helpers";
 
 export const invitationService = {
     listMine: (status) => api.get(`/v1/invitations/my${toQuery({ status })}`).then(unwrap),

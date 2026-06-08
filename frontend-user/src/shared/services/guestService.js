@@ -1,8 +1,5 @@
 import { api } from "../api/client";
-
-function unwrap(response) {
-    return response?.data ?? response;
-}
+import { unwrap } from "../api/helpers";
 
 export const guestService = {
     list: () => api.get("/guests"),

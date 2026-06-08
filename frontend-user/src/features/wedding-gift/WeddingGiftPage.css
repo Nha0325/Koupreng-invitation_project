@@ -186,27 +186,80 @@
     color: #fff;
 }
 
-/* ─── Form ─── */
-.wg-form {
-    background: #fff;
-    border: 1px solid #eadfce;
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 8px 24px rgba(93, 67, 32, 0.06);
-    animation: wgFormSlideIn 0.3s ease;
+/* ─── Modal overlay ─── */
+.wg-modal-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(42, 31, 16, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
 }
 
-@keyframes wgFormSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
+.wg-modal {
+    background: #fff;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    border-radius: 24px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(42, 31, 16, 0.15);
+    display: flex;
+    flex-direction: column;
+    animation: wgModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes wgModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.wg-modal-x {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: #999;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    z-index: 1;
+}
+
+.wg-modal-x:hover {
+    background: #f5efe5;
+    color: #333;
+}
+
+.wg-modal-x svg { width: 20px; height: 20px; }
+
+.wg-modal-content {
+    overflow-y: auto;
+    flex: 1;
+    padding: 4px 0;
+}
+
+/* ─── Form (inside modal) ─── */
+.wg-form {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 28px 28px 24px;
+    margin-bottom: 0;
+    box-shadow: none;
+    animation: none;
 }
 
 .wg-form-title {
@@ -267,8 +320,57 @@
     box-shadow: 0 0 0 3px rgba(176, 146, 106, 0.12);
 }
 
-.wg-form-wide {
-    grid-column: 1 / -1;
+.wg-form-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.wg-field-full {
+    width: 100%;
+}
+
+.wg-input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.wg-input-prefix {
+    position: absolute;
+    left: 14px;
+    color: #7d6443;
+    font-weight: bold;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.wg-input-with-icon input {
+    padding-left: 32px !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.wg-form textarea {
+    padding: 12px 14px;
+    border: 1.5px solid #eadfce;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fdfaf5;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+    color: #333;
+    resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.wg-form textarea:focus {
+    border-color: #B0926A;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(176, 146, 106, 0.12);
 }
 
 .wg-form-actions {
@@ -280,6 +382,9 @@
 }
 
 .wg-secondary-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 12px 22px;
     background: #f5efe5;
     color: #7d6443;
@@ -663,6 +768,11 @@
         align-items: stretch;
     }
 
+    .wg-form-body {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
     .wg-search {
         min-width: 0;
     }
@@ -747,6 +857,7 @@
 }
 
 .wg-muted svg {
+    display: inline-block;
     width: 14px;
     height: 14px;
     margin-right: 6px;

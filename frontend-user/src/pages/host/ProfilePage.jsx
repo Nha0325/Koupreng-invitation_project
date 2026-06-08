@@ -25,6 +25,10 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
+  // Strip absolute localhost origin so images go through the Vite /uploads proxy
+  // (prevents Mixed Content errors when served via ngrok/cloudflare)
+  const toRelativeUrl = (url) => (url || "").replace(/^https?:\/\/localhost(:\d+)?/, "");
+
   // ── Password state ─────────────────────────────────────────────────────────
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -43,11 +47,11 @@ export default function ProfilePage() {
         const data = await userService.getProfile();
         setFullName(data.fullName || data.full_name || "");
         setPhone(data.phone || "");
-        setProfileImage(data.profileImage || data.profile_image || "");
+        setProfileImage(toRelativeUrl(data.profileImage || data.profile_image || ""));
       } catch {
         setFullName(user?.fullName || user?.full_name || user?.name || "");
         setPhone(user?.phone || "");
-        setProfileImage(user?.profileImage || user?.profile_image || "");
+        setProfileImage(toRelativeUrl(user?.profileImage || user?.profile_image || ""));
       } finally {
         setLoading(false);
       }

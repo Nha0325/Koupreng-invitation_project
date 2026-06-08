@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
+ * http://localhost:8080/api/config/messages/guests?lang=en
  * Wire Spring i18n so the locale is resolved from the Accept-Language header.
  * Supported: km (Khmer, default) and en (English).
  */
