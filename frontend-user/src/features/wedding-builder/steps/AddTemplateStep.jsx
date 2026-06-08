@@ -8,7 +8,41 @@ import {
 } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { templateCatalogService } from "../../../shared/services/templateCatalogService";
+import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 import "./AddTemplateStep.css";
+
+const TEMPLATES_FALLBACK = {
+    km: {
+        title: "បន្ថែមគម្រូ",
+        subtitle: "គម្រូទាំងនេះទាញពី Database សម្រាប់ប្រើជាមួយសន្លឹកការរបស់អ្នក។",
+        freeSection: "ឥតគិតថ្លៃ",
+        paidSection: "ត្រូវការចំណាយ",
+        noPriceTag: "ឥតគិតថ្លៃ",
+        priceTag: "ត្រូវការចំណាយ",
+        selectBtn: "ជ្រើសរើស",
+        viewBtn: "មើល",
+        addedBtn: "បានបន្ថែមរួចហើយ",
+        noImage: "មិនមានរូបភាព",
+        empty: "មិនទាន់មានគម្រូនៅក្នុង Database",
+        loading: "កំពុងទាញគម្រូពី Database...",
+        error: "មិនអាចទាញគម្រូបាន",
+    },
+    en: {
+        title: "Add Template",
+        subtitle: "These templates are fetched from the Database for use with your invitations.",
+        freeSection: "Free",
+        paidSection: "Paid",
+        noPriceTag: "Free",
+        priceTag: "Paid",
+        selectBtn: "Select",
+        viewBtn: "View",
+        addedBtn: "Already Added",
+        noImage: "No image",
+        empty: "No templates in the Database yet",
+        loading: "Loading templates from Database...",
+        error: "Could not load templates",
+    },
+};
 
 /**
  * Database template category styles.
@@ -60,7 +94,7 @@ function getCardImage(template) {
     return template.thumbnailUrl || null;
 }
 
-function TemplateCard({ template, onSelect, onView }) {
+function TemplateCard({ template, onSelect, onView, t }) {
     const category = getCategoryInfo(template.category);
     const cardImage = getCardImage(template);
 
@@ -85,7 +119,7 @@ function TemplateCard({ template, onSelect, onView }) {
                 ) : (
                     <div className="at-card-no-image">
                         <IoImageOutline aria-hidden="true" />
-                        <span>មិនមានរូបភាព</span>
+                        <span>{t("noImage")}</span>
                     </div>
                 )}
             </div>
@@ -94,9 +128,9 @@ function TemplateCard({ template, onSelect, onView }) {
             <div className="at-card-body">
                 <h4 className="at-card-name">{template.name}</h4>
                 {template.premium ? (
-                    <span className="at-card-price at-card-price--paid">ត្រូវការចំណាយ</span>
+                    <span className="at-card-price at-card-price--paid">{t("priceTag")}</span>
                 ) : (
-                    <span className="at-card-price">ឥតគិតថ្លៃ</span>
+                    <span className="at-card-price">{t("noPriceTag")}</span>
                 )}
             </div>
 
@@ -105,17 +139,17 @@ function TemplateCard({ template, onSelect, onView }) {
                 {template.added ? (
                     <span className="at-btn at-btn--added">
                         <IoCheckmarkCircleOutline className="at-btn-check" aria-hidden="true" />
-                        បានបន្ថែមរួចហើយ
+                        {t("addedBtn")}
                     </span>
                 ) : (
                     <button className="at-btn at-btn--select" onClick={() => onSelect(template)}>
                         <IoAddOutline aria-hidden="true" />
-                        ជ្រើសរើស
+                        {t("selectBtn")}
                     </button>
                 )}
                 <button className="at-btn at-btn--view" onClick={() => onView(template)}>
                     <IoEyeOutline aria-hidden="true" />
-                    មើល
+                    {t("viewBtn")}
                 </button>
             </div>
         </div>
@@ -123,6 +157,7 @@ function TemplateCard({ template, onSelect, onView }) {
 }
 
 export default function AddTemplateStep() {
+    const { text: t } = useBackendMessages("templates", TEMPLATES_FALLBACK);
     const navigate = useNavigate();
     const [templates, setTemplates] = useState([]);
     const [selectedTemplates, setSelectedTemplates] = useState([]);
@@ -141,7 +176,7 @@ export default function AddTemplateStep() {
             })
             .catch((err) => {
                 if (active) {
-                    setError(err.message || "Could not load templates");
+                    setError(err.message || t("error"));
                 }
             })
             .finally(() => {
@@ -174,72 +209,74 @@ export default function AddTemplateStep() {
         navigate(`/dashboard/invitations/new?templateId=${template.id}`);
     };
 
-    const freeTemplates = templates.filter((template) => !template.premium).map((t) => ({
-        ...t,
-        added: selectedTemplates.includes(String(t.id)),
+    const freeTemplates = templates.filter((template) => !template.premium).map((tpl) => ({
+        ...tpl,
+        added: selectedTemplates.includes(String(tpl.id)),
     }));
 
-    const paidTemplates = templates.filter((template) => template.premium).map((t) => ({
-        ...t,
-        added: selectedTemplates.includes(String(t.id)),
+    const paidTemplates = templates.filter((template) => template.premium).map((tpl) => ({
+        ...tpl,
+        added: selectedTemplates.includes(String(tpl.id)),
     }));
 
     return (
         <div className="at-root">
-            <h2>បន្ថែមគម្រូ</h2>
-            <p className="at-subtitle">
-                គម្រូទាំងនេះទាញពី Database សម្រាប់ប្រើជាមួយសន្លឹកការរបស់អ្នក។
-            </p>
+            <h2>{t("title")}</h2>
+            <p className="at-subtitle">{t("subtitle")}</p>
 
             {error && <div className="at-empty-state">{error}</div>}
-            {loading && <div className="at-empty-state">កំពុងទាញគម្រូពី Database...</div>}
+            {loading && <div className="at-empty-state">{t("loading")}</div>}
             {!loading && templates.length === 0 && (
-                <div className="at-empty-state">មិនទាន់មានគម្រូនៅក្នុង Database</div>
+                <div className="at-empty-state">{t("empty")}</div>
             )}
 
             {/* Free Templates Section */}
-            {!loading && freeTemplates.length > 0 && <section className="at-section">
-                <div className="at-section-header">
-                    <span className="at-section-icon"><IoCheckmarkCircleOutline aria-hidden="true" /></span>
-                    <h3 className="at-section-title">ឥតគិតថ្លៃ</h3>
-                    <span className="at-section-count">{freeTemplates.length}</span>
-                </div>
-
-                <div className="at-scroll-container">
-                    <div className="at-cards-row">
-                        {freeTemplates.map((template) => (
-                            <TemplateCard
-                                key={template.id}
-                                template={template}
-                                onSelect={handleSelect}
-                                onView={handleView}
-                            />
-                        ))}
+            {!loading && freeTemplates.length > 0 && (
+                <section className="at-section">
+                    <div className="at-section-header">
+                        <span className="at-section-icon"><IoCheckmarkCircleOutline aria-hidden="true" /></span>
+                        <h3 className="at-section-title">{t("freeSection")}</h3>
+                        <span className="at-section-count">{freeTemplates.length}</span>
                     </div>
-                </div>
-            </section>}
+                    <div className="at-scroll-container">
+                        <div className="at-cards-row">
+                            {freeTemplates.map((template) => (
+                                <TemplateCard
+                                    key={template.id}
+                                    template={template}
+                                    onSelect={handleSelect}
+                                    onView={handleView}
+                                    t={t}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Paid Templates Section */}
-            {!loading && paidTemplates.length > 0 && <section className="at-section at-section--paid">
-                <div className="at-section-header">
-                    <span className="at-section-icon at-section-icon--paid"><IoDiamondOutline aria-hidden="true" /></span>
-                    <h3 className="at-section-title">ត្រូវការចំណាយ</h3>
-                    <span className="at-section-count">{paidTemplates.length}</span>
-                </div>
-
-                <div className="at-scroll-container">
-                    <div className="at-cards-row">
-                        {paidTemplates.map((template) => (
-                            <TemplateCard
-                                key={template.id}
-                                template={template}
-                                onSelect={handleSelect}
-                                onView={handleView}
-                            />
-                        ))}
+            {!loading && paidTemplates.length > 0 && (
+                <section className="at-section at-section--paid">
+                    <div className="at-section-header">
+                        <span className="at-section-icon at-section-icon--paid"><IoDiamondOutline aria-hidden="true" /></span>
+                        <h3 className="at-section-title">{t("paidSection")}</h3>
+                        <span className="at-section-count">{paidTemplates.length}</span>
                     </div>
-                </div>
-            </section>}
+                    <div className="at-scroll-container">
+                        <div className="at-cards-row">
+                            {paidTemplates.map((template) => (
+                                <TemplateCard
+                                    key={template.id}
+                                    template={template}
+                                    onSelect={handleSelect}
+                                    onView={handleView}
+                                    t={t}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

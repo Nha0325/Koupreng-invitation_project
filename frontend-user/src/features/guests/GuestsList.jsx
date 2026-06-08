@@ -25,7 +25,143 @@ import {
   saveManualGuests,
 } from "../../services/hostPlanningStorage";
 import { invitationService } from "../../shared/services/invitationService";
+import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./GuestsPage.css";
+
+const GUESTS_FALLBACK = {
+  km: {
+    title: "ការគ្រប់គ្រងភ្ញៀវ",
+    totalSeats: "សរុប {count} នាក់",
+    sent: "បានផ្ញើ {count}",
+    searchPlaceholder: "ស្វែងរក ...",
+    filterGroup: "ក្រុម",
+    filterStatus: "ស្ថានភាព",
+    addGuest: "បន្ថែមភ្ញៀវ",
+    delete: "លុប",
+    colName: "ឈ្មោះ",
+    colPhone: "លេខអ្នកចូលរួម",
+    colGroup: "ក្រុម",
+    colStatus: "ស្ថានភាព",
+    colSendStatus: "សារផ្ញើ",
+    colNote: "កំណត់ចំណាំ",
+    colActions: "សកម្មភាព",
+    empty: "មិនមានភ្ញៀវ",
+    emptyNote: "មិនទាន់មានភ្ញៀវដែលត្រូវនឹងការស្វែងរកនេះទេ",
+    totalRecords: "សរុប: {count} កំណត់ត្រា",
+    perPage: "ចំនួនបង្ហាញមួយទំព័រ",
+    page: "ទំព័រ {page} នៃ {total}",
+    editGuest: "កែប្រែភ្ញៀវ",
+    addGuestModal: "បន្ថែមភ្ញៀវ",
+    guestFormDesc: "បំពេញព័ត៌មានភ្ញៀវសម្រាប់ការអញ្ជើញទៅចូលរួមកម្មវិធី។",
+    fieldName: "ឈ្មោះ",
+    fieldCompanion: "ឈ្មោះអ្នកភ្ជាប់ ឬអ្នកអមដំណើរ",
+    fieldPhone: "លេខទូរស័ព្ទ",
+    fieldCount: "ចំនួនភ្ញៀវ",
+    fieldSeat: "លេខតុ ឬកៅអី",
+    fieldSendStatus: "ស្ថានភាពផ្ញើ",
+    fieldNote: "កំណត់ចំណាំ",
+    fieldGroup: "ក្រុម",
+    fieldCategory: "ស្ថានភាព",
+    placeholderCompanion: "បញ្ចូលឈ្មោះអ្នកភ្ជាប់",
+    placeholderPhone: "បញ្ចូលលេខទូរស័ព្ទ",
+    placeholderSeat: "ឧ. A1",
+    placeholderNote: "បញ្ចូលកំណត់ចំណាំ",
+    selectGroup: "ជ្រើសរើសក្រុម",
+    selectCategory: "ជ្រើសរើសស្ថានភាព",
+    cancel: "បោះបង់",
+    submit: "បញ្ចូល",
+    manageGroups: "គ្រប់គ្រងក្រុម",
+    manageCategories: "គ្រប់គ្រងស្ថានភាព",
+    manage: "គ្រប់គ្រង",
+    managerListTitle: "បញ្ជី ({count})",
+    managerFieldName: "ឈ្មោះ",
+    managerFieldNote: "ពណ៌នា",
+    managerAddBtn: "បន្ថែម",
+    managerSave: "រក្សាទុក",
+    managerNoDesc: "មិនមានពណ៌នា",
+    toastAdded: "បានបន្ថែមភ្ញៀវ",
+    toastUpdated: "បានកែប្រែភ្ញៀវ",
+    toastDeleted: "បានលុបភ្ញៀវ",
+    toastDeleteSelected: "បានលុបភ្ញៀវដែលបានជ្រើស",
+    toastLinkReady: "តំណភ្ជាប់រួចរាល់សម្រាប់ផ្ញើ",
+    toastCopied: "បានចម្លងតំណភ្ជាប់",
+    toastCopiedSelected: "បានចម្លងតំណភ្ជាប់ដែលបានជ្រើស",
+    toastQrDownloaded: "QR Code បានទាញយក",
+    qrTitle: "QR Code ការអញ្ជើញ",
+    qrCopyLink: "ចម្លងលីង",
+    qrDownload: "ទាញយក QR",
+    linkTitle: "តំណភ្ជាប់",
+    editMenuItem: "កែប្រែភ្ញៀវ",
+    deleteMenuItem: "លុបភ្ញៀវនេះ?",
+    menuManage: "គ្រប់គ្រង",
+  },
+  en: {
+    title: "Guest Management",
+    totalSeats: "Total {count} guests",
+    sent: "Sent {count}",
+    searchPlaceholder: "Search...",
+    filterGroup: "Group",
+    filterStatus: "Status",
+    addGuest: "Add Guest",
+    delete: "Delete",
+    colName: "Name",
+    colPhone: "Phone",
+    colGroup: "Group",
+    colStatus: "Status",
+    colSendStatus: "Send Status",
+    colNote: "Note",
+    colActions: "Actions",
+    empty: "No guests",
+    emptyNote: "No guests match this search",
+    totalRecords: "Total: {count} records",
+    perPage: "Rows per page",
+    page: "Page {page} of {total}",
+    editGuest: "Edit Guest",
+    addGuestModal: "Add Guest",
+    guestFormDesc: "Fill in guest details for the invitation.",
+    fieldName: "Name",
+    fieldCompanion: "Companion or Plus-One",
+    fieldPhone: "Phone",
+    fieldCount: "Guest count",
+    fieldSeat: "Table / Seat",
+    fieldSendStatus: "Send status",
+    fieldNote: "Note",
+    fieldGroup: "Group",
+    fieldCategory: "Status",
+    placeholderCompanion: "Enter companion name",
+    placeholderPhone: "Enter phone number",
+    placeholderSeat: "e.g. A1",
+    placeholderNote: "Enter note",
+    selectGroup: "Select group",
+    selectCategory: "Select status",
+    cancel: "Cancel",
+    submit: "Submit",
+    manageGroups: "Manage Groups",
+    manageCategories: "Manage Statuses",
+    manage: "Manage",
+    managerListTitle: "List ({count})",
+    managerFieldName: "Name",
+    managerFieldNote: "Description",
+    managerAddBtn: "Add",
+    managerSave: "Save",
+    managerNoDesc: "No description",
+    toastAdded: "Guest added",
+    toastUpdated: "Guest updated",
+    toastDeleted: "Guest deleted",
+    toastDeleteSelected: "Selected guests deleted",
+    toastLinkReady: "Link ready to send",
+    toastCopied: "Link copied",
+    toastCopiedSelected: "Selected links copied",
+    toastQrDownloaded: "QR Code downloaded",
+    qrTitle: "Invitation QR Code",
+    qrCopyLink: "Copy link",
+    qrDownload: "Download QR",
+    linkTitle: "Invitation link",
+    editMenuItem: "Edit Guest",
+    deleteMenuItem: "Delete this guest?",
+    menuManage: "Manage",
+  },
+};
 
 const DEFAULT_GROUPS = [
   { id: "groom-side", name: "Groom Side", note: "ខាងកូនកំលោះ" },
@@ -199,6 +335,8 @@ function SelectField({
   onChange,
   onManage,
   placeholder,
+  manageLabel,
+  noDescLabel,
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -227,7 +365,7 @@ function SelectField({
       {onManage && (
         <button type="button" className="pe-manage-link" onClick={onManage}>
           <IoSettingsOutline aria-hidden="true" />
-          គ្រប់គ្រង
+          {manageLabel || "គ្រប់គ្រង"}
         </button>
       )}
       {open && (
@@ -255,7 +393,7 @@ function SelectField({
                 <span className="pe-radio" aria-hidden="true" />
                 <span>
                   <strong>{option.name}</strong>
-                  <small>{option.note || "មិនមានពណ៌នា"}</small>
+                  <small>{option.note || noDescLabel || "មិនមានពណ៌នា"}</small>
                 </span>
               </button>
             ))}
@@ -266,11 +404,13 @@ function SelectField({
   );
 }
 
-function ManageModal({ title, items, onClose, onSave }) {
+function ManageModal({ title, items, onClose, onSave, t }) {
   const [draftItems, setDraftItems] = useState(items);
   const [form, setForm] = useState({ name: "", note: "" });
   const [editingId, setEditingId] = useState(null);
   const [editing, setEditing] = useState({ name: "", note: "" });
+
+  const noDesc = t ? t("managerNoDesc") : "មិនមានពណ៌នា";
 
   const addItem = () => {
     if (!form.name.trim()) return;
@@ -316,32 +456,32 @@ function ManageModal({ title, items, onClose, onSave }) {
 
         <div className="pe-manager-add">
           <label>
-            <span>ឈ្មោះ</span>
+            <span>{t ? t("managerFieldName") : "ឈ្មោះ"}</span>
             <input
               value={form.name}
               onChange={(event) =>
                 setForm((current) => ({ ...current, name: event.target.value }))
               }
-              placeholder="បញ្ចូលឈ្មោះ"
+              placeholder={t ? t("managerFieldName") : "បញ្ចូលឈ្មោះ"}
             />
           </label>
           <label>
-            <span>ពណ៌នា</span>
+            <span>{t ? t("managerFieldNote") : "ពណ៌នា"}</span>
             <input
               value={form.note}
               onChange={(event) =>
                 setForm((current) => ({ ...current, note: event.target.value }))
               }
-              placeholder="បញ្ចូលពណ៌នា"
+              placeholder={t ? t("managerFieldNote") : "បញ្ចូលពណ៌នា"}
             />
           </label>
           <button type="button" className="pe-primary-btn" onClick={addItem}>
             <IoAdd aria-hidden="true" />
-            បន្ថែម
+            {t ? t("managerAddBtn") : "បន្ថែម"}
           </button>
         </div>
 
-        <h3>បញ្ជី ({draftItems.length})</h3>
+        <h3>{t ? t("managerListTitle", { count: draftItems.length }) : `បញ្ជី (${draftItems.length})`}</h3>
         <div className="pe-manager-list">
           {draftItems.map((item) => {
             const isEditing = item.id === editingId;
@@ -354,7 +494,7 @@ function ManageModal({ title, items, onClose, onSave }) {
                   <>
                     <div className="pe-manager-edit-grid">
                       <label>
-                        <span>ឈ្មោះ</span>
+                        <span>{t ? t("managerFieldName") : "ឈ្មោះ"}</span>
                         <input
                           value={editing.name}
                           onChange={(event) =>
@@ -366,7 +506,7 @@ function ManageModal({ title, items, onClose, onSave }) {
                         />
                       </label>
                       <label>
-                        <span>ពណ៌នា</span>
+                        <span>{t ? t("managerFieldNote") : "ពណ៌នា"}</span>
                         <input
                           value={editing.note}
                           onChange={(event) =>
@@ -402,7 +542,7 @@ function ManageModal({ title, items, onClose, onSave }) {
                     </span>
                     <div>
                       <strong>{item.name}</strong>
-                      <small>{item.note || "មិនមានពណ៌នា"}</small>
+                      <small>{item.note || noDesc}</small>
                     </div>
                     <div className="pe-manager-actions">
                       <button
@@ -439,7 +579,7 @@ function ManageModal({ title, items, onClose, onSave }) {
 
         <div className="pe-manager-footer">
           <button type="button" className="pe-secondary-btn" onClick={onClose}>
-            បោះបង់
+            {t ? t("cancel") : "បោះបង់"}
           </button>
           <button
             type="button"
@@ -447,7 +587,7 @@ function ManageModal({ title, items, onClose, onSave }) {
             onClick={() => onSave(draftItems)}
           >
             <IoCheckmark aria-hidden="true" />
-            រក្សាទុក
+            {t ? t("managerSave") : "រក្សាទុក"}
           </button>
         </div>
       </section>
@@ -456,6 +596,7 @@ function ManageModal({ title, items, onClose, onSave }) {
 }
 
 export default function GuestsList() {
+  const { text: t } = useBackendMessages("guests", GUESTS_FALLBACK);
   const drafts = useMemo(() => listDrafts(), []);
   const activeEventId = getActiveEventId();
   const currentDraft =
@@ -626,7 +767,7 @@ export default function GuestsList() {
       : [nextGuest, ...manualGuests];
 
     persistManualGuests(nextGuests);
-    setToast(editingId ? "បានកែប្រែភ្ញៀវ" : "បានបន្ថែមភ្ញៀវ");
+    setToast(editingId ? t("toastUpdated") : t("toastAdded"));
     closeGuestModal();
   };
 
@@ -635,7 +776,7 @@ export default function GuestsList() {
     persistManualGuests(nextGuests);
     setSelectedIds((current) => current.filter((id) => id !== guestId));
     setMenuGuestId(null);
-    setToast("បានលុបភ្ញៀវ");
+    setToast(t("toastDeleted"));
   };
 
   const deleteSelectedGuests = () => {
@@ -646,7 +787,7 @@ export default function GuestsList() {
     );
     persistManualGuests(nextGuests);
     setSelectedIds([]);
-    setToast("បានលុបភ្ញៀវដែលបានជ្រើស");
+    setToast(t("toastDeleteSelected"));
   };
 
   const toggleSelected = (guestId) => {
@@ -696,7 +837,7 @@ export default function GuestsList() {
     }
     setLinkGuestId(guest.id);
     setMenuGuestId(null);
-    setToast("តំណភ្ជាប់រួចរាល់សម្រាប់ផ្ញើ");
+    setToast(t("toastLinkReady"));
   };
 
   const openQr = (guest) => {
@@ -718,12 +859,12 @@ export default function GuestsList() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    setToast("QR Code បានទាញយក");
+    setToast(t("toastQrDownloaded"));
   };
 
   const copyInvite = async (guest) => {
     await copyText(guestInviteUrl(currentDraft, guest, publicInvitation));
-    setToast("បានចម្លងតំណភ្ជាប់");
+    setToast(t("toastCopied"));
   };
 
   const copySelectedInvites = async () => {
@@ -735,7 +876,7 @@ export default function GuestsList() {
       .map((guest) => `${guest.name}: ${guestInviteUrl(currentDraft, guest, publicInvitation)}`)
       .join("\n");
     await copyText(links);
-    setToast("បានចម្លងតំណភ្ជាប់ដែលបានជ្រើស");
+    setToast(t("toastCopiedSelected"));
   };
 
   return (
@@ -750,15 +891,15 @@ export default function GuestsList() {
       <section className="pe-board">
         <header className="pe-title-row">
           <div>
-            <h1>ការគ្រប់គ្រងភ្ញៀវ</h1>
+            <h1>{t("title")}</h1>
             <p>
               <IoPeopleOutline aria-hidden="true" />
               {allGuests.length}/{Math.max(20, allGuests.length)}
             </p>
           </div>
           <div className="pe-title-stats">
-            <span>សរុប {totalSeats} នាក់</span>
-            <span>បានផ្ញើ {sentCount}</span>
+            <span>{t("totalSeats", { count: totalSeats })}</span>
+            <span>{t("sent", { count: sentCount })}</span>
           </div>
         </header>
 
@@ -769,7 +910,7 @@ export default function GuestsList() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="ស្វែងរក ..."
+                placeholder={t("searchPlaceholder")}
               />
             </label>
 
@@ -777,7 +918,7 @@ export default function GuestsList() {
               value={groupFilter}
               onChange={(event) => setGroupFilter(event.target.value)}
             >
-              <option value="">ក្រុម</option>
+              <option value="">{t("filterGroup")}</option>
               {groups.map((group) => (
                 <option key={group.id} value={group.name}>
                   {group.name}
@@ -789,7 +930,7 @@ export default function GuestsList() {
               value={categoryFilter}
               onChange={(event) => setCategoryFilter(event.target.value)}
             >
-              <option value="">ស្ថានភាព</option>
+              <option value="">{t("filterStatus")}</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.name}>
                   {category.name}
@@ -815,7 +956,7 @@ export default function GuestsList() {
               onClick={openCreateModal}
             >
               <IoAdd aria-hidden="true" />
-              បន្ថែមភ្ញៀវ
+              {t("addGuest")}
             </button>
             <button
               type="button"
@@ -824,7 +965,7 @@ export default function GuestsList() {
               disabled={!selectedCount}
             >
               <IoTrashOutline aria-hidden="true" />
-              លុប
+              {t("delete")}
             </button>
           </div>
 
@@ -845,13 +986,13 @@ export default function GuestsList() {
                       aria-label="Select all guests"
                     />
                   </th>
-                  <th>ឈ្មោះ</th>
-                  <th>លេខអ្នកចូលរួម</th>
-                  <th>ក្រុម</th>
-                  <th>ស្ថានភាព</th>
-                  <th>សារផ្ញើ</th>
-                  <th>កំណត់ចំណាំ</th>
-                  <th className="pe-action-head">សកម្មភាព</th>
+                  <th>{t("colName")}</th>
+                  <th>{t("colPhone")}</th>
+                  <th>{t("colGroup")}</th>
+                  <th>{t("colStatus")}</th>
+                  <th>{t("colSendStatus")}</th>
+                  <th>{t("colNote")}</th>
+                  <th className="pe-action-head">{t("colActions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -921,7 +1062,7 @@ export default function GuestsList() {
 
                           {linkGuestId === guest.id && (
                             <div className="pe-link-popover">
-                              <h3>តំណភ្ជាប់</h3>
+                              <h3>{t("linkTitle")}</h3>
                               <textarea value={inviteUrl} readOnly />
                               <div>
                                 <button
@@ -956,7 +1097,7 @@ export default function GuestsList() {
                                 onClick={() => openEditModal(guest)}
                               >
                                 <IoPencilOutline aria-hidden="true" />
-                                កែប្រែភ្ញៀវ
+                                {t("editMenuItem")}
                               </button>
                               {guest.source === "manual" && (
                                 <button
@@ -965,7 +1106,7 @@ export default function GuestsList() {
                                   onClick={() => deleteGuest(guest.id)}
                                 >
                                   <IoTrashOutline aria-hidden="true" />
-                                  លុបភ្ញៀវនេះ?
+                                  {t("deleteMenuItem")}
                                 </button>
                               )}
                             </div>
@@ -981,21 +1122,21 @@ export default function GuestsList() {
             {filtered.length === 0 && (
               <div className="pe-empty">
                 <IoPeopleOutline aria-hidden="true" />
-                <strong>មិនមានភ្ញៀវ</strong>
-                <span>មិនទាន់មានភ្ញៀវដែលត្រូវនឹងការស្វែងរកនេះទេ</span>
+                <strong>{t("empty")}</strong>
+                <span>{t("emptyNote")}</span>
               </div>
             )}
           </div>
 
           <footer className="pe-pagination">
             <strong>
-              សរុប: <span>{filtered.length} កំណត់ត្រា</span>
+              {t("totalRecords", { count: filtered.length })}
             </strong>
             <div>
-              <span>ចំនួនបង្ហាញមួយទំព័រ</span>
+              <span>{t("perPage")}</span>
               <button type="button">10</button>
             </div>
-            <span>ទំព័រ 1 នៃ 1</span>
+            <span>{t("page", { page: 1, total: 1 })}</span>
             <div className="pe-page-buttons">
               <button type="button" disabled>
                 «
@@ -1025,13 +1166,13 @@ export default function GuestsList() {
             >
               <IoClose aria-hidden="true" />
             </button>
-            <h2>{editingId ? "កែប្រែភ្ញៀវ" : "បន្ថែមភ្ញៀវ"}</h2>
-            <p>បំពេញព័ត៌មានភ្ញៀវសម្រាប់ការអញ្ជើញទៅចូលរួមកម្មវិធី។</p>
+            <h2>{editingId ? t("editGuest") : t("addGuestModal")}</h2>
+            <p>{t("guestFormDesc")}</p>
 
             <div className="pe-form-grid">
               <label className="pe-field">
                 <span>
-                  ឈ្មោះ <em>*</em>
+                  {t("fieldName")} <em>*</em>
                 </span>
                 <input
                   autoFocus
@@ -1042,44 +1183,48 @@ export default function GuestsList() {
                 />
               </label>
               <label className="pe-field">
-                <span>ឈ្មោះអ្នកភ្ជាប់ ឬអ្នកអមដំណើរ</span>
+                <span>{t("fieldCompanion")}</span>
                 <input
                   value={form.companionName}
                   onChange={(event) =>
                     updateForm("companionName", event.target.value)
                   }
-                  placeholder="បញ្ចូលឈ្មោះអ្នកភ្ជាប់"
+                  placeholder={t("placeholderCompanion")}
                 />
               </label>
 
               <SelectField
-                label="ក្រុម"
+                label={t("fieldGroup")}
                 value={form.group}
                 options={groups}
                 onChange={(value) => updateForm("group", value)}
                 onManage={() => setManagerType("groups")}
-                placeholder="ជ្រើសរើសក្រុម"
+                placeholder={t("selectGroup")}
+                manageLabel={t("manage")}
+                noDescLabel={t("managerNoDesc")}
               />
 
               <SelectField
-                label="ស្ថានភាព"
+                label={t("fieldCategory")}
                 value={form.category}
                 options={categories}
                 onChange={(value) => updateForm("category", value)}
                 onManage={() => setManagerType("categories")}
-                placeholder="ជ្រើសរើសស្ថានភាព"
+                placeholder={t("selectCategory")}
+                manageLabel={t("manage")}
+                noDescLabel={t("managerNoDesc")}
               />
 
               <label className="pe-field">
-                <span>លេខទូរស័ព្ទ</span>
+                <span>{t("fieldPhone")}</span>
                 <input
                   value={form.phone}
                   onChange={(event) => updateForm("phone", event.target.value)}
-                  placeholder="បញ្ចូលលេខទូរស័ព្ទ"
+                  placeholder={t("placeholderPhone")}
                 />
               </label>
               <label className="pe-field">
-                <span>ចំនួនភ្ញៀវ</span>
+                <span>{t("fieldCount")}</span>
                 <input
                   type="number"
                   min="1"
@@ -1088,15 +1233,15 @@ export default function GuestsList() {
                 />
               </label>
               <label className="pe-field">
-                <span>លេខតុ ឬកៅអី</span>
+                <span>{t("fieldSeat")}</span>
                 <input
                   value={form.seat}
                   onChange={(event) => updateForm("seat", event.target.value)}
-                  placeholder="ឧ. A1"
+                  placeholder={t("placeholderSeat")}
                 />
               </label>
               <label className="pe-field">
-                <span>ស្ថានភាពផ្ញើ</span>
+                <span>{t("fieldSendStatus")}</span>
                 <select
                   value={form.sendStatus}
                   onChange={(event) =>
@@ -1111,11 +1256,11 @@ export default function GuestsList() {
                 </select>
               </label>
               <label className="pe-field pe-field-wide">
-                <span>កំណត់ចំណាំ</span>
+                <span>{t("fieldNote")}</span>
                 <textarea
                   value={form.note}
                   onChange={(event) => updateForm("note", event.target.value)}
-                  placeholder="បញ្ចូលកំណត់ចំណាំ"
+                  placeholder={t("placeholderNote")}
                 />
               </label>
             </div>
@@ -1127,29 +1272,31 @@ export default function GuestsList() {
                 onClick={closeGuestModal}
               >
                 <IoClose aria-hidden="true" />
-                បោះបង់
+                {t("cancel")}
               </button>
               <button type="submit" className="pe-primary-btn">
                 <IoCheckmark aria-hidden="true" />
-                បញ្ចូល
+                {t("submit")}
               </button>
             </div>
           </form>
 
           {managerType === "groups" && (
             <ManageModal
-              title="គ្រប់គ្រងក្រុម"
+              title={t("manageGroups")}
               items={groups}
               onClose={() => setManagerType(null)}
               onSave={saveGroups}
+              t={t}
             />
           )}
           {managerType === "categories" && (
             <ManageModal
-              title="គ្រប់គ្រងស្ថានភាព"
+              title={t("manageCategories")}
               items={categories}
               onClose={() => setManagerType(null)}
               onSave={saveCategories}
+              t={t}
             />
           )}
         </div>
@@ -1166,7 +1313,7 @@ export default function GuestsList() {
             >
               <IoClose aria-hidden="true" />
             </button>
-            <h2>QR Code ការអញ្ជើញ</h2>
+            <h2>{t("qrTitle")}</h2>
             <div className="pe-qr-card">
               <div className="pe-qr-code">
                 <QRCode
@@ -1191,7 +1338,7 @@ export default function GuestsList() {
                 onClick={() => copyInvite(qrGuest)}
               >
                 <IoCopyOutline aria-hidden="true" />
-                ចម្លងលីង
+                {t("qrCopyLink")}
               </button>
               <button
                 type="button"
@@ -1199,7 +1346,7 @@ export default function GuestsList() {
                 onClick={downloadQr}
               >
                 <IoDownloadOutline aria-hidden="true" />
-                ទាញយក QR
+                {t("qrDownload")}
               </button>
             </div>
           </section>

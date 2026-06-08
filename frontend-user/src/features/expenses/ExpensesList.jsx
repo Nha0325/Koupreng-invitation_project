@@ -24,25 +24,112 @@ import { Link } from "react-router-dom";
 import { invitationService } from "../../shared/services/invitationService";
 import { planningService } from "../../shared/services/planningService";
 import { DatePicker } from "../../shared/ui/DatePicker";
+import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./ExpensesPage.css";
 
-const categories = ["ទាំងអស់", "អាហារ", "តុបតែង", "ឈុតខ្លួន", "ការដឹកជញ្ជូន", "ផ្សេងៗ"];
-
-const CATEGORY_STYLES = {
-    "អាហារ": { bg: "#fff7ed", color: "#c2410c", Icon: IoFastFoodOutline },
-    "តុបតែង": { bg: "#fdf4ff", color: "#a21caf", Icon: IoColorPaletteOutline },
-    "ឈុតខ្លួន": { bg: "#eff6ff", color: "#1d4ed8", Icon: IoShirtOutline },
-    "ការដឹកជញ្ជូន": { bg: "#ecfeff", color: "#0e7490", Icon: IoCarOutline },
-    "ផ្សេងៗ": { bg: "#f5f3ff", color: "#6d28d9", Icon: IoCubeOutline },
-};
-
-const emptyExpenseForm = {
-    name: "",
-    category: "អាហារ",
-    budget: "",
-    amount: "",
-    date: "",
-    status: "pending",
+const EXPENSES_FALLBACK = {
+    km: {
+        heroTag: "Budget Planning",
+        title: "គម្រោងថវិកា",
+        subtitle: "បន្ថែម និងតាមដានការចំណាយរបស់ព្រឹត្តិការណ៍",
+        addBtn: "បន្ថែមការចំណាយ",
+        closeBtn: "បិទ",
+        selectPlaceholder: "មិនមានសន្លឹកការនៅ Database",
+        noInvitationsTitle: "មិនទាន់មានសន្លឹកការពី Database",
+        noInvitationsText: "បង្កើតសន្លឹកការជាមុន ដើម្បីរក្សាទុកគម្រោងថវិកាទៅ Database។",
+        createInvitation: "បង្កើតសន្លឹកការ",
+        sumTotal: "ថវិកាសរុប",
+        sumSpent: "បានចំណាយ",
+        sumRemaining: "នៅសល់",
+        sumPercent: "ភាគរយ",
+        progressLabel: "បានប្រើ {pct}% នៃថវិកាសរុប",
+        formTitleAdd: "បន្ថែមការចំណាយថ្មី",
+        formTitleEdit: "កែប្រែការចំណាយ",
+        fieldName: "ឈ្មោះការចំណាយ",
+        fieldNamePlaceholder: "ឧ. ម្ហូបអាហារ",
+        fieldCategory: "ប្រភេទ",
+        fieldBudget: "ថវិកា ($)",
+        fieldAmount: "ចំណាយពិត ($)",
+        fieldDate: "ថ្ងៃទី",
+        fieldStatus: "ស្ថានភាព",
+        statusPending: "រង់ចាំ",
+        statusPaid: "បានបង់",
+        cancelBtn: "បោះបង់",
+        saveBtn: "រក្សាទុក",
+        addItemBtn: "បន្ថែម",
+        searchPlaceholder: "ស្វែងរកការចំណាយ...",
+        colExpense: "ការចំណាយ",
+        colCategory: "ប្រភេទ",
+        colDate: "ថ្ងៃទី",
+        colBudget: "ថវិកា",
+        colAmount: "ចំណាយពិត",
+        colStatus: "ស្ថានភាព",
+        colActions: "សកម្មភាព",
+        editBtn: "កែ",
+        deleteBtn: "លុប",
+        emptyTitle: "មិនមានការចំណាយ",
+        emptyText: "មិនទាន់មានទិន្នន័យនៅក្នុង Database សម្រាប់សន្លឹកការនេះទេ។",
+        loadingText: "កំពុងទាញទិន្នន័យពី Database...",
+        savingText: "កំពុងរក្សាទុក...",
+        catAll: "ទាំងអស់",
+        catFood: "អាហារ",
+        catDecor: "តុបតែង",
+        catClothing: "ឈុតខ្លួន",
+        catTransport: "ការដឹកជញ្ជូន",
+        catOther: "ផ្សេងៗ",
+        deleteConfirm: "តើអ្នកពិតជាចង់លុបការចំណាយនេះមែនទេ?",
+    },
+    en: {
+        heroTag: "Budget Planning",
+        title: "Budget Planning",
+        subtitle: "Add and track event expenses",
+        addBtn: "Add Expense",
+        closeBtn: "Close",
+        selectPlaceholder: "No invitations in Database",
+        noInvitationsTitle: "No invitations in Database",
+        noInvitationsText: "Create an invitation first to save budget items to the Database.",
+        createInvitation: "Create Invitation",
+        sumTotal: "Total Budget",
+        sumSpent: "Spent",
+        sumRemaining: "Remaining",
+        sumPercent: "Percentage",
+        progressLabel: "Used {pct}% of total budget",
+        formTitleAdd: "Add New Expense",
+        formTitleEdit: "Edit Expense",
+        fieldName: "Expense Name",
+        fieldNamePlaceholder: "e.g. Catering",
+        fieldCategory: "Category",
+        fieldBudget: "Budget ($)",
+        fieldAmount: "Actual Spend ($)",
+        fieldDate: "Date",
+        fieldStatus: "Status",
+        statusPending: "Pending",
+        statusPaid: "Paid",
+        cancelBtn: "Cancel",
+        saveBtn: "Save",
+        addItemBtn: "Add",
+        searchPlaceholder: "Search expenses...",
+        colExpense: "Expense",
+        colCategory: "Category",
+        colDate: "Date",
+        colBudget: "Budget",
+        colAmount: "Actual",
+        colStatus: "Status",
+        colActions: "Actions",
+        editBtn: "Edit",
+        deleteBtn: "Delete",
+        emptyTitle: "No expenses",
+        emptyText: "No data in the Database for this invitation.",
+        loadingText: "Loading data from Database...",
+        savingText: "Saving...",
+        catAll: "All",
+        catFood: "Food",
+        catDecor: "Decor",
+        catClothing: "Clothing",
+        catTransport: "Transport",
+        catOther: "Other",
+        deleteConfirm: "Are you sure you want to delete this expense?",
+    },
 };
 
 function toExpensePayload(form) {
@@ -60,7 +147,7 @@ function normalizeExpense(expense) {
     return {
         id: expense.id,
         name: expense.name || "",
-        category: expense.category || "ផ្សេងៗ",
+        category: expense.category || "",
         budget: Number(expense.budget) || 0,
         amount: Number(expense.amount) || 0,
         date: expense.date || "",
@@ -79,7 +166,35 @@ function formatDate(dateStr) {
 }
 
 function ExpensesList() {
-    const [catFilter, setCat] = useState("ទាំងអស់");
+    const { text: t } = useBackendMessages("expenses", EXPENSES_FALLBACK);
+
+    const categories = [
+        t("catAll"),
+        t("catFood"),
+        t("catDecor"),
+        t("catClothing"),
+        t("catTransport"),
+        t("catOther"),
+    ];
+
+    const CATEGORY_STYLES = {
+        [t("catFood")]: { bg: "#fff7ed", color: "#c2410c", Icon: IoFastFoodOutline },
+        [t("catDecor")]: { bg: "#fdf4ff", color: "#a21caf", Icon: IoColorPaletteOutline },
+        [t("catClothing")]: { bg: "#eff6ff", color: "#1d4ed8", Icon: IoShirtOutline },
+        [t("catTransport")]: { bg: "#ecfeff", color: "#0e7490", Icon: IoCarOutline },
+        [t("catOther")]: { bg: "#f5f3ff", color: "#6d28d9", Icon: IoCubeOutline },
+    };
+
+    const emptyExpenseForm = {
+        name: "",
+        category: t("catFood"),
+        budget: "",
+        amount: "",
+        date: "",
+        status: "pending",
+    };
+
+    const [catFilter, setCat] = useState(t("catAll"));
     const [searchQuery, setSearchQuery] = useState("");
     const [invitations, setInvitations] = useState([]);
     const [selectedInvitationId, setSelectedInvitationId] = useState("");
@@ -149,7 +264,7 @@ function ExpensesList() {
     }, [selectedInvitationId]);
 
     const filtered = expenses.filter((expense) => {
-        const matchesCat = catFilter === "ទាំងអស់" || expense.category === catFilter;
+        const matchesCat = catFilter === t("catAll") || expense.category === catFilter;
         const matchesSearch = !searchQuery || expense.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCat && matchesSearch;
     });
@@ -207,7 +322,7 @@ function ExpensesList() {
     };
 
     const deleteExpense = async (expenseId) => {
-        if (!window.confirm("តើអ្នកពិតជាចង់លុបការចំណាយនេះមែនទេ?")) return;
+        if (!window.confirm(t("deleteConfirm"))) return;
         if (!selectedInvitationId) return;
         setSaving(true);
         setError("");
@@ -226,12 +341,12 @@ function ExpensesList() {
             {/* Hero header */}
             <div className="ep-hero">
                 <div className="ep-hero-content">
-                    <span className="ep-hero-tag">Budget Planning</span>
+                    <span className="ep-hero-tag">{t("heroTag")}</span>
                     <h1 className="ep-title">
                         <IoCashOutline aria-hidden="true" />
-                        គម្រោងថវិកា
+                        {t("title")}
                     </h1>
-                    <p className="ep-subtitle">បន្ថែម និងតាមដានការចំណាយរបស់ព្រឹត្តិការណ៍</p>
+                    <p className="ep-subtitle">{t("subtitle")}</p>
                 </div>
                 <button
                     type="button"
@@ -246,12 +361,12 @@ function ExpensesList() {
                     {showForm ? (
                         <>
                             <IoCloseOutline aria-hidden="true" />
-                            បិទ
+                            {t("closeBtn")}
                         </>
                     ) : (
                         <>
                             <IoAddOutline aria-hidden="true" />
-                            បន្ថែមការចំណាយ
+                            {t("addBtn")}
                         </>
                     )}
                 </button>
@@ -269,7 +384,7 @@ function ExpensesList() {
                         disabled={loadingInvitations || invitations.length === 0}
                     >
                         {invitations.length === 0 ? (
-                            <option value="">មិនមានសន្លឹកការនៅ Database</option>
+                            <option value="">{t("selectPlaceholder")}</option>
                         ) : (
                             invitations.map((invitation) => (
                                 <option key={invitation.id} value={invitation.id}>
@@ -286,10 +401,10 @@ function ExpensesList() {
             {!loadingInvitations && invitations.length === 0 && (
                 <div className="ep-empty">
                     <div className="ep-empty-icon"><IoCashOutline aria-hidden="true" /></div>
-                    <h3>មិនទាន់មានសន្លឹកការពី Database</h3>
-                    <p>បង្កើតសន្លឹកការជាមុន ដើម្បីរក្សាទុកគម្រោងថវិកាទៅ Database។</p>
+                    <h3>{t("noInvitationsTitle")}</h3>
+                    <p>{t("noInvitationsText")}</p>
                     <Link to="/dashboard/invitations/new" className="ep-add-btn">
-                        បង្កើតសន្លឹកការ
+                        {t("createInvitation")}
                     </Link>
                 </div>
             )}
@@ -299,21 +414,21 @@ function ExpensesList() {
                 <div className="ep-sum-card ep-sum-total">
                     <div className="ep-sum-icon"><IoWalletOutline aria-hidden="true" /></div>
                     <div>
-                        <span className="ep-sum-label">ថវិកាសរុប</span>
+                        <span className="ep-sum-label">{t("sumTotal")}</span>
                         <span className="ep-sum-value">${totalBudget.toLocaleString()}</span>
                     </div>
                 </div>
                 <div className="ep-sum-card">
                     <div className="ep-sum-icon"><IoCashOutline aria-hidden="true" /></div>
                     <div>
-                        <span className="ep-sum-label">បានចំណាយ</span>
+                        <span className="ep-sum-label">{t("sumSpent")}</span>
                         <span className="ep-sum-value">${totalSpent.toLocaleString()}</span>
                     </div>
                 </div>
                 <div className="ep-sum-card">
                     <div className="ep-sum-icon"><RemainingIcon aria-hidden="true" /></div>
                     <div>
-                        <span className="ep-sum-label">នៅសល់</span>
+                        <span className="ep-sum-label">{t("sumRemaining")}</span>
                         <span className={`ep-sum-value ${remaining < 0 ? "ep-over" : ""}`}>
                             ${remaining.toLocaleString()}
                         </span>
@@ -322,7 +437,7 @@ function ExpensesList() {
                 <div className="ep-sum-card">
                     <div className="ep-sum-icon"><IoStatsChartOutline aria-hidden="true" /></div>
                     <div>
-                        <span className="ep-sum-label">ភាគរយ</span>
+                        <span className="ep-sum-label">{t("sumPercent")}</span>
                         <span className="ep-sum-value">{pct}%</span>
                     </div>
                 </div>
@@ -331,7 +446,7 @@ function ExpensesList() {
             {/* Progress bar */}
             {selectedInvitationId && <div className="ep-progress-card">
                 <div className="ep-progress-header">
-                    <span>បានប្រើ {pct}% នៃថវិកាសរុប</span>
+                    <span>{t("progressLabel", { pct })}</span>
                     <span>${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}</span>
                 </div>
                 <div className="ep-progress-track">
@@ -349,36 +464,36 @@ function ExpensesList() {
                         {editingId ? (
                             <>
                                 <IoCreateOutline aria-hidden="true" />
-                                កែប្រែការចំណាយ
+                                {t("formTitleEdit")}
                             </>
                         ) : (
                             <>
                                 <IoAddOutline aria-hidden="true" />
-                                បន្ថែមការចំណាយថ្មី
+                                {t("formTitleAdd")}
                             </>
                         )}
                     </h3>
                     <div className="ep-form-grid">
                         <label>
-                            <span>ឈ្មោះការចំណាយ <em>*</em></span>
+                            <span>{t("fieldName")} <em>*</em></span>
                             <input
                                 type="text"
                                 value={form.name}
                                 onChange={(event) => updateForm("name", event.target.value)}
-                                placeholder="ឧ. ម្ហូបអាហារ"
+                                placeholder={t("fieldNamePlaceholder")}
                                 required
                             />
                         </label>
                         <label>
-                            <span>ប្រភេទ</span>
+                            <span>{t("fieldCategory")}</span>
                             <select value={form.category} onChange={(event) => updateForm("category", event.target.value)}>
-                                {categories.filter((category) => category !== "ទាំងអស់").map((category) => (
+                                {categories.filter((category) => category !== t("catAll")).map((category) => (
                                     <option key={category} value={category}>{category}</option>
                                 ))}
                             </select>
                         </label>
                         <label>
-                            <span>ថវិកា ($)</span>
+                            <span>{t("fieldBudget")}</span>
                             <input
                                 type="number"
                                 min="0"
@@ -388,7 +503,7 @@ function ExpensesList() {
                             />
                         </label>
                         <label>
-                            <span>ចំណាយពិត ($)</span>
+                            <span>{t("fieldAmount")}</span>
                             <input
                                 type="number"
                                 min="0"
@@ -398,35 +513,35 @@ function ExpensesList() {
                             />
                         </label>
                         <label>
-                            <span>ថ្ងៃទី</span>
+                            <span>{t("fieldDate")}</span>
                             <DatePicker
                                 value={form.date}
                                 onChange={(val) => updateForm("date", val)}
-                                placeholder="ជ្រើសកាលបរិច្ឆេទ"
+                                placeholder={t("fieldDate")}
                             />
                         </label>
                         <label>
-                            <span>ស្ថានភាព</span>
+                            <span>{t("fieldStatus")}</span>
                             <select value={form.status} onChange={(event) => updateForm("status", event.target.value)}>
-                                <option value="pending">រង់ចាំ</option>
-                                <option value="paid">បានបង់</option>
+                                <option value="pending">{t("statusPending")}</option>
+                                <option value="paid">{t("statusPaid")}</option>
                             </select>
                         </label>
                     </div>
                     <div className="ep-form-actions">
                         <button type="button" className="ep-secondary-btn" onClick={resetForm}>
-                            បោះបង់
+                            {t("cancelBtn")}
                         </button>
                         <button type="submit" className="ep-add-btn" disabled={saving}>
-                            {saving ? "កំពុងរក្សាទុក..." : editingId ? (
+                            {saving ? t("savingText") : editingId ? (
                                 <>
                                     <IoSaveOutline aria-hidden="true" />
-                                    រក្សាទុក
+                                    {t("saveBtn")}
                                 </>
                             ) : (
                                 <>
                                     <IoAddOutline aria-hidden="true" />
-                                    បន្ថែម
+                                    {t("addItemBtn")}
                                 </>
                             )}
                         </button>
@@ -440,7 +555,7 @@ function ExpensesList() {
                     <span className="ep-search-icon"><IoSearchOutline aria-hidden="true" /></span>
                     <input
                         type="text"
-                        placeholder="ស្វែងរកការចំណាយ..."
+                        placeholder={t("searchPlaceholder")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -455,7 +570,7 @@ function ExpensesList() {
                         >
                             {category}
                             <span className="ep-filter-count">
-                                {category === "ទាំងអស់"
+                                {category === t("catAll")
                                     ? expenses.length
                                     : expenses.filter((e) => e.category === category).length}
                             </span>
@@ -466,36 +581,36 @@ function ExpensesList() {
 
             {/* Table */}
             {loadingExpenses ? (
-                <div className="ep-empty">កំពុងទាញទិន្នន័យពី Database...</div>
+                <div className="ep-empty">{t("loadingText")}</div>
             ) : selectedInvitationId && filtered.length === 0 ? (
                 <div className="ep-empty">
                     <div className="ep-empty-icon"><IoCashOutline aria-hidden="true" /></div>
-                    <h3>មិនមានការចំណាយ</h3>
-                    <p>មិនទាន់មានទិន្នន័យនៅក្នុង Database សម្រាប់សន្លឹកការនេះទេ។</p>
+                    <h3>{t("emptyTitle")}</h3>
+                    <p>{t("emptyText")}</p>
                 </div>
             ) : selectedInvitationId ? (
                 <div className="ep-table-wrap">
                     <table className="ep-table">
                         <thead>
                             <tr>
-                                <th>ការចំណាយ</th>
-                                <th>ប្រភេទ</th>
-                                <th>ថ្ងៃទី</th>
-                                <th>ថវិកា</th>
-                                <th>ចំណាយពិត</th>
-                                <th>ស្ថានភាព</th>
-                                <th className="ep-th-actions">សកម្មភាព</th>
+                                <th>{t("colExpense")}</th>
+                                <th>{t("colCategory")}</th>
+                                <th>{t("colDate")}</th>
+                                <th>{t("colBudget")}</th>
+                                <th>{t("colAmount")}</th>
+                                <th>{t("colStatus")}</th>
+                                <th className="ep-th-actions">{t("colActions")}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtered.map((expense) => {
-                                const catStyle = CATEGORY_STYLES[expense.category] || CATEGORY_STYLES["ផ្សេងៗ"];
+                                const catStyle = CATEGORY_STYLES[expense.category] || CATEGORY_STYLES[t("catOther")];
                                 const CategoryIcon = catStyle.Icon;
                                 const overBudget = Number(expense.amount) > Number(expense.budget);
                                 return (
                                     <tr key={expense.id}>
-                                        <td data-label="ការចំណាយ" className="ep-name">{expense.name}</td>
-                                        <td data-label="ប្រភេទ">
+                                        <td data-label={t("colExpense")} className="ep-name">{expense.name}</td>
+                                        <td data-label={t("colCategory")}>
                                             <span
                                                 className="ep-cat-badge"
                                                 style={{ background: catStyle.bg, color: catStyle.color }}
@@ -504,32 +619,32 @@ function ExpensesList() {
                                                 {expense.category}
                                             </span>
                                         </td>
-                                        <td data-label="ថ្ងៃទី" className="ep-muted">
+                                        <td data-label={t("colDate")} className="ep-muted">
                                             <IoCalendarClearOutline aria-hidden="true" />
                                             {formatDate(expense.date)}
                                         </td>
-                                        <td data-label="ថវិកា" className="ep-muted">${expense.budget.toLocaleString()}</td>
-                                        <td data-label="ចំណាយពិត">
+                                        <td data-label={t("colBudget")} className="ep-muted">${expense.budget.toLocaleString()}</td>
+                                        <td data-label={t("colAmount")}>
                                             <span className={`ep-amount${overBudget ? " ep-amount-over" : ""}`}>
                                                 ${expense.amount.toLocaleString()}
                                             </span>
                                         </td>
-                                        <td data-label="ស្ថានភាព">
+                                        <td data-label={t("colStatus")}>
                                             <span className={`ep-status ${expense.status === "paid" ? "ep-paid" : "ep-pending"}`}>
                                                 {expense.status === "paid" ? (
                                                     <>
                                                         <IoCheckmarkCircleOutline aria-hidden="true" />
-                                                        បានបង់
+                                                        {t("statusPaid")}
                                                     </>
                                                 ) : (
                                                     <>
                                                         <IoTimeOutline aria-hidden="true" />
-                                                        រង់ចាំ
+                                                        {t("statusPending")}
                                                     </>
                                                 )}
                                             </span>
                                         </td>
-                                        <td data-label="សកម្មភាព">
+                                        <td data-label={t("colActions")}>
                                             <div className="ep-row-actions">
                                                 <button
                                                     type="button"
@@ -537,7 +652,7 @@ function ExpensesList() {
                                                     onClick={() => editExpense(expense)}
                                                 >
                                                     <IoCreateOutline aria-hidden="true" />
-                                                    កែ
+                                                    {t("editBtn")}
                                                 </button>
                                                 <button
                                                     type="button"
@@ -546,7 +661,7 @@ function ExpensesList() {
                                                     onClick={() => deleteExpense(expense.id)}
                                                 >
                                                     <IoTrashOutline aria-hidden="true" />
-                                                    លុប
+                                                    {t("deleteBtn")}
                                                 </button>
                                             </div>
                                         </td>
