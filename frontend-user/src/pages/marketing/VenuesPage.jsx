@@ -151,6 +151,7 @@ const VenuesPage = () => {
                   </div>
                 </motion.div>
               </ScrollReveal>
+
             ))}
           </div>
         </div>

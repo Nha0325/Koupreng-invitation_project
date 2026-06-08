@@ -632,6 +632,7 @@
 }
 
 .ep-muted svg {
+    display: inline-flex;
     width: 14px;
     height: 14px;
     margin-right: 6px;
