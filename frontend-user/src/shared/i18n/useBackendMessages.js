@@ -9,38 +9,36 @@ export function formatMessage(value, replacements = {}) {
     );
 }
 
-export function useBackendMessages(namespace, fallbackMessages) {
+export function useBackendMessages(namespace, fallbackMessages = null) {
     const lang = useLanguageStore((state) => state.lang);
-    const fallback = fallbackMessages[lang] || fallbackMessages.km || {};
-    const [messages, setMessages] = useState(fallback);
+    const [messages, setMessages] = useState({});
 
     useEffect(() => {
         let active = true;
-        const nextFallback = fallbackMessages[lang] || fallbackMessages.km || {};
-        setMessages(nextFallback);
 
         i18nService.messages(namespace)
             .then((response) => {
-                if (!active) return;
-                setMessages({
-                    ...nextFallback,
-                    ...(response?.messages || {}),
-                });
+                if (active) {
+                    setMessages(response?.messages || {});
+                }
             })
             .catch(() => {
                 if (active) {
-                    setMessages(nextFallback);
+                    setMessages({});
                 }
             });
 
         return () => {
             active = false;
         };
-    }, [fallbackMessages, lang, namespace]);
+    }, [lang, namespace]);
 
     return {
         lang,
         messages,
-        text: (key, replacements) => formatMessage(messages[key] || fallback[key] || key, replacements),
+        text: (key, replacements) => formatMessage(
+            messages[key] || fallbackMessages?.[lang]?.[key] || fallbackMessages?.en?.[key] || key,
+            replacements
+        ),
     };
 }

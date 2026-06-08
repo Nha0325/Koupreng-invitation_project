@@ -3,49 +3,52 @@ import { motion } from "framer-motion";
 import { ScrollReveal } from "../../shared/ui/ScrollReveal";
 import { AnimatedButton } from "../../shared/ui/AnimatedButton";
 import { MagicCard } from "../../shared/ui/MagicCard";
+import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./HomePage.css";
 
 import heroBg from "../../assets/icons/background.png";
 
-const plans = [
+const getPlans = (t) => [
   {
     id: "basic",
-    name: "គតិដៃគូ",
+    name: t("planBasicName") || "គតិដៃគូ",
     price: "$0",
-    desc: "សម្រាប់ការរៀបចំដំបូង",
+    desc: t("planBasicDesc") || "សម្រាប់ការរៀបចំដំបូង",
     features: [
-      "ផែនការការងារ ៥ ចំណុច",
-      "គ្រប់គ្រងភ្ញៀវ ៤០ នាក់",
-      "ថវិការ ១ ព្រឹត្តិការណ៍",
+      t("planBasicFeat1") || "ផែនការការងារ ៥ ចំណុច",
+      t("planBasicFeat2") || "គ្រប់គ្រងភ្ញៀវ ៤០ នាក់",
+      t("planBasicFeat3") || "ថវិការ ១ ព្រឹត្តិការណ៍",
     ],
   },
   {
     id: "pro",
-    name: "កញ្ចប់ប្រូ",
+    name: t("planProName") || "កញ្ចប់ប្រូ",
     price: "$169",
-    desc: "ពេញនិយមបំផុតសម្រាប់គូស្វាមីភរិយា",
+    desc: t("planProDesc") || "ពេញនិយមបំផុតសម្រាប់គូស្វាមីភរិយា",
     features: [
-      "ផែនការមិនដែនកំណត់",
-      "គ្រប់គ្រងភ្ញៀវមិនដែនកំណត់",
-      "ការទូទាត់ Bakong QR",
-      "គាំទ្រ ២៤/៧",
+      t("planProFeat1") || "ផែនការមិនដែនកំណត់",
+      t("planProFeat2") || "គ្រប់គ្រងភ្ញៀវមិនដែនកំណត់",
+      t("planProFeat3") || "ការទូទាត់ Bakong QR",
+      t("planProFeat4") || "គាំទ្រ ២៤/៧",
     ],
     featured: true,
   },
   {
     id: "enterprise",
-    name: "សហគ្រាស",
-    price: "តម្លៃពិគ្រោះ",
-    desc: "សម្រាប់ក្រុមហ៊ុនរៀបចំការ",
+    name: t("planEntName") || "សហគ្រាស",
+    price: t("planEntPrice") || "តម្លៃពិគ្រោះ",
+    desc: t("planEntDesc") || "សម្រាប់ក្រុមហ៊ុនរៀបចំការ",
     features: [
-      "White-label Branding",
-      "គ្រប់គ្រងក្រុមការងារ",
-      "API Integration",
+      t("planEntFeat1") || "White-label Branding",
+      t("planEntFeat2") || "គ្រប់គ្រងក្រុមការងារ",
+      t("planEntFeat3") || "API Integration",
     ],
   },
 ];
 
 export default function Home() {
+  const { text: t } = useBackendMessages("home");
+  const plans = getPlans(t);
   return (
     <div className="khmer-theme">
       {/* Hero Section */}
@@ -62,24 +65,21 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="hero-text-center"
           >
-            <span className="khmer-sub">មង្គលការឌីជីថល</span> <br />
+            <span className="khmer-sub">{t("subtitleDigitalWedding") || "មង្គលការឌីជីថល"}</span> <br />
             <h1 className="khmer-title">
-              រៀបចំពិធីមង្គលការ
+              {t("titlePlan") || "រៀបចំពិធីមង្គលការ"}
               <br />
-              <span className="gold-gradient">ដ៏ល្អឥតខ្ចោះ</span>
+              <span className="gold-gradient">{t("titlePerfect") || "ដ៏ល្អឥតខ្ចោះ"}</span>
             </h1>
             <p className="khmer-p">
-              គ្រប់គ្រងភ្ញៀវ ថវិកា និងផែនការការងាររបស់អ្នក ក្នុងវេទិកាតែមួយ
-              ប្រកបដោយភាពងាយស្រួល និងស៊ីវិល័យ។
+              {t("description") || "គ្រប់គ្រងភ្ញៀវ ថវិកា និងផែនការការងាររបស់អ្នក ក្នុងវេទិកាតែមួយ ប្រកបដោយភាពងាយស្រួល និងស៊ីវិល័យ។"}
             </p>
             <div className="hero-btns">
-              {/* ប៊ូតុងទី១: Link ទៅ /templates */}
               <AnimatedButton to="/templates" className="btn-main-gold">
-                ចាប់ផ្តើមបង្កើត
+                {t("btnStart") || "ចាប់ផ្តើមបង្កើត"}
               </AnimatedButton>
-              {/* ប៊ូតុងទី២: Link ទៅ /pricing */}
               <Link to="/pricing" className="btn-outline">
-                មើលតម្លៃកញ្ចប់
+                {t("btnPricing") || "មើលតម្លៃកញ្ចប់"}
               </Link>
             </div>
           </motion.div>
@@ -90,7 +90,7 @@ export default function Home() {
       <section className="how-it-works">
         <ScrollReveal>
           <div className="section-head">
-            <h2 className="khmer-title-small">តើវាដំណើរការយ៉ាងដូចម្ដេច?</h2>
+            <h2 className="khmer-title-small">{t("howItWorks") || "តើវាដំណើរការយ៉ាងដូចម្ដេច?"}</h2>
             <div className="gold-divider"></div>
           </div>
         </ScrollReveal>
@@ -99,32 +99,32 @@ export default function Home() {
           <div className="step-card">
             <div className="step-num">០១</div>
             <h3>
-              ជ្រើសរើស{" "}
+              {t("step1Choose") || "ជ្រើសរើស"}{" "}
               <Link to="/templates" className="step-link">
-                គំរូសន្លឹកការ
+                {t("step1Templates") || "គំរូសន្លឹកការ"}
               </Link>
             </h3>
-            <p>ស្វែងរកស្ទីលដែលអ្នកស្រលាញ់បំផុត ពីបុរាណដល់សម័យទំនើប។</p>
+            <p>{t("step1Desc") || "ស្វែងរកស្ទីលដែលអ្នកស្រលាញ់បំផុត ពីបុរាណដល់សម័យទំនើប។"}</p>
           </div>
           <div className="step-card">
             <div className="step-num">០២</div>
             <h3>
-              រៀបចំ{" "}
+              {t("step2Setup") || "រៀបចំ"}{" "}
               <Link to="/pricing" className="step-link">
-                កញ្ចប់សេវា
+                {t("step2Pricing") || "កញ្ចប់សេវា"}
               </Link>
             </h3>
-            <p>ជ្រើសរើសមុខងារដែលត្រូវនឹងតម្រូវការ និងថវិកាក្នុងក្តីស្រមៃ។</p>
+            <p>{t("step2Desc") || "ជ្រើសរើសមុខងារដែលត្រូវនឹងតម្រូវការ និងថវិកាក្នុងក្តីស្រមៃ។"}</p>
           </div>
           <div className="step-card">
             <div className="step-num">០៣</div>
             <h3>
-              ស្វែងរក{" "}
+              {t("step3Find") || "ស្វែងរក"}{" "}
               <Link to="/venues" className="step-link">
-                ទីកន្លែង
+                {t("step3Venues") || "ទីកន្លែង"}
               </Link>
             </h3>
-            <p>សម្រាំងទីតាំងរៀបការដ៏ស្រស់ស្អាតបំផុតសម្រាប់ភ្ញៀវកិត្តិយស។</p>
+            <p>{t("step3Desc") || "សម្រាំងទីតាំងរៀបការដ៏ស្រស់ស្អាតបំផុតសម្រាប់ភ្ញៀវកិត្តិយស។"}</p>
           </div>
         </div>
       </section>
@@ -133,7 +133,7 @@ export default function Home() {
       <section className="pricing-modern" id="pricing-section">
         <ScrollReveal>
           <div className="section-head">
-            <h2 className="khmer-title-small">ជ្រើសរើសកញ្ចប់ដែលសាកសម</h2>
+            <h2 className="khmer-title-small">{t("pricingTitle") || "ជ្រើសរើសកញ្ចប់ដែលសាកសម"}</h2>
             <div className="gold-divider"></div>
           </div>
         </ScrollReveal>
@@ -142,12 +142,12 @@ export default function Home() {
           {plans.map((plan, i) => (
             <ScrollReveal key={i} delay={i * 0.1}>
               <MagicCard className={`kh-card ${plan.featured ? "active" : ""}`}>
-                {plan.featured && <div className="card-tag">ពេញនិយម</div>}
+                {plan.featured && <div className="card-tag">{t("popular") || "ពេញនិយម"}</div>}
                 <h3 className="card-name">{plan.name}</h3>
                 <div className="card-price">
                   {plan.price}
                   <span>
-                    {plan.id !== "enterprise" ? "/ព្រឹត្តិការណ៍" : ""}
+                    {plan.id !== "enterprise" ? (t("perEvent") || "/ព្រឹត្តិការណ៍") : ""}
                   </span>
                 </div>
                 <p className="card-desc">{plan.desc}</p>
@@ -157,7 +157,7 @@ export default function Home() {
                   ))}
                 </ul>
                 <button className={`card-btn ${plan.featured ? "gold" : ""}`}>
-                  ជ្រើសរើសយកនេះ
+                  {t("selectPlan") || "ជ្រើសរើសយកនេះ"}
                 </button>
               </MagicCard>
             </ScrollReveal>
@@ -169,25 +169,25 @@ export default function Home() {
       <footer className="kh-footer-main">
         <div className="footer-grid">
           <div className="footer-col">
-            <h4 className="footer-logo">គូព្រេង</h4>
-            <p>វេទិកាឌីជីថលឈានមុខគេ សម្រាប់ការរៀបចំមង្គលការនៅកម្ពុជា។</p>
+            <h4 className="footer-logo">{t("footerLogo") || "គូព្រេង"}</h4>
+            <p>{t("footerDesc") || "វេទិកាឌីជីថលឈានមុខគេ សម្រាប់ការរៀបចំមង្គលការនៅកម្ពុជា។"}</p>
           </div>
           <div className="footer-col">
-            <h5>សេវាកម្ម</h5>
-            <Link to="/templates">គំរូសន្លឹកការ</Link>
-            <Link to="/pricing">តម្លៃកញ្ចប់</Link>
-            <Link to="/venues">ទីកន្លែងរៀបការ</Link>
+            <h5>{t("footerServices") || "សេវាកម្ម"}</h5>
+            <Link to="/templates">{t("footerTemplates") || "គំរូសន្លឹកការ"}</Link>
+            <Link to="/pricing">{t("footerPricing") || "តម្លៃកញ្ចប់"}</Link>
+            <Link to="/venues">{t("footerVenues") || "ទីកន្លែងរៀបការ"}</Link>
           </div>
           <div className="footer-col">
-            <h5>ក្រុមហ៊ុន</h5>
-            <Link to="/about">អំពីយើង</Link>
-            <Link to="/contact">ទំនាក់ទំនង</Link>
-            <Link to="/help">ជំនួយ</Link>
+            <h5>{t("footerCompany") || "ក្រុមហ៊ុន"}</h5>
+            <Link to="/about">{t("footerAbout") || "អំពីយើង"}</Link>
+            <Link to="/contact">{t("footerContact") || "ទំនាក់ទំនង"}</Link>
+            <Link to="/help">{t("footerHelp") || "ជំនួយ"}</Link>
           </div>
         </div>
         <div className="footer-bottom">
           <p>
-            © 2026 Koupreng. រៀបចំឡើងដោយក្តីស្រលាញ់ សម្រាប់គូស្វាមីភរិយាខ្មែរ
+            {t("footerCopyright") || "© 2026 Koupreng. រៀបចំឡើងដោយក្តីស្រលាញ់ សម្រាប់គូស្វាមីភរិយាខ្មែរ"}
           </p>
         </div>
       </footer>

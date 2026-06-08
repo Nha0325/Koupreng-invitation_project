@@ -1,17 +1,17 @@
 import { api } from "./api/client";
 
 export const userService = {
-    /** GET /auth/me — fetch current user profile */
-    getProfile: () => api.get("/auth/me"),
+    /** GET /users/me — fetch current user profile */
+    getProfile: () => api.get("/users/me"),
 
-    /** PUT /auth/me — update profile fields supported by backend */
-    updateProfile: (profileData) => api.put("/auth/me", profileData),
+    /** PATCH /users/me — update profile (full_name, phone, profile_image) */
+    updateProfile: (profileData) => api.patch("/users/me", profileData),
 
-    /** Placeholder until the backend adds persisted profile image support. */
+    /** POST /users/me/profile-image — upload profile image (multipart) */
     uploadProfileImage: async (file) => {
         const formData = new FormData();
         formData.append("file", file);
-        return { data: { profileImage: null, profileImageUrl: null } };
+        return api.post("/users/me/profile-image", formData);
     },
 
     /** POST /users/me/change-password — change account password */

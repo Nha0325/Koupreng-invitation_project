@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../pages/auth/context/useAuth";
 import { useLanguageStore } from "../../stores/useLanguageStore";
 import { useT } from "../../shared/i18n/useT";
+import { FiGlobe, FiChevronDown } from "react-icons/fi";
 import logo from "../../assets/logo.png";
 
 export default function Header() {
@@ -80,8 +81,15 @@ export default function Header() {
         .logout-nav-btn { color: #8a3434; }
         .logout-nav-btn:hover { color: #c24141; }
         .cta-gold { background: linear-gradient(135deg, #B0926A 0%, #7D6443 100%); color: white; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(176, 146, 106, 0.3); }
-        .lang-toggle { background: rgba(176,146,106,0.12); border: 1px solid rgba(176,146,106,0.4); color: #7D6443; padding: 6px 14px; border-radius: 20px; font-family: 'Kantumruy Pro', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s; line-height: 1; }
-        .lang-toggle:hover { background: rgba(176,146,106,0.25); }
+        .lang-dropdown-wrapper { position: relative; display: inline-block; }
+        .lang-toggle { display: flex; align-items: center; gap: 6px; background: none; border: none; color: #1f2937; padding: 6px 10px; cursor: pointer; font-family: 'Kantumruy Pro', sans-serif; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .lang-toggle:hover { color: #d6336c; }
+        .lang-icon { font-size: 18px; color: #d6336c; }
+        .lang-menu { position: absolute; top: 100%; right: -10px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; width: 120px; opacity: 0; visibility: hidden; transform: translateY(10px); transition: 0.2s; z-index: 3005; padding: 4px; display: flex; flex-direction: column; gap: 2px; }
+        .lang-dropdown-wrapper:hover .lang-menu, .lang-dropdown-wrapper:focus-within .lang-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+        .lang-option { display: block; width: 100%; text-align: left; background: none; border: none; padding: 10px 16px; font-family: 'Kantumruy Pro', sans-serif; font-size: 14px; cursor: pointer; border-radius: 8px; transition: 0.2s; color: #4b5563; }
+        .lang-option:hover { background: #fdf2f4; color: #d6336c; }
+        .lang-option.active { color: #d6336c; background: #fdf2f4; }
         .burger-menu { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; z-index: 3001; }
         .burger-menu span { width: 25px; height: 3px; background-color: #7D6443; border-radius: 2px; transition: 0.3s; }
         .mobile-nav { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #FCF8F2; padding: 100px 30px; flex-direction: column; gap: 20px; z-index: 2999; pointer-events: auto; }
@@ -99,7 +107,7 @@ export default function Header() {
 
       <div className="header-wrapper">
         <header className="header-container">
-          <Link to="/" className="logo-box" aria-label="Koupreng — Back to home">
+          <Link to="/" className="logo-box" aria-label={`Koupreng — ${t.nav.backToHome || "Back to home"}`}>
             <img
               src={logo}
               alt="Koupreng"
@@ -110,7 +118,7 @@ export default function Header() {
               }}
             />
             <span className="logo-text">Koupreng</span>
-            <span className="logo-tip" role="tooltip">Back to home</span>
+            <span className="logo-tip" role="tooltip">{t.nav.backToHome || "Back to home"}</span>
           </Link>
 
           <nav className="nav-links">
@@ -126,15 +134,31 @@ export default function Header() {
           </nav>
 
           <div className="desktop-actions">
-            <button
-              type="button"
-              className="lang-toggle"
-              onClick={() => setLang(lang === "km" ? "en" : "km")}
-              aria-label="Switch language"
-              title={lang === "km" ? "Switch to English" : "ប្តូរទៅភាសាខ្មែរ"}
-            >
-              {lang === "km" ? "EN" : "ខ្មែរ"}
-            </button>
+            <div className="lang-dropdown-wrapper">
+              <button
+                type="button"
+                className="lang-toggle"
+                aria-label={t.nav.language || "Language selector"}
+              >
+                <FiGlobe className="lang-icon" />
+                {lang === "km" ? (t.nav.khmer || "ខ្មែរ") : (t.nav.langEn || "EN")}
+                <FiChevronDown />
+              </button>
+              <div className="lang-menu">
+                <button
+                  className={`lang-option ${lang === "km" ? "active" : ""}`}
+                  onClick={() => setLang("km")}
+                >
+                  {t.nav.khmer || "ខ្មែរ"}
+                </button>
+                <button
+                  className={`lang-option ${lang === "en" ? "active" : ""}`}
+                  onClick={() => setLang("en")}
+                >
+                  {t.nav.english || "English"}
+                </button>
+              </div>
+            </div>
             {isAuthenticated ? (
               <div className="user-actions">
                 <button
@@ -226,14 +250,31 @@ export default function Header() {
             </Link>
           </>
         )}
-        <button
-          type="button"
-          className="lang-toggle"
-          style={{ marginTop: "10px", alignSelf: "flex-start" }}
-          onClick={() => setLang(lang === "km" ? "en" : "km")}
-        >
-          {lang === "km" ? "EN" : "ខ្មែរ"}
-        </button>
+          <div className="lang-dropdown-wrapper" style={{ marginTop: "10px", alignSelf: "flex-start" }}>
+            <button
+              type="button"
+              className="lang-toggle"
+              aria-label={t.nav.language || "Language selector"}
+            >
+              <FiGlobe className="lang-icon" />
+              {lang === "km" ? (t.nav.khmer || "ខ្មែរ") : (t.nav.langEn || "EN")}
+              <FiChevronDown />
+            </button>
+            <div className="lang-menu" style={{ position: "relative", top: 0, width: "100%", right: 0, boxShadow: "none", background: "transparent" }}>
+              <button
+                className={`lang-option ${lang === "km" ? "active" : ""}`}
+                onClick={() => setLang("km")}
+              >
+                {t.nav.khmer || "ខ្មែរ"}
+              </button>
+              <button
+                className={`lang-option ${lang === "en" ? "active" : ""}`}
+                onClick={() => setLang("en")}
+              >
+                {t.nav.english || "English"}
+              </button>
+            </div>
+          </div>
       </nav>
     </>
   );

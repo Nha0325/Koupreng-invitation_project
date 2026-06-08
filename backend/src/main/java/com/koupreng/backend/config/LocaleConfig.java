@@ -30,7 +30,7 @@ public class LocaleConfig {
             @Value("${app.i18n.supported-locales:km,en}") String supportedLocaleTags,
             @Value("${spring.messages.basename:messages}") String messageBasename
     ) {
-        this.defaultLocale = parseLocale(defaultLocaleTag, Locale.forLanguageTag("km"));
+        this.defaultLocale = resolveDefaultLocale(defaultLocaleTag);
         this.supportedLocales = parseSupportedLocales(supportedLocaleTags, defaultLocale);
         this.messageBasenames = parseMessageBasenames(messageBasename);
     }
@@ -54,19 +54,30 @@ public class LocaleConfig {
         return ms;
     }
 
-    private static Locale parseLocale(String tag, Locale fallback) {
+    /**
+     * Resolve the default locale using a switch on the known supported tags.
+     * Falls back to Khmer for any unknown/blank value.
+     */
+    private static Locale resolveDefaultLocale(String tag) {
         if (tag == null || tag.isBlank()) {
-            return fallback;
+            return Locale.forLanguageTag("km");
         }
-        Locale locale = Locale.forLanguageTag(tag.trim());
-        return "und".equals(locale.toLanguageTag()) ? fallback : locale;
+        switch (tag.trim().toLowerCase()) {
+            case "en":
+                return Locale.ENGLISH;
+            case "km":
+                return Locale.forLanguageTag("km");
+            default:
+                Locale locale = Locale.forLanguageTag(tag.trim());
+                return "und".equals(locale.toLanguageTag()) ? Locale.forLanguageTag("km") : locale;
+        }
     }
 
     private static List<Locale> parseSupportedLocales(String tags, Locale defaultLocale) {
         String source = tags == null || tags.isBlank() ? "km,en" : tags;
         List<Locale> locales = new ArrayList<>();
         for (String tag : source.split(",")) {
-            Locale locale = parseLocale(tag, null);
+            Locale locale = resolveLocaleTag(tag.trim());
             if (locale != null && !locales.contains(locale)) {
                 locales.add(locale);
             }
@@ -79,6 +90,24 @@ public class LocaleConfig {
             locales.add(Locale.ENGLISH);
         }
         return List.copyOf(locales);
+    }
+
+    /**
+     * Resolve a single locale tag using switch for the known supported values.
+     */
+    private static Locale resolveLocaleTag(String tag) {
+        if (tag == null || tag.isBlank()) {
+            return null;
+        }
+        switch (tag.toLowerCase()) {
+            case "en":
+                return Locale.ENGLISH;
+            case "km":
+                return Locale.forLanguageTag("km");
+            default:
+                Locale locale = Locale.forLanguageTag(tag);
+                return "und".equals(locale.toLanguageTag()) ? null : locale;
+        }
     }
 
     private static String[] parseMessageBasenames(String basename) {

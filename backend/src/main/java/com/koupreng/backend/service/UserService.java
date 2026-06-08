@@ -47,6 +47,9 @@ public class UserService {
             }
             user.setPhone(phone);
         }
+        if (request.profileImage() != null) {
+            user.setProfileImage(request.profileImage().trim());
+        }
         return UserResponse.from(user);
     }
 

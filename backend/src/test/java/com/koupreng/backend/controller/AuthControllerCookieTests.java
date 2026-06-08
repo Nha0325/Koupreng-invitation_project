@@ -102,6 +102,7 @@ class AuthControllerCookieTests {
                 "user@example.com",
                 null,
                 "Test User",
+                null,
                 Role.USER,
                 "ACTIVE",
                 Instant.now(),

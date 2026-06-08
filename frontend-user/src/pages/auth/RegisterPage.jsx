@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/useAuth";
 import { useToggle } from "../../shared/hooks/useToggle";
+import { useT } from "../../shared/i18n/useT";
 import authService from "../../services/remote/authService";
 import SocialAuthButtons from "./SocialAuthButtons";
 import "./AuthPage.css";
@@ -34,6 +35,7 @@ function Register() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { auth } = useT();
 
   const passwordMatch = confirmPassword && password !== confirmPassword;
   const handleSubmit = async (e) => {
@@ -41,11 +43,11 @@ function Register() {
     setError("");
 
     if (!name.trim() || !phone.trim() || !password) {
-      setError("Please fill in your name, phone number, and password.");
+      setError(auth("registerRequired"));
       return;
     }
     if (passwordMatch) {
-      setError("Passwords do not match.");
+      setError(auth("passwordMismatch"));
       return;
     }
 
@@ -59,7 +61,7 @@ function Register() {
       login(authData);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.message || "Registration failed. Please try again.");
+      setError(err.message || auth("registerFailed"));
     } finally {
       setLoading(false);
     }
@@ -76,8 +78,8 @@ function Register() {
       <div className="auth-card">
         {/* Header */}
         <div className="auth-header">
-          <h1 className="auth-title">បង្កើតគណនី</h1>
-          <p className="auth-subtitle">ចាប់ផ្តើមរៀបចំពិធីមង្គលការជាមួយ Koupreng</p>
+          <h1 className="auth-title">{auth("registerTitle")}</h1>
+          <p className="auth-subtitle">{auth("registerSubtitle")}</p>
         </div>
 
         {error && <p className="auth-error">{error}</p>}
@@ -86,11 +88,11 @@ function Register() {
         <form onSubmit={handleSubmit} className="auth-form">
           {/* Name */}
           <div className="auth-field">
-            <label htmlFor={nameId} className="auth-label">ឈ្មោះ</label>
+            <label htmlFor={nameId} className="auth-label">{auth("fullName")}</label>
             <input
               id={nameId} type="text" value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"
+              placeholder={auth("fullNamePlaceholder")}
               className="auth-input"
               required
             />
@@ -98,11 +100,11 @@ function Register() {
 
           {/* Phone */}
           <div className="auth-field">
-            <label htmlFor={phoneId} className="auth-label">លេខទូរស័ព្ទ</label>
+            <label htmlFor={phoneId} className="auth-label">{auth("phone")}</label>
             <input
               id={phoneId} type="tel" value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="0xx xxx xxx"
+              placeholder={auth("phonePlaceholder")}
               className="auth-input"
               required
             />
@@ -110,14 +112,14 @@ function Register() {
 
           {/* Password */}
           <div className="auth-field">
-            <label htmlFor={passwordId} className="auth-label">លេខសម្ងាត់</label>
+            <label htmlFor={passwordId} className="auth-label">{auth("password")}</label>
             <div className="auth-input-wrap">
               <input
                 id={passwordId}
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="បញ្ចូលលេខសម្ងាត់"
+                placeholder={auth("passwordPlaceholder")}
                 className="auth-input"
                 required
               />
@@ -129,14 +131,14 @@ function Register() {
 
           {/* Confirm Password */}
           <div className="auth-field">
-            <label htmlFor={confirmPasswordId} className="auth-label">បញ្ជាក់លេខសម្ងាត់</label>
+            <label htmlFor={confirmPasswordId} className="auth-label">{auth("confirmPassword")}</label>
             <div className="auth-input-wrap">
               <input
                 id={confirmPasswordId}
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="បញ្ជាក់លេខសម្ងាត់"
+                placeholder={auth("confirmPassword")}
                 className={`auth-input${passwordMatch ? " error" : ""}`}
                 required
               />
@@ -145,26 +147,26 @@ function Register() {
               </button>
             </div>
             {passwordMatch && (
-              <p className="auth-error-msg">លេខសម្ងាត់មិនត្រូវគ្នា</p>
+              <p className="auth-error-msg">{auth("passwordMismatch")}</p>
             )}
           </div>
 
           {/* Submit */}
           <button type="submit" className="auth-submit" disabled={loading || Boolean(passwordMatch)}>
-            {loading ? "កំពុងចុះឈ្មោះ..." : "ចុះឈ្មោះ"}
+            {loading ? auth("registering") : auth("registerBtn")}
           </button>
         </form>
 
         {/* Divider */}
-        <p className="auth-divider">ឬ បន្តជាមួយ</p>
+        <p className="auth-divider">{auth("orContinueWith")}</p>
 
         {/* Social buttons */}
         <SocialAuthButtons />
 
         {/* Login link */}
         <p className="auth-footer-text" style={{ marginTop: "14px" }}>
-          មានគណនីរួចហើយ?{" "}
-          <Link to="/login">ចូលគណនី</Link>
+          {auth("haveAccount")}{" "}
+          <Link to="/login">{auth("signIn")}</Link>
         </p>
       </div>
     </div>

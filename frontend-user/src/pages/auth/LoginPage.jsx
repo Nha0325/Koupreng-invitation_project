@@ -29,7 +29,7 @@ function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login } = useAuth();
-  const t = useT();
+  const { nav, auth } = useT();
   const redirectTo = getSafeRedirect(searchParams);
 
   const handleSubmit = async (e) => {
@@ -37,7 +37,7 @@ function Login() {
     setError("");
 
     if (!identifier.trim() || !password) {
-      setError(t.auth.requiredFields);
+      setError(auth("requiredFields"));
       return;
     }
 
@@ -47,7 +47,7 @@ function Login() {
       login(authData);
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err.message || t.auth.loginFailed);
+      setError(err.message || auth("loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -64,8 +64,8 @@ function Login() {
       <div className="auth-card">
         {/* Header */}
         <div className="auth-header">
-          <h1 className="auth-title">{t.auth.loginTitle}</h1>
-          <p className="auth-subtitle">{t.auth.loginSubtitle}</p>
+          <h1 className="auth-title">{auth("loginTitle")}</h1>
+          <p className="auth-subtitle">{auth("loginSubtitle")}</p>
         </div>
 
         {error && <p className="auth-error">{error}</p>}
@@ -75,14 +75,14 @@ function Login() {
           {/* Email / Phone */}
           <div className="auth-field">
             <label htmlFor={emailId} className="auth-label">
-              {t.auth.phoneOrEmail}
+              {auth("phoneOrEmail")}
             </label>
             <input
               id={emailId}
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder={t.auth.phoneOrEmailPlaceholder}
+              placeholder={auth("phoneOrEmailPlaceholder")}
               className="auth-input"
             />
           </div>
@@ -90,7 +90,7 @@ function Login() {
           {/* Password */}
           <div className="auth-field">
             <label htmlFor={passwordId} className="auth-label">
-              {t.auth.password}
+              {auth("password")}
             </label>
             <div className="auth-input-wrap">
               <input
@@ -98,7 +98,7 @@ function Login() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="បញ្ចូលលេខសម្ងាត់"
+                placeholder={auth("passwordPlaceholder")}
                 className="auth-input"
               />
               <button
@@ -152,12 +152,12 @@ function Login() {
 
           {/* Submit */}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? t.auth.signingIn : t.auth.signIn}
+            {loading ? auth("signingIn") : auth("signIn")}
           </button>
         </form>
 
         {/* Divider */}
-        <p className="auth-divider">{t.auth.orContinueWith}</p>
+        <p className="auth-divider">{auth("orContinueWith")}</p>
 
         {/* Social buttons */}
         <SocialAuthButtons redirectTo={redirectTo} />
@@ -165,13 +165,13 @@ function Login() {
         {/* Forgot password */}
         <div className="auth-footer">
           <Link to="/forgot-password" className="auth-footer-link">
-            {t.auth.forgotPassword}
+            {auth("forgotPassword")}
           </Link>
         </div>
 
         {/* Register link */}
         <p className="auth-footer-text">
-          {t.auth.noAccount} <Link to="/register">{t.nav.register}</Link>
+          {auth("noAccount")} <Link to="/register">{nav("register")}</Link>
         </p>
       </div>
     </div>

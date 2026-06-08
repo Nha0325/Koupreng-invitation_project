@@ -1,15 +1,16 @@
-import { useLanguageStore } from "../../stores/useLanguageStore";
-import translations from "./translations";
+import { useBackendMessages } from "./useBackendMessages";
 
-/**
- * Hook for UI translations.
- *
- * Usage:
- *   const t = useT();
- *   t.nav.login        → "ចូលប្រើ"  (km) or "Sign In" (en)
- *   t.auth.loginTitle  → "ចូលគណនី"  (km) or "Sign In" (en)
- */
 export function useT() {
-    const lang = useLanguageStore((s) => s.lang);
-    return translations[lang] ?? translations.km;
+    const { text: nav } = useBackendMessages("nav");
+    const { text: auth } = useBackendMessages("authUI");
+    const { text: common } = useBackendMessages("common");
+    const createProxy = (textFn) => new Proxy({}, {
+        get: (target, prop) => typeof prop === 'string' ? textFn(prop) : undefined
+    });
+
+    return { 
+        nav: createProxy(nav), 
+        auth: createProxy(auth), 
+        common: createProxy(common) 
+    };
 }

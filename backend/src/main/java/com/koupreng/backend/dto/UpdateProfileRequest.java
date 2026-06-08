@@ -11,6 +11,9 @@ public record UpdateProfileRequest(
         String fullName,
 
         @Size(max = 30)
-        String phone
+        String phone,
+
+        @Size(max = 1024)
+        String profileImage
 ) {
 }
