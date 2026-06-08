@@ -248,6 +248,7 @@ public class SubscriptionService {
         plan.setTeamMembersEnabled(request.isTeamMembersEnabled());
         plan.setAiAssistantEnabled(request.isAiAssistantEnabled());
         plan.setActive(request.isActive());
-        plan.setSortOrder(request.getSortOrder() != null ? request.getSortOrder() : 0);
+        Integer requestedSortOrder = request.getSortOrder();
+        plan.setSortOrder(requestedSortOrder == null ? 0 : requestedSortOrder);
     }
 }

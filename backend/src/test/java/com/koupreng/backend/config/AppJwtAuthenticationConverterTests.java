@@ -37,7 +37,12 @@ class AppJwtAuthenticationConverterTests {
         AppJwtAuthenticationConverter converter = new AppJwtAuthenticationConverter(userRepository);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user(AppUser.STATUS_DISABLED)));
 
-        assertThrows(BadCredentialsException.class, () -> converter.convert(jwtWithTokenVersion(0)));
+        BadCredentialsException exception = assertThrows(
+                BadCredentialsException.class,
+                () -> converter.convert(jwtWithTokenVersion(0))
+        );
+
+        assertEquals("Account is disabled", exception.getMessage());
     }
 
     @Test
@@ -48,7 +53,12 @@ class AppJwtAuthenticationConverterTests {
         user.incrementTokenVersion();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        assertThrows(BadCredentialsException.class, () -> converter.convert(jwtWithTokenVersion(0)));
+        BadCredentialsException exception = assertThrows(
+                BadCredentialsException.class,
+                () -> converter.convert(jwtWithTokenVersion(0))
+        );
+
+        assertEquals("Authentication required", exception.getMessage());
     }
 
     private AppUser user(String status) {

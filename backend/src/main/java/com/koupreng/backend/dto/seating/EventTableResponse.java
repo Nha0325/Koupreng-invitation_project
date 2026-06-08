@@ -23,13 +23,14 @@ public class EventTableResponse {
     private String notes;
 
     public static EventTableResponse from(EventTable table, int assignedSeats) {
-        int capacity = table.getCapacity() == null ? 0 : table.getCapacity();
+        Integer tableCapacity = table.getCapacity();
+        int capacity = tableCapacity == null ? 0 : tableCapacity;
         return EventTableResponse.builder()
                 .id(table.getId())
                 .invitationId(table.getInvitation() == null ? null : table.getInvitation().getId())
                 .tableName(table.getTableName())
                 .tableLabel(table.getTableLabel())
-                .capacity(table.getCapacity())
+                .capacity(tableCapacity)
                 .assignedSeats(assignedSeats)
                 .remainingSeats(Math.max(0, capacity - assignedSeats))
                 .sortOrder(table.getSortOrder())

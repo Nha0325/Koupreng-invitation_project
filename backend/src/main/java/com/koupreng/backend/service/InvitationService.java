@@ -551,23 +551,6 @@ public class InvitationService {
         }
     }
 
-    private void validatePublicViewAccess(UserInvitation invitation, String inviteToken) {
-        if (invitation.getVisibility() == InvitationVisibility.PUBLIC || hasGuestAccess(invitation, inviteToken)) {
-            return;
-        }
-        if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
-        }
-        if (invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
-        }
-    }
-
-    private boolean hasGuestAccess(UserInvitation invitation, String inviteToken) {
-        String token = trimToNull(inviteToken);
-        return token != null && guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), token).isPresent();
-    }
-
     private void ensureSlug(UserInvitation invitation) {
         if (trimToNull(invitation.getSlug()) != null) {
             return;
