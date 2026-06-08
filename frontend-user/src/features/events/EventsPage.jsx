@@ -47,56 +47,6 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                 <span className="event-card-badge">{draft.publishedAt ? "Published" : "Draft"}</span>
             </div>
             <div className="event-card-body">
-                <div className="event-card-title-row">
-                    <div className="event-card-title">{getTitle(draft)}</div>
-                    {/* Three-dot menu */}
-                    <div className="event-card-menu-wrap" ref={menuRef}>
-                        <button
-                            className="event-card-dots-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setMenuOpen(!menuOpen);
-                            }}
-                            aria-label="ម៉ឺនុយ"
-                        >
-                            ⋯
-                        </button>
-                        {menuOpen && (
-                            <div className="event-card-dropdown">
-                                <button
-                                    className="event-card-dropdown-item"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setMenuOpen(false);
-                                        onSee(draft);
-                                    }}
-                                >
-                                    See
-                                </button>
-                                <button
-                                    className="event-card-dropdown-item"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setMenuOpen(false);
-                                        onManage(draft);
-                                    }}
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    className="event-card-dropdown-item event-card-dropdown-item--danger"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setMenuOpen(false);
-                                        onDelete(draft);
-                                    }}
-                                >
-                                    🗑️ លុប
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
                 <div className="event-card-desc">{template.name} / {template.style}</div>
                 <div className="event-card-date">
                     {draft.event?.date || "មិនទាន់បំពេញថ្ងៃ"} {draft.event?.receptionTime || ""}
@@ -112,11 +62,13 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                         Edit
                     </button>
                     <Link
-                        to={`/event/${draft.id}`}
                         className="event-card-preview-btn"
-                        onClick={(event) => event.stopPropagation()}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            onDelete(draft);
+                        }}
                     >
-                        See
+                        Delete  
                     </Link>
                 </div>
             </div>
@@ -127,6 +79,7 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
 export default function EventsPage() {
     const navigate = useNavigate();
     const [drafts, setDrafts] = useState(listDrafts());
+    const [draftToDelete, setDraftToDelete] = useState(null);
 
     const handleSee = (draft) => {
         navigate(`/event/${draft.id}`);
@@ -136,11 +89,15 @@ export default function EventsPage() {
         navigate(`/event/${draft.id}/manage`, { state: { backTo: "/events" } });
     };
 
-    const handleDelete = (draft) => {
-        const confirmed = window.confirm(`តើអ្នកពិតជាចង់លុប "${getTitle(draft)}" មែនទេ?`);
-        if (!confirmed) return;
-        deleteDraft(draft.id);
+    const handleDeleteClick = (draft) => {
+        setDraftToDelete(draft);
+    };
+
+    const confirmDelete = () => {
+        if (!draftToDelete) return;
+        deleteDraft(draftToDelete.id);
         setDrafts(listDrafts());
+        setDraftToDelete(null);
     };
 
     return (
@@ -173,10 +130,33 @@ export default function EventsPage() {
                             draft={draft}
                             onSee={handleSee}
                             onManage={handleManage}
-                            onDelete={handleDelete}
+                            onDelete={handleDeleteClick}
                         />
                     ))}
                 </section>
+            )}
+
+            {/* Custom Delete Confirmation Modal */}
+            {draftToDelete && (
+                <div className="events-modal-layer">
+                    <div className="events-modal">
+                        <button type="button" className="events-modal-close" onClick={() => setDraftToDelete(null)}>
+                            ✕
+                        </button>
+                        <div className="events-modal-content">
+                            <h3>លុបកម្មវិធីនេះ?</h3>
+                            <p>កម្មវិធីនេះនឹងត្រូវបានលុបចោល!</p>
+                            <div className="events-modal-actions">
+                                <button type="button" className="events-modal-cancel" onClick={() => setDraftToDelete(null)}>
+                                    ✕ បោះបង់
+                                </button>
+                                <button type="button" className="events-modal-confirm" onClick={confirmDelete}>
+                                    ✓ យល់ព្រម
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </main>
     );

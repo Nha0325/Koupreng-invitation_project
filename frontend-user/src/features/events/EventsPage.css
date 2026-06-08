@@ -283,7 +283,6 @@
 .event-card {
     background: #fff;
     border-radius: 16px;
-    overflow: hidden;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -326,6 +325,9 @@
 
 .event-card-img-wrap {
     position: relative;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    overflow: hidden;
 }
 
 .event-card-body {
@@ -937,4 +939,120 @@
 
 .event-card-dropdown-item--danger:hover {
     background: #fef2f2;
+}
+
+/* ─── Delete Modal ─── */
+.events-modal-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.events-modal {
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 20px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    animation: evModalIn 0.2s ease-out;
+}
+
+@keyframes evModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.events-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.events-modal-close:hover {
+    color: #333;
+}
+
+.events-modal-content {
+    padding: 32px 24px;
+    text-align: left;
+}
+
+.events-modal-content h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.events-modal-content p {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: #777;
+}
+
+.events-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.events-modal-cancel {
+    padding: 10px 24px;
+    border: 1.5px solid #f43f5e;
+    background: transparent;
+    color: #f43f5e;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.events-modal-cancel:hover {
+    background: #fff1f2;
+}
+
+.events-modal-confirm {
+    padding: 10px 24px;
+    border: 1.5px solid #f43f5e;
+    background: #f43f5e;
+    color: #fff;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.events-modal-confirm:hover {
+    background: #e11d48;
+    border-color: #e11d48;
 }

@@ -272,6 +272,98 @@
     margin-bottom: 20px;
 }
 
+.ep-form-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ep-field-full {
+    width: 100%;
+}
+
+.ep-input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.ep-input-prefix {
+    position: absolute;
+    left: 14px;
+    color: #7d6443;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.ep-input-with-icon input {
+    padding-left: 32px !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ep-payments-section {
+    margin-top: 16px;
+    padding-top: 20px;
+    border-top: 1px solid #eadfce;
+}
+
+.ep-payments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.ep-payments-header h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #2a1f10;
+}
+
+.ep-sm-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.ep-payments-empty {
+    padding: 20px;
+    text-align: center;
+    background: #fdfaf5;
+    border: 1px dashed #eadfce;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #999;
+}
+
+.ep-payments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ep-payment-item {
+    padding: 16px;
+    background: #fdfaf5;
+    border: 1px solid #eadfce;
+    border-radius: 12px;
+}
+
+.ep-payment-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #eadfce;
+}
+
+.ep-payment-item-header h5 {
+    margin: 0;
+    font-size: 13px;
+    color: #B0926A;
+}
+
 .ep-form label {
     display: flex;
     flex-direction: column;
@@ -315,6 +407,10 @@
 }
 
 .ep-secondary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     padding: 12px 22px;
     background: #f5efe5;
     color: #7d6443;
@@ -646,6 +742,92 @@
     margin: 0;
     font-size: 13px;
     color: #999;
+}
+
+/* ─── Modal ─── */
+.ep-modal-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(42, 31, 16, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.ep-modal {
+    background: #fff;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    border-radius: 24px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(42, 31, 16, 0.15);
+    display: flex;
+    flex-direction: column;
+    animation: epModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes epModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.ep-modal-x {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.ep-modal-x:hover {
+    background: #f5efe5;
+    color: #2a1f10;
+}
+
+.ep-modal-x svg {
+    width: 20px;
+    height: 20px;
+}
+
+.ep-modal-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+/* Override existing inline form styles for modal */
+.ep-modal .ep-form {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    animation: none;
 }
 
 /* ─── Responsive ─── */

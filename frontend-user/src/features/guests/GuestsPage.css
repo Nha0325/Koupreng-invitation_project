@@ -223,6 +223,46 @@
     background: #fff9ef;
 }
 
+.pe-excel-group {
+    display: inline-flex;
+    align-items: center;
+    background: #f9fafc;
+    border: 1px solid #e4e7ee;
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: 0 5px 14px rgba(17, 17, 24, 0.04);
+}
+
+.pe-excel-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 16px;
+    border: none;
+    background: transparent;
+    color: #e4003a;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.14s ease, color 0.14s ease;
+}
+
+.pe-excel-btn:hover {
+    background: #fff4f6;
+}
+
+.pe-excel-btn:first-child {
+    border-right: 1px solid #e4e7ee;
+}
+
+.pe-excel-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
 .pe-primary-btn:disabled,
 .pe-secondary-btn:disabled,
 .pe-danger-soft:disabled,

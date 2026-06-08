@@ -4,6 +4,7 @@ import {
   IoAdd,
   IoCheckmark,
   IoClose,
+  IoCloudUploadOutline,
   IoCopyOutline,
   IoDownloadOutline,
   IoEllipsisVertical,
@@ -23,7 +24,9 @@ import {
   getActiveEventId,
   listManualGuests,
   saveManualGuests,
-} from "../../services/hostPlanningStorage";
+} 
+
+from "../../services/hostPlanningStorage";
 import { invitationService } from "../../shared/services/invitationService";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./GuestsPage.css";
@@ -815,6 +818,25 @@ export default function GuestsList() {
             </button>
 
             <div className="pe-toolbar-spacer" />
+
+            <div className="pe-excel-group">
+              <button
+                type="button"
+                className="pe-excel-btn"
+                onClick={() => alert("Upload Excel coming soon!")}
+              >
+                <IoCloudUploadOutline aria-hidden="true" />
+                {t ? t("importExcel") || "បញ្ចូល Excel" : "បញ្ចូល Excel"}
+              </button>
+              <button
+                type="button"
+                className="pe-excel-btn"
+                onClick={() => alert("Download coming soon!")}
+              >
+                <IoDownloadOutline aria-hidden="true" />
+                {t ? t("Export") || "ទាញយក" : "ទាញយក"}
+              </button>
+            </div>
 
             <button
               type="button"

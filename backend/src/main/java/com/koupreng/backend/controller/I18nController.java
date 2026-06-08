@@ -225,7 +225,16 @@ public class I18nController {
                         "expenses.catClothing",
                         "expenses.catTransport",
                         "expenses.catOther",
-                        "expenses.deleteConfirm"
+                        "expenses.deleteConfirm",
+                        "expenses.fieldNotes",
+                        "expenses.placeholderNotes",
+                        "expenses.payments",
+                        "expenses.addPaymentBtn",
+                        "expenses.paymentsEmpty",
+                        "expenses.paymentFor",
+                        "expenses.paymentAmount",
+                        "expenses.paymentDate",
+                        "expenses.placeholderAmount"
                 );
             case "gifts":
                 return List.of(
