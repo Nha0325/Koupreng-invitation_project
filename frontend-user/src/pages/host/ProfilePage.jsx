@@ -2,18 +2,23 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../auth/context/useAuth";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { userService } from "../../services/remote/userService";
+import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 
 /**
  * ProfilePage — edit user profile and change account password.
- * Maps to `users` table: full_name, email, phone, status.
+ * Maps to `users` table: full_name, email, phone, profile_image, status.
  */
 export default function ProfilePage() {
+  const { text: t } = useBackendMessages("profile");
   const { user, logout } = useAuth();
   const login = useAuthStore((s) => s.login);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -37,11 +42,13 @@ export default function ProfilePage() {
         if (cancelled) return;
         setFullName(data?.fullName || data?.full_name || "");
         setPhone(data?.phone || "");
+        setProfileImage(data?.profileImage || data?.profile_image || "");
       })
       .catch(() => {
         if (cancelled) return;
         setFullName(user?.fullName || user?.full_name || user?.name || "");
         setPhone(user?.phone || "");
+        setProfileImage(user?.profileImage || user?.profile_image || "");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -51,6 +58,17 @@ export default function ProfilePage() {
     };
   }, [user]);
 
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = async (event) => {
     event.preventDefault();
     setSaving(true);
@@ -58,9 +76,19 @@ export default function ProfilePage() {
     setSaved(false);
 
     try {
+      let imageUrl = profileImage;
+      if (imageFile) {
+        const uploadResponse = await userService.uploadProfileImage(imageFile);
+        imageUrl = uploadResponse?.url
+          || uploadResponse?.profileImage
+          || uploadResponse?.profile_image
+          || imageUrl;
+      }
+
       const profileData = {
         fullName: fullName.trim(),
         phone: phone.trim(),
+        profileImage: imageUrl,
       };
 
       const updatedUser = await userService.updateProfile(profileData);
@@ -71,14 +99,19 @@ export default function ProfilePage() {
         full_name: fullName.trim(),
         name: fullName.trim(),
         phone: phone.trim(),
+        profileImage: imageUrl,
+        profile_image: imageUrl,
         profileComplete: true,
       };
 
       login({ accessToken, user: nextUser });
+      setProfileImage(imageUrl);
+      setImageFile(null);
+      setImagePreview("");
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      setError(err.message || "មានបញ្ហាក្នុងការរក្សាទុក។ សូមព្យាយាមម្តងទៀត។");
+      setError(err.message || t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -90,11 +123,11 @@ export default function ProfilePage() {
     setPwSaved(false);
 
     if (newPassword !== confirmPassword) {
-      setPwError("ពាក្យសម្ងាត់ថ្មីមិនត្រូវគ្នា។ សូមពិនិត្យឡើងវិញ។");
+      setPwError(t("passwordMismatch"));
       return;
     }
     if (newPassword.length < 8) {
-      setPwError("ពាក្យសម្ងាត់ថ្មីត្រូវមានយ៉ាងហោចណាស់ 8 តួអក្សរ។");
+      setPwError(t("passwordTooShort"));
       return;
     }
 
@@ -107,18 +140,19 @@ export default function ProfilePage() {
       setConfirmPassword("");
       setTimeout(() => logout(), 2000);
     } catch (err) {
-      setPwError(err.message || "មានបញ្ហាក្នុងការផ្លាស់ប្តូរពាក្យសម្ងាត់។ សូមព្យាយាមម្តងទៀត។");
+      setPwError(err.message || t("passwordChangeFailed"));
     } finally {
       setPwSaving(false);
     }
   };
 
+  const displayImage = imagePreview || profileImage;
   const displayInitial = fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "80px 20px", fontFamily: "'Kantumruy Pro', sans-serif", color: "#888" }}>
-        កំពុងផ្ទុក...
+        {t("loading")}
       </div>
     );
   }
@@ -150,6 +184,7 @@ export default function ProfilePage() {
           margin-bottom: 32px;
         }
         .profile-avatar {
+          position: relative;
           width: 80px;
           height: 80px;
           border-radius: 50%;
@@ -162,7 +197,31 @@ export default function ProfilePage() {
           font-weight: bold;
           overflow: hidden;
           border: 3px solid rgba(176, 146, 106, 0.3);
+          cursor: pointer;
           flex-shrink: 0;
+        }
+        .profile-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .profile-avatar-overlay {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(0,0,0,0.5);
+          color: white;
+          font-size: 10px;
+          text-align: center;
+          padding: 4px 0;
+          font-family: 'Kantumruy Pro', sans-serif;
+        }
+        .profile-avatar input[type="file"] {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          cursor: pointer;
         }
         .profile-info-text {
           font-family: 'Kantumruy Pro', sans-serif;
@@ -301,59 +360,84 @@ export default function ProfilePage() {
       `}</style>
 
       <div className="profile-page">
-        <h1>{hasProfile ? "កែប្រែប្រវត្តិរូប" : "បង្កើតប្រវត្តិរូប"}</h1>
+        <h1>{hasProfile ? t("editTitle") : t("createTitle")}</h1>
         <p className="subtitle">
           {hasProfile
-            ? "កែប្រែព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក"
-            : "បំពេញព័ត៌មានផ្ទាល់ខ្លួនដើម្បីចាប់ផ្តើមប្រើប្រាស់"}
+            ? t("editSubtitle")
+            : t("createSubtitle")}
         </p>
 
         <div className="profile-avatar-section">
-          <div className="profile-avatar">{displayInitial}</div>
+          <div className="profile-avatar">
+            {displayImage ? (
+              <img src={displayImage} alt="Profile" />
+            ) : (
+              displayInitial
+            )}
+            <div className="profile-avatar-overlay">{t("changePhoto")}</div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              title={t("selectImage")}
+            />
+          </div>
           <div className="profile-info-text">
-            <strong>{fullName || "អ្នកប្រើប្រាស់ថ្មី"}</strong>
+            <strong>{fullName || t("newUser")}</strong>
             <span>{user?.email || ""}</span>
           </div>
         </div>
 
         <form onSubmit={handleSave}>
           <div className="profile-form-group">
-            <label>ឈ្មោះពេញ (full_name)</label>
+            <label>{t("fullNameLabel")}</label>
             <input
               type="text"
               value={fullName}
-              onChange={(event) => setFullName(event.target.value)}
-              placeholder="បញ្ចូលឈ្មោះពេញរបស់អ្នក"
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder={t("fullNamePlaceholder")}
               required
             />
           </div>
 
           <div className="profile-form-group">
-            <label>អ៊ីមែល (email)</label>
+            <label>{t("emailLabel")}</label>
             <input
               type="email"
               value={user?.email || ""}
               disabled
-              title="អ៊ីមែលមិនអាចផ្លាស់ប្តូរបានទេ"
+              title={t("emailReadonly")}
             />
           </div>
 
           <div className="profile-form-group">
-            <label>លេខទូរស័ព្ទ (phone)</label>
+            <label>{t("phoneLabel")}</label>
             <input
               type="tel"
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="012 345 678"
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder={t("phonePlaceholder")}
             />
           </div>
 
-          <button type="submit" className="profile-save-btn" disabled={saving || !fullName.trim()}>
-            {saving ? "កំពុងរក្សាទុក..." : hasProfile ? "រក្សាទុកការកែប្រែ" : "បង្កើតប្រវត្តិរូប"}
+          <button
+            type="submit"
+            className="profile-save-btn"
+            disabled={saving || !fullName.trim()}
+          >
+            {saving
+              ? t("saving")
+              : hasProfile
+                ? t("saveEdit")
+                : t("createBtn")}
           </button>
 
-          {saved && <p className="profile-msg success">រក្សាទុកដោយជោគជ័យ!</p>}
-          {error && <p className="profile-msg error">{error}</p>}
+          {saved && (
+            <p className="profile-msg success">{t("savedSuccess")}</p>
+          )}
+          {error && (
+            <p className="profile-msg error">{error}</p>
+          )}
         </form>
 
         <hr className="profile-section-divider" />
@@ -364,7 +448,7 @@ export default function ProfilePage() {
           onClick={() => setShowPasswordSection((value) => !value)}
           aria-expanded={showPasswordSection}
         >
-          <span>ផ្លាស់ប្តូរពាក្យសម្ងាត់</span>
+          <span>{t("changePassword")}</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B0926A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -372,12 +456,12 @@ export default function ProfilePage() {
 
         <div className={`profile-pw-section${showPasswordSection ? " open" : ""}`}>
           <p className="profile-pw-hint">
-            បន្ទាប់ពីផ្លាស់ប្តូរជោគជ័យ អ្នកនឹងត្រូវចូលក្នុងគណនីម្តងទៀត។
+            {t("changePasswordHint")}
           </p>
 
           <form onSubmit={handleChangePassword}>
             <div className="profile-form-group">
-              <label>ពាក្យសម្ងាត់បច្ចុប្បន្ន</label>
+              <label>{t("currentPassword")}</label>
               <input
                 type="password"
                 value={currentPassword}
@@ -388,7 +472,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="profile-form-group">
-              <label>ពាក្យសម្ងាត់ថ្មី (យ៉ាងហោចណាស់ 8 តួ)</label>
+              <label>{t("newPasswordLabel")}</label>
               <input
                 type="password"
                 value={newPassword}
@@ -400,7 +484,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="profile-form-group">
-              <label>បញ្ជាក់ពាក្យសម្ងាត់ថ្មី</label>
+              <label>{t("confirmNewPassword")}</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -415,11 +499,17 @@ export default function ProfilePage() {
               className="profile-pw-btn"
               disabled={pwSaving || !currentPassword || !newPassword || !confirmPassword}
             >
-              {pwSaving ? "កំពុងផ្លាស់ប្តូរ..." : "ផ្លាស់ប្តូរពាក្យសម្ងាត់"}
+              {pwSaving ? t("changingPassword") : t("changePasswordBtn")}
             </button>
 
-            {pwSaved && <p className="profile-msg success">ផ្លាស់ប្តូរដោយជោគជ័យ! កំពុងចេញពីគណនី...</p>}
-            {pwError && <p className="profile-msg error">{pwError}</p>}
+            {pwSaved && (
+              <p className="profile-msg success">
+                {t("passwordChanged")}
+              </p>
+            )}
+            {pwError && (
+              <p className="profile-msg error">{pwError}</p>
+            )}
           </form>
         </div>
       </div>

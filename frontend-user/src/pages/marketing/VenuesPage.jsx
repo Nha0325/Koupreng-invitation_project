@@ -5,51 +5,54 @@ import { Link } from "react-router-dom";
 
 // Import Background ដូច Homepage
 import heroBg from "../../assets/icons/background.png";
+import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 
-const venues = [
+const getVenues = (t) => [
   {
     id: 1,
-    name: "សាលមហោស្រព កោះពេជ្រ",
-    location: "ភ្នំពេញ",
-    capacity: "៥០០ - ២០០០ នាក់",
+    name: t("venue1Name") || "សាលមហោស្រព កោះពេជ្រ",
+    location: t("phnomPenh") || "ភ្នំពេញ",
+    capacity: t("venue1Capacity") || "៥០០ - ២០០០ នាក់",
     priceRange: "$$$",
     image:
       "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1000&auto=format&fit=crop",
-    tags: ["ពេញនិយម", "សាលធំ"],
+    tags: [t("tagPopular") || "ពេញនិយម", t("tagBigHall") || "សាលធំ"],
   },
   {
     id: 2,
-    name: "The Premier Centre Sen Sok",
-    location: "ភ្នំពេញ",
-    capacity: "៣០០ - ១៥០០ នាក់",
+    name: t("venue2Name") || "The Premier Centre Sen Sok",
+    location: t("phnomPenh") || "ភ្នំពេញ",
+    capacity: t("venue2Capacity") || "៣០០ - ១៥០០ នាក់",
     priceRange: "$$$",
     image:
       "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1000&auto=format&fit=crop",
-    tags: ["ទំនើប", "សេវាកម្មល្អ"],
+    tags: [t("tagModern") || "ទំនើប", t("tagGoodService") || "សេវាកម្មល្អ"],
   },
   {
     id: 3,
-    name: "សណ្ឋាគារ រ៉េស៊ីដង់ សុខា",
-    location: "សៀមរាប",
-    capacity: "២០០ - ៨០០ នាក់",
+    name: t("venue3Name") || "សណ្ឋាគារ រ៉េស៊ីដង់ សុខា",
+    location: t("siemReap") || "សៀមរាប",
+    capacity: t("venue3Capacity") || "២០០ - ៨០០ នាក់",
     priceRange: "$$$$",
     image:
       "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=1000&auto=format&fit=crop",
-    tags: ["Luxury", "ប្រណីត"],
+    tags: [t("tagLuxuryEng") || "Luxury", t("tagLuxury") || "ប្រណីត"],
   },
   {
     id: 4,
-    name: "Classy Hotel & Spa",
-    location: "បាត់ដំបង",
-    capacity: "១៥០ - ៥០០ នាក់",
+    name: t("venue4Name") || "Classy Hotel & Spa",
+    location: t("battambang") || "បាត់ដំបង",
+    capacity: t("venue4Capacity") || "១៥០ - ៥០០ នាក់",
     priceRange: "$$",
     image:
       "https://images.unsplash.com/photo-1543157145-f78c636d023d?q=80&w=1000&auto=format&fit=crop",
-    tags: ["បាត់ដំបង", "តម្លៃសមរម្យ"],
+    tags: [t("battambang") || "បាត់ដំបង", t("tagAffordable") || "តម្លៃសមរម្យ"],
   },
 ];
 
 const VenuesPage = () => {
+  const { text: t } = useBackendMessages("venues");
+  const venues = getVenues(t);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredVenues = venues.filter(
@@ -78,10 +81,10 @@ const VenuesPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="sub-title"
               >
-                FIND YOUR PERFECT VENUE
+                {t("subtitle") || "FIND YOUR PERFECT VENUE"}
               </motion.span>
               <h1 className="main-title">
-                ស្វែងរក<span className="gold-text">ទីកន្លែងមង្គល</span>
+                {t("titleFind") || "ស្វែងរក"}<span className="gold-text">{t("titleVenues") || "ទីកន្លែងមង្គល"}</span>
               </h1>
               <div className="divider-modern">
                 <span></span>
@@ -94,10 +97,10 @@ const VenuesPage = () => {
                 <div className="search-box">
                   <input
                     type="text"
-                    placeholder="ស្វែងរកតាមឈ្មោះ ឬទីតាំង..."
+                    placeholder={t("searchPlaceholder") || "ស្វែងរកតាមឈ្មោះ ឬទីតាំង..."}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <button className="btn-search">ស្វែងរក</button>
+                  <button className="btn-search">{t("searchBtn") || "ស្វែងរក"}</button>
                 </div>
               </div>
             </div>
@@ -130,10 +133,10 @@ const VenuesPage = () => {
                         <span className="icon">📍</span> {venue.location}
                       </p>
                       <p>
-                        <span className="icon">👥</span> ចំណុះ: {venue.capacity}
+                        <span className="icon">👥</span> {t("capacity") || "ចំណុះ:"} {venue.capacity}
                       </p>
                       <p>
-                        <span className="icon">💰</span> កម្រិតតម្លៃ:{" "}
+                        <span className="icon">💰</span> {t("priceRangeText") || "កម្រិតតម្លៃ:"}{" "}
                         <span className="gold-text-bold">
                           {venue.priceRange}
                         </span>
@@ -143,7 +146,7 @@ const VenuesPage = () => {
                       to={`/venues/${venue.id}`}
                       className="view-detail-btn"
                     >
-                      មើលព័ត៌មានលម្អិត
+                      {t("viewDetail") || "មើលព័ត៌មានលម្អិត"}
                     </Link>
                   </div>
                 </motion.div>

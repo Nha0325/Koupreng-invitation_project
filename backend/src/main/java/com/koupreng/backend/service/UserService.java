@@ -47,6 +47,9 @@ public class UserService {
             }
             user.setPhone(phone);
         }
+        if (request.profileImage() != null) {
+            user.setProfileImage(normalizeProfileImage(request.profileImage()));
+        }
         return UserResponse.from(user);
     }
 
@@ -111,5 +114,12 @@ public class UserService {
             return null;
         }
         return value.replaceAll("\\s+", "");
+    }
+
+    private String normalizeProfileImage(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

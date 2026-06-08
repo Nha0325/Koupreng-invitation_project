@@ -21,251 +21,8 @@ import { listRsvps } from "../../../services/rsvpService";
 import { listDrafts } from "../../../services/weddingStorage";
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
-const DASHBOARD_FALLBACK = {
-  km: {
-    brand: "គូព្រេង",
-    emptyTitle: "មិនទាន់មានសន្លឹកការនៅឡើយ",
-    emptyText: "ចាប់ផ្តើមបង្កើតសន្លឹកការឌីជីថល និង RSVP សម្រាប់ភ្ញៀវ។",
-    createInvitation: "បង្កើតសន្លឹកការ",
-    eventSwitcherAria: "ជ្រើសរើសកម្មវិធី",
-    eventSwitcherTitle: "កម្មវិធីរបស់អ្នក ({count})",
-    keepTwo: "រក្សាទុកតែ ២",
-    keepTwoConfirm: "លុបកម្មវិធីចាស់ៗ រក្សាទុកតែ ២ ចុងក្រោយ?",
-    active: "Active",
-    overview: "Overview",
-    title: "ផ្ទាំងគ្រប់គ្រងកម្មវិធី",
-    description: "ទិដ្ឋភាពសកម្មសម្រាប់មើល RSVP ភ្ញៀវ ថវិកា និងចងដៃមង្គលជាកន្លែងតែមួយ។",
-    guests: "បញ្ជីភ្ញៀវ",
-    editInvitation: "កែសន្លឹកការ",
-    invitedGuests: "Invited guests",
-    responses: "{count} responses",
-    rsvpReady: "RSVP ready",
-    attending: "{count} attending",
-    budgetUsed: "Budget used",
-    spent: "${amount} spent",
-    giftTotal: "Gift total",
-    records: "{count} records",
-    planHealth: "Plan health",
-    rsvpCompletion: "RSVP completion",
-    weddingDate: "Wedding date",
-    giftRecords: "Gift records",
-    published: "Published",
-    draft: "Draft",
-    eventDate: "ថ្ងៃកម្មវិធី",
-    venue: "ទីកន្លែង",
-    notCompleted: "មិនទាន់បំពេញ",
-    rsvp: "RSVP",
-    open: "បើក",
-    closed: "បិទ",
-    preview: "មើលជាមុន",
-    totalGuests: "ភ្ញៀវសរុប",
-    invitedResponded: "{invited} invited / {responded} responded",
-    rsvpProgress: "RSVP progress",
-    rsvpProgressNote: "{attending} attending / {pending} pending / {declined} declined",
-    budgetProgress: "Budget progress",
-    budgetProgressNote: "បានចំណាយ ${spent} / ${budget}",
-    giftSummary: "Gift summary",
-    giftSummaryNote: "{count} កំណត់ត្រាចងដៃមង្គល",
-    graph: "ក្រាប",
-    rsvpGuests: "RSVP និងភ្ញៀវ",
-    accepted: "ចូលរួម",
-    pending: "រង់ចាំ",
-    maybe: "ប្រហែល",
-    declined: "មិនចូល",
-    recentGuests: "Recent guests",
-    newGuests: "ភ្ញៀវថ្មីៗ",
-    viewAll: "មើលទាំងអស់",
-    noGroup: "មិនទាន់ដាក់ក្រុម",
-    noGuests: "មិនទាន់មានភ្ញៀវក្នុងបញ្ជីនេះទេ",
-    event: "Event",
-    summary: "សេចក្ដីសង្ខេប",
-    edit: "កែ",
-    template: "Template",
-    newEvent: "បង្កើតកម្មវិធីថ្មី",
-    noDate: "មិនទាន់កំណត់",
-    wedding: "អាពាហ៍ពិពាហ៍",
-    weddingTemplate: "Wedding template",
-  },
-  en: {
-    brand: "Koupreng",
-    emptyTitle: "No invitation yet",
-    emptyText: "Start creating a digital invitation and RSVP flow for your guests.",
-    createInvitation: "Create invitation",
-    eventSwitcherAria: "Select event",
-    eventSwitcherTitle: "Your events ({count})",
-    keepTwo: "Keep 2",
-    keepTwoConfirm: "Delete old events and keep only the latest 2?",
-    active: "Active",
-    overview: "Overview",
-    title: "Event dashboard",
-    description: "Active overview for RSVP, guests, budget, and wedding gifts in one place.",
-    guests: "Guests",
-    editInvitation: "Edit invitation",
-    invitedGuests: "Invited guests",
-    responses: "{count} responses",
-    rsvpReady: "RSVP ready",
-    attending: "{count} attending",
-    budgetUsed: "Budget used",
-    spent: "${amount} spent",
-    giftTotal: "Gift total",
-    records: "{count} records",
-    planHealth: "Plan health",
-    rsvpCompletion: "RSVP completion",
-    weddingDate: "Wedding date",
-    giftRecords: "Gift records",
-    published: "Published",
-    draft: "Draft",
-    eventDate: "Event date",
-    venue: "Venue",
-    notCompleted: "Not completed",
-    rsvp: "RSVP",
-    open: "Open",
-    closed: "Closed",
-    preview: "Preview",
-    totalGuests: "Total guests",
-    invitedResponded: "{invited} invited / {responded} responded",
-    rsvpProgress: "RSVP progress",
-    rsvpProgressNote: "{attending} attending / {pending} pending / {declined} declined",
-    budgetProgress: "Budget progress",
-    budgetProgressNote: "${spent} spent / ${budget} budget",
-    giftSummary: "Gift summary",
-    giftSummaryNote: "{count} wedding gift records",
-    graph: "Graph",
-    rsvpGuests: "RSVP and guests",
-    accepted: "Accepted",
-    pending: "Pending",
-    maybe: "Maybe",
-    declined: "Declined",
-    recentGuests: "Recent guests",
-    newGuests: "New guests",
-    viewAll: "View all",
-    noGroup: "No group",
-    noGuests: "No guests in this list yet",
-    event: "Event",
-    summary: "Summary",
-    edit: "Edit",
-    template: "Template",
-    newEvent: "Create new event",
-    noDate: "Not set",
-    wedding: "Wedding",
-    weddingTemplate: "Wedding template",
-  },
-};
-
-function getInvitationTitle(draft) {
-  const groom = draft?.couple?.groom;
-  const bride = draft?.couple?.bride;
-
-  if (groom || bride) {
-    return `${groom || "កូនកំលោះ"} & ${bride || "កូនក្រមុំ"}`;
-  }
-
-  return "សន្លឹកការថ្មី";
-}
-
-function getDraftResponses(draft) {
-  if (!draft?.id) return [];
-
-  const byId = listRsvps(draft.id);
-  const bySlug = draft.slug ? listRsvps(draft.slug) : [];
-  const merged = new Map();
-
-  [...byId, ...bySlug].forEach((response) => {
-    merged.set(response.id, response);
-  });
-
-  return Array.from(merged.values());
-}
-
-function countGuests(items) {
-  return items.reduce((total, item) => total + (Number(item.count) || Number(item.attendeeCount) || 1), 0);
-}
-
-function getResponseStatus(response) {
-  const status = response?.responseStatus || response?.attending;
-  if (status === "ATTENDING" || status === "yes") return "accepted";
-  if (status === "NOT_ATTENDING" || status === "no") return "declined";
-  if (status === "MAYBE" || status === "maybe") return "maybe";
-  return "pending";
-}
-
-function formatDisplayDate(value, lang, text) {
-  if (!value) return text("noDate");
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(lang === "en" ? "en-US" : "km-KH", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function SummaryCard({ label, value, note, tone = "" }) {
-  return (
-    <article className={`dash-summary-card${tone ? ` ${tone}` : ""}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{note}</small>
-    </article>
-  );
-}
-
-function SampleMetricCard({ icon: Icon, label, value, note, tone }) {
-  return (
-    <article className={`dash-sample-metric ${tone}`}>
-      <span className="dash-sample-icon">
-        <Icon aria-hidden="true" />
-      </span>
-      <div>
-        <small>{label}</small>
-        <strong>{value}</strong>
-        <em>{note}</em>
-      </div>
-    </article>
-  );
-}
-
-function ProgressRing({ value, label }) {
-  return (
-    <div className="dash-progress-ring" style={{ "--value": `${Math.max(0, Math.min(100, value))}%` }}>
-      <div>
-        <strong>{value}%</strong>
-        <span>{label}</span>
-      </div>
-    </div>
-  );
-}
-
-function RsvpGraph({ data, total }) {
-  const maxValue = Math.max(...data.map((item) => item.value), 1);
-
-  return (
-    <div className="dash-rsvp-graph" aria-label="RSVP graph">
-      {data.map((item) => {
-        const percent = total ? Math.round((item.value / total) * 100) : 0;
-        const height = Math.max(8, Math.round((item.value / maxValue) * 100));
-
-        return (
-          <div className="dash-rsvp-column" key={item.label}>
-            <div className="dash-rsvp-track">
-              <span
-                className={`dash-rsvp-bar ${item.tone}`}
-                style={{ height: `${height}%` }}
-                title={`${item.label}: ${item.value}`}
-              />
-            </div>
-            <strong>{item.value}</strong>
-            <span>{item.label}</span>
-            <small>{percent}%</small>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function Dashboard() {
-  const { lang, text } = useBackendMessages("dashboard", DASHBOARD_FALLBACK);
+  const { lang, text } = useBackendMessages("dashboard");
   const drafts = listDrafts();
 
   // Active event selection
@@ -622,23 +379,98 @@ export default function Dashboard() {
           </dl>
         </article>
       </section>
-      {/* 
-      <section className="dash-quick-actions">
-        <h2>Quick actions</h2>
-        <div className="dash-action-grid">
-          <Link to="/create/wedding" className="dash-action-card">បង្កើតកម្មវិធីថ្មី</Link>
-          <Link
-            to={`/preview/${currentDraft.id}`}
-            state={{ backTo: "/dashboard" }}
-            className="dash-action-card"
-          >
-            មើលជាមុន
-          </Link>
-          <Link to="/guests" className="dash-action-card">បញ្ជីភ្ញៀវ</Link>
-          <Link to="/expenses" className="dash-action-card">គម្រោងថវិកា</Link>
-          <Link to="/gifts" className="dash-action-card">ចងដៃមង្គល</Link>
-        </div>
-      </section> */}
     </main>
+  );
+}
+
+// ── Helper Functions & Components ──
+
+function formatDisplayDate(dateStr, lang, text) {
+  if (!dateStr) return text("notCompleted");
+  try {
+    return new Date(dateStr).toLocaleDateString(lang === "km" ? "km-KH" : "en-US", {
+      year: "numeric", month: "long", day: "numeric"
+    });
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+function countGuests(list) {
+  if (!list) return 0;
+  return list.reduce((sum, item) => sum + (Math.max(1, Number(item.count) || 1)), 0);
+}
+
+function getResponseStatus(rsvp) {
+  if (rsvp.status) return rsvp.status.toLowerCase();
+  if (rsvp.attending === false) return "declined";
+  if (rsvp.attending === true) return "accepted";
+  return "pending";
+}
+
+function getDraftResponses(draft) {
+  if (!draft) return [];
+  const rsvps = listRsvps(draft.id || "");
+  if (draft.slug) {
+    const slugRsvps = listRsvps(draft.slug);
+    const map = new Map();
+    rsvps.forEach(r => map.set(r.id, r));
+    slugRsvps.forEach(r => map.set(r.id, r));
+    return Array.from(map.values());
+  }
+  return rsvps;
+}
+
+function getInvitationTitle(draft) {
+  if (draft?.title) return draft.title;
+  if (draft?.event?.groomName && draft?.event?.brideName) {
+    return `${draft.event.groomName} & ${draft.event.brideName}`;
+  }
+  return "My Wedding";
+}
+
+function SampleMetricCard({ icon: Icon, label, value, note, tone }) {
+  return (
+    <div className={`dash-metric-card ${tone}`}>
+      <div className="dash-metric-icon"><Icon aria-hidden="true" /></div>
+      <div className="dash-metric-content">
+        <h3>{label}</h3>
+        <strong>{value}</strong>
+        <p>{note}</p>
+      </div>
+    </div>
+  );
+}
+
+function ProgressRing({ value, label }) {
+  return (
+    <div className="dash-progress-ring">
+      <div className="dash-ring-circle">
+         <span>{value}%</span>
+      </div>
+      <p>{label}</p>
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, note, tone }) {
+  return (
+    <div className={`dash-summary-card ${tone}`}>
+      <h3>{label}</h3>
+      <strong>{value}</strong>
+      <p>{note}</p>
+    </div>
+  );
+}
+
+function RsvpGraph({ data, total }) {
+  return (
+    <div className="dash-rsvp-graph">
+      <div className="dash-graph-bars" style={{ display: "flex", height: "10px", width: "100%", background: "#eee", borderRadius: "5px", overflow: "hidden", marginBottom: "16px" }}>
+        {data.map(item => (
+          <div key={item.label} className={item.tone} style={{ width: `${total ? (item.value / total) * 100 : 0}%`, height: "100%" }} />
+        ))}
+      </div>
+    </div>
   );
 }

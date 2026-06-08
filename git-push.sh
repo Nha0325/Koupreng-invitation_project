@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# ─────────────────────────────────────────────────────────────────────────────
-# git-push.sh — Safe team Git push script for Koupreng
-# ─────────────────────────────────────────────────────────────────────────────
+# Safe team Git push script for Koupreng.
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

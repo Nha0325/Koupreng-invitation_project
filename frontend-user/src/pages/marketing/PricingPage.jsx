@@ -4,55 +4,59 @@ import { motion } from "framer-motion";
 
 // Import Background
 import heroBg from "../../assets/images/background.png";
+import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 
-const plans = [
+const getPlans = (t) => [
   {
     id: "basic",
-    name: "កញ្ចប់មង្គល",
-    price: "ឥតគិតថ្លៃ",
-    desc: "សាកសមសម្រាប់គូស្វាមីភរិយាដែលចង់រៀបចំផែនការដំបូង",
+    name: t("planBasicName") || "កញ្ចប់មង្គល",
+    price: t("planBasicPrice") || "ឥតគិតថ្លៃ",
+    desc: t("planBasicDesc") || "សាកសមសម្រាប់គូស្វាមីភរិយាដែលចង់រៀបចំផែនការដំបូង",
     features: [
-      "បញ្ជីការងារ ៥ ចំណុច",
-      "គ្រប់គ្រងភ្ញៀវ ៤០ នាក់",
-      "សន្លឹកការឌីជីថល (Basic)",
-      "Dashboard ផ្ទាល់ខ្លួន",
+      t("planBasicFeat1") || "បញ្ជីការងារ ៥ ចំណុច",
+      t("planBasicFeat2") || "គ្រប់គ្រងភ្ញៀវ ៤០ នាក់",
+      t("planBasicFeat3") || "សន្លឹកការឌីជីថល (Basic)",
+      t("planBasicFeat4") || "Dashboard ផ្ទាល់ខ្លួន",
     ],
-    btnText: "ចាប់ផ្ដើមឥឡូវនេះ",
+    btnText: t("btnStartNow") || "ចាប់ផ្ដើមឥឡូវនេះ",
     featured: false,
   },
   {
     id: "pro",
-    name: "កញ្ចប់មាស",
+    name: t("planProName") || "កញ្ចប់មាស",
     price: "$169",
-    desc: "ជម្រើសដ៏ល្អបំផុតសម្រាប់ភាពឥតខ្ចោះ និងស៊ីវិល័យ",
+    desc: t("planProDesc") || "ជម្រើសដ៏ល្អបំផុតសម្រាប់ភាពឥតខ្ចោះ និងស៊ីវិល័យ",
     features: [
-      "គ្រប់គ្រងភ្ញៀវមិនដែនកំណត់",
-      "ការទូទាត់ QR បាគង (Bakong)",
-      "សន្លឹកការ Premium Design",
-      "Gallery រូបភាព និងវីដេអូ",
-      "គាំទ្របច្ចេកទេស ២៤/៧",
+      t("planProFeat1") || "គ្រប់គ្រងភ្ញៀវមិនដែនកំណត់",
+      t("planProFeat2") || "ការទូទាត់ QR បាគង (Bakong)",
+      t("planProFeat3") || "សន្លឹកការ Premium Design",
+      t("planProFeat4") || "Gallery រូបភាព និងវីដេអូ",
+      t("planProFeat5") || "គាំទ្របច្ចេកទេស ២៤/៧",
     ],
-    btnText: "ជ្រើសរើសកញ្ចប់មាស",
+    btnText: t("btnSelectGold") || "ជ្រើសរើសកញ្ចប់មាស",
     featured: true,
   },
   {
     id: "enterprise",
-    name: "កញ្ចប់ពេជ្រ",
-    price: "តម្លៃពិគ្រោះ",
-    desc: "សម្រាប់សហគ្រាស និងក្រុមហ៊ុនរៀបចំអាពាហ៍ពិពាហ៍",
+    name: t("planEntName") || "កញ្ចប់ពេជ្រ",
+    price: t("planEntPrice") || "តម្លៃពិគ្រោះ",
+    desc: t("planEntDesc") || "សម្រាប់សហគ្រាស និងក្រុមហ៊ុនរៀបចំអាពាហ៍ពិពាហ៍",
     features: [
-      "គ្រប់គ្រងព្រឹត្តិការណ៍ច្រើន",
-      "White-label (ដាក់ Logo ខ្លួនឯង)",
-      "Custom Domain ផ្ទាល់ខ្លួន",
-      "របាយការណ៍លម្អិត",
-      "ជំនួយការផ្ទាល់ (Manager)",
+      t("planEntFeat1") || "គ្រប់គ្រងព្រឹត្តិការណ៍ច្រើន",
+      t("planEntFeat2") || "White-label (ដាក់ Logo ខ្លួនឯង)",
+      t("planEntFeat3") || "Custom Domain ផ្ទាល់ខ្លួន",
+      t("planEntFeat4") || "របាយការណ៍លម្អិត",
+      t("planEntFeat5") || "ជំនួយការផ្ទាល់ (Manager)",
     ],
-    btnText: "ទាក់ទងផ្នែកលក់",
+    btnText: t("btnContactSales") || "ទាក់ទងផ្នែកលក់",
     featured: false,
   },
 ];
 
 const PricingPage = () => {
+  const { text: t, lang } = useBackendMessages("pricing");
+  const plans = getPlans(t);
+
   return (
     <div className="khmer-modern-theme">
       <section
@@ -69,12 +73,12 @@ const PricingPage = () => {
                 animate={{ opacity: 1, letterSpacing: "2px" }}
                 className="sub-title"
               >
-                INVEST IN YOUR MOMENT
+                {t("subtitle") || "INVEST IN YOUR MOMENT"}
               </motion.span>
               <h1 className="main-title">
-                ជ្រើសរើសសេវាកម្ម
+                {t("titlePlan") || "ជ្រើសរើសសេវាកម្ម"}
                 <br />
-                ដែល<span className="gold-text">សាកសមបំផុត</span>
+                {lang === 'km' ? "ដែល" : " "}<span className="gold-text">{t("titlePerfect") || "សាកសមបំផុត"}</span>
               </h1>
               <div className="divider-modern">
                 <span></span>
@@ -90,14 +94,14 @@ const PricingPage = () => {
                 <div
                   className={`pricing-card ${plan.featured ? "premium" : ""}`}
                 >
-                  {plan.featured && <div className="badge">RECOMMENDED</div>}
+                  {plan.featured && <div className="badge">{t("recommended") || "RECOMMENDED"}</div>}
 
                   <div className="card-top">
                     <h3 className="plan-name">{plan.name}</h3>
                     <div className="price-tag">
                       <span className="currency">
-                        {plan.price !== "តម្លៃពិគ្រោះ" &&
-                        plan.price !== "ឥតគិតថ្លៃ"
+                        {plan.price !== t("planEntPrice") &&
+                        plan.price !== t("planBasicPrice")
                           ? ""
                           : ""}
                       </span>

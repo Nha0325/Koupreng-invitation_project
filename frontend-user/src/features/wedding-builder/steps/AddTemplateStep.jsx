@@ -14,39 +14,6 @@ import { VARIANT_ROUTE_ALIASES } from "../../templates/template-experience/templ
 import { getTemplateRouteId, isBackendPremium, mergeBackendTemplate } from "../../templates/templateCatalogAdapter";
 import "./AddTemplateStep.css";
 
-const TEMPLATES_FALLBACK = {
-    km: {
-        title: "បន្ថែមគម្រូ",
-        subtitle: "ជ្រើសរើសគម្រូសម្រាប់ប្រើជាមួយសន្លឹកការរបស់អ្នក។",
-        freeSection: "ឥតគិតថ្លៃ",
-        paidSection: "ត្រូវការចំណាយ",
-        noPriceTag: "ឥតគិតថ្លៃ",
-        priceTag: "ត្រូវការចំណាយ",
-        selectBtn: "ជ្រើសរើស",
-        buyBtn: "ទិញគំរូ",
-        viewBtn: "មើល",
-        addedBtn: "បានបន្ថែមរួចហើយ",
-        noImage: "មិនមានរូបភាព",
-        loading: "កំពុងទាញគម្រូ...",
-        error: "មិនអាចទាញគម្រូបាន",
-    },
-    en: {
-        title: "Add Template",
-        subtitle: "Choose a template for your invitation.",
-        freeSection: "Free",
-        paidSection: "Paid",
-        noPriceTag: "Free",
-        priceTag: "Paid",
-        selectBtn: "Select",
-        buyBtn: "Buy template",
-        viewBtn: "View",
-        addedBtn: "Already Added",
-        noImage: "No image",
-        loading: "Loading templates...",
-        error: "Could not load templates",
-    },
-};
-
 const CATEGORY_STYLES = {
     MODERN: {
         label: "Modern",
@@ -206,7 +173,7 @@ function TemplateCard({ template, onSelect, onView, t }) {
 }
 
 export default function AddTemplateStep() {
-    const { text: t } = useBackendMessages("templates", TEMPLATES_FALLBACK);
+    const { text: t } = useBackendMessages("templates");
     const navigate = useNavigate();
     const [remoteTemplates, setRemoteTemplates] = useState([]);
     const [selectedTemplates, setSelectedTemplates] = useState([]);

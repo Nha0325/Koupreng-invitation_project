@@ -37,6 +37,9 @@ public class AppUser {
     @Column(nullable = false, name = "full_name", length = 120)
     private String fullName;
 
+    @Column(name = "profile_image", length = 1024)
+    private String profileImage;
+
     @Column(name = "password_hash", length = 100)
     private String passwordHash;
 
@@ -103,6 +106,14 @@ public class AppUser {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 
     public String getPasswordHash() {

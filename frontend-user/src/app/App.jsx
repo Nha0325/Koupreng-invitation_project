@@ -2,6 +2,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import AppRouter from "./router";
 import ScrollToTop from "./ScrollToTop";
 import SiteAnimations from "../shared/animations/SiteAnimations";
+import ChatBot from "../shared/ui/ChatBot";
 
 /**
  * App — root component.
@@ -15,6 +16,7 @@ function App() {
       <div className="app-container">
         <AppRouter />
       </div>
+      <ChatBot />
     </Router>
   );
 }

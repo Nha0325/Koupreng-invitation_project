@@ -6,6 +6,7 @@ import { useAuth } from "../../../pages/auth/context/useAuth";
 import heroBg from "../../../assets/icons/background.png";
 import templateService from "../templateService";
 import { getTemplateRouteId, isBackendPremium, mergeBackendTemplate } from "../templateCatalogAdapter";
+import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
 const FEATURED_TEMPLATE_IDS = [
     "royal",
@@ -23,11 +24,11 @@ const TEMPLATE_CARD_COVER = {
     terracotta: "/facebook/all/05-card/cover-card.jpg",
 };
 
-const categoryLabels = {
-    ancient: "បុរាណ",
-    modern: "ទំនើប",
-    contemporary: "សហសម័យ",
-};
+const getCategoryLabels = (t) => ({
+    ancient: t("catAncient") || "បុរាណ",
+    modern: t("catModern") || "ទំនើប",
+    contemporary: t("catContemporary") || "សហសម័យ",
+});
 
 function getCreatePath(path, isAuthenticated) {
     if (isAuthenticated) {
@@ -41,18 +42,15 @@ function getUseTemplatePath(templateId, isAuthenticated) {
     return getCreatePath(`/create/wedding?template=${templateId}`, isAuthenticated);
 }
 
-function getTemplateBenefit(template) {
-    return template.description?.split("។")[0] || "គំរូសន្លឹកការដែលរួចរាល់សម្រាប់បង្ហាញ និង RSVP";
+function getTemplateBenefit(template, t) {
+    return template.description?.split("។")[0] || t("templateBenefit") || "គំរូសន្លឹកការដែលរួចរាល់សម្រាប់បង្ហាញ និង RSVP";
 }
 
-/**
- * TemplateGrid — public wedding templates gallery.
- * Click a card to view template details (phone preview).
- * "ប្រើប្រាស់គំរូនេះ" button requires login to create wedding.
- */
 export default function TemplateGrid() {
     const { isAuthenticated } = useAuth();
+    const { text: t } = useBackendMessages("templateGrid");
     const [remoteTemplates, setRemoteTemplates] = useState([]);
+    const categoryLabels = getCategoryLabels(t);
 
     useEffect(() => {
         let mounted = true;
@@ -90,9 +88,9 @@ export default function TemplateGrid() {
 
             <div className="tp-container">
                 <header className="tp-header-section">
-                    <span className="tp-label">Koupreng Premium Templates</span>
+                    <span className="tp-label">{t("premiumLabel") || "Koupreng Premium Templates"}</span>
                     <h1 className="tp-title">
-                        ជ្រើសរើស<span>គ្រោងសន្លឹកការណ៍</span>
+                        {t("titleTemplates") || "ជ្រើសរើស"}<span>{t("titleTemplatesSpan") || "គ្រោងសន្លឹកការណ៍"}</span>
                     </h1>
                     <div className="tp-divider">
                         <div className="tp-line"></div>
@@ -102,49 +100,48 @@ export default function TemplateGrid() {
                 </header>
 
                 <div className="tp-grid">
-                    {visibleTemplates.map((t) => {
-                        const routeId = t.backendId ? getTemplateRouteId(t) : t.id;
+                    {visibleTemplates.map((template) => {
+                        const routeId = template.backendId ? getTemplateRouteId(template) : template.id;
                         const createPath = getUseTemplatePath(routeId, isAuthenticated);
-                        const coverImage = TEMPLATE_CARD_COVER[t.id] || t.image;
-
-                        const premium = t.backendId ? isBackendPremium(t) : isTemplatePremium(t.id);
+                        const coverImage = TEMPLATE_CARD_COVER[template.id] || template.image;
+                        const categoryLabel = categoryLabels[template.category] || template.category || "";
+                        const premium = template.backendId ? isBackendPremium(template) : isTemplatePremium(template.id);
                         const actionPath = premium
                             ? (isAuthenticated ? `/templates/${routeId}/checkout` : `/login?next=${encodeURIComponent(`/templates/${routeId}/checkout`)}`)
                             : createPath;
 
                         return (
-                            <div key={t.id} className={`tp-card${premium ? " tp-card--premium" : ""}`}>
-                                {t.popular && <div className="tp-popular-tag">✨ ពេញនិយម</div>}
-                                {premium && <div className="tp-premium-tag">💎 Premium</div>}
+                            <div key={template.backendId || template.id} className={`tp-card${premium ? " tp-card--premium" : ""}`}>
+                                {template.popular && <div className="tp-popular-tag">{t("popular") || "✨ ពេញនិយម"}</div>}
+                                {premium && <div className="tp-premium-tag">{t("premium") || "💎 Premium"}</div>}
 
-                                {/* Category badge */}
-                                <div className={`tp-category-badge tp-category-badge--${t.category}`}>
-                                    {categoryLabels[t.category]}
+                                <div className={`tp-category-badge tp-category-badge--${template.category}`}>
+                                    {categoryLabel}
                                 </div>
 
                                 <Link to={`/templates/${routeId}`} className="tp-image-box">
                                     <img
                                         src={coverImage}
-                                        alt={t.name}
+                                        alt={template.name}
                                         className="tp-main-img"
                                     />
                                     <div className="tp-overlay">
-                                        <span className="tp-view-btn">មើលលម្អិត</span>
+                                        <span className="tp-view-btn">{t("viewDetail") || "មើលលម្អិត"}</span>
                                     </div>
                                 </Link>
 
                                 <div className="tp-card-content">
-                                    <h3 className="tp-card-name">{t.name}</h3>
+                                    <h3 className="tp-card-name">{template.name}</h3>
                                     <span className="tp-style-name">
-                                        {categoryLabels[t.category]} / {t.style}
+                                        {categoryLabel} / {template.style}
                                     </span>
-                                    <p className="tp-card-benefit">{getTemplateBenefit(t)}</p>
+                                    <p className="tp-card-benefit">{getTemplateBenefit(template, t)}</p>
                                     <div className="tp-card-actions">
                                         <Link to={actionPath} className={`tp-action-btn${premium ? " tp-action-btn--buy" : ""}`}>
-                                            {premium ? "ទិញគំរូ" : "ប្រើគំរូនេះ"}
+                                            {premium ? (t("buyTemplate") || "ទិញគំរូ") : (t("useTemplate") || "ប្រើគំរូនេះ")}
                                         </Link>
                                         <Link to={`/templates/${routeId}`} className="tp-detail-btn">
-                                            មើលលម្អិត
+                                            {t("viewDetail") || "មើលលម្អិត"}
                                         </Link>
                                     </div>
                                 </div>
@@ -164,16 +161,16 @@ export default function TemplateGrid() {
                                 <div></div>
                             </div>
                             <div className="tp-overlay">
-                                <span className="tp-view-btn">ចាប់ផ្តើមបង្កើត</span>
+                                <span className="tp-view-btn">{t("startCreate") || "ចាប់ផ្តើមបង្កើត"}</span>
                             </div>
                         </Link>
 
                         <div className="tp-card-content">
-                            <h3 className="tp-card-name">បង្កើតផ្ទាល់ខ្លួន</h3>
-                            <span className="tp-style-name">Custom Wedding Card</span>
-                            <p className="tp-card-benefit">ចាប់ផ្តើមពីសន្លឹកទទេ ហើយកែតម្រូវព័ត៌មានតាមតម្រូវការ</p>
+                            <h3 className="tp-card-name">{t("createCustom") || "បង្កើតផ្ទាល់ខ្លួន"}</h3>
+                            <span className="tp-style-name">{t("customDesc") || "Custom Wedding Card"}</span>
+                            <p className="tp-card-benefit">{t("customBenefit") || "ចាប់ផ្តើមពីសន្លឹកទទេ ហើយកែតម្រូវព័ត៌មានតាមតម្រូវការ"}</p>
                             <Link to={getCreatePath("/create/wedding", isAuthenticated)} className="tp-action-btn tp-custom-action">
-                                ប្រើការរចនាផ្ទាល់ខ្លួន
+                                {t("useCustom") || "ប្រើការរចនាផ្ទាល់ខ្លួន"}
                             </Link>
                         </div>
                     </div>
