@@ -92,8 +92,9 @@ Use this checklist with a local or staging backend. Replace `{id}`, `{slug}`, `{
 | **M. Advanced** | DELETE | `/api/v1/invitations/{id}/guests/{guestId}/seat` | Owner | none | Unassigns guest from table | [ ] |
 | **M. Advanced** | GET | `/api/v1/admin/packages` | ADMIN | none | All subscription packages | [ ] |
 | **M. Advanced** | POST | `/api/v1/admin/packages` | ADMIN | `{"packageName":"Silver","price":5.00,"active":true}` | Creates new pricing package | [ ] |
-| **M. Advanced** | GET | `/api/v1/payments` | USER | none | Unified payment history (merged) | [ ] |
-| **M. Advanced** | GET | `/api/v1/payments/{orderCode}` | Owner | none | Detailed order payment receipt | [ ] |
+| **M. Advanced** | GET | `/api/v1/me/payments` | USER | none | Unified payment history (merged) | [ ] |
+| **M. Advanced** | GET | `/api/v1/me/payments/{orderCode}` | Owner | none | Detailed order payment record | [ ] |
+| **M. Advanced** | GET | `/api/v1/me/payments/{orderCode}/receipt` | Owner | none | Detailed payment receipt | [ ] |
 | **M. Advanced** | GET | `/api/v1/admin/payments` | ADMIN | none | Global unified payments | [ ] |
 | **M. Advanced** | POST | `/api/v1/ai/invitation/story` | USER | `{"coupleNames":"A & B"}` | AI generated couple story | [ ] |
 | **M. Advanced** | POST | `/api/v1/ai/invitation/formal-text` | USER | `{"venueName":"Main Hall"}` | AI generated invitation copy | [ ] |
@@ -108,3 +109,35 @@ Use this checklist with a local or staging backend. Replace `{id}`, `{slug}`, `{
 | **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | Valid secret, no JWT | Telegram payload | Controller/service reached | [x] |
 | **N. Security** | GET | `/api/v1/admin/users` | Normal User | none | 403 Forbidden | [ ] |
 | **N. Security** | GET | `/api/v1/invitations/{otherUserInvitationId}` | User B | none | 403 or 404 access validation | [ ] |
+
+## Post-Merge QA Notes - 2026-06-09
+
+Branch: `audit/full-project-qa-after-pr4`
+
+Automated baseline passed:
+
+- Backend compile: `backend/.\\mvnw.cmd -DskipTests compile`
+- Backend tests: `backend/.\\mvnw.cmd test` - 124 tests, 0 failures, 0 errors
+- Frontend user install/build: `npm install`, `npm run build` - pass with existing large chunk warning
+- Frontend admin install/build: `npm install`, `npm run build` - pass
+- Telegram syntax: `python -m py_compile main.py` - pass
+- Whitespace: `git diff --check` - pass
+
+Automated smoke:
+
+- Added `scripts/browser-smoke.mjs`.
+- Added `docs/manual_browser_smoke_checklist.md`.
+- Browser smoke validates React root rendering for key user, public invitation, invitation-specific, and admin routes.
+
+Fixes made during this QA pass:
+
+- Added `/admin/login` as an admin frontend route alias.
+- Updated unauthenticated admin redirect target from `/login` to `/admin/login`.
+- Corrected stale payment history checklist paths from `/api/v1/payments` to `/api/v1/me/payments`.
+
+Known limitations:
+
+- Several Part M modules are foundation/beta quality and require real seeded data for full end-to-end verification: organization roles, AI assistant output quality, seating assignment workflows, QR check-in, and admin analytics.
+- Public invitation routes `/i/{slug}` and `/i/{slug}?token={inviteToken}` can be smoke-tested for nonblank rendering without a seeded slug, but product-content verification requires a real published invitation and invite token.
+- Frontend user build still emits a large chunk warning due to bundled media and single main JS chunk.
+- Backend test output includes the current Mockito dynamic-agent warning on JDK 25.
