@@ -7,12 +7,21 @@ import PublicRsvpForm from "../../features/invitations/PublicRsvpForm";
 import "../../features/invitations/InvitationPages.css";
 import TemplateExperience from "../../features/templates/template-experience/TemplateExperience";
 import WeddingSite from "../../features/wedding-site/WeddingSite";
-import { getTemplateById } from "../../features/templates/data/templatesData";
+import { getTemplateById, TEMPLATES } from "../../features/templates/data/templatesData";
 import { draftToTemplate } from "../../features/wedding-builder/utils/draftToTemplate";
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { loadGallery } from "../../services/galleryStorage";
 import { invitationService } from "../../shared/services/invitationService";
 import { mediaService } from "../../shared/services/mediaService";
+
+function safeJson(value) {
+    if (!value || typeof value !== "string") return {};
+    try {
+        return JSON.parse(value);
+    } catch {
+        return {};
+    }
+}
 
 export default function PublicInvitationPage() {
     const { slug } = useParams();
@@ -124,6 +133,61 @@ export default function PublicInvitationPage() {
         return draftToTemplate({ ...activeDraft, templateId }, gallery);
     }, [activeDraft, gallery]);
 
+    const mergedPublic = useMemo(() => {
+        if (!invitation) return null;
+
+        const content = safeJson(invitation.contentJson);
+        const templateKey = content.templateId || String(invitation.templateId || "");
+
+        let baseTpl = TEMPLATES.find((t) => t.id === templateKey);
+        if (!baseTpl && invitation.templateId) {
+            baseTpl = TEMPLATES.find((t) => Number(t.backendId) === Number(invitation.templateId));
+        }
+        if (!baseTpl) {
+            baseTpl = TEMPLATES.find((t) => t.id === "royal");
+        }
+
+        const galleryList = (media?.galleryImages || []).map((img) => ({
+            preview: img.fileUrl,
+            type: "image",
+        }));
+
+        const reconstructedDraft = {
+            id: invitation.slug,
+            templateId: baseTpl.id,
+            event: {
+                title: invitation.title,
+                date: invitation.eventDate,
+                ceremonyTime: content.event?.ceremonyTime || invitation.eventTime,
+                receptionTime: content.event?.receptionTime || invitation.eventTime,
+                venueName: invitation.venueName,
+                venueAddress: invitation.venueAddress,
+                mapLink: invitation.googleMapUrl,
+            },
+            couple: {
+                groom: invitation.groomName,
+                bride: invitation.brideName,
+                groomNickname: content.couple?.groomNickname || "",
+                brideNickname: content.couple?.brideNickname || "",
+                groomParents: content.couple?.groomParents || "",
+                brideParents: content.couple?.brideParents || "",
+            },
+            contact: content.contact || {},
+            message: content.message || invitation.storyText || "",
+            story: content.story || invitation.storyText || "",
+            storyChapters: content.storyChapters || [],
+            schedule: content.schedule || [],
+            party: content.party || [],
+            gift: content.gift || [],
+            faq: content.faq || [],
+            dressCode: content.dressCode || {},
+            music: media?.backgroundMusic ? { url: media.backgroundMusic.fileUrl } : null,
+            extras: content.extras || {},
+        };
+
+        return draftToTemplate(reconstructedDraft, galleryList);
+    }, [invitation, media]);
+
     if (remoteLoading) {
         return <div className="public-state">Loading invitation...</div>;
     }
@@ -150,6 +214,26 @@ export default function PublicInvitationPage() {
     };
 
     if (invitation) {
+        if (mergedPublic) {
+            return (
+                <TemplateExperience
+                    tpl={mergedPublic.tpl}
+                    variant={mergedPublic.variant}
+                    preview={false}
+                    showBreadcrumb={false}
+                    showActions={false}
+                    showStickyCta={true}
+                >
+                    <PublicRsvpForm
+                        slug={slug}
+                        inviteToken={inviteToken}
+                        accessToken={effectiveAccessToken}
+                        languageMode={invitation.languageMode}
+                    />
+                </TemplateExperience>
+            );
+        }
+
         return (
             <InvitationDisplay invitation={invitation} media={media}>
                 <PublicRsvpForm

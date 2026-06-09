@@ -12,6 +12,7 @@ const FEATURED_TEMPLATE_IDS = [
     "royal",
     "classic",
     "garden",
+    "garden-royal-khmer-wedding",
     "boho-chic",
     "terracotta",
 ];
@@ -20,6 +21,7 @@ const TEMPLATE_CARD_COVER = {
     royal: "/facebook/all/01-card/cover-card.jpg",
     classic: "/facebook/all/02-card/cover-card.jpg",
     garden: "/facebook/all/03-card/cover-card.jpg",
+    "garden-royal-khmer-wedding": "/facebook/all/03-card/cover-card.jpg",
     "boho-chic": "/facebook/all/04-card/cover-card.jpg",
     terracotta: "/facebook/all/05-card/cover-card.jpg",
 };

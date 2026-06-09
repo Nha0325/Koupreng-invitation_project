@@ -12,6 +12,8 @@ import TemplateStory from "./sections/TemplateStory";
 import TemplateSchedule from "./sections/TemplateSchedule";
 import TemplateVenue from "./sections/TemplateVenue";
 import TemplateGallery from "./sections/TemplateGallery";
+import TemplateGift from "./sections/TemplateGift";
+import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
 import TemplateStickyCta from "./controls/TemplateStickyCta";
 import "./template-experience.css";
@@ -56,6 +58,7 @@ export default function TemplateExperience({
     showBreadcrumb = true,
     showActions = true,
     showStickyCta = true,
+    children,
 }) {
     const resolvedVariant = useMemo(() => resolveVariant(tpl, variant), [tpl, variant]);
     const theme = useMemo(() => getVariantTheme(resolvedVariant), [resolvedVariant]);
@@ -115,6 +118,15 @@ export default function TemplateExperience({
             <TemplateSchedule content={content} />
             <TemplateVenue content={content} />
             <TemplateGallery content={content} />
+            <TemplateGift content={content} />
+
+            {children && (
+                <div className="tx-children">
+                    {children}
+                </div>
+            )}
+
+            <TemplateFooter content={content} />
 
             {!preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">

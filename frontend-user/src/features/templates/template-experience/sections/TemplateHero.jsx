@@ -32,10 +32,21 @@ export default function TemplateHero({ content, onOpen }) {
             <div className="tx-hero__overlay" aria-hidden="true" />
 
             <div className="tx-hero__inner">
-                {content.badge && (
-                    <motion.span className="tx-hero__badge" {...rise(0.05)}>
-                        {content.badge}
-                    </motion.span>
+                {content.variant === "garden-royal-khmer-wedding" ? (
+                    <motion.div className="tx-hero__crest" {...rise(0.05)} aria-hidden="true">
+                        <div className="tx-crest-circle">
+                            <span className="tx-crest-initials">{content.monogramText}</span>
+                        </div>
+                        <div className="tx-crest-ribbon">
+                            <span>{content.groom} &amp; {content.bride}</span>
+                        </div>
+                    </motion.div>
+                ) : (
+                    content.badge && (
+                        <motion.span className="tx-hero__badge" {...rise(0.05)}>
+                            {content.badge}
+                        </motion.span>
+                    )
                 )}
 
                 <motion.p className="tx-kicker tx-hero__kicker" {...rise(0.12)}>

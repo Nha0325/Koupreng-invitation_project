@@ -89,6 +89,18 @@ export const TEMPLATE_VARIANTS = {
             { hex: "#6E5223", name: "ត្នោតក្តៅ" },
         ],
     },
+    "garden-royal-khmer-wedding": {
+        className: "template-experience--garden-royal-khmer-wedding",
+        mood: "light",
+        badge: "Garden Royal",
+        amp: "❀",
+        dressColors: [
+            { hex: "#2D7FA6", name: "ខៀវផ្កា" },
+            { hex: "#6F9E2E", name: "បៃតងស្លឹក" },
+            { hex: "#FFFDF7", name: "ស" },
+            { hex: "#D6A63C", name: "មាស" },
+        ],
+    },
 };
 
 export const DEFAULT_VARIANT = "classic";
@@ -138,6 +150,7 @@ export const TEMPLATE_VARIANT_BY_ID = {
     celestial: "luxury",
     "sage-wedding": "modern-khmer",
     "velvet-touch": "luxury",
+    "garden-royal-khmer-wedding": "garden-royal-khmer-wedding",
 };
 
 /**

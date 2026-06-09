@@ -162,6 +162,15 @@ const VARIANT_COPY = {
         dressStyle: "Vintage / Antique",
         dressNote: "សូមជ្រើសរើសសម្លៀកបំពាក់ពណ៌មាសបុរាណ និងសេពៀ ដើម្បីបំពេញនូវបរិយាកាសបែបបុរាណដ៏កក់ក្ដៅ។",
     },
+    "garden-royal-khmer-wedding": {
+        message:
+            "ដោយសេចក្ដីរីករាយ និងក្ដីស្រឡាញ់ដ៏ជ្រាលជ្រៅ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នក ចូលរួមជាសក្ខីភាព និងភ្ញៀវកិត្តិយស ក្នុងពិធីមង្គលការរបស់យើងទាំងពីរ។",
+        groomIntro: "កូនកំលោះដ៏មានទំនួលខុសត្រូវ ស្រឡាញ់ និងថែរក្សាវប្បធម៌ខ្មែរ។",
+        brideIntro: "កូនក្រមុំដ៏ទន់ភ្លន់ ពោរពេញដោយក្ដីស្រឡាញ់ និងស្នាមញញឹមដ៏កក់ក្ដៅ។",
+        dressName: "ខៀវផ្កា និងបៃតងស្លឹក",
+        dressStyle: "ខ្មែរប្រពៃណី / Smart Casual",
+        dressNote: "សូមជ្រើសរើសពណ៌ខៀវផ្កា ឬបៃតងស្លឹក ដើម្បីបំពេញនូវបរិយាកាសដ៏ស្រស់បំព្រង និងភាពស្រស់ស្អាត។",
+    },
 };
 
 const GALLERY_SPANS = ["tall", "wide", "small", "small", "small"];
@@ -342,6 +351,7 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         badge: theme.badge,
         groom: tpl.groom || "ប្រុស",
         bride: tpl.bride || "ស្រី",
+        monogramText: tpl.monogramText || (tpl.groom && tpl.bride ? `${tpl.groom.charAt(0)} & ${tpl.bride.charAt(0)}` : "V & P"),
         dateText: tpl.dateText || "",
         targetDate: tpl.targetDate,
         ceremonyTime: tpl.ceremonyTime || "",
