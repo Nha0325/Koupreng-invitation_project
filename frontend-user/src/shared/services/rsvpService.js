@@ -1,8 +1,6 @@
 import { api } from "../api/client";
 
-function unwrap(response) {
-    return response?.data ?? response;
-}
+import { unwrap } from "../api/helpers";
 
 export const rsvpService = {
     submitPublic: (slug, data) => api

@@ -60,6 +60,13 @@ export function draftToTemplate(draft, gallery = []) {
         storyCards: uploadedImages.length
             ? [{ id: `${draft.id}-uploads`, title: "Our Photos", images: uploadedImages }]
             : baseTpl.storyCards,
+        
+        // Custom overrides from the new Template Editor
+        primaryColor: draft.extras?.primaryColor || baseTpl.color,
+        textColor: draft.extras?.textColor || baseTpl.dark,
+        customMainImage: draft.extras?.mainCoverImage || null,
+        customBackgroundImage: draft.extras?.backgroundImage || null,
+        music: draft.extras?.musicId ? { url: draft.extras.musicId } : (draft.music || baseTpl.music),
     };
 
     return { tpl, variant: resolveVariant(baseTpl) };

@@ -275,7 +275,8 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             colors: theme.dressColors,
         };
 
-    const coverImage = tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
+    const coverImage = tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
+    const bgImage = tpl.customBackgroundImage || coverImage;
 
     // Map host story chapters onto the timeline shape, layering template images.
     const ownImages = getTemplateOwnImages(tpl);
@@ -345,8 +346,8 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         targetDate: tpl.targetDate,
         ceremonyTime: tpl.ceremonyTime || "",
         receptionTime: tpl.receptionTime || "",
-        coverImage,
-        portraitImage: tpl.phoneCoverImage || tpl.mainImage || coverImage,
+        coverImage: bgImage,
+        portraitImage: tpl.customMainImage || tpl.phoneCoverImage || tpl.mainImage || bgImage,
         message: tpl.message || copy.message,
         families: "រួមជាមួយក្រុមគ្រួសារទាំងសងខាង",
         couple: {
@@ -359,7 +360,7 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             name: venueName,
             address: tpl.venueAddress || "",
             mapLink,
-            image: tpl.mainImage || tpl.phoneCoverImage || coverImage,
+            image: tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || coverImage,
         },
         gallery: buildGallery(tpl),
         story: hostStory || buildStory(tpl),
