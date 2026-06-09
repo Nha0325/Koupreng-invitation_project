@@ -98,7 +98,7 @@ public class SeatingService {
         requireInvitationAccess(authentication, invitationId);
         List<EventTable> tables = tableRepository.findByInvitationIdOrderBySortOrderAscTableNameAsc(invitationId);
         List<GuestSeatAssignment> assignments = assignmentRepository.findByInvitationIdOrderByAssignedAtDesc(invitationId);
-        
+
         long totalTables = tables.size();
         long totalCapacity = tables.stream().mapToLong(EventTable::getCapacity).sum();
         long assignedSeats = assignments.stream().mapToLong(a -> { Integer sc = a.getSeatCount(); return sc == null ? 1 : sc; }).sum();
