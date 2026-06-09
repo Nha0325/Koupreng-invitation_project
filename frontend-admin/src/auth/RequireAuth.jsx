@@ -10,5 +10,5 @@ export default function RequireAuth({ children }) {
     }
 
     const nextPath = `${location.pathname}${location.search}`;
-    return <Navigate to={`/login?next=${encodeURIComponent(nextPath)}`} replace />;
+    return <Navigate to={`/admin/login?next=${encodeURIComponent(nextPath)}`} replace />;
 }
