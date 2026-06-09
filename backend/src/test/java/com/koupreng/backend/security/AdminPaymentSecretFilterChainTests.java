@@ -60,7 +60,7 @@ class AdminPaymentSecretFilterChainTests {
     private TemplatePaymentService templatePaymentService;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         when(templatePaymentService.confirmManualPayment(any(ConfirmTemplatePaymentRequest.class)))
                 .thenReturn(PaymentConfirmResponse.builder()
                         .message("Payment confirmed")

@@ -1,5 +1,19 @@
 package com.koupreng.backend.service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.budget.BudgetItemRequest;
 import com.koupreng.backend.dto.budget.BudgetItemResponse;
@@ -14,19 +28,7 @@ import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.repository.BudgetItemRepository;
 import com.koupreng.backend.repository.BudgetRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import com.koupreng.backend.util.CsvExportUtils;
 
 @Service
 public class BudgetService {
@@ -201,16 +203,10 @@ public class BudgetService {
         StringBuilder csv = new StringBuilder();
         csv.append("itemId,category,itemName,estimatedCost,actualCost,date,status,vendorName,notes\n");
         for (BudgetItem item : items) {
-            csv.append(csvValue(item.getId()))
-                    .append(',').append(csvValue(item.getCategory()))
-                    .append(',').append(csvValue(item.getItemName()))
-                    .append(',').append(csvValue(item.getEstimatedCost()))
-                    .append(',').append(csvValue(item.getActualCost()))
-                    .append(',').append(csvValue(item.getExpenseDate()))
-                    .append(',').append(csvValue(item.getStatus()))
-                    .append(',').append(csvValue(item.getVendorName()))
-                    .append(',').append(csvValue(item.getNotes()))
-                    .append('\n');
+            csv.append(CsvExportUtils.row(
+                    item.getId(), item.getCategory(), item.getItemName(), item.getEstimatedCost(),
+                    item.getActualCost(), item.getExpenseDate(), item.getStatus(), item.getVendorName(), item.getNotes()
+            )).append('\n');
         }
         return csv.toString();
     }
@@ -314,7 +310,7 @@ public class BudgetService {
         }
         BigDecimal total = budgetItemRepository.findAllByInvitationId(budget.getInvitation().getId()).stream()
                 .map(BudgetItem::getEstimatedCost)
-                .map(this::nonNegative)
+                .map(this::valueOrZero)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         budget.setTotalBudget(total);
         budgetRepository.save(budget);
@@ -367,13 +363,6 @@ public class BudgetService {
         return normalized;
     }
 
-    private BigDecimal nonNegative(BigDecimal value) {
-        if (value == null || value.signum() < 0) {
-            return BigDecimal.ZERO;
-        }
-        return value;
-    }
-
     private BigDecimal valueOrZero(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
     }
@@ -403,16 +392,6 @@ public class BudgetService {
                 .anyMatch("ROLE_ADMIN"::equals);
     }
 
-    private String csvValue(Object value) {
-        if (value == null) {
-            return "";
-        }
-        String text = String.valueOf(value);
-        if (text.contains(",") || text.contains("\"") || text.contains("\n")) {
-            return "\"" + text.replace("\"", "\"\"") + "\"";
-        }
-        return text;
-    }
 
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {

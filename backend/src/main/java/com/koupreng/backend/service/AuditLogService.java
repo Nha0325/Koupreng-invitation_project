@@ -19,15 +19,18 @@ public class AuditLogService {
     private final SystemAuditLogRepository auditLogRepository;
     private final CurrentUserService currentUserService;
     private final ObjectMapper objectMapper;
+    private final boolean trustForwardedHeaders;
 
     public AuditLogService(
             SystemAuditLogRepository auditLogRepository,
             CurrentUserService currentUserService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            @org.springframework.beans.factory.annotation.Value("${app.audit.trust-forwarded-headers:false}") boolean trustForwardedHeaders
     ) {
         this.auditLogRepository = auditLogRepository;
         this.currentUserService = currentUserService;
         this.objectMapper = objectMapper;
+        this.trustForwardedHeaders = trustForwardedHeaders;
     }
 
     @Transactional
@@ -87,9 +90,11 @@ public class AuditLogService {
     }
 
     private String clientIp(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
+        if (trustForwardedHeaders) {
+            String forwardedFor = request.getHeader("X-Forwarded-For");
+            if (forwardedFor != null && !forwardedFor.isBlank()) {
+                return forwardedFor.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
     }

@@ -1,5 +1,31 @@
 package com.koupreng.backend.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.guest.GuestGroupResponse;
 import com.koupreng.backend.dto.guest.GuestImportErrorResponse;
@@ -14,32 +40,7 @@ import com.koupreng.backend.entity.invitation.Rsvp;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.RsvpRepository;
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.koupreng.backend.util.CsvExportUtils;
 
 @Service
 public class GuestService {
@@ -235,17 +236,12 @@ public class GuestService {
         csv.append("guestName,phone,email,category,seatCount,note,sendStatus,rsvpStatus,attendeeCount,lastSentAt\n");
         for (Guest guest : guests) {
             Rsvp rsvp = rsvpsByGuestId.get(guest.getId());
-            csv.append(csvValue(guest.getGuestName()))
-                    .append(',').append(csvValue(guest.getPhone()))
-                    .append(',').append(csvValue(guest.getEmail()))
-                    .append(',').append(csvValue(guest.getGuestGroup()))
-                    .append(',').append(csvValue(guest.getSeatCount()))
-                    .append(',').append(csvValue(guest.getNote()))
-                    .append(',').append(csvValue(guest.getSendStatus()))
-                    .append(',').append(csvValue(rsvp == null ? null : rsvp.getResponseStatus()))
-                    .append(',').append(csvValue(rsvp == null ? null : rsvp.getAttendeeCount()))
-                    .append(',').append(csvValue(guest.getLastSentAt()))
-                    .append('\n');
+            csv.append(CsvExportUtils.row(
+                    guest.getGuestName(), guest.getPhone(), guest.getEmail(),
+                    guest.getGuestGroup(), guest.getSeatCount(), guest.getNote(),
+                    guest.getSendStatus(), rsvp == null ? null : rsvp.getResponseStatus(),
+                    rsvp == null ? null : rsvp.getAttendeeCount(), guest.getLastSentAt()
+            )).append('\n');
         }
         return csv.toString();
     }
@@ -487,16 +483,6 @@ public class GuestService {
                 .build();
     }
 
-    private String csvValue(Object value) {
-        if (value == null) {
-            return "";
-        }
-        String text = value instanceof Instant ? value.toString() : String.valueOf(value);
-        if (text.contains(",") || text.contains("\"") || text.contains("\n")) {
-            return "\"" + text.replace("\"", "\"\"") + "\"";
-        }
-        return text;
-    }
 
     private String safeFilename(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {
