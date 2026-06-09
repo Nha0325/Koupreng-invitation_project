@@ -9,6 +9,12 @@ import { Breadcrumb } from "../../shared/ui/Breadcrumb";
 
 import { BUILDER_STEPS } from "./config/builderSteps";
 import { useWeddingStore } from "../../stores/useWeddingStore";
+import {
+    publishWeddingDraftToBackend,
+    saveWeddingDraftToBackend,
+    syncKeyForDraft,
+} from "./services/weddingBackendSync";
+import { getAccessToken } from "../../shared/services/authStorage";
 
 export default function CreateWedding() {
     const { draftId } = useParams();
@@ -16,8 +22,12 @@ export default function CreateWedding() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const initialTemplateId = searchParams.get("template") || "royal";
+    const initialBackendTemplateId = searchParams.get("templateId") || "";
     const initialized = useRef(false);
+    const syncTimer = useRef(null);
+    const lastSyncedKey = useRef("");
     const [publishedDraft, setPublishedDraft] = useState(null);
+    const [syncError, setSyncError] = useState("");
     const [stepMenuOpen, setStepMenuOpen] = useState(false);
 
     const draft = useWeddingStore((state) => state.draft);
@@ -38,10 +48,55 @@ export default function CreateWedding() {
         if (draftId) {
             loadDraft(draftId);
         } else {
-            const newDraft = startDraft({ templateId: initialTemplateId });
+            const newDraft = startDraft({
+                templateId: initialTemplateId,
+                templateBackendId: initialBackendTemplateId || undefined,
+            });
             navigate(`/create/wedding/${newDraft.id}`, { replace: true });
         }
-    }, [draftId, initialTemplateId, loadDraft, navigate, startDraft]);
+    }, [draftId, initialBackendTemplateId, initialTemplateId, loadDraft, navigate, startDraft]);
+
+    useEffect(() => {
+        if (!draft || !getAccessToken()) {
+            return undefined;
+        }
+
+        const key = syncKeyForDraft(draft);
+        if (key === lastSyncedKey.current) {
+            return undefined;
+        }
+
+        if (syncTimer.current) {
+            clearTimeout(syncTimer.current);
+        }
+
+        syncTimer.current = setTimeout(() => {
+            saveWeddingDraftToBackend(draft)
+                .then((invitation) => {
+                    lastSyncedKey.current = syncKeyForDraft({
+                        ...draft,
+                        backendInvitationId: invitation.id,
+                    });
+                    setSyncError("");
+                    if (!draft.backendInvitationId || draft.slug !== invitation.slug) {
+                        update({
+                            backendInvitationId: invitation.id,
+                            backendStatus: invitation.status,
+                            slug: invitation.slug || draft.slug,
+                        });
+                    }
+                })
+                .catch((err) => {
+                    setSyncError(err.message || "Could not save draft to backend");
+                });
+        }, 1200);
+
+        return () => {
+            if (syncTimer.current) {
+                clearTimeout(syncTimer.current);
+            }
+        };
+    }, [draft, update]);
 
     const CurrentStep = BUILDER_STEPS[step]?.Component;
     const progress = Math.round(((step + 1) / BUILDER_STEPS.length) * 100);
@@ -70,11 +125,29 @@ export default function CreateWedding() {
         setStepMenuOpen(false);
     }, [setStep]);
 
-    const handlePublish = useCallback(() => {
-        const saved = publishDraft();
+    const handlePublish = useCallback(async () => {
+        if (!draft) {
+            return null;
+        }
+
+        if (!getAccessToken()) {
+            const saved = publishDraft();
+            setPublishedDraft(saved);
+            return saved;
+        }
+
+        const published = await publishWeddingDraftToBackend(draft);
+        const saved = update({
+            backendInvitationId: published.id,
+            backendStatus: published.status,
+            slug: published.slug || draft.slug,
+            publishedAt: published.publishedAt ? Date.parse(published.publishedAt) : Date.now(),
+        });
+        lastSyncedKey.current = syncKeyForDraft(saved);
+        setSyncError("");
         setPublishedDraft(saved);
         return saved;
-    }, [publishDraft]);
+    }, [draft, publishDraft, update]);
 
     const stepEl = useMemo(() => {
         if (!CurrentStep || !draft) return null;
@@ -87,10 +160,11 @@ export default function CreateWedding() {
                 onNext={next}
                 onPublish={handlePublish}
                 publishedDraft={publishedDraft}
+                syncError={syncError}
                 goToStep={setStep}
             />
         );
-    }, [CurrentStep, draft, handlePublish, next, publishedDraft, setStep, update, updateField]);
+    }, [CurrentStep, draft, handlePublish, next, publishedDraft, setStep, syncError, update, updateField]);
 
     if (!draft) {
         return (

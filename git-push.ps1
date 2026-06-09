@@ -9,6 +9,9 @@ $ErrorActionPreference = "Stop"
 $TargetRemote = "origin"
 $TargetBranch = "main"
 
+$ScriptDir = Split-Path -Parent $PSCommandPath
+Set-Location $ScriptDir
+
 function Stop-Script {
     param([string]$Text)
 
@@ -63,12 +66,15 @@ function Test-LocalChanges {
 }
 
 function Test-OriginBranchExists {
-    param([string]$BranchName)
+    param(
+        [string]$RemoteName,
+        [string]$BranchName
+    )
 
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "SilentlyContinue"
-        & git ls-remote --exit-code --heads origin $BranchName *> $null
+        & git ls-remote --exit-code --heads $RemoteName $BranchName *> $null
         return $LASTEXITCODE -eq 0
     }
     finally {
@@ -187,6 +193,9 @@ if ([string]::IsNullOrWhiteSpace($branch)) {
 }
 
 Write-Host "Current branch: $branch"
+if ($branch -ne $TargetBranch) {
+    Stop-Script "This script only pushes from the $TargetBranch branch to $TargetRemote/$TargetBranch. Run: git checkout $TargetBranch"
+}
 
 if ([string]::IsNullOrWhiteSpace($Message)) {
     $Message = Read-Host "Commit message"
@@ -200,7 +209,7 @@ Write-Host ""
 Write-Host "[3/6] Fetching latest code"
 Invoke-Git fetch $TargetRemote --prune
 
-if (-not (Test-OriginBranchExists $TargetBranch)) {
+if (-not (Test-OriginBranchExists $TargetRemote $TargetBranch)) {
     Stop-Script "$TargetRemote/$TargetBranch was not found."
 }
 

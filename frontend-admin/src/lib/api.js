@@ -4,7 +4,7 @@
  */
 import { getAccessToken, clearAuth } from "./authStorage";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 export class ApiError extends Error {
     constructor(message, status, data) {
@@ -13,6 +13,18 @@ export class ApiError extends Error {
         this.status = status;
         this.data = data;
     }
+}
+
+async function parseResponse(res) {
+    if (res.status === 204) return null;
+
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+        return res.json().catch(() => null);
+    }
+
+    const text = await res.text().catch(() => "");
+    return text || null;
 }
 
 async function request(path, { method = "GET", body, headers = {}, auth = true, ...rest } = {}) {
@@ -30,18 +42,19 @@ async function request(path, { method = "GET", body, headers = {}, auth = true, 
         ...rest,
     });
 
-    let data = null;
-    const contentType = res.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-        data = await res.json().catch(() => null);
-    }
+    const data = await parseResponse(res);
 
     if (!res.ok) {
         // Auto-logout on auth failure so the UI can redirect to login.
         if (res.status === 401) {
             clearAuth();
         }
-        const message = data?.message || data?.error || res.statusText || "Request failed";
+        const message =
+            data?.message ||
+            data?.error ||
+            (typeof data === "string" ? data : "") ||
+            res.statusText ||
+            "Request failed";
         throw new ApiError(message, res.status, data);
     }
 

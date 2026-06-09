@@ -15,6 +15,8 @@ Koupreng-invitation_project/
 ├── git-pull.sh           ← Linux/macOS safe pull script
 ├── git-push.ps1          ← Windows safe push script
 ├── git-push.sh           ← Linux/macOS safe push script
+├── git-sync.ps1          ← Windows safe pull + push script
+├── git-sync.sh           ← Linux/macOS safe pull + push script
 └── README.md
 ```
 
@@ -81,14 +83,20 @@ Push safely:
 powershell -ExecutionPolicy Bypass -File .\git-push.ps1 "my commit message"
 ```
 
-The push script always rebases on `origin/main`, commits your local changes, and pushes to `origin/main`.
+Pull and push safely in one command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\git-sync.ps1 "my commit message"
+```
+
+The push and sync scripts always rebase on `origin/main`, commit your local changes, and push to `origin/main`. They only run from the local `main` branch.
 
 ### Linux/macOS
 
 Make scripts executable:
 
 ```bash
-chmod +x setup.sh git-pull.sh git-push.sh
+chmod +x setup.sh git-pull.sh git-push.sh git-sync.sh
 ```
 
 Run setup:
@@ -109,7 +117,13 @@ Push safely:
 ./git-push.sh "my commit message"
 ```
 
-The push script always rebases on `origin/main`, commits your local changes, and pushes to `origin/main`.
+Pull and push safely in one command:
+
+```bash
+./git-sync.sh "my commit message"
+```
+
+The push and sync scripts always rebase on `origin/main`, commit your local changes, and push to `origin/main`. They only run from the local `main` branch.
 
 ### Manual Start Commands
 
@@ -279,8 +293,8 @@ VITE_AUTH_STORAGE=localStorage
 HTTPS_REQUIRED=false
 HSTS_ENABLED=true
 
-FLYWAY_ENABLED=false
-JPA_DDL_AUTO=update
+FLYWAY_ENABLED=true
+JPA_DDL_AUTO=validate
 
 GOOGLE_CLIENT_IDS=
 GOOGLE_JWK_SET_URI=https://www.googleapis.com/oauth2/v3/certs
@@ -305,6 +319,27 @@ Security boundary:
 - `backend/.env`, `frontend-user/.env.local`, and `frontend-admin/.env.local` are optional advanced overrides only. Do not create them unless you intentionally need per-app overrides.
 
 The backend also supports additional upload, logging, mail, WAF, and rate limit settings in `application.properties`. Keep local secrets in root `.env`, not in committed files.
+
+## Static ABA KHQR Template Payments
+
+Template/package checkout currently uses one ABA-hosted static KHQR link:
+
+```text
+https://link.payway.com.kh/ABAPAYrD450560q
+```
+
+The user frontend must create a backend order with `POST /api/v1/template-payments/static/create`, then redirect the browser to the `paymentLink` returned by the backend. The frontend must never mark an order paid or unlock a template. Payment confirmation is backend-only through Telegram/internal verification.
+
+The current static link is fixed at USD 0.01. A static ABA-hosted link cannot dynamically set different prices. For different package prices, use separate ABA static links per price or implement the future dynamic PayWay API flow with server-side verification.
+
+Required local payment env values:
+
+```env
+ABA_PAYWAY_STATIC_LINK=https://link.payway.com.kh/ABAPAYrD450560q
+PAYMENT_PROVIDER_MODE=static
+ADMIN_PAYMENT_SECRET=change_this_to_random_secret
+AUTO_CONFIRM_TELEGRAM_DETECTED=true
+```
 
 Generate a local JWT secret before starting the backend. The example placeholder is intentionally rejected at startup.
 
@@ -411,9 +446,24 @@ Linux/macOS:
 ./git-push.sh "my commit message"
 ```
 
+Or pull and push in one command:
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\git-sync.ps1 "my commit message"
+```
+
+Linux/macOS:
+
+```bash
+./git-sync.sh "my commit message"
+```
+
 Team rules:
 - Use `git-pull` before coding.
 - Use `git-push` to rebase on `origin/main`, commit, and push to `origin/main`.
+- Use `git-sync` when you want one command that pulls first, then commits and pushes.
 - Never commit `.env` files.
 - Never commit secrets like DB password, JWT secret, Telegram bot token, Google OAuth secrets, ABA PayWay credentials, or merchant credentials.
 - Do not force push.
@@ -434,7 +484,7 @@ For production:
 - For cookie auth, set `CORS_ALLOW_CREDENTIALS=true` and keep `CORS_ALLOWED_ORIGINS` as exact origins such as `https://koupreng.com` and `https://admin.koupreng.com`.
 - Do not use `*` in `CORS_ALLOWED_ORIGINS` when credentials are enabled.
 - Use `JPA_DDL_AUTO=validate`.
-- Use `FLYWAY_ENABLED=true` after migrations are ready.
+- Keep `FLYWAY_ENABLED=true` so Flyway remains the schema source.
 - Never commit production `.env` files.
 - Never commit database passwords, JWT secrets, Telegram bot token, Google OAuth secrets, ABA PayWay credentials, or merchant credentials.
 

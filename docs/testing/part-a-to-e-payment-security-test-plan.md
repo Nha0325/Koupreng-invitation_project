@@ -85,8 +85,9 @@ Status values are placeholders for manual/API execution: `NOT RUN`, `PASS`, `FAI
 | PAY-004 | Payment Telegram | Pending static order exists | POST valid telegram-detect payload with matching orderCode and USD 0.01 | Backend marks PAID and creates UserTemplateAccess | NOT RUN |
 | PAY-005 | Payment Telegram | Pending static order exists | POST telegram-detect payload with wrong amount | Backend rejects amount mismatch and does not unlock template | NOT RUN |
 | PAY-006 | Payment Telegram | No matching order | POST telegram-detect payload with unknown orderCode | Backend rejects order not found | NOT RUN |
-| PAY-007 | Payment manual fallback | Pending order exists, admin secret configured | POST `/api/v1/admin/template-payments/confirm` with correct secret and amount | Backend marks PAID and creates access | NOT RUN |
-| PAY-008 | Payment security | Missing or wrong admin secret | POST admin confirm or telegram-detect endpoint | Request is rejected with 401 or 403 | NOT RUN |
+| PAY-007 | Payment manual fallback | Pending order exists, ADMIN JWT exists | POST `/api/v1/admin/template-payments/confirm` with ADMIN JWT and exact amount | Backend marks PAID and creates access | NOT RUN |
+| PAY-008 | Payment security | Internal payment secret configured | POST `/api/v1/internal/template-payments/confirm` or `/telegram-detect` with missing/wrong `X-ADMIN-PAYMENT-SECRET` | Request is rejected with 401 or 403 before the controller/service runs | PASS |
+| PAY-010 | Payment security | Internal payment secret configured | POST `/api/v1/internal/template-payments/confirm` or `/telegram-detect` with valid `X-ADMIN-PAYMENT-SECRET` and no ADMIN JWT | Request reaches controller/service | PASS |
 | PAY-009 | Payment access | PENDING or PAID_PENDING_REVIEW order exists | Check template access endpoint | Template access is false until status is PAID | NOT RUN |
 
 ## Telegram

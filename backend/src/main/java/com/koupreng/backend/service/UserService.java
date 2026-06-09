@@ -1,6 +1,7 @@
 package com.koupreng.backend.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.ChangePasswordRequest;
@@ -39,11 +40,15 @@ public class UserService {
     public UserResponse updateProfile(Authentication authentication, UpdateProfileRequest request) {
         AppUser user = currentUser(authentication);
         user.setFullName(request.fullName().trim());
-        if (request.phone() != null) {
-            user.setPhone(request.phone().trim());
+        String phone = normalizePhone(request.phone());
+        if (!Objects.equals(user.getPhone(), phone)) {
+            if (phone != null && userRepository.existsByPhone(phone)) {
+                throw new ApiException(HttpStatus.CONFLICT, "Phone number is already registered");
+            }
+            user.setPhone(phone);
         }
         if (request.profileImage() != null) {
-            user.setProfileImage(request.profileImage().trim());
+            user.setProfileImage(normalizeProfileImage(request.profileImage()));
         }
         return UserResponse.from(user);
     }
@@ -102,5 +107,19 @@ public class UserService {
             return userRepository.findByEmailIgnoreCase(principal)
                     .orElseThrow(() -> new BadCredentialsException("Authentication required"));
         }
+    }
+
+    private String normalizePhone(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.replaceAll("\\s+", "");
+    }
+
+    private String normalizeProfileImage(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

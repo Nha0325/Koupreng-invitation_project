@@ -11,8 +11,16 @@ export const invitationService = {
     publish: (id) => api.patch(`/v1/invitations/${id}/publish`).then(unwrap),
     unpublish: (id) => api.patch(`/v1/invitations/${id}/unpublish`).then(unwrap),
     preview: (id) => api.get(`/v1/invitations/${id}/preview`).then(unwrap),
-    publicBySlug: (slug, token) => api
-        .get(`/v1/public/invitations/${encodeURIComponent(slug)}${toQuery({ token })}`, { auth: false })
+    getCustomization: (id) => api.get(`/v1/invitations/${id}/customization`).then(unwrap),
+    updateCustomization: (id, data) => api.put(`/v1/invitations/${id}/customization`, data).then(unwrap),
+    publicBySlug: (slug, params = {}) => {
+        const queryParams = typeof params === "string" ? { token: params } : params;
+        return api
+            .get(`/v1/public/invitations/${encodeURIComponent(slug)}${toQuery(queryParams)}`, { auth: false })
+            .then(unwrap);
+    },
+    verifyPublicAccess: (slug, data) => api
+        .post(`/v1/public/invitations/${encodeURIComponent(slug)}/access/verify`, data, { auth: false })
         .then(unwrap),
 };
 

@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getTemplateById, TEMPLATES } from "../templates/data/templatesData";
 import { paymentService } from "./paymentService";
 import "./PaymentPages.css";
+import templateService from "../templates/templateService";
+import { mergeBackendTemplate } from "../templates/templateCatalogAdapter";
 
-const ABA_STATIC_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
+const STATIC_ABA_CHECKOUT_AMOUNT = "0.01";
 
 function numericTemplateId(templateId) {
     const parsed = Number(templateId);
@@ -17,13 +19,41 @@ function numericTemplateId(templateId) {
 
 export default function TemplateCheckoutPage() {
     const { templateId } = useParams();
-    const template = getTemplateById(templateId);
+    const [remoteTemplate, setRemoteTemplate] = useState(null);
+    const fallbackTemplate = getTemplateById(templateId);
+
+    useEffect(() => {
+        let mounted = true;
+        const numericId = Number(templateId);
+        const request = Number.isInteger(numericId) && numericId > 0
+            ? templateService.getPublic(numericId)
+            : templateService.getPublicBySlug(templateId);
+        request
+            .then((template) => {
+                if (mounted) {
+                    setRemoteTemplate(template || null);
+                }
+            })
+            .catch(() => {
+                if (mounted) {
+                    setRemoteTemplate(null);
+                }
+            });
+        return () => {
+            mounted = false;
+        };
+    }, [templateId]);
+
+    const template = useMemo(
+        () => remoteTemplate ? mergeBackendTemplate(remoteTemplate, fallbackTemplate.id) : fallbackTemplate,
+        [fallbackTemplate, remoteTemplate]
+    );
     const checkout = useMemo(() => ({
-        templateId: numericTemplateId(templateId),
+        templateId: template?.backendId || numericTemplateId(templateId),
         templateName: template?.name || "Khmer Wedding Gold",
         packageName: "Premium",
-        amount: "0.01",
-        currency: "USD",
+        amount: STATIC_ABA_CHECKOUT_AMOUNT,
+        currency: template?.currency || "USD",
     }), [template, templateId]);
     const [lastOrder, setLastOrder] = useState(null);
     const [creating, setCreating] = useState(false);
@@ -36,7 +66,10 @@ export default function TemplateCheckoutPage() {
 
         try {
             const response = await paymentService.createStaticPaymentOrder(checkout);
-            const paymentLink = response?.paymentLink || ABA_STATIC_LINK;
+            if (!response?.paymentLink) {
+                throw new Error("Payment link was not returned by the backend");
+            }
+            const paymentLink = response.paymentLink;
 
             const orderSnapshot = {
                 orderCode: response?.orderCode,
@@ -68,7 +101,7 @@ export default function TemplateCheckoutPage() {
             <section className="payment-hero">
                 <span className="payment-eyebrow">Template checkout</span>
                 <h1>Buy Template</h1>
-                <p>After clicking Buy Template, your order will be created and you will be redirected to the ABA KHQR payment page. This static ABA link is already configured with USD 0.01.</p>
+                <p>After clicking Buy Template, your order will be created and you will be redirected to the ABA KHQR payment page. Static ABA KHQR test payment is fixed at USD 0.01.</p>
                 <p>បន្ទាប់ពីចុច Buy Template ប្រព័ន្ធនឹងបង្កើត order ហើយបញ្ជូនអ្នកទៅទំព័រ ABA KHQR។ Static link នេះបានកំណត់តម្លៃ USD 0.01 រួចហើយ។</p>
             </section>
 

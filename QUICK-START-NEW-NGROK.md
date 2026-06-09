@@ -56,9 +56,9 @@ https://YOUR-DOMAIN.ngrok-free.dev/login
 
 ## 🔄 Next Time You Restart:
 
-**Step 1** → Skip (already done)  
-**Step 2** → Run `./dev.sh` → Copy NEW domain  
-**Step 3** → Update BotFather with NEW domain  
+**Step 1** → Skip (already done)
+**Step 2** → Run `./dev.sh` → Copy NEW domain
+**Step 3** → Update BotFather with NEW domain
 **Step 4** → Test with NEW URL
 
 ---

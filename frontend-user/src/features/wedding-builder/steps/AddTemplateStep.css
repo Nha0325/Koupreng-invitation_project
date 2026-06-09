@@ -301,3 +301,13 @@
 .at-btn--view svg {
     opacity: 0.7;
 }
+
+.at-btn--buy {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+}
+
+.at-btn--buy:hover {
+    background: linear-gradient(135deg, #6d28d9, #9333ea);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}

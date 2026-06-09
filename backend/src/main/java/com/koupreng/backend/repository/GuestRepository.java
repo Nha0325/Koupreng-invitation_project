@@ -28,6 +28,12 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
 
     long countByInvitationId(Long invitationId);
 
+    long countByInvitationUserId(Long userId);
+
+    long countByInvitationIdAndSendStatusIgnoreCase(Long invitationId, String sendStatus);
+
+    long countByInvitationIdAndInvitationViewedAtIsNotNull(Long invitationId);
+
     @Query("""
             select g
             from Guest g

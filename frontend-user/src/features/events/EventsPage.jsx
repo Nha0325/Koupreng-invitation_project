@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getTemplateById } from "../templates/data/templatesData";
-import { listDrafts, deleteDraft } from "../../services/weddingStorage";
+import { invitationService } from "../../shared/services/invitationService";
 import "./EventsPage.css";
 
 function getTitle(draft) {
@@ -22,17 +22,14 @@ function getTitle(draft) {
 
 function EventCard({ draft, onSee, onManage, onDelete }) {
     const template = getTemplateById(draft.templateId);
-    // Show the same cover image the user picked in the builder's card grid
-    // (phoneCoverImage / mainImage), not the generic thumbnail.
     const coverImage = template.phoneCoverImage || template.mainImage || template.image;
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Close menu when clicking outside
     useEffect(() => {
         if (!menuOpen) return;
-        const handleClickOutside = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target)) {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setMenuOpen(false);
             }
         };
@@ -47,6 +44,55 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                 <span className="event-card-badge">{draft.publishedAt ? "Published" : "Draft"}</span>
             </div>
             <div className="event-card-body">
+                <div className="event-card-title-row">
+                    <div className="event-card-title">{getTitle(draft)}</div>
+                    <div className="event-card-menu-wrap" ref={menuRef}>
+                        <button
+                            className="event-card-dots-btn"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setMenuOpen(!menuOpen);
+                            }}
+                            aria-label="ម៉ឺនុយ"
+                        >
+                            ⋯
+                        </button>
+                        {menuOpen && (
+                            <div className="event-card-dropdown">
+                                <button
+                                    className="event-card-dropdown-item"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setMenuOpen(false);
+                                        onSee(draft);
+                                    }}
+                                >
+                                    See
+                                </button>
+                                <button
+                                    className="event-card-dropdown-item"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setMenuOpen(false);
+                                        onManage(draft);
+                                    }}
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    className="event-card-dropdown-item event-card-dropdown-item--danger"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setMenuOpen(false);
+                                        onDelete(draft);
+                                    }}
+                                >
+                                    លុប
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <div className="event-card-desc">{template.name} / {template.style}</div>
                 <div className="event-card-date">
                     {draft.event?.date || "មិនទាន់បំពេញថ្ងៃ"} {draft.event?.receptionTime || ""}
@@ -62,13 +108,11 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                         Edit
                     </button>
                     <Link
+                        to={draft.backendInvitationId ? `/dashboard/invitations/${draft.backendInvitationId}/preview` : `/event/${draft.id}`}
                         className="event-card-preview-btn"
-                        onClick={(event) => {
-                            event.stopPropagation();
-                            onDelete(draft);
-                        }}
+                        onClick={(event) => event.stopPropagation()}
                     >
-                        Delete  
+                        See
                     </Link>
                 </div>
             </div>
@@ -78,14 +122,66 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
 
 export default function EventsPage() {
     const navigate = useNavigate();
-    const [drafts, setDrafts] = useState(listDrafts());
+    const [drafts, setDrafts] = useState([]);
     const [draftToDelete, setDraftToDelete] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let active = true;
+        invitationService.listMine()
+            .then((items) => {
+                if (active) {
+                    setDrafts((items || []).map((invitation) => ({
+                        id: `inv-${invitation.id}`,
+                        backendInvitationId: invitation.id,
+                        templateId: invitation.templateId || "royal",
+                        title: invitation.title,
+                        slug: invitation.slug,
+                        status: invitation.status,
+                        publishedAt: invitation.status === "PUBLISHED" ? invitation.publishedAt || Date.now() : null,
+                        couple: {
+                            groom: invitation.groomName,
+                            bride: invitation.brideName,
+                        },
+                        event: {
+                            date: invitation.eventDate,
+                            receptionTime: invitation.eventTime,
+                            venueName: invitation.venueName,
+                            venueAddress: invitation.venueAddress,
+                        },
+                    })));
+                    setError("");
+                }
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load invitations");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoading(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleSee = (draft) => {
+        if (draft.backendInvitationId) {
+            navigate(`/dashboard/invitations/${draft.backendInvitationId}/preview`);
+            return;
+        }
         navigate(`/event/${draft.id}`);
     };
 
     const handleManage = (draft) => {
+        if (draft.backendInvitationId) {
+            navigate(`/dashboard/invitations/${draft.backendInvitationId}`);
+            return;
+        }
         navigate(`/event/${draft.id}/manage`, { state: { backTo: "/events" } });
     };
 
@@ -93,11 +189,18 @@ export default function EventsPage() {
         setDraftToDelete(draft);
     };
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (!draftToDelete) return;
-        deleteDraft(draftToDelete.id);
-        setDrafts(listDrafts());
-        setDraftToDelete(null);
+        try {
+            if (draftToDelete.backendInvitationId) {
+                await invitationService.remove(draftToDelete.backendInvitationId);
+            }
+            setDrafts((current) => current.filter((item) => item.id !== draftToDelete.id));
+            setDraftToDelete(null);
+        } catch (err) {
+            setError(err.message || "Could not delete invitation");
+            setDraftToDelete(null);
+        }
     };
 
     return (
@@ -106,18 +209,23 @@ export default function EventsPage() {
                 <div>
                     <span>Koupreng invitations</span>
                     <h1>កម្មវិធីសន្លឹកការរបស់អ្នក</h1>
-                    <p>ទិន្នន័យនេះអានពី wedding draft storage ដូចគ្នានឹង dashboard និង builder។</p>
+                    <p>ទិន្នន័យនេះអានពី backend invitations ដូចគ្នានឹង dashboard និង guest/budget managers។</p>
                 </div>
                 <Link to="/create/wedding" className="events-create-btn">
                     + បង្កើតកម្មវិធី
                 </Link>
             </header>
 
-            {drafts.length === 0 ? (
+            {error && <section className="events-empty"><p>{error}</p></section>}
+            {loading ? (
+                <section className="events-empty">
+                    <p>Loading invitations...</p>
+                </section>
+            ) : drafts.length === 0 ? (
                 <section className="events-empty">
                     <div className="events-empty-icon">គូព្រេង</div>
                     <h2>មិនទាន់មានកម្មវិធី</h2>
-                    <p>ចាប់ផ្តើមបង្កើតកម្មវិធីដំបូង ហើយរក្សាទុកក្នុង wedding draft storage។</p>
+                    <p>ចាប់ផ្តើមបង្កើតកម្មវិធីដំបូង ហើយរក្សាទុកក្នុង backend invitations។</p>
                     <Link to="/create/wedding" className="events-create-btn">
                         + បង្កើតកម្មវិធី
                     </Link>
@@ -136,22 +244,21 @@ export default function EventsPage() {
                 </section>
             )}
 
-            {/* Custom Delete Confirmation Modal */}
             {draftToDelete && (
                 <div className="events-modal-layer">
                     <div className="events-modal">
                         <button type="button" className="events-modal-close" onClick={() => setDraftToDelete(null)}>
-                            ✕
+                            x
                         </button>
                         <div className="events-modal-content">
                             <h3>លុបកម្មវិធីនេះ?</h3>
-                            <p>កម្មវិធីនេះនឹងត្រូវបានលុបចោល!</p>
+                            <p>{getTitle(draftToDelete)} នឹងត្រូវបានលុបចោល!</p>
                             <div className="events-modal-actions">
                                 <button type="button" className="events-modal-cancel" onClick={() => setDraftToDelete(null)}>
-                                    ✕ បោះបង់
+                                    បោះបង់
                                 </button>
                                 <button type="button" className="events-modal-confirm" onClick={confirmDelete}>
-                                    ✓ យល់ព្រម
+                                    យល់ព្រម
                                 </button>
                             </div>
                         </div>

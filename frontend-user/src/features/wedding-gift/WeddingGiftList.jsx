@@ -98,10 +98,10 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
             >
                 {selectedOption ? (
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <span style={{ 
-                            display: "inline-flex", alignItems: "center", justifyContent: "center", 
-                            width: "28px", height: "28px", background: existingGiftForSelected ? "#FFE4E6" : "#f5efe5", 
-                            color: existingGiftForSelected ? "#E11D48" : "#2a3b5c", 
+                        <span style={{
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            width: "28px", height: "28px", background: existingGiftForSelected ? "#FFE4E6" : "#f5efe5",
+                            color: existingGiftForSelected ? "#E11D48" : "#2a3b5c",
                             borderRadius: "50%", fontSize: "12px", fontWeight: "bold", flexShrink: 0
                         }}>
                             {selectedOption.name.substring(0, 2).toUpperCase()}
@@ -122,8 +122,8 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
                     <div style={{ color: "#E11D48", fontSize: "13px", marginBottom: "8px" }}>
                         This guest has already given a gift.
                     </div>
-                    <div style={{ 
-                        display: "inline-block", background: "#DBEAFE", color: "#1D4ED8", 
+                    <div style={{
+                        display: "inline-block", background: "#DBEAFE", color: "#1D4ED8",
                         padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "500"
                     }}>
                         {existingGiftForSelected.method.toUpperCase()}: ${existingGiftForSelected.amount}
@@ -140,10 +140,10 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
                 }}>
                     <div style={{ position: "relative" }}>
                         <IoSearchOutline style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#999", fontSize: "18px" }} />
-                        <input 
-                            type="text" 
-                            value={query} 
-                            onChange={e => setQuery(e.target.value)} 
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
                             onKeyDown={e => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
@@ -158,12 +158,12 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
                                     }
                                 }
                             }}
-                            placeholder="Search guest..." 
-                            style={{ 
-                                width: "100%", padding: "10px 10px 10px 36px", border: "none", borderBottom: "1px solid #f0f0f0", 
+                            placeholder="Search guest..."
+                            style={{
+                                width: "100%", padding: "10px 10px 10px 36px", border: "none", borderBottom: "1px solid #f0f0f0",
                                 borderRadius: "0", fontSize: "15px", boxSizing: "border-box", outline: "none",
                                 fontFamily: "inherit"
-                            }} 
+                            }}
                             autoFocus
                         />
                     </div>
@@ -173,7 +173,7 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
                                 type="button"
                                 onClick={() => { onChange(query.trim()); setOpen(false); setQuery(""); }}
                                 style={{
-                                    display: "flex", alignItems: "center", gap: "10px", width: "100%", 
+                                    display: "flex", alignItems: "center", gap: "10px", width: "100%",
                                     padding: "12px 14px", border: "none", background: "#fdfaf5",
                                     textAlign: "left", cursor: "pointer", fontSize: "14px", color: "#B0926A",
                                     borderRadius: "8px", fontWeight: "bold", marginBottom: "4px",
@@ -196,7 +196,7 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
                                     type="button"
                                     onClick={() => { onChange(g.name); setOpen(false); setQuery(""); }}
                                     style={{
-                                        display: "flex", alignItems: "center", gap: "12px", width: "100%", 
+                                        display: "flex", alignItems: "center", gap: "12px", width: "100%",
                                         padding: "12px 14px", border: "none", background: "transparent",
                                         textAlign: "left", cursor: "pointer", fontSize: "15px", color: "#111",
                                         borderBottom: "1px solid #f9f9f9", transition: "background 0.2s",
@@ -205,10 +205,10 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
                                     onMouseOver={(e) => e.currentTarget.style.background = "#fdfaf5"}
                                     onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
                                 >
-                                    <span style={{ 
-                                        display: "inline-flex", alignItems: "center", justifyContent: "center", 
-                                        width: "32px", height: "32px", background: pastGift ? "#FFE4E6" : "#f5efe5", 
-                                        color: pastGift ? "#E11D48" : "#2a3b5c", 
+                                    <span style={{
+                                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                        width: "32px", height: "32px", background: pastGift ? "#FFE4E6" : "#f5efe5",
+                                        color: pastGift ? "#E11D48" : "#2a3b5c",
                                         borderRadius: "50%", fontSize: "13px", fontWeight: "bold", flexShrink: 0
                                     }}>
                                         {g.name.substring(0, 2).toUpperCase()}
@@ -216,9 +216,9 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
                                     <span style={{ flexGrow: 1, display: "flex", alignItems: "center", gap: "8px" }}>
                                         {g.name}
                                         {pastGift && (
-                                            <span style={{ 
-                                                background: "#FB7185", color: "white", padding: "2px 8px", 
-                                                borderRadius: "12px", fontSize: "11px", fontWeight: "500" 
+                                            <span style={{
+                                                background: "#FB7185", color: "white", padding: "2px 8px",
+                                                borderRadius: "12px", fontSize: "11px", fontWeight: "500"
                                             }}>
                                                 Given Gift
                                             </span>
@@ -281,14 +281,14 @@ function WeddingGiftList() {
     useEffect(() => {
         if (!selectedInvitationId) { setGuestOptions([]); return undefined; }
         let active = true;
-        
+
         // Load from local storage first
         const localGuests = listManualGuests() || [];
         setGuestOptions(localGuests);
-        
+
         // Then try to fetch from backend
         guestService.listByInvitation(selectedInvitationId)
-            .then((items) => { 
+            .then((items) => {
                 if (active && items && items.length > 0) {
                     setGuestOptions(prev => {
                         const all = [...prev, ...items];
@@ -298,7 +298,7 @@ function WeddingGiftList() {
                 }
             })
             .catch(() => { });
-            
+
         return () => { active = false; };
     }, [selectedInvitationId]);
 
@@ -482,12 +482,12 @@ function WeddingGiftList() {
                                     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                                         <label className="wg-field-full">
                                             <span>{t("fieldName")} <em>*</em></span>
-                                            <GuestSelectField 
-                                                value={form.name} 
-                                                onChange={(val) => updateForm("name", val)} 
+                                            <GuestSelectField
+                                                value={form.name}
+                                                onChange={(val) => updateForm("name", val)}
                                                 options={guestOptions}
                                                 existingGifts={gifts}
-                                                placeholder={t("placeholderName") || "Search guest..."} 
+                                                placeholder={t("placeholderName") || "Search guest..."}
                                             />
                                         </label>
                                         <label className="wg-field-full" style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
@@ -611,4 +611,3 @@ function WeddingGiftList() {
 }
 
 export default WeddingGiftList;
-

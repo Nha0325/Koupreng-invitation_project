@@ -23,6 +23,9 @@ export default function PublicInvitationPage() {
     const [media, setMedia] = useState(null);
     const [remoteLoading, setRemoteLoading] = useState(true);
     const [remoteError, setRemoteError] = useState("");
+    const [protectedMode, setProtectedMode] = useState(false);
+    const [verifiedAccessToken, setVerifiedAccessToken] = useState("");
+    const [verifyingAccess, setVerifyingAccess] = useState(false);
     const draft = useWeddingStore((state) => state.draft);
     const loadDraft = useWeddingStore((state) => state.loadDraft);
     const loadDraftBySlug = useWeddingStore((state) => state.loadDraftBySlug);
@@ -30,9 +33,17 @@ export default function PublicInvitationPage() {
     const [gallery, setGallery] = useState(null);
     const activeDraft = draft?.slug === slug || draft?.id === slug ? draft : null;
     const shouldBackToDashboard = location.state?.backTo === "/dashboard";
+    const queryAccessToken = searchParams.get("accessToken") || "";
+    const accessStorageKey = slug ? `koupreng_invitation_access_${slug}` : "";
+    const effectiveAccessToken = queryAccessToken || verifiedAccessToken;
     const backProps = shouldBackToDashboard
         ? { showBack: true, backTo: "/dashboard", backLabel: "← ផ្ទាំងគ្រប់គ្រង" }
         : { showBack: false };
+
+    useEffect(() => {
+        setVerifiedAccessToken(slug ? sessionStorage.getItem(`koupreng_invitation_access_${slug}`) || "" : "");
+        setProtectedMode(false);
+    }, [slug]);
 
     useEffect(() => {
         if (!slug) {
@@ -46,23 +57,31 @@ export default function PublicInvitationPage() {
         let active = true;
         setRemoteLoading(true);
         setRemoteError("");
+        setProtectedMode(false);
         setInvitation(null);
         setMedia(null);
+        const publicParams = {
+            accessToken: effectiveAccessToken,
+            token: inviteToken,
+        };
 
         Promise.all([
-            invitationService.publicBySlug(slug, inviteToken),
-            mediaService.publicBySlug(slug, inviteToken).catch(() => null),
+            invitationService.publicBySlug(slug, publicParams),
+            mediaService.publicBySlug(slug, publicParams).catch(() => null),
         ])
             .then(([invitationData, mediaData]) => {
                 if (active) {
                     setInvitation(invitationData);
                     setMedia(mediaData);
                     setRemoteError("");
+                    setProtectedMode(false);
                 }
             })
             .catch((err) => {
                 if (active) {
-                    setRemoteError(err?.status === 403 ? "This invitation requires a password." : "Invitation not available.");
+                    const protectedError = err?.status === 403;
+                    setProtectedMode(protectedError);
+                    setRemoteError(protectedError ? (err?.message || "This invitation requires access.") : "Invitation not available.");
                 }
             })
             .finally(() => {
@@ -74,7 +93,7 @@ export default function PublicInvitationPage() {
         return () => {
             active = false;
         };
-    }, [slug, inviteToken]);
+    }, [slug, inviteToken, effectiveAccessToken]);
 
     useEffect(() => {
         if (!slug) {
@@ -109,20 +128,47 @@ export default function PublicInvitationPage() {
         return <div className="public-state">Loading invitation...</div>;
     }
 
+    const verifyAccess = async (password) => {
+        setVerifyingAccess(true);
+        setRemoteError("");
+        try {
+            const response = await invitationService.verifyPublicAccess(slug, {
+                password,
+                inviteToken,
+                accessToken: effectiveAccessToken,
+            });
+            if (response?.accessToken) {
+                sessionStorage.setItem(accessStorageKey, response.accessToken);
+                setVerifiedAccessToken(response.accessToken);
+            }
+            setProtectedMode(false);
+        } catch (err) {
+            setRemoteError(err?.message || "Could not verify invitation access.");
+        } finally {
+            setVerifyingAccess(false);
+        }
+    };
+
     if (invitation) {
         return (
             <InvitationDisplay invitation={invitation} media={media}>
-                <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
+                <PublicRsvpForm
+                    slug={slug}
+                    inviteToken={inviteToken}
+                    accessToken={effectiveAccessToken}
+                    languageMode={invitation.languageMode}
+                />
             </InvitationDisplay>
         );
     }
 
-    if (remoteError === "This invitation requires a password.") {
+    if (protectedMode) {
         return (
-            <main className="public-state">
-                <h1>Invitation not available</h1>
-                <p>{remoteError}</p>
-            </main>
+            <ProtectedInvitationGate
+                error={remoteError}
+                loading={verifyingAccess}
+                onSubmit={verifyAccess}
+            />
         );
     }
 
@@ -164,6 +210,40 @@ export default function PublicInvitationPage() {
         <main className="public-state">
             <h1>Invitation not available</h1>
             <p>{remoteError || "This invitation may be unpublished or unavailable."}</p>
+        </main>
+    );
+}
+
+function ProtectedInvitationGate({ error, loading, onSubmit }) {
+    const [password, setPassword] = useState("");
+
+    return (
+        <main className="public-state protected-gate">
+            <form
+                className="protected-gate-card"
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    onSubmit(password);
+                }}
+            >
+                <p className="pub-kicker">Private invitation</p>
+                <h1>Enter invitation password</h1>
+                <p>This invitation is protected. Use the password or open a guest-specific invitation link.</p>
+                <label>
+                    Password
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        autoComplete="current-password"
+                        required
+                    />
+                </label>
+                {error && <div className="inv-error">{error}</div>}
+                <button className="inv-primary-btn" type="submit" disabled={loading}>
+                    {loading ? "Checking..." : "Open invitation"}
+                </button>
+            </form>
         </main>
     );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     IoAddOutline,
     IoCheckmarkCircleOutline,
@@ -9,13 +9,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { templateCatalogService } from "../../../shared/services/templateCatalogService";
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
+import { getTemplateById, isTemplatePremium, TEMPLATES } from "../../templates/data/templatesData";
+import { VARIANT_ROUTE_ALIASES } from "../../templates/template-experience/templateExperienceThemes";
+import { getTemplateRouteId, isBackendPremium, mergeBackendTemplate } from "../../templates/templateCatalogAdapter";
 import "./AddTemplateStep.css";
 
-
-
-/**
- * Database template category styles.
- */
 const CATEGORY_STYLES = {
     MODERN: {
         label: "Modern",
@@ -28,6 +26,18 @@ const CATEGORY_STYLES = {
         color: "#b45309",
         bg: "rgba(180, 83, 9, 0.08)",
         border: "rgba(180, 83, 9, 0.28)",
+    },
+    ANCIENT: {
+        label: "Ancient",
+        color: "#b45309",
+        bg: "rgba(180, 83, 9, 0.08)",
+        border: "rgba(180, 83, 9, 0.28)",
+    },
+    CONTEMPORARY: {
+        label: "Contemporary",
+        color: "#be185d",
+        bg: "rgba(190, 24, 93, 0.08)",
+        border: "rgba(190, 24, 93, 0.28)",
     },
     MINIMALIST: {
         label: "Minimalist",
@@ -56,20 +66,57 @@ const CATEGORY_STYLES = {
 };
 
 function getCategoryInfo(category) {
-    return CATEGORY_STYLES[category] || CATEGORY_STYLES.OTHER;
+    const key = String(category || "OTHER").trim().toUpperCase();
+    return CATEGORY_STYLES[key] || CATEGORY_STYLES.OTHER;
+}
+
+function getViewTemplateId(template) {
+    return template.viewId || template.localTemplateId || template.id || "classic";
 }
 
 function getCardImage(template) {
-    return template.thumbnailUrl || null;
+    if (template.thumbnailUrl || template.image) {
+        return template.thumbnailUrl || template.image;
+    }
+    const viewId = getViewTemplateId(template);
+    const realId = VARIANT_ROUTE_ALIASES[viewId] || viewId;
+    const tpl = getTemplateById(realId);
+    return tpl?.mainImage || tpl?.phoneCoverImage || null;
+}
+
+function normalizeRemoteTemplate(template) {
+    const merged = mergeBackendTemplate(template);
+    const routeId = getTemplateRouteId(merged) || String(template.id);
+    const paid = isBackendPremium(merged);
+    return {
+        ...merged,
+        id: routeId,
+        backendId: merged.backendId || template.id,
+        viewId: routeId,
+        isPaid: paid,
+        premium: paid,
+    };
+}
+
+function normalizeLocalTemplate(template) {
+    const paid = isTemplatePremium(template.id);
+    return {
+        ...template,
+        viewId: template.id,
+        localTemplateId: template.id,
+        isPaid: paid,
+        premium: paid,
+        thumbnailUrl: template.phoneCoverImage || template.mainImage || template.image,
+    };
 }
 
 function TemplateCard({ template, onSelect, onView, t }) {
     const category = getCategoryInfo(template.category);
     const cardImage = getCardImage(template);
+    const isPaid = Boolean(template.isPaid || template.premium);
 
     return (
         <div className="at-card">
-            {/* Category badge */}
             <span
                 className="at-card-badge"
                 style={{
@@ -81,7 +128,6 @@ function TemplateCard({ template, onSelect, onView, t }) {
                 {category.label}
             </span>
 
-            {/* Image */}
             <div className="at-card-image">
                 {cardImage ? (
                     <img src={cardImage} alt={template.name} />
@@ -93,17 +139,15 @@ function TemplateCard({ template, onSelect, onView, t }) {
                 )}
             </div>
 
-            {/* Info */}
             <div className="at-card-body">
                 <h4 className="at-card-name">{template.name}</h4>
-                {template.premium ? (
+                {isPaid ? (
                     <span className="at-card-price at-card-price--paid">{t("priceTag")}</span>
                 ) : (
                     <span className="at-card-price">{t("noPriceTag")}</span>
                 )}
             </div>
 
-            {/* Actions */}
             <div className="at-card-actions">
                 {template.added ? (
                     <span className="at-btn at-btn--added">
@@ -111,9 +155,12 @@ function TemplateCard({ template, onSelect, onView, t }) {
                         {t("addedBtn")}
                     </span>
                 ) : (
-                    <button className="at-btn at-btn--select" onClick={() => onSelect(template)}>
-                        <IoAddOutline aria-hidden="true" />
-                        {t("selectBtn")}
+                    <button
+                        className={`at-btn ${isPaid ? "at-btn--buy" : "at-btn--select"}`}
+                        onClick={() => onSelect(template)}
+                    >
+                        {isPaid ? <IoDiamondOutline aria-hidden="true" /> : <IoAddOutline aria-hidden="true" />}
+                        {isPaid ? t("buyBtn") : t("selectBtn")}
                     </button>
                 )}
                 <button className="at-btn at-btn--view" onClick={() => onView(template)}>
@@ -128,7 +175,7 @@ function TemplateCard({ template, onSelect, onView, t }) {
 export default function AddTemplateStep() {
     const { text: t } = useBackendMessages("templates");
     const navigate = useNavigate();
-    const [templates, setTemplates] = useState([]);
+    const [remoteTemplates, setRemoteTemplates] = useState([]);
     const [selectedTemplates, setSelectedTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -139,12 +186,13 @@ export default function AddTemplateStep() {
         templateCatalogService.list()
             .then((items) => {
                 if (active) {
-                    setTemplates(items || []);
+                    setRemoteTemplates(Array.isArray(items) ? items : []);
                     setError("");
                 }
             })
             .catch((err) => {
                 if (active) {
+                    setRemoteTemplates([]);
                     setError(err.message || t("error"));
                 }
             })
@@ -156,17 +204,37 @@ export default function AddTemplateStep() {
         return () => {
             active = false;
         };
-    }, []);
+    }, [t]);
+
+    const templates = useMemo(() => {
+        const source = remoteTemplates.length
+            ? remoteTemplates.map(normalizeRemoteTemplate)
+            : TEMPLATES.map(normalizeLocalTemplate);
+
+        return source.map((template) => ({
+            ...template,
+            added: selectedTemplates.includes(String(template.id)),
+        }));
+    }, [remoteTemplates, selectedTemplates]);
 
     const handleSelect = (template) => {
+        const viewId = getViewTemplateId(template);
+        if (template.isPaid || template.premium || isTemplatePremium(viewId)) {
+            navigate(`/templates/${viewId}/checkout`);
+            return;
+        }
+
         const templateId = String(template.id);
         setSelectedTemplates((current) =>
             current.includes(templateId) ? current : [...current, templateId]
         );
-        navigate(`/dashboard/invitations/new?templateId=${template.id}`);
+
+        const builderTemplateId = template.localTemplateId || viewId;
+        navigate(`/create/wedding?template=${encodeURIComponent(builderTemplateId)}${template.backendId ? `&templateId=${encodeURIComponent(template.backendId)}` : ""}`);
     };
 
     const handleView = (template) => {
+        const viewId = getViewTemplateId(template);
         if (template.previewUrl) {
             if (template.previewUrl.startsWith("/")) {
                 navigate(template.previewUrl);
@@ -175,18 +243,11 @@ export default function AddTemplateStep() {
             }
             return;
         }
-        navigate(`/dashboard/invitations/new?templateId=${template.id}`);
+        navigate(`/templates/browse/${viewId}`);
     };
 
-    const freeTemplates = templates.filter((template) => !template.premium).map((tpl) => ({
-        ...tpl,
-        added: selectedTemplates.includes(String(tpl.id)),
-    }));
-
-    const paidTemplates = templates.filter((template) => template.premium).map((tpl) => ({
-        ...tpl,
-        added: selectedTemplates.includes(String(tpl.id)),
-    }));
+    const freeTemplates = templates.filter((template) => !template.isPaid && !template.premium);
+    const paidTemplates = templates.filter((template) => template.isPaid || template.premium);
 
     return (
         <div className="at-root">
@@ -195,11 +256,7 @@ export default function AddTemplateStep() {
 
             {error && <div className="at-empty-state">{error}</div>}
             {loading && <div className="at-empty-state">{t("loading")}</div>}
-            {!loading && templates.length === 0 && (
-                <div className="at-empty-state">{t("empty")}</div>
-            )}
 
-            {/* Free Templates Section */}
             {!loading && freeTemplates.length > 0 && (
                 <section className="at-section">
                     <div className="at-section-header">
@@ -223,7 +280,6 @@ export default function AddTemplateStep() {
                 </section>
             )}
 
-            {/* Paid Templates Section */}
             {!loading && paidTemplates.length > 0 && (
                 <section className="at-section at-section--paid">
                     <div className="at-section-header">

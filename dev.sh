@@ -321,7 +321,11 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 
 if [ "$USE_CLOUDFLARE" = true ]; then
-  if command -v cloudflared &>/dev/null; then
+  if ! command -v cloudflared &>/dev/null; then
+    err "cloudflared not found in PATH"
+    err "Install: wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && sudo dpkg -i cloudflared-linux-amd64.deb"
+    err "See CLOUDFLARE-TUNNEL-SETUP.md for full setup guide"
+  else
     # Wait for cloudflare URL to appear in logs
     for i in {1..30}; do
       sleep 1

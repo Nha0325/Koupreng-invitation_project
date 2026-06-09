@@ -140,6 +140,7 @@ public class TemplatePaymentController {
     }
 
     @PostMapping("/admin/template-payments/confirm")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PaymentConfirmResponse>> confirmManualPayment(
             @Valid @RequestBody ConfirmTemplatePaymentRequest request
     ) {
@@ -148,7 +149,24 @@ public class TemplatePaymentController {
     }
 
     @PostMapping("/admin/template-payments/telegram-detect")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PaymentConfirmResponse>> detectTelegramPayment(
+            @Valid @RequestBody TelegramDetectPaymentRequest request
+    ) {
+        PaymentConfirmResponse response = templatePaymentService.detectPaymentFromTelegram(request);
+        return ResponseEntity.ok(ApiResponse.success("Telegram payment detection processed", response));
+    }
+
+    @PostMapping("/internal/template-payments/confirm")
+    public ResponseEntity<ApiResponse<PaymentConfirmResponse>> confirmInternalPayment(
+            @Valid @RequestBody ConfirmTemplatePaymentRequest request
+    ) {
+        PaymentConfirmResponse response = templatePaymentService.confirmManualPayment(request);
+        return ResponseEntity.ok(ApiResponse.success("Template payment confirmed successfully", response));
+    }
+
+    @PostMapping("/internal/template-payments/telegram-detect")
+    public ResponseEntity<ApiResponse<PaymentConfirmResponse>> detectInternalTelegramPayment(
             @Valid @RequestBody TelegramDetectPaymentRequest request
     ) {
         PaymentConfirmResponse response = templatePaymentService.detectPaymentFromTelegram(request);

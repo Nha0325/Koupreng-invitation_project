@@ -10,11 +10,15 @@ import {
   IoGlobeOutline,
   IoGridOutline,
   IoLogOutOutline,
+  IoNotificationsOutline,
+  IoCubeOutline,
+  IoBusinessOutline,
   IoPeopleOutline,
   IoPersonOutline,
   IoAddOutline,
 } from "react-icons/io5";
 import { useAuth } from "../../pages/auth/context/useAuth";
+import NotificationBell from "../../features/notifications/NotificationBell";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import { useLanguageStore } from "../../stores/useLanguageStore";
 import logo from "../../assets/logo.png";
@@ -22,11 +26,14 @@ import logo from "../../assets/logo.png";
 const NAV_ITEMS = [
   { labelKey: "events", path: "/events", Icon: IoCalendarClearOutline },
   { labelKey: "dashboard", path: "/dashboard", Icon: IoGridOutline },
+  { labelKey: "notifications", path: "/dashboard/notifications", Icon: IoNotificationsOutline },
   { labelKey: "guests", path: "/guests", Icon: IoPeopleOutline },
   { labelKey: "expenses", path: "/expenses", Icon: IoCashOutline },
   { labelKey: "gifts", path: "/gifts", Icon: IoGiftOutline },
   { labelKey: "templates", path: "/templates/editor", Icon: IoColorPaletteOutline },
   { labelKey: "Add Template", path: "/templates/browse", Icon: IoAddOutline },
+  { labelKey: "packages", path: "/dashboard/packages", Icon: IoCubeOutline },
+  { labelKey: "organizations", path: "/dashboard/organizations", Icon: IoBusinessOutline },
 ];
 
 const LANGUAGE_OPTIONS = [
@@ -764,6 +771,7 @@ export default function HostNav() {
                 </div>
               )}
             </div>
+            <NotificationBell />
 
             {/* Hamburger button - mobile only */}
             <button

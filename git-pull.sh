@@ -40,8 +40,9 @@ has_local_changes() {
 }
 
 origin_branch_exists() {
-    local branch="$1"
-    git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1
+    local remote="$1"
+    local branch="$2"
+    git ls-remote --exit-code --heads "$remote" "$branch" >/dev/null 2>&1
 }
 
 show_unfinished_help() {
@@ -111,7 +112,7 @@ safe_pull() {
     fi
 
     echo -e "${BLUE}Pulling and rebasing...${NC}"
-    
+
     if [ "$pull_mode" = "upstream" ]; then
         if ! git pull --rebase; then
             show_pull_conflict_help
@@ -156,6 +157,9 @@ fi
 
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
 [ -n "$branch" ] || fail "You are in detached HEAD mode. Checkout a branch before pulling."
+if [ "$branch" != "$TARGET_BRANCH" ]; then
+    fail "This script only pulls into the $TARGET_BRANCH branch. Run: git checkout $TARGET_BRANCH"
+fi
 
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
@@ -167,8 +171,7 @@ echo ""
 
 echo -e "${BLUE}Fetching latest changes from $TARGET_REMOTE...${NC}"
 git fetch "$TARGET_REMOTE" --prune
-
-origin_branch_exists "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
+origin_branch_exists "$TARGET_REMOTE" "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
 
 safe_pull explicit "$TARGET_REMOTE" "$TARGET_BRANCH"
 

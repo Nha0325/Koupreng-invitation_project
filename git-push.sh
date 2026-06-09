@@ -1,255 +1,171 @@
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-# ─────────────────────────────────────────────────────────────────────────────
-# git-push.sh — Interactive menu-driven Git push script for Koupreng
-# ─────────────────────────────────────────────────────────────────────────────
+# Safe team Git push script for Koupreng.
 
-# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Commit message templates
-# ─────────────────────────────────────────────────────────────────────────────
-show_menu() {
-  echo ""
-  echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
-  echo -e "${CYAN}  Koupreng Git Push Menu${NC}"
-  echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
-  echo ""
-  echo -e "${GREEN}Backend (Spring Boot)${NC}"
-  echo -e "  ${YELLOW}1)${NC}  Update backend API endpoints"
-  echo -e "  ${YELLOW}2)${NC}  Fix backend bug"
-  echo -e "  ${YELLOW}3)${NC}  Add backend feature"
-  echo -e "  ${YELLOW}4)${NC}  Update backend security/auth"
-  echo -e "  ${YELLOW}5)${NC}  Update database schema/migration"
-  echo ""
-  echo -e "${GREEN}Frontend User${NC}"
-  echo -e "  ${YELLOW}6)${NC}  Update user interface/UI"
-  echo -e "  ${YELLOW}7)${NC}  update chat bot"
-  echo -e "  ${YELLOW}8)${NC}  update page page"
-  echo -e "  ${YELLOW}9)${NC}  Fix frontend-user bug"
-  echo -e "  ${YELLOW}10)${NC} Add user-facing feature"
-  echo -e "  ${YELLOW}11)${NC} Update invitation templates"
-  echo ""
-  echo -e "${GREEN}Frontend Admin${NC}"
-  echo -e "  ${YELLOW}12)${NC} Update admin dashboard"
-  echo -e "  ${YELLOW}13)${NC} Fix admin panel bug"
-  echo -e "  ${YELLOW}14)${NC} Add admin feature"
-  echo ""
-  echo -e "${GREEN}Telegram Bot${NC}"
-  echo -e "  ${YELLOW}15)${NC} Update telegram bot"
-  echo -e "  ${YELLOW}16)${NC} Fix telegram bot webhook"
-  echo -e "  ${YELLOW}17)${NC} Add telegram bot feature"
-  echo ""
-  echo -e "${GREEN}Infrastructure & Configuration${NC}"
-  echo -e "  ${YELLOW}18)${NC} Update environment configuration"
-  echo -e "  ${YELLOW}19)${NC} Update dependencies"
-  echo -e "  ${YELLOW}20)${NC} Update dev scripts (dev.sh, setup.sh)"
-  echo -e "  ${YELLOW}21)${NC} Update documentation"
-  echo ""
-  echo -e "${GREEN}Payment Integration${NC}"
-  echo -e "  ${YELLOW}22)${NC} Update payment flow"
-  echo -e "  ${YELLOW}23)${NC} Fix payment bug"
-  echo -e "  ${YELLOW}24)${NC} Add payment feature (ABA PayWay, etc.)"
-  echo ""
-  echo -e "${GREEN}General${NC}"
-  echo -e "  ${YELLOW}25)${NC} Refactor code"
-  echo -e "  ${YELLOW}26)${NC} Update tests"
-  echo -e "  ${YELLOW}27)${NC} Performance improvements"
-  echo -e "  ${YELLOW}28)${NC} Security updates"
-  echo -e "  ${YELLOW}29)${NC} General bug fixes"
-  echo -e "  ${YELLOW}30)${NC} Work in progress (WIP)"
-  echo ""
-  echo -e "${GREEN}Quick Actions${NC}"
-  echo -e "  ${YELLOW}31)${NC} Quick commit (default message)"
-  echo -e "  ${YELLOW}32)${NC} Custom commit message"
-  echo ""
-  echo -e "${RED}0)${NC}  Cancel and exit"
-  echo ""
-  echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+cd "$SCRIPT_DIR"
+
+TARGET_REMOTE="origin"
+TARGET_BRANCH="main"
+MESSAGE="${1:-}"
+
+fail() {
+    echo -e "\n${RED}Error: $1${NC}" >&2
+    exit 1
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Main script
-# ─────────────────────────────────────────────────────────────────────────────
+git_path_exists() {
+    local path_name="$1"
+    local git_path
+    git_path="$(git rev-parse --git-path "$path_name" 2>/dev/null || true)"
+    [ -n "$git_path" ] && [ -e "$git_path" ]
+}
 
-# If a message is provided as argument, use it directly (backward compatibility)
-if [ $# -ge 1 ]; then
-  MSG="$1"
-else
-  # Show interactive menu
-  show_menu
-  
-  # Get user choice
-  echo -n -e "${CYAN}Select an option [0-32]: ${NC}"
-  read -r CHOICE
-  
-  case "$CHOICE" in
-    1)  MSG="Update backend API endpoints" ;;
-    2)  MSG="Fix backend bug" ;;
-    3)  MSG="Add backend feature" ;;
-    4)  MSG="Update backend security/auth" ;;
-    5)  MSG="Update database schema/migration" ;;
-    6)  MSG="Update user interface/UI" ;;
-    7)  MSG="update chat bot" ;;
-    8)  MSG="update page page" ;;
-    9)  MSG="Fix frontend-user bug" ;;
-    10) MSG="Add user-facing feature" ;;
-    11) MSG="Update invitation templates" ;;
-    12) MSG="Update admin dashboard" ;;
-    13) MSG="Fix admin panel bug" ;;
-    14) MSG="Add admin feature" ;;
-    15) MSG="Update telegram bot" ;;
-    16) MSG="Fix telegram bot webhook" ;;
-    17) MSG="Add telegram bot feature" ;;
-    18) MSG="Update environment configuration" ;;
-    19) MSG="Update dependencies" ;;
-    20) MSG="Update dev scripts" ;;
-    21) MSG="Update documentation" ;;
-    22) MSG="Update payment flow" ;;
-    23) MSG="Fix payment bug" ;;
-    24) MSG="Add payment feature" ;;
-    25) MSG="Refactor code" ;;
-    26) MSG="Update tests" ;;
-    27) MSG="Performance improvements" ;;
-    28) MSG="Security updates" ;;
-    29) MSG="General bug fixes" ;;
-    30) MSG="WIP: Work in progress" ;;
-    31) MSG="Update project" ;;
-    32) 
-      echo -n -e "${CYAN}Enter custom commit message: ${NC}"
-      read -r MSG
-      if [ -z "$MSG" ]; then
-        echo -e "${RED}Error: Commit message cannot be empty${NC}"
+has_local_changes() {
+    [ -n "$(git status --porcelain)" ]
+}
+
+origin_branch_exists() {
+    local remote="$1"
+    local branch="$2"
+    git ls-remote --exit-code --heads "$remote" "$branch" >/dev/null 2>&1
+}
+
+show_unfinished_help() {
+    cat >&2 <<EOF
+
+${RED}A rebase or merge is already in progress.${NC}
+
+${YELLOW}To continue:${NC}
+  git status
+  git rebase --continue
+  git merge --continue
+
+${YELLOW}To abort:${NC}
+  git rebase --abort
+  git merge --abort
+EOF
+}
+
+show_pull_conflict_help() {
+    cat >&2 <<EOF
+
+${RED}Push stopped because collaborator code conflicts with your local work.${NC}
+
+${YELLOW}To fix:${NC}
+  git status
+  Edit conflicted files
+  git add .
+  git rebase --continue
+
+${YELLOW}To cancel:${NC}
+  git rebase --abort
+EOF
+}
+
+show_stash_conflict_help() {
+    cat >&2 <<EOF
+
+${RED}Your saved local changes conflicted after the pull.${NC}
+
+${YELLOW}To fix:${NC}
+  git status
+  Edit conflicted files
+  git add .
+  git commit -m "resolve conflict"
+
+${CYAN}Your stash was kept as a backup.${NC}
+
+${YELLOW}To check:${NC}
+  git stash list
+EOF
+}
+
+safe_pull() {
+    local stash_created=0
+    local stash_ref='stash@{0}'
+
+    if has_local_changes; then
+        echo -e "${YELLOW}Saving uncommitted changes in a temporary stash...${NC}"
+        git stash push --include-untracked -m "safe-push auto-stash before pulling ${branch} $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        stash_created=1
+    fi
+
+    echo -e "${BLUE}Pulling latest $TARGET_REMOTE/$TARGET_BRANCH with rebase...${NC}"
+    if ! git pull --rebase "$TARGET_REMOTE" "$TARGET_BRANCH"; then
+        show_pull_conflict_help
+        if [ "$stash_created" -eq 1 ]; then
+            echo -e "\n${CYAN}Your uncommitted changes are still saved in the auto-stash.${NC}" >&2
+            echo -e "${CYAN}Check it with: git stash list${NC}" >&2
+        fi
         exit 1
-      fi
-      ;;
-    0)
-      echo -e "${YELLOW}Cancelled.${NC}"
-      exit 0
-      ;;
-    *)
-      echo -e "${RED}Invalid choice. Exiting.${NC}"
-      exit 1
-      ;;
-  esac
+    fi
+
+    if [ "$stash_created" -eq 1 ]; then
+        echo -e "${BLUE}Restoring saved local changes...${NC}"
+        if ! git stash apply "$stash_ref"; then
+            show_stash_conflict_help
+            exit 1
+        fi
+        git stash drop "$stash_ref"
+    fi
+}
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "Not inside a Git repository."
+
+if git_path_exists rebase-merge || git_path_exists rebase-apply || git_path_exists MERGE_HEAD; then
+    show_unfinished_help
+    exit 1
 fi
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Git operations
-# ─────────────────────────────────────────────────────────────────────────────
+branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+[ -n "$branch" ] || fail "You are in detached HEAD mode. Checkout a branch before pushing."
+if [ "$branch" != "$TARGET_BRANCH" ]; then
+    fail "This script only pushes from $TARGET_BRANCH to $TARGET_REMOTE/$TARGET_BRANCH. Run: git checkout $TARGET_BRANCH"
+fi
+
+if [ -z "$MESSAGE" ]; then
+    echo -n -e "${CYAN}Commit message: ${NC}"
+    IFS= read -r MESSAGE
+fi
+
+[ -n "$MESSAGE" ] || fail "Commit message cannot be empty. Usage: ./git-push.sh \"update invitation flow\""
 
 echo ""
-echo -e "${BLUE}Checking current branch...${NC}"
+echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+echo -e "${CYAN}  Koupreng Safe Team Git Push${NC}"
+echo -e "${CYAN}═══════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}Current branch:${NC} ${YELLOW}$branch${NC}"
+echo -e "${GREEN}Push target:${NC}     ${YELLOW}$TARGET_REMOTE/$TARGET_BRANCH${NC}"
+echo ""
 
-# Get current branch name
-CURRENT_BRANCH=$(git branch --show-current)
+echo -e "${BLUE}Fetching latest changes from $TARGET_REMOTE...${NC}"
+git fetch "$TARGET_REMOTE" --prune
+origin_branch_exists "$TARGET_REMOTE" "$TARGET_BRANCH" || fail "$TARGET_REMOTE/$TARGET_BRANCH was not found."
 
-# Check if we're on main branch, if not switch to it
-if [ "$CURRENT_BRANCH" != "main" ]; then
-  echo -e "${YELLOW}Current branch: $CURRENT_BRANCH${NC}"
-  echo -e "${BLUE}Switching to main branch...${NC}"
-  
-  # Stash any uncommitted changes temporarily
-  git stash push -m "Auto-stash before switching to main"
-  STASHED=$?
-  
-  # Switch to main
-  git checkout main
-  
-  # Pop stashed changes if we stashed them
-  if [ $STASHED -eq 0 ]; then
-    git stash pop
-  fi
+safe_pull
+
+if has_local_changes; then
+    echo -e "${BLUE}Committing local changes...${NC}"
+    git add -A
+    git commit -m "$MESSAGE"
 else
-  echo -e "${GREEN}Already on main branch${NC}"
+    echo -e "${YELLOW}No local file changes to commit.${NC}"
 fi
 
-echo ""
-echo -e "${BLUE}Fetching latest changes from origin/main...${NC}"
-
-# Fetch the latest changes from remote
-git fetch origin main
-
-echo ""
-echo -e "${BLUE}Checking for changes...${NC}"
-
-# Add all changes (respects .gitignore)
-git add .
-
-# Check if there are changes to commit
-if git diff --cached --quiet; then
-  echo -e "${YELLOW}No changes to commit.${NC}"
-  
-  # Check if we need to pull
-  LOCAL=$(git rev-parse main)
-  REMOTE=$(git rev-parse origin/main)
-  
-  if [ "$LOCAL" != "$REMOTE" ]; then
-    echo -e "${BLUE}Pulling latest changes...${NC}"
-    git pull --rebase origin main
-    echo -e "${GREEN}✓ Up to date with origin/main${NC}"
-  else
-    echo -e "${GREEN}✓ Already up to date with origin/main${NC}"
-  fi
-  
-  exit 0
-fi
-
-# Show what will be committed
-echo ""
-echo -e "${CYAN}Files to be committed:${NC}"
-git diff --cached --name-status | while read -r status file; do
-  case "$status" in
-    A) echo -e "  ${GREEN}[Added]${NC}    $file" ;;
-    M) echo -e "  ${YELLOW}[Modified]${NC} $file" ;;
-    D) echo -e "  ${RED}[Deleted]${NC}  $file" ;;
-    *) echo -e "  [$status]      $file" ;;
-  esac
-done
-
-echo ""
-echo -e "${CYAN}Commit message:${NC} ${MAGENTA}$MSG${NC}"
-echo ""
-
-# Ask for confirmation
-echo -n -e "${YELLOW}Proceed with commit and push to main? [Y/n]: ${NC}"
-read -r CONFIRM
-
-if [[ "$CONFIRM" =~ ^[Nn] ]]; then
-  echo -e "${YELLOW}Cancelled by user.${NC}"
-  git reset > /dev/null 2>&1
-  exit 0
-fi
-
-# Commit
-echo -e "${BLUE}Committing changes...${NC}"
-git commit -m "$MSG"
-
-# Rebase on top of origin/main to get latest changes
-echo -e "${BLUE}Rebasing on origin/main...${NC}"
-if ! git pull --rebase origin main; then
-  echo -e "${RED}Rebase failed! Please resolve conflicts manually.${NC}"
-  echo -e "${YELLOW}Run 'git status' to see conflicts${NC}"
-  echo -e "${YELLOW}After fixing, run: git add . && git rebase --continue${NC}"
-  echo -e "${YELLOW}Or abort with: git rebase --abort${NC}"
-  exit 1
-fi
-
-# Push directly to main branch
-echo -e "${BLUE}Pushing to main branch...${NC}"
-git push origin main
+echo -e "${BLUE}Pushing to $TARGET_REMOTE/$TARGET_BRANCH...${NC}"
+git push "$TARGET_REMOTE" "HEAD:$TARGET_BRANCH"
 
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}✓ Successfully pushed to main branch!${NC}"
-echo -e "${GREEN}✓ Commit: $MSG${NC}"
+echo -e "${GREEN}✓ Pushed successfully to $TARGET_REMOTE/$TARGET_BRANCH${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
 echo ""

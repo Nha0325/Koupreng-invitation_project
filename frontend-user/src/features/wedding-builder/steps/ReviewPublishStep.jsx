@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getTemplateById } from "../../templates/data/templatesData";
 
-export default function ReviewPublishStep({ draft, onPublish, publishedDraft, goToStep }) {
+export default function ReviewPublishStep({ draft, onPublish, publishedDraft, goToStep, syncError }) {
     const [copied, setCopied] = useState(false);
+    const [publishing, setPublishing] = useState(false);
+    const [publishError, setPublishError] = useState("");
     const template = getTemplateById(draft?.templateId);
     const couple = draft?.couple || {};
     const event = draft?.event || {};
@@ -13,6 +15,10 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
     const activeDraft = publishedDraft || draft;
     const isPublished = Boolean(activeDraft?.publishedAt || publishedDraft);
     const publicPath = activeDraft?.slug ? `/w/${activeDraft.slug}` : "";
+    const backendInvitationId = activeDraft?.backendInvitationId;
+    const dashboardPath = backendInvitationId ? `/dashboard/invitations/${backendInvitationId}` : "/dashboard";
+    const previewPath = backendInvitationId ? `/dashboard/invitations/${backendInvitationId}/preview` : `/event/${activeDraft?.id || draft?.id}`;
+    const guestsPath = backendInvitationId ? `/dashboard/invitations/${backendInvitationId}/guests` : "/guests";
 
     const handleCopy = async () => {
         if (!publicPath) return;
@@ -43,6 +49,19 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
         if (typeof goToStep !== "function") return;
         goToStep(stepIndex);
         window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const handlePublishClick = async () => {
+        if (typeof onPublish !== "function" || publishing) return;
+        setPublishing(true);
+        setPublishError("");
+        try {
+            await onPublish();
+        } catch (err) {
+            setPublishError(err.message || "Could not publish invitation");
+        } finally {
+            setPublishing(false);
+        }
     };
 
     return (
@@ -90,16 +109,16 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
                     <h3>សន្លឹកការរបស់អ្នកត្រូវបានបោះផ្សាយ</h3>
                     <p>អ្នកអាចទៅផ្ទាំងគ្រប់គ្រង មើលជាមុន ចម្លងតំណភ្ជាប់ ឬគ្រប់គ្រងភ្ញៀវ។</p>
                     <div className="wb-success-actions">
-                        <Link to="/dashboard" className="wb-btn wb-btn-primary">
+                        <Link to={dashboardPath} className="wb-btn wb-btn-primary">
                             ទៅផ្ទាំងគ្រប់គ្រង
                         </Link>
-                        <Link to={`/event/${activeDraft.id}`} className="wb-btn">
+                        <Link to={previewPath} className="wb-btn">
                             មើលជាមុន
                         </Link>
                         <button type="button" className="wb-btn" onClick={handleCopy} disabled={!publicPath}>
                             {copied ? "បានចម្លង" : "ចម្លងតំណភ្ជាប់"}
                         </button>
-                        <Link to="/guests" className="wb-btn">
+                        <Link to={guestsPath} className="wb-btn">
                             គ្រប់គ្រងភ្ញៀវ
                         </Link>
                     </div>
@@ -165,8 +184,13 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
 
             {!isPublished && (
                 <div className="wb-publish-actions">
-                    <button type="button" className="wb-btn wb-btn-primary" onClick={onPublish}>
-                        បោះផ្សាយសន្លឹកការ
+                    {(publishError || syncError) && (
+                        <div className="wb-publish-error" role="alert">
+                            {publishError || syncError}
+                        </div>
+                    )}
+                    <button type="button" className="wb-btn wb-btn-primary" onClick={handlePublishClick} disabled={publishing}>
+                        {publishing ? "កំពុងបោះផ្សាយ..." : "បោះផ្សាយសន្លឹកការ"}
                     </button>
                     <Link to={`/event/${draft.id}`} className="wb-btn">
                         មើលជាមុន

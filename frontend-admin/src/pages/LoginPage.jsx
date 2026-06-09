@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 function safeNext(searchParams) {
     const next = searchParams.get("next");
-    if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard";
+    if (!next || !next.startsWith("/") || next.startsWith("//")) return "/admin/dashboard";
     return next;
 }
 
@@ -14,9 +14,15 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const { login } = useAuth();
+    const { isAuthenticated, login } = useAuth();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate(safeNext(searchParams), { replace: true });
+        }
+    }, [isAuthenticated, navigate, searchParams]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -35,11 +41,11 @@ export default function LoginPage() {
     return (
         <div className="login-page">
             <form className="login-card" onSubmit={handleSubmit}>
-                <div className="login-crest">⚜️</div>
+                <div className="login-crest">K</div>
                 <h1 className="login-title">រដ្ឋបាលគូព្រេង</h1>
                 <p className="login-sub">ចូលប្រើប្រាស់សម្រាប់អ្នកគ្រប់គ្រងប្រព័ន្ធ</p>
 
-                {error && <div className="login-error">{error}</div>}
+                {error && <div className="login-error" role="alert">{error}</div>}
 
                 <div className="field">
                     <label htmlFor="identifier">អ៊ីមែល ឬ លេខទូរស័ព្ទ</label>

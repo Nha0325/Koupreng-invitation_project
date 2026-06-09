@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../auth/context/useAuth";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { userService } from "../../services/remote/userService";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 
 /**
- * ProfilePage — create or edit user profile + change password.
+ * ProfilePage — edit user profile and change account password.
  * Maps to `users` table: full_name, email, phone, profile_image, status.
  */
 export default function ProfilePage() {
@@ -14,7 +14,6 @@ export default function ProfilePage() {
   const login = useAuthStore((s) => s.login);
   const accessToken = useAuthStore((s) => s.accessToken);
 
-  // ── Profile state ──────────────────────────────────────────────────────────
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [profileImage, setProfileImage] = useState("");
@@ -29,7 +28,6 @@ export default function ProfilePage() {
   // (prevents Mixed Content errors when served via ngrok/cloudflare)
   const toRelativeUrl = (url) => (url || "").replace(/^https?:\/\/localhost(:\d+)?/, "");
 
-  // ── Password state ─────────────────────────────────────────────────────────
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -40,38 +38,43 @@ export default function ProfilePage() {
 
   const hasProfile = Boolean(user?.fullName?.trim() || user?.full_name?.trim());
 
-  // Load profile from API
   useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const data = await userService.getProfile();
-        setFullName(data.fullName || data.full_name || "");
-        setPhone(data.phone || "");
-        setProfileImage(toRelativeUrl(data.profileImage || data.profile_image || ""));
-      } catch {
+    let cancelled = false;
+    userService
+      .getProfile()
+      .then((data) => {
+        if (cancelled) return;
+        setFullName(data?.fullName || data?.full_name || "");
+        setPhone(data?.phone || "");
+        setProfileImage(toRelativeUrl(data?.profileImage || data?.profile_image || ""));
+      })
+      .catch(() => {
+        if (cancelled) return;
         setFullName(user?.fullName || user?.full_name || user?.name || "");
         setPhone(user?.phone || "");
         setProfileImage(toRelativeUrl(user?.profileImage || user?.profile_image || ""));
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProfile();
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
     }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async (event) => {
+    event.preventDefault();
     setSaving(true);
     setError("");
     setSaved(false);
@@ -79,8 +82,12 @@ export default function ProfilePage() {
     try {
       let imageUrl = profileImage;
       if (imageFile) {
-        const uploadRes = await userService.uploadProfileImage(imageFile);
-        imageUrl = uploadRes.url || uploadRes.profileImage || uploadRes.profile_image || imageUrl;
+        const uploadResponse = await userService.uploadProfileImage(imageFile);
+        imageUrl = uploadResponse?.url
+          || uploadResponse?.profileImage
+          || uploadResponse?.profile_image
+          || imageUrl;
+        imageUrl = toRelativeUrl(imageUrl);
       }
 
       const profileData = {
@@ -90,22 +97,19 @@ export default function ProfilePage() {
       };
 
       const updatedUser = await userService.updateProfile(profileData);
+      const nextUser = {
+        ...user,
+        ...updatedUser,
+        fullName: fullName.trim(),
+        full_name: fullName.trim(),
+        name: fullName.trim(),
+        phone: phone.trim(),
+        profileImage: imageUrl,
+        profile_image: imageUrl,
+        profileComplete: true,
+      };
 
-      login({
-        accessToken,
-        user: {
-          ...user,
-          fullName: fullName.trim(),
-          full_name: fullName.trim(),
-          name: fullName.trim(),
-          phone: phone.trim(),
-          profileImage: imageUrl,
-          profile_image: imageUrl,
-          profileComplete: true,
-          ...updatedUser,
-        },
-      });
-
+      login({ accessToken, user: nextUser });
       setProfileImage(imageUrl);
       setImageFile(null);
       setImagePreview("");
@@ -118,8 +122,8 @@ export default function ProfilePage() {
     }
   };
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
     setPwError("");
     setPwSaved(false);
 
@@ -139,7 +143,6 @@ export default function ProfilePage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      // Backend invalidated old tokens — log out after short delay
       setTimeout(() => logout(), 2000);
     } catch (err) {
       setPwError(err.message || t("passwordChangeFailed"));
@@ -149,10 +152,7 @@ export default function ProfilePage() {
   };
 
   const displayImage = imagePreview || profileImage;
-  const displayInitial =
-    fullName?.charAt(0)?.toUpperCase() ||
-    user?.email?.charAt(0)?.toUpperCase() ||
-    "?";
+  const displayInitial = fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   if (loading) {
     return (
@@ -271,24 +271,38 @@ export default function ProfilePage() {
           background: #f5f5f5;
           color: #999;
         }
-        .profile-save-btn {
+        .profile-save-btn,
+        .profile-pw-btn {
           width: 100%;
           padding: 16px;
-          background: #B0926A;
-          color: white;
-          border: none;
           border-radius: 12px;
           font-family: 'Kantumruy Pro', sans-serif;
           font-weight: 700;
           font-size: 16px;
           cursor: pointer;
           transition: 0.2s;
+        }
+        .profile-save-btn {
+          background: #B0926A;
+          color: white;
+          border: none;
           margin-top: 12px;
         }
         .profile-save-btn:hover {
           background: #9a7d5a;
         }
-        .profile-save-btn:disabled {
+        .profile-pw-btn {
+          background: transparent;
+          color: #B0926A;
+          border: 2px solid #B0926A;
+          margin-top: 4px;
+        }
+        .profile-pw-btn:hover {
+          background: #B0926A;
+          color: #fff;
+        }
+        .profile-save-btn:disabled,
+        .profile-pw-btn:disabled {
           opacity: 0.6;
           cursor: not-allowed;
         }
@@ -300,9 +314,7 @@ export default function ProfilePage() {
           animation: profileFadeIn 0.3s;
         }
         .profile-msg.success { color: #2e7d32; }
-        .profile-msg.error   { color: #c62828; }
-
-        /* ── Password section ───────────────────────────────────────────────── */
+        .profile-msg.error { color: #c62828; }
         .profile-section-divider {
           border: none;
           border-top: 1px solid rgba(176, 146, 106, 0.2);
@@ -346,32 +358,9 @@ export default function ProfilePage() {
           color: #888;
           margin: 6px 0 20px;
         }
-        .profile-pw-btn {
-          width: 100%;
-          padding: 14px;
-          background: transparent;
-          color: #B0926A;
-          border: 2px solid #B0926A;
-          border-radius: 12px;
-          font-family: 'Kantumruy Pro', sans-serif;
-          font-weight: 700;
-          font-size: 15px;
-          cursor: pointer;
-          transition: 0.2s;
-          margin-top: 4px;
-        }
-        .profile-pw-btn:hover {
-          background: #B0926A;
-          color: #fff;
-        }
-        .profile-pw-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
         @keyframes profileFadeIn {
           from { opacity: 0; transform: translateY(-5px); }
-          to   { opacity: 1; transform: translateY(0); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
 
@@ -383,7 +372,6 @@ export default function ProfilePage() {
             : t("createSubtitle")}
         </p>
 
-        {/* ── Avatar ── */}
         <div className="profile-avatar-section">
           <div className="profile-avatar">
             {displayImage ? (
@@ -405,7 +393,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── Profile form ── */}
         <form onSubmit={handleSave}>
           <div className="profile-form-group">
             <label>{t("fullNameLabel")}</label>
@@ -458,17 +445,15 @@ export default function ProfilePage() {
           )}
         </form>
 
-        {/* ── Change password ── */}
         <hr className="profile-section-divider" />
 
         <button
           type="button"
           className={`profile-pw-toggle${showPasswordSection ? " open" : ""}`}
-          onClick={() => setShowPasswordSection((v) => !v)}
+          onClick={() => setShowPasswordSection((value) => !value)}
           aria-expanded={showPasswordSection}
         >
           <span>{t("changePassword")}</span>
-          {/* chevron */}
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B0926A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -485,8 +470,7 @@ export default function ProfilePage() {
               <input
                 type="password"
                 value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="••••••••"
+                onChange={(event) => setCurrentPassword(event.target.value)}
                 required
                 autoComplete="current-password"
               />
@@ -497,8 +481,7 @@ export default function ProfilePage() {
               <input
                 type="password"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="••••••••"
+                onChange={(event) => setNewPassword(event.target.value)}
                 required
                 minLength={8}
                 autoComplete="new-password"
@@ -510,8 +493,7 @@ export default function ProfilePage() {
               <input
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
+                onChange={(event) => setConfirmPassword(event.target.value)}
                 required
                 autoComplete="new-password"
               />

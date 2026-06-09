@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../templates.css";
-import { TEMPLATES } from "../data/templatesData";
+import { TEMPLATES, isTemplatePremium } from "../data/templatesData";
 import { useAuth } from "../../../pages/auth/context/useAuth";
 import heroBg from "../../../assets/icons/background.png";
+import templateService from "../templateService";
+import { getTemplateRouteId, isBackendPremium, mergeBackendTemplate } from "../templateCatalogAdapter";
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
 const FEATURED_TEMPLATE_IDS = [
@@ -43,19 +46,35 @@ function getTemplateBenefit(template, t) {
     return template.description?.split("។")[0] || t("templateBenefit") || "គំរូសន្លឹកការដែលរួចរាល់សម្រាប់បង្ហាញ និង RSVP";
 }
 
-/**
- * TemplateGrid — public wedding templates gallery.
- * Click a card to view template details (phone preview).
- * "ប្រើប្រាស់គំរូនេះ" button requires login to create wedding.
- */
 export default function TemplateGrid() {
     const { isAuthenticated } = useAuth();
     const { text: t } = useBackendMessages("templateGrid");
+    const [remoteTemplates, setRemoteTemplates] = useState([]);
     const categoryLabels = getCategoryLabels(t);
 
-    const visibleTemplates = FEATURED_TEMPLATE_IDS
-        .map((templateId) => TEMPLATES.find((template) => template.id === templateId))
-        .filter(Boolean);
+    useEffect(() => {
+        let mounted = true;
+        templateService.listPublic()
+            .then((templates) => {
+                if (mounted) {
+                    setRemoteTemplates(Array.isArray(templates) ? templates : []);
+                }
+            })
+            .catch(() => {
+                if (mounted) {
+                    setRemoteTemplates([]);
+                }
+            });
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const visibleTemplates = remoteTemplates.length
+        ? remoteTemplates.map((template) => mergeBackendTemplate(template)).filter(Boolean)
+        : FEATURED_TEMPLATE_IDS
+            .map((templateId) => TEMPLATES.find((template) => template.id === templateId))
+            .filter(Boolean);
 
     return (
         <div className="tp-page">
@@ -82,19 +101,25 @@ export default function TemplateGrid() {
 
                 <div className="tp-grid">
                     {visibleTemplates.map((template) => {
-                        const createPath = getUseTemplatePath(template.id, isAuthenticated);
+                        const routeId = template.backendId ? getTemplateRouteId(template) : template.id;
+                        const createPath = getUseTemplatePath(routeId, isAuthenticated);
                         const coverImage = TEMPLATE_CARD_COVER[template.id] || template.image;
+                        const categoryLabel = categoryLabels[template.category] || template.category || "";
+                        const premium = template.backendId ? isBackendPremium(template) : isTemplatePremium(template.id);
+                        const actionPath = premium
+                            ? (isAuthenticated ? `/templates/${routeId}/checkout` : `/login?next=${encodeURIComponent(`/templates/${routeId}/checkout`)}`)
+                            : createPath;
 
                         return (
-                            <div key={template.id} className="tp-card">
+                            <div key={template.backendId || template.id} className={`tp-card${premium ? " tp-card--premium" : ""}`}>
                                 {template.popular && <div className="tp-popular-tag">{t("popular") || "✨ ពេញនិយម"}</div>}
+                                {premium && <div className="tp-premium-tag">{t("premium") || "💎 Premium"}</div>}
 
-                                {/* Category badge */}
                                 <div className={`tp-category-badge tp-category-badge--${template.category}`}>
-                                    {categoryLabels[template.category]}
+                                    {categoryLabel}
                                 </div>
 
-                                <Link to={`/templates/${template.id}`} className="tp-image-box">
+                                <Link to={`/templates/${routeId}`} className="tp-image-box">
                                     <img
                                         src={coverImage}
                                         alt={template.name}
@@ -108,14 +133,14 @@ export default function TemplateGrid() {
                                 <div className="tp-card-content">
                                     <h3 className="tp-card-name">{template.name}</h3>
                                     <span className="tp-style-name">
-                                        {categoryLabels[template.category]} / {template.style}
+                                        {categoryLabel} / {template.style}
                                     </span>
                                     <p className="tp-card-benefit">{getTemplateBenefit(template, t)}</p>
                                     <div className="tp-card-actions">
-                                        <Link to={createPath} className="tp-action-btn">
-                                            {t("useTemplate") || "ប្រើគំរូនេះ"}
+                                        <Link to={actionPath} className={`tp-action-btn${premium ? " tp-action-btn--buy" : ""}`}>
+                                            {premium ? (t("buyTemplate") || "ទិញគំរូ") : (t("useTemplate") || "ប្រើគំរូនេះ")}
                                         </Link>
-                                        <Link to={`/templates/${template.id}`} className="tp-detail-btn">
+                                        <Link to={`/templates/${routeId}`} className="tp-detail-btn">
                                             {t("viewDetail") || "មើលលម្អិត"}
                                         </Link>
                                     </div>
