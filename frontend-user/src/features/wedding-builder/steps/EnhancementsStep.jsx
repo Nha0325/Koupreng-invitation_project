@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { MusicPicker } from "../components/MusicPicker";
-import { MUSIC_TRACKS } from "../data/musicTracks";
+import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
 import RepeatableList from "../components/RepeatableList";
 
 export default function EnhancementsStep({ draft, update }) {
