@@ -1,7 +1,6 @@
 package com.koupreng.backend.service;
 
 import com.koupreng.backend.common.ApiException;
-import com.koupreng.backend.util.CsvExportUtils;
 import com.koupreng.backend.dto.admin.AdminUserResponse;
 import com.koupreng.backend.dto.dashboard.AdminDashboardSummaryResponse;
 import com.koupreng.backend.dto.dashboard.GuestStatusReportResponse;
@@ -239,12 +238,21 @@ public class DashboardReportService {
         csv.append("guestId,guestName,email,phone,group,seatCount,tableNumber,sendStatus,rsvpStatus,attendeeCount,lastSentAt,openedAt,contributionStatus,totalContributed\n");
         for (GuestResponse guest : report.getGuests()) {
             Rsvp rsvp = rsvpsByGuestId.get(guest.getId());
-            csv.append(CsvExportUtils.row(
-                    guest.getId(), guest.getGuestName(), guest.getEmail(), guest.getPhone(),
-                    guest.getGuestGroup(), guest.getSeatCount(), guest.getTableNumber(), guest.getSendStatus(),
-                    rsvp == null ? null : rsvp.getResponseStatus(), rsvp == null ? null : rsvp.getAttendeeCount(),
-                    guest.getLastSentAt(), guest.getInvitationViewedAt(), guest.getContributionStatus(), guest.getTotalContributed()
-            )).append('\n');
+            csv.append(csvValue(guest.getId()))
+                    .append(',').append(csvValue(guest.getGuestName()))
+                    .append(',').append(csvValue(guest.getEmail()))
+                    .append(',').append(csvValue(guest.getPhone()))
+                    .append(',').append(csvValue(guest.getGuestGroup()))
+                    .append(',').append(csvValue(guest.getSeatCount()))
+                    .append(',').append(csvValue(guest.getTableNumber()))
+                    .append(',').append(csvValue(guest.getSendStatus()))
+                    .append(',').append(csvValue(rsvp == null ? null : rsvp.getResponseStatus()))
+                    .append(',').append(csvValue(rsvp == null ? null : rsvp.getAttendeeCount()))
+                    .append(',').append(csvValue(guest.getLastSentAt()))
+                    .append(',').append(csvValue(guest.getInvitationViewedAt()))
+                    .append(',').append(csvValue(guest.getContributionStatus()))
+                    .append(',').append(csvValue(guest.getTotalContributed()))
+                    .append('\n');
         }
         return csv.toString();
     }
@@ -255,10 +263,14 @@ public class DashboardReportService {
         StringBuilder csv = new StringBuilder();
         csv.append("rsvpId,guestId,guestName,status,attendeeCount,message,respondedAt\n");
         for (RsvpResponse rsvp : report.getResponses()) {
-            csv.append(CsvExportUtils.row(
-                    rsvp.getId(), rsvp.getGuestId(), rsvp.getGuestName(), rsvp.getResponseStatus(),
-                    rsvp.getAttendeeCount(), rsvp.getMessage(), rsvp.getRespondedAt()
-            )).append('\n');
+            csv.append(csvValue(rsvp.getId()))
+                    .append(',').append(csvValue(rsvp.getGuestId()))
+                    .append(',').append(csvValue(rsvp.getGuestName()))
+                    .append(',').append(csvValue(rsvp.getResponseStatus()))
+                    .append(',').append(csvValue(rsvp.getAttendeeCount()))
+                    .append(',').append(csvValue(rsvp.getMessage()))
+                    .append(',').append(csvValue(rsvp.getRespondedAt()))
+                    .append('\n');
         }
         return csv.toString();
     }
@@ -352,6 +364,16 @@ public class DashboardReportService {
         ).reversed();
     }
 
+    private String csvValue(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String text = value instanceof java.time.Instant ? value.toString() : String.valueOf(value);
+        if (text.contains(",") || text.contains("\"") || text.contains("\n")) {
+            return "\"" + text.replace("\"", "\"\"") + "\"";
+        }
+        return text;
+    }
 
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {

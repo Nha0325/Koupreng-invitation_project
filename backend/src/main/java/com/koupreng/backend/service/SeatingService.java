@@ -1,19 +1,5 @@
 package com.koupreng.backend.service;
 
-import java.time.Instant;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.guest.GuestResponse;
 import com.koupreng.backend.dto.seating.EventTableRequest;
@@ -31,7 +17,19 @@ import com.koupreng.backend.repository.EventTableRepository;
 import com.koupreng.backend.repository.GuestRepository;
 import com.koupreng.backend.repository.GuestSeatAssignmentRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
-import com.koupreng.backend.util.CsvExportUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class SeatingService {
@@ -236,11 +234,17 @@ public class SeatingService {
                     .filter(candidate -> Objects.equals(candidate.getId(), assignment.getTableId()))
                     .findFirst()
                     .orElse(null);
-            csv.append(CsvExportUtils.row(
-                    assignment.getTableName(), table == null ? null : table.getTableLabel(), table == null ? null : table.getCapacity(),
-                    table == null ? null : table.getAssignedSeats(), assignment.getGuestId(), assignment.getGuestName(),
-                    assignment.getGuestGroup(), assignment.getSeatLabel(), assignment.getSeatCount(), assignment.getNotes()
-            )).append('\n');
+            csv.append(csvValue(assignment.getTableName()))
+                    .append(',').append(csvValue(table == null ? null : table.getTableLabel()))
+                    .append(',').append(csvValue(table == null ? null : table.getCapacity()))
+                    .append(',').append(csvValue(table == null ? null : table.getAssignedSeats()))
+                    .append(',').append(csvValue(assignment.getGuestId()))
+                    .append(',').append(csvValue(assignment.getGuestName()))
+                    .append(',').append(csvValue(assignment.getGuestGroup()))
+                    .append(',').append(csvValue(assignment.getSeatLabel()))
+                    .append(',').append(csvValue(assignment.getSeatCount()))
+                    .append(',').append(csvValue(assignment.getNotes()))
+                    .append('\n');
         }
         return csv.toString();
     }
@@ -325,4 +329,14 @@ public class SeatingService {
         return value.trim();
     }
 
+    private String csvValue(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String text = String.valueOf(value);
+        if (text.contains(",") || text.contains("\"") || text.contains("\n")) {
+            return "\"" + text.replace("\"", "\"\"") + "\"";
+        }
+        return text;
+    }
 }

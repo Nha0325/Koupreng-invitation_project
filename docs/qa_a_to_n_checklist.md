@@ -106,5 +106,7 @@ Use this checklist with a local or staging backend. Replace `{id}`, `{slug}`, `{
 | **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | No secret | Telegram payload | 401 Unauthorized before service call | [x] |
 | **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | Wrong secret | Telegram payload | 403 Forbidden before service call | [x] |
 | **N. Security** | POST | `/api/v1/internal/template-payments/telegram-detect` | Valid secret, no JWT | Telegram payload | Controller/service reached | [x] |
-| **N. Security** | GET | `/api/v1/admin/users` | Normal User | none | 403 Forbidden | [ ] |
-| **N. Security** | GET | `/api/v1/invitations/{otherUserInvitationId}` | User B | none | 403 or 404 access validation | [ ] |
+| **N. Security** | GET | `/api/v1/admin/users` | Normal User | none | 403 Forbidden | [x] |
+| **N. Security** | GET | `/api/v1/invitations/{otherUserInvitationId}` | User B | none | 403 or 404 access validation | [x] |
+| **N. Security** | GET | `/api/v1/invitations/{id}/reports/guests/export` | Owner | none | CSV formula injection hardening | [x] |
+| **N. Security** | POST | `(Any Admin Action)` | ADMIN | none | Audit IP spoofing mitigation (X-Forwarded-For) | [x] |
