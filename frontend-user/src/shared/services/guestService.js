@@ -1,12 +1,9 @@
 import { api } from "../api/client";
 import { ApiError } from "../api/errors";
+import { unwrap } from "../api/helpers";
 import { getAccessToken, isCookieAuthStorage } from "./authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-
-function unwrap(response) {
-    return response?.data ?? response;
-}
 
 async function downloadCsv(path, filename) {
     const token = getAccessToken();

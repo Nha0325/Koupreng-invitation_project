@@ -20,35 +20,59 @@ import {
     IoWalletOutline,
     IoWarningOutline,
 } from "react-icons/io5";
-import { Link } from "react-router-dom";
+
 import { invitationService } from "../../shared/services/invitationService";
 import { planningService } from "../../shared/services/planningService";
-import { DatePicker } from "../../shared/ui/DatePicker";
+
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./ExpensesPage.css";
 
 
 
 function toExpensePayload(form) {
+    const totalPayments = (form.payments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
     return {
         name: form.name.trim(),
-        category: form.category,
+        category: form.category || "Other",
         budget: Math.max(0, Number(form.budget) || 0),
-        amount: Math.max(0, Number(form.amount) || 0),
+        amount: totalPayments,
         date: form.date || new Date().toISOString().slice(0, 10),
-        status: form.status,
+        status: totalPayments >= Number(form.budget) ? "paid" : "pending",
+        notes: JSON.stringify({
+            text: form.notesText || "",
+            payments: form.payments || []
+        })
     };
 }
 
 function normalizeExpense(expense) {
+    let parsedNotes = { text: "", payments: [] };
+    try {
+        if (expense.notes) {
+            const parsed = JSON.parse(expense.notes);
+            if (parsed && typeof parsed === "object") {
+                parsedNotes = {
+                    text: parsed.text || "",
+                    payments: Array.isArray(parsed.payments) ? parsed.payments : []
+                };
+            } else {
+                parsedNotes.text = expense.notes;
+            }
+        }
+    } catch {
+        parsedNotes.text = expense.notes || "";
+    }
+
     return {
         id: expense.id,
         name: expense.name || "",
-        category: expense.category || "",
+        category: expense.category || "Other",
         budget: Number(expense.budget) || 0,
         amount: Number(expense.amount) || 0,
         date: expense.date || "",
         status: expense.status || "pending",
+        notesText: parsedNotes.text,
+        payments: parsedNotes.payments,
     };
 }
 
@@ -87,11 +111,13 @@ function ExpensesList() {
         category: t("catFood"),
         budget: "",
         amount: "",
-        date: "",
+        date: new Date().toISOString().slice(0, 10),
         status: "pending",
+        notesText: "",
+        payments: [],
     };
 
-    const [catFilter, setCat] = useState(t("catAll"));
+    const [catFilter, setCat] = useState("ALL");
     const [searchQuery, setSearchQuery] = useState("");
     const [invitations, setInvitations] = useState([]);
     const [selectedInvitationId, setSelectedInvitationId] = useState("");
@@ -102,6 +128,8 @@ function ExpensesList() {
     const [loadingInvitations, setLoadingInvitations] = useState(true);
     const [loadingExpenses, setLoadingExpenses] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [expenseToDelete, setExpenseToDelete] = useState(null);
+    const [overBudgetConfirm, setOverBudgetConfirm] = useState(null);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -161,7 +189,7 @@ function ExpensesList() {
     }, [selectedInvitationId]);
 
     const filtered = expenses.filter((expense) => {
-        const matchesCat = catFilter === t("catAll") || expense.category === catFilter;
+        const matchesCat = catFilter === "ALL" || expense.category === catFilter;
         const matchesSearch = !searchQuery || expense.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCat && matchesSearch;
     });
@@ -182,14 +210,11 @@ function ExpensesList() {
         setShowForm(false);
     };
 
-    const submitExpense = async (event) => {
-        event.preventDefault();
-        if (!form.name.trim() || !selectedInvitationId) return;
-
+    const executeSaveExpense = async (formData) => {
         setSaving(true);
         setError("");
         try {
-            const payload = toExpensePayload(form);
+            const payload = toExpensePayload(formData);
             const saved = editingId
                 ? await planningService.updateBudgetItem(selectedInvitationId, editingId, payload)
                 : await planningService.createBudgetItem(selectedInvitationId, payload);
@@ -198,11 +223,32 @@ function ExpensesList() {
                 ? current.map((expense) => (expense.id === editingId ? nextExpense : expense))
                 : [nextExpense, ...current]);
             resetForm();
+            setOverBudgetConfirm(null);
         } catch (err) {
             setError(err.message || "Could not save budget item");
         } finally {
             setSaving(false);
         }
+    };
+
+    const submitExpense = async (event) => {
+        event.preventDefault();
+        if (!form.name.trim() || !selectedInvitationId) return;
+
+        const budgetNum = Number(form.budget) || 0;
+        const sumPayments = form.payments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+        const finalAmount = sumPayments > 0 ? sumPayments : (Number(form.amount) || 0);
+
+        if (finalAmount > budgetNum) {
+            setOverBudgetConfirm({
+                ...form,
+                _budgetNum: budgetNum,
+                _finalAmount: finalAmount
+            });
+            return;
+        }
+
+        await executeSaveExpense(form);
     };
 
     const editExpense = (expense) => {
@@ -214,20 +260,27 @@ function ExpensesList() {
             amount: String(expense.amount),
             date: expense.date,
             status: expense.status,
+            notesText: expense.notesText || "",
+            payments: expense.payments || [],
         });
         setShowForm(true);
     };
 
-    const deleteExpense = async (expenseId) => {
-        if (!window.confirm(t("deleteConfirm"))) return;
-        if (!selectedInvitationId) return;
+    const handleConfirmDelete = async () => {
+        if (!expenseToDelete || !selectedInvitationId) {
+            alert("Cannot delete: Missing expense ID or invitation ID. Please refresh the page.");
+            return;
+        }
         setSaving(true);
         setError("");
         try {
-            await planningService.removeBudgetItem(selectedInvitationId, expenseId);
-            setExpenses((current) => current.filter((expense) => expense.id !== expenseId));
+            await planningService.removeBudgetItem(selectedInvitationId, expenseToDelete.id);
+            setExpenses((current) => current.filter((expense) => expense.id !== expenseToDelete.id));
+            setExpenseToDelete(null);
         } catch (err) {
+            console.error("Delete error:", err);
             setError(err.message || "Could not delete budget item");
+            alert("Error deleting: " + (err.message || "Please check your connection."));
         } finally {
             setSaving(false);
         }
@@ -250,47 +303,14 @@ function ExpensesList() {
                     className="ep-add-btn"
                     disabled={!selectedInvitationId || saving}
                     onClick={() => {
-                        setShowForm((value) => !value);
+                        setShowForm(true);
                         setEditingId(null);
                         setForm(emptyExpenseForm);
                     }}
                 >
-                    {showForm ? (
-                        <>
-                            <IoCloseOutline aria-hidden="true" />
-                            {t("closeBtn")}
-                        </>
-                    ) : (
-                        <>
-                            <IoAddOutline aria-hidden="true" />
-                            {t("addBtn")}
-                        </>
-                    )}
+                    <IoAddOutline aria-hidden="true" />
+                    {t("addBtn")}
                 </button>
-            </div>
-
-            <div className="ep-toolbar">
-                <div className="ep-search">
-                    <span className="ep-search-icon"><IoMapOutline aria-hidden="true" /></span>
-                    <select
-                        value={selectedInvitationId}
-                        onChange={(event) => {
-                            setSelectedInvitationId(event.target.value);
-                            resetForm();
-                        }}
-                        disabled={loadingInvitations || invitations.length === 0}
-                    >
-                        {invitations.length === 0 ? (
-                            <option value="">{t("selectPlaceholder")}</option>
-                        ) : (
-                            invitations.map((invitation) => (
-                                <option key={invitation.id} value={invitation.id}>
-                                    {invitation.title || `Invitation #${invitation.id}`}
-                                </option>
-                            ))
-                        )}
-                    </select>
-                </div>
             </div>
 
             {error && <div className="ep-empty">{error}</div>}
@@ -300,9 +320,27 @@ function ExpensesList() {
                     <div className="ep-empty-icon"><IoCashOutline aria-hidden="true" /></div>
                     <h3>{t("noInvitationsTitle")}</h3>
                     <p>{t("noInvitationsText")}</p>
-                    <Link to="/dashboard/invitations/new" className="ep-add-btn">
-                        {t("createInvitation")}
-                    </Link>
+                    <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        const title = e.target.title.value.trim();
+                        if (!title) return;
+                        setSaving(true);
+                        try {
+                            const created = await invitationService.create({ title, eventType: "OTHER", status: "DRAFT" });
+                            setInvitations([created]);
+                            setSelectedInvitationId(String(created.id));
+                            e.target.reset();
+                        } catch (err) {
+                            setError(err.message || "Failed to create event");
+                        } finally {
+                            setSaving(false);
+                        }
+                    }} style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "16px", flexWrap: "wrap" }}>
+                        <input name="title" placeholder="ឈ្មោះកម្មវិធី (ឧ. ជប់លៀង)" required style={{ padding: "12px 16px", borderRadius: "50px", border: "1px solid #eadfce", outline: "none", minWidth: "220px", fontSize: "14px" }} />
+                        <button type="submit" disabled={saving} className="ep-add-btn">
+                            {saving ? "កំពុងបង្កើត..." : "បង្កើតកម្មវិធី"}
+                        </button>
+                    </form>
                 </div>
             )}
 
@@ -354,96 +392,283 @@ function ExpensesList() {
                 </div>
             </div>}
 
-            {/* Form */}
+            {/* Form Modal */}
             {showForm && selectedInvitationId && (
-                <form className="ep-form" onSubmit={submitExpense}>
-                    <h3 className="ep-form-title">
-                        {editingId ? (
-                            <>
-                                <IoCreateOutline aria-hidden="true" />
-                                {t("formTitleEdit")}
-                            </>
-                        ) : (
-                            <>
-                                <IoAddOutline aria-hidden="true" />
-                                {t("formTitleAdd")}
-                            </>
-                        )}
-                    </h3>
-                    <div className="ep-form-grid">
-                        <label>
-                            <span>{t("fieldName")} <em>*</em></span>
-                            <input
-                                type="text"
-                                value={form.name}
-                                onChange={(event) => updateForm("name", event.target.value)}
-                                placeholder={t("fieldNamePlaceholder")}
-                                required
-                            />
-                        </label>
-                        <label>
-                            <span>{t("fieldCategory")}</span>
-                            <select value={form.category} onChange={(event) => updateForm("category", event.target.value)}>
-                                {categories.filter((category) => category !== t("catAll")).map((category) => (
-                                    <option key={category} value={category}>{category}</option>
-                                ))}
-                            </select>
-                        </label>
-                        <label>
-                            <span>{t("fieldBudget")}</span>
-                            <input
-                                type="number"
-                                min="0"
-                                value={form.budget}
-                                onChange={(event) => updateForm("budget", event.target.value)}
-                                placeholder="0"
-                            />
-                        </label>
-                        <label>
-                            <span>{t("fieldAmount")}</span>
-                            <input
-                                type="number"
-                                min="0"
-                                value={form.amount}
-                                onChange={(event) => updateForm("amount", event.target.value)}
-                                placeholder="0"
-                            />
-                        </label>
-                        <label>
-                            <span>{t("fieldDate")}</span>
-                            <DatePicker
-                                value={form.date}
-                                onChange={(val) => updateForm("date", val)}
-                                placeholder={t("fieldDate")}
-                            />
-                        </label>
-                        <label>
-                            <span>{t("fieldStatus")}</span>
-                            <select value={form.status} onChange={(event) => updateForm("status", event.target.value)}>
-                                <option value="pending">{t("statusPending")}</option>
-                                <option value="paid">{t("statusPaid")}</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div className="ep-form-actions">
-                        <button type="button" className="ep-secondary-btn" onClick={resetForm}>
-                            {t("cancelBtn")}
+                <div className="ep-modal-layer">
+                    <div className="ep-modal">
+                        <button type="button" className="ep-modal-x" onClick={resetForm}>
+                            <IoCloseOutline aria-hidden="true" />
                         </button>
-                        <button type="submit" className="ep-add-btn" disabled={saving}>
-                            {saving ? t("savingText") : editingId ? (
-                                <>
-                                    <IoSaveOutline aria-hidden="true" />
-                                    {t("saveBtn")}
-                                </>
-                            ) : (
-                                <>
-                                    <IoAddOutline aria-hidden="true" />
-                                    {t("addItemBtn")}
-                                </>
+                        <div className="ep-modal-content">
+                            <form className="ep-form" onSubmit={submitExpense}>
+                                <h3 className="ep-form-title">
+                                    {editingId ? (
+                                        <>
+                                            <IoCreateOutline aria-hidden="true" />
+                                            {t("formTitleEdit")}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <IoAddOutline aria-hidden="true" />
+                                            {t("formTitleAdd")}
+                                        </>
+                                    )}
+                                </h3>
+                                <div className="ep-form-body">
+                                    {error && <div className="ep-error" style={{ color: '#e11d48', backgroundColor: '#ffe4e6', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', fontWeight: '500' }}>{error}</div>}
+                                    <label className="ep-field-full">
+                                        <span>{t("fieldName")} <em>*</em></span>
+                                        <input
+                                            type="text"
+                                            value={form.name}
+                                            onChange={(event) => updateForm("name", event.target.value)}
+                                            placeholder={t("fieldNamePlaceholder")}
+                                            required
+                                        />
+                                    </label>
+                                    <label className="ep-field-full">
+                                        <span>{t("fieldCategory")} <em>*</em></span>
+                                        <select
+                                            value={form.category || t("catOther")}
+                                            onChange={(event) => updateForm("category", event.target.value)}
+                                            required
+                                        >
+                                            {categories.filter(c => c !== t("catAll")).map((cat) => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <label className="ep-field-full">
+                                        <span>{t("fieldBudget")} <em>*</em></span>
+                                        <div className="ep-input-with-icon">
+                                            <span className="ep-input-prefix">$</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="any"
+                                                value={form.budget}
+                                                onChange={(event) => updateForm("budget", event.target.value)}
+                                                placeholder={t("placeholderAmount")}
+                                                required
+                                            />
+                                        </div>
+                                    </label>
+                                    <label className="ep-field-full">
+                                        <span>{t("fieldNotes")}</span>
+                                        <textarea
+                                            value={form.notesText}
+                                            onChange={(event) => updateForm("notesText", event.target.value)}
+                                            placeholder={t("placeholderNotes")}
+                                            rows="2"
+                                        />
+                                    </label>
+
+                                    <div className="ep-payments-section">
+                                        <div className="ep-payments-header">
+                                            <h4>{t("payments")}</h4>
+                                            <button
+                                                type="button"
+                                                className="ep-secondary-btn ep-sm-btn"
+                                                onClick={() => updateForm("payments", [...form.payments, { id: Date.now(), for: "", amount: "", date: new Date().toISOString().slice(0, 10), notes: "" }])}
+                                            >
+                                                <IoAddOutline aria-hidden="true" /> {t("addPaymentBtn")}
+                                            </button>
+                                        </div>
+
+                                        {form.payments.length === 0 ? (
+                                            <div className="ep-payments-empty">
+                                                {t("paymentsEmpty")}
+                                            </div>
+                                        ) : (
+                                            <div className="ep-payments-list">
+                                                {form.payments.map((payment, index) => (
+                                                    <div key={payment.id} className="ep-payment-item">
+                                                        <div className="ep-payment-item-header">
+                                                            <h5>{payment.for || `${t("paymentFor")} ${index + 1}`}</h5>
+                                                            <button
+                                                                type="button"
+                                                                className="ep-action-btn ep-danger-btn"
+                                                                onClick={() => updateForm("payments", form.payments.filter(p => p.id !== payment.id))}
+                                                            >
+                                                                <IoTrashOutline aria-hidden="true" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="ep-form-grid">
+                                                            <label>
+                                                                <span>{t("paymentFor")} <em>*</em></span>
+                                                                <input
+                                                                    type="text"
+                                                                    value={payment.for}
+                                                                    onChange={(e) => {
+                                                                        const newP = [...form.payments];
+                                                                        newP[index].for = e.target.value;
+                                                                        updateForm("payments", newP);
+                                                                    }}
+                                                                    required
+                                                                />
+                                                            </label>
+                                                            <label>
+                                                                <span>{t("paymentAmount")} <em>*</em></span>
+                                                                <div className="ep-input-with-icon">
+                                                                    <span className="ep-input-prefix">$</span>
+                                                                    <input
+                                                                        type="number"
+                                                                        min="0"
+                                                                        step="any"
+                                                                        value={payment.amount}
+                                                                        onChange={(e) => {
+                                                                            const newP = [...form.payments];
+                                                                            newP[index].amount = e.target.value;
+                                                                            updateForm("payments", newP);
+                                                                        }}
+                                                                        placeholder={t("placeholderAmount")}
+                                                                        required
+                                                                    />
+                                                                </div>
+                                                            </label>
+                                                            <label className="span-2">
+                                                                <span>{t("paymentDate")}</span>
+                                                                <input
+                                                                    type="date"
+                                                                    value={payment.date}
+                                                                    onChange={(e) => {
+                                                                        const newP = [...form.payments];
+                                                                        newP[index].date = e.target.value;
+                                                                        updateForm("payments", newP);
+                                                                    }}
+                                                                />
+                                                            </label>
+                                                            <label className="span-2">
+                                                                <span>{t("fieldNotes")}</span>
+                                                                <textarea
+                                                                    rows="2"
+                                                                    value={payment.notes}
+                                                                    onChange={(e) => {
+                                                                        const newP = [...form.payments];
+                                                                        newP[index].notes = e.target.value;
+                                                                        updateForm("payments", newP);
+                                                                    }}
+                                                                    placeholder={t("placeholderNotes")}
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="ep-form-actions">
+                                    <button type="button" className="ep-secondary-btn" onClick={resetForm}>
+                                        {t("cancelBtn")}
+                                    </button>
+                                    <button type="submit" className="ep-add-btn" disabled={saving}>
+                                        {saving ? t("savingText") : editingId ? (
+                                            <>
+                                                <IoSaveOutline aria-hidden="true" />
+                                                {t("saveBtn")}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <IoAddOutline aria-hidden="true" />
+                                                {t("addItemBtn")}
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {expenseToDelete && (
+                <div className="ep-modal-layer">
+                    <div className="ep-modal" style={{ maxWidth: '400px' }}>
+                        <button type="button" className="ep-modal-x" onClick={() => setExpenseToDelete(null)}>
+                            <IoCloseOutline aria-hidden="true" />
+                        </button>
+
+                        <div className="ep-modal-content" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '32px' }}>
+                            <IoWarningOutline style={{ fontSize: '56px', color: '#f43f5e', marginBottom: '16px' }} />
+                            <h3 style={{ fontSize: '20px', marginBottom: '8px', color: '#2a1f10' }}>
+                                {t("deleteConfirm")}
+                            </h3>
+                            <p style={{ margin: '0 0 24px', color: '#777', fontSize: '15px' }}>
+                                {expenseToDelete.name}
+                            </p>
+
+                            {error && (
+                                <div className="ep-error" style={{ marginBottom: '20px', textAlign: 'left' }}>
+                                    {error}
+                                </div>
                             )}
-                        </button>
+
+                            <div className="ep-form-actions" style={{ justifyContent: 'center', gap: '12px' }}>
+                                <button
+                                    type="button"
+                                    className="ep-secondary-btn"
+                                    onClick={() => setExpenseToDelete(null)}
+                                    style={{ padding: '10px 24px', minWidth: '100px', fontWeight: '600' }}
+                                >
+                                    {t("cancelBtn")}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ep-action-btn ep-danger-btn"
+                                    disabled={saving}
+                                    onClick={handleConfirmDelete}
+                                    style={{ background: '#f43f5e', color: '#fff', border: 'none', padding: '10px 24px', minWidth: '100px', fontWeight: '600' }}
+                                >
+                                    <IoTrashOutline aria-hidden="true" /> {saving ? t("savingText") : t("deleteBtn")}
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </form>
+                </div>
+            )}
+
+            {/* Over Budget Confirmation Modal */}
+            {overBudgetConfirm && (
+                <div className="ep-modal-layer" style={{ zIndex: 1001 }}>
+                    <div className="ep-modal">
+                        <button type="button" className="ep-modal-x" onClick={() => setOverBudgetConfirm(null)}>
+                            <IoCloseOutline aria-hidden="true" />
+                        </button>
+
+                        <div className="ep-modal-content" style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '32px' }}>
+                            <IoWarningOutline style={{ fontSize: '56px', color: '#f59e0b', marginBottom: '16px' }} />
+                            <h3 style={{ fontSize: '20px', marginBottom: '8px', color: '#2a1f10' }}>
+                                ការព្រមាន៖ លើសថវិកា
+                            </h3>
+                            <p style={{ color: '#7d6443', marginBottom: '24px', lineHeight: '1.6' }}>
+                                ចំនួនប្រាក់ចំណាយសរុប <strong>(${overBudgetConfirm._finalAmount})</strong> លើសពីថវិកាដែលអ្នកបានកំណត់ <strong>(${overBudgetConfirm._budgetNum})</strong>។<br/>
+                                តើអ្នកពិតជាចង់រក្សាទុកមែនទេ?
+                            </p>
+
+                            <div className="ep-form-actions" style={{ justifyContent: 'center', gap: '12px' }}>
+                                <button
+                                    type="button"
+                                    className="ep-secondary-btn"
+                                    onClick={() => setOverBudgetConfirm(null)}
+                                    style={{ padding: '10px 24px', minWidth: '100px', fontWeight: '600' }}
+                                >
+                                    {t("cancelBtn")}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ep-action-btn"
+                                    disabled={saving}
+                                    onClick={() => executeSaveExpense(overBudgetConfirm)}
+                                    style={{ background: '#f59e0b', color: '#fff', border: 'none', padding: '10px 24px', minWidth: '100px', fontWeight: '600' }}
+                                >
+                                    {saving ? t("savingText") : t("saveBtn")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Toolbar (search + filters) */}
@@ -462,8 +687,8 @@ function ExpensesList() {
                         <button
                             key={category}
                             type="button"
-                            className={`ep-filter-btn${catFilter === category ? " active" : ""}`}
-                            onClick={() => setCat(category)}
+                            className={`ep-filter-btn${(catFilter === "ALL" && category === t("catAll")) || catFilter === category ? " active" : ""}`}
+                            onClick={() => setCat(category === t("catAll") ? "ALL" : category)}
                         >
                             {category}
                             <span className="ep-filter-count">
@@ -555,7 +780,7 @@ function ExpensesList() {
                                                     type="button"
                                                     className="ep-action-btn ep-danger-btn"
                                                     disabled={saving}
-                                                    onClick={() => deleteExpense(expense.id)}
+                                                    onClick={() => setExpenseToDelete(expense)}
                                                 >
                                                     <IoTrashOutline aria-hidden="true" />
                                                     {t("deleteBtn")}

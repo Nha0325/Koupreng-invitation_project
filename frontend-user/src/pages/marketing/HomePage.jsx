@@ -51,11 +51,17 @@ export default function Home() {
   const plans = getPlans(t);
   return (
     <div className="khmer-theme">
+      {/* Background Section (Fixed for Mobile compatibility) */}
+      <div className="fixed-bg-overlay">
+        <div
+          className="bg-image"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        ></div>
+        <div className="bg-gradient-cover"></div>
+      </div>
+
       {/* Hero Section */}
-      <section
-        className="hero-modern"
-        style={{ backgroundImage: `url(${heroBg})` }}
-      >
+      <section className="hero-modern">
         <div className="overlay-gradient"></div>
 
         <div className="hero-content">
@@ -212,9 +218,14 @@ export default function Home() {
         .footer-col a:hover { color: #B0926A; padding-left: 5px; }
         .footer-bottom { text-align: center; margin-top: 60px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); color: #666; font-family: 'Kantumruy Pro'; font-size: 13px; }
 
+        /* --- Fixed Background Pattern --- */
+        .fixed-bg-overlay { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        .bg-image { width: 100%; height: 100%; background-size: cover; background-position: center top; }
+        .bg-gradient-cover { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(252, 248, 242, 0.4) 0%, rgba(252, 248, 242, 1) 1000%); }
+
         /* --- រក្សារចនាបថចាស់ដែលបងមាន --- */
-        .hero-modern { width: 100%; min-width: 0; min-height: 100svh; height: auto; background-size: cover; background-position: center; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; padding: 120px 16px 64px; overflow: hidden; }
-        .overlay-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(252, 248, 242, 0.15) 0%, rgba(252, 248, 242, 0.35) 55%, rgba(252, 248, 242, 0.95) 100%); }
+        .hero-modern { width: 100%; min-width: 0; min-height: 100svh; height: auto; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; padding: 120px 16px 64px; overflow: hidden; }
+        .overlay-gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(252, 248, 242, 0.15) 0%, rgba(252, 248, 242, 0.35) 55%, rgba(252, 248, 242, 0.95) 100%); z-index: 1; }
         .hero-content { position: relative; z-index: 10; width: min(100%, 800px); min-width: 0; }
         .khmer-title { font-family: 'Moul', serif; padding-top: 15px; font-size: clamp(30px, 8vw, 50px); color: #333; line-height: 1.3; overflow-wrap: anywhere; }
         .gold-gradient { background: linear-gradient(90deg, #B0926A, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -240,7 +251,7 @@ export default function Home() {
         .card-btn { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; background: white; font-family: 'Kantumruy Pro'; font-weight: 700; cursor: pointer; }
         .card-btn.gold { background: #B0926A; color: white; border: none; }
         @media (max-width: 560px) {
-          .hero-modern { min-height: 100svh; padding: 104px 18px 56px; background-position: center top; }
+          .hero-modern { min-height: 100svh; padding: 104px 18px 56px; }
           .khmer-title { font-size: clamp(28px, 9vw, 36px); }
           .khmer-p { font-size: 14px; line-height: 1.75; }
           .btn-main-gold, .btn-outline { padding: 11px 22px; font-size: 14px; }

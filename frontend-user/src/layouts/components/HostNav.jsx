@@ -56,7 +56,10 @@ export default function HostNav() {
     || user?.name?.trim()
     || user?.email?.split("@")[0]
     || navText("accountFallback") || "គណនី";
-  const profileImage = user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || "";
+  const rawProfileImage = user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || "";
+  // Strip any absolute localhost origin so the image goes through the Vite
+  // /uploads proxy (avoids Mixed Content errors when served via ngrok/cloudflare)
+  const profileImage = rawProfileImage.replace(/^https?:\/\/localhost(:\d+)?/, "");
   const profileInitial = displayName.charAt(0)?.toUpperCase() || "K";
 
   useEffect(() => {

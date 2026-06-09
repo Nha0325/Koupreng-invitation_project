@@ -22,17 +22,14 @@ function getTitle(draft) {
 
 function EventCard({ draft, onSee, onManage, onDelete }) {
     const template = getTemplateById(draft.templateId);
-    // Show the same cover image the user picked in the builder's card grid
-    // (phoneCoverImage / mainImage), not the generic thumbnail.
     const coverImage = template.phoneCoverImage || template.mainImage || template.image;
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Close menu when clicking outside
     useEffect(() => {
         if (!menuOpen) return;
-        const handleClickOutside = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target)) {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setMenuOpen(false);
             }
         };
@@ -49,12 +46,11 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
             <div className="event-card-body">
                 <div className="event-card-title-row">
                     <div className="event-card-title">{getTitle(draft)}</div>
-                    {/* Three-dot menu */}
                     <div className="event-card-menu-wrap" ref={menuRef}>
                         <button
                             className="event-card-dots-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
+                            onClick={(event) => {
+                                event.stopPropagation();
                                 setMenuOpen(!menuOpen);
                             }}
                             aria-label="ម៉ឺនុយ"
@@ -65,8 +61,8 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                             <div className="event-card-dropdown">
                                 <button
                                     className="event-card-dropdown-item"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
+                                    onClick={(event) => {
+                                        event.stopPropagation();
                                         setMenuOpen(false);
                                         onSee(draft);
                                     }}
@@ -75,8 +71,8 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                                 </button>
                                 <button
                                     className="event-card-dropdown-item"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
+                                    onClick={(event) => {
+                                        event.stopPropagation();
                                         setMenuOpen(false);
                                         onManage(draft);
                                     }}
@@ -85,13 +81,13 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
                                 </button>
                                 <button
                                     className="event-card-dropdown-item event-card-dropdown-item--danger"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
+                                    onClick={(event) => {
+                                        event.stopPropagation();
                                         setMenuOpen(false);
                                         onDelete(draft);
                                     }}
                                 >
-                                    🗑️ លុប
+                                    លុប
                                 </button>
                             </div>
                         )}
@@ -127,6 +123,7 @@ function EventCard({ draft, onSee, onManage, onDelete }) {
 export default function EventsPage() {
     const navigate = useNavigate();
     const [drafts, setDrafts] = useState([]);
+    const [draftToDelete, setDraftToDelete] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -188,16 +185,21 @@ export default function EventsPage() {
         navigate(`/event/${draft.id}/manage`, { state: { backTo: "/events" } });
     };
 
-    const handleDelete = async (draft) => {
-        const confirmed = window.confirm(`តើអ្នកពិតជាចង់លុប "${getTitle(draft)}" មែនទេ?`);
-        if (!confirmed) return;
+    const handleDeleteClick = (draft) => {
+        setDraftToDelete(draft);
+    };
+
+    const confirmDelete = async () => {
+        if (!draftToDelete) return;
         try {
-            if (draft.backendInvitationId) {
-                await invitationService.remove(draft.backendInvitationId);
+            if (draftToDelete.backendInvitationId) {
+                await invitationService.remove(draftToDelete.backendInvitationId);
             }
-            setDrafts((current) => current.filter((item) => item.id !== draft.id));
+            setDrafts((current) => current.filter((item) => item.id !== draftToDelete.id));
+            setDraftToDelete(null);
         } catch (err) {
             setError(err.message || "Could not delete invitation");
+            setDraftToDelete(null);
         }
     };
 
@@ -236,10 +238,32 @@ export default function EventsPage() {
                             draft={draft}
                             onSee={handleSee}
                             onManage={handleManage}
-                            onDelete={handleDelete}
+                            onDelete={handleDeleteClick}
                         />
                     ))}
                 </section>
+            )}
+
+            {draftToDelete && (
+                <div className="events-modal-layer">
+                    <div className="events-modal">
+                        <button type="button" className="events-modal-close" onClick={() => setDraftToDelete(null)}>
+                            x
+                        </button>
+                        <div className="events-modal-content">
+                            <h3>លុបកម្មវិធីនេះ?</h3>
+                            <p>{getTitle(draftToDelete)} នឹងត្រូវបានលុបចោល!</p>
+                            <div className="events-modal-actions">
+                                <button type="button" className="events-modal-cancel" onClick={() => setDraftToDelete(null)}>
+                                    បោះបង់
+                                </button>
+                                <button type="button" className="events-modal-confirm" onClick={confirmDelete}>
+                                    យល់ព្រម
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </main>
     );

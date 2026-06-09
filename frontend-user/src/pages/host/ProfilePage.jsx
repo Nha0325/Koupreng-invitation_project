@@ -24,6 +24,10 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
+  // Strip absolute localhost origin so images go through the Vite /uploads proxy
+  // (prevents Mixed Content errors when served via ngrok/cloudflare)
+  const toRelativeUrl = (url) => (url || "").replace(/^https?:\/\/localhost(:\d+)?/, "");
+
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -42,13 +46,13 @@ export default function ProfilePage() {
         if (cancelled) return;
         setFullName(data?.fullName || data?.full_name || "");
         setPhone(data?.phone || "");
-        setProfileImage(data?.profileImage || data?.profile_image || "");
+        setProfileImage(toRelativeUrl(data?.profileImage || data?.profile_image || ""));
       })
       .catch(() => {
         if (cancelled) return;
         setFullName(user?.fullName || user?.full_name || user?.name || "");
         setPhone(user?.phone || "");
-        setProfileImage(user?.profileImage || user?.profile_image || "");
+        setProfileImage(toRelativeUrl(user?.profileImage || user?.profile_image || ""));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -83,6 +87,7 @@ export default function ProfilePage() {
           || uploadResponse?.profileImage
           || uploadResponse?.profile_image
           || imageUrl;
+        imageUrl = toRelativeUrl(imageUrl);
       }
 
       const profileData = {

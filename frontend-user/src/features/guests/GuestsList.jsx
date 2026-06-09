@@ -1,31 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { QRCode } from "react-qr-code";
-import {
-  IoAdd,
-  IoCheckmark,
-  IoClose,
-  IoCopyOutline,
-  IoDownloadOutline,
-  IoEllipsisVertical,
-  IoPencilOutline,
-  IoPeopleOutline,
-  IoQrCodeOutline,
-  IoRefreshOutline,
-  IoSearch,
-  IoSendOutline,
-  IoSettingsOutline,
-  IoTrashOutline,
-} from "react-icons/io5";
+import { IoAdd, IoCheckmark, IoClose, IoCloudUploadOutline, IoCopyOutline, IoDownloadOutline, IoEllipsisVertical, IoPencilOutline, IoPeopleOutline, IoQrCodeOutline, IoRefreshOutline, IoSearch, IoSendOutline, IoSettingsOutline, IoTrashOutline, } from "react-icons/io5";
 import { listRsvps } from "../../services/rsvpService";
 import { listDrafts } from "../../services/weddingStorage";
-import {
-  createHostRecordId,
-  getActiveEventId,
-  listManualGuests,
-  saveManualGuests,
-} from "../../services/hostPlanningStorage";
-import { invitationService } from "../../shared/services/invitationService";
+import { createHostRecordId, getActiveEventId, listManualGuests, saveManualGuests,} from "../../services/hostPlanningStorage";
+// switch language
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
+import { invitationService } from "../../shared/services/invitationService";
 import "./GuestsPage.css";
 
 
@@ -462,7 +443,7 @@ function ManageModal({ title, items, onClose, onSave, t }) {
 }
 
 export default function GuestsList() {
-  const { text: t } = useBackendMessages("guests");
+  const { text: t, messages } = useBackendMessages("guests");
   const drafts = useMemo(() => listDrafts(), []);
   const activeEventId = getActiveEventId();
   const currentDraft =
@@ -815,6 +796,25 @@ export default function GuestsList() {
             </button>
 
             <div className="pe-toolbar-spacer" />
+
+            <div className="pe-excel-group">
+              <button
+                type="button"
+                className="pe-excel-btn"
+                onClick={() => alert("Upload Excel coming soon!")}
+              >
+                <IoCloudUploadOutline aria-hidden="true" />
+                {messages["importExcel"] || "បញ្ចូល Excel"}
+              </button>
+              <button
+                type="button"
+                className="pe-excel-btn"
+                onClick={() => alert("Download coming soon!")}
+              >
+                <IoDownloadOutline aria-hidden="true" />
+                {messages["Export"] || "ទាញយក"}
+              </button>
+            </div>
 
             <button
               type="button"

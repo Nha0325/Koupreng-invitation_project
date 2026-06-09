@@ -121,6 +121,7 @@ function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={auth("passwordPlaceholder")}
                 className="auth-input"
+                autoComplete="new-password"
                 required
               />
               <button type="button" onClick={togglePassword} className="auth-eye-btn" aria-label="Toggle password">
@@ -140,6 +141,7 @@ function Register() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder={auth("confirmPassword")}
                 className={`auth-input${passwordMatch ? " error" : ""}`}
+                autoComplete="new-password"
                 required
               />
               <button type="button" onClick={toggleConfirm} className="auth-eye-btn" aria-label="Toggle confirm">

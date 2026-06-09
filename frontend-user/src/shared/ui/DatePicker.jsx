@@ -1,13 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useRef, useEffect } from "react";
+import { useClickOutside } from "../hooks/useClickOutside";
 import "./DatePicker.css";
 
-const KHMER_MONTHS = [
+const DEFAULT_MONTHS = [
     "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា",
     "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ",
 ];
 
-const KHMER_DAYS = ["អា", "ច", "អ", "ព", "ព្រ", "សុ", "ស"];
+const DEFAULT_DAYS = ["អា", "ច", "អ", "ព", "ព្រ", "សុ", "ស"];
 
 function getDaysInMonth(year, month) {
     return new Date(year, month + 1, 0).getDate();
@@ -18,23 +19,19 @@ function getFirstDayOfMonth(year, month) {
 }
 
 /**
- * DatePicker — Khmer-language date picker that emits "YYYY-MM-DD" string.
- * Same UI style as TimePicker.
+ * DatePicker — locale-configurable date picker that emits "YYYY-MM-DD" string.
+ * Defaults to Khmer labels; pass `labels` prop to override for other locales.
+ *
+ * labels: { placeholder, today, cancel, months: string[12], days: string[7] }
  */
-export function DatePicker({ value, onChange, placeholder = "ជ្រើសកាលបរិច្ឆេទ" }) {
+export function DatePicker({ value, onChange, placeholder = "ជ្រើសកាលបរិច្ឆេទ", labels = {} }) {
     const today = new Date();
     const [open, setOpen] = useState(false);
     const [viewYear, setViewYear] = useState(today.getFullYear());
     const [viewMonth, setViewMonth] = useState(today.getMonth());
     const ref = useRef();
 
-    useEffect(() => {
-        const handler = (e) => {
-            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-        };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, []);
+    useClickOutside(ref, () => setOpen(false));
 
     useEffect(() => {
         if (!value) return;
@@ -43,12 +40,19 @@ export function DatePicker({ value, onChange, placeholder = "ជ្រើសក�
         setViewMonth(m - 1);
     }, [value]);
 
+    // Resolved labels with Khmer defaults
+    const resolvedPlaceholder = labels.placeholder ?? placeholder;
+    const todayLabel = labels.today ?? "ថ្ងៃនេះ";
+    const cancelLabel = labels.cancel ?? "បោះបង់";
+    const months = labels.months ?? DEFAULT_MONTHS;
+    const days = labels.days ?? DEFAULT_DAYS;
+
     const selectedDay = value ? parseInt(value.split("-")[2], 10) : null;
     const selectedMonth = value ? parseInt(value.split("-")[1], 10) - 1 : null;
     const selectedYear = value ? parseInt(value.split("-")[0], 10) : null;
 
     const displayValue = value
-        ? `${parseInt(value.split("-")[2], 10)} ${KHMER_MONTHS[parseInt(value.split("-")[1], 10) - 1]} ${value.split("-")[0]}`
+        ? `${parseInt(value.split("-")[2], 10)} ${months[parseInt(value.split("-")[1], 10) - 1]} ${value.split("-")[0]}`
         : "";
 
     const prevMonth = () => {
@@ -93,7 +97,7 @@ export function DatePicker({ value, onChange, placeholder = "ជ្រើសក�
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <span className={displayValue ? "dp-value" : "dp-placeholder"}>
-                    {displayValue || placeholder}
+                    {displayValue || resolvedPlaceholder}
                 </span>
             </button>
 
@@ -106,7 +110,7 @@ export function DatePicker({ value, onChange, placeholder = "ជ្រើសក�
                             </svg>
                         </button>
                         <span className="dp-month-year">
-                            {KHMER_MONTHS[viewMonth]} {viewYear}
+                            {months[viewMonth]} {viewYear}
                         </span>
                         <button type="button" className="dp-nav-btn" onClick={nextMonth}>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +120,7 @@ export function DatePicker({ value, onChange, placeholder = "ជ្រើសក�
                     </div>
 
                     <div className="dp-weekdays">
-                        {KHMER_DAYS.map((d) => (
+                        {days.map((d) => (
                             <span key={d} className="dp-weekday">{d}</span>
                         ))}
                     </div>
@@ -144,10 +148,10 @@ export function DatePicker({ value, onChange, placeholder = "ជ្រើសក�
                             onChange(`${today.getFullYear()}-${mm}-${dd}`);
                             setOpen(false);
                         }}>
-                            ថ្ងៃនេះ
+                            {todayLabel}
                         </button>
                         <button type="button" className="dp-btn-cancel" onClick={() => setOpen(false)}>
-                            បោះបង់
+                            {cancelLabel}
                         </button>
                     </div>
                 </div>

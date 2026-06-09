@@ -84,6 +84,7 @@ function Login() {
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder={auth("phoneOrEmailPlaceholder")}
               className="auth-input"
+              autoComplete="username"
             />
           </div>
 
@@ -100,6 +101,7 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={auth("passwordPlaceholder")}
                 className="auth-input"
+                autoComplete="current-password"
               />
               <button
                 type="button"

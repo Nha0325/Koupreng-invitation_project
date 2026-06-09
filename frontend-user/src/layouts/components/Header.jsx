@@ -93,9 +93,10 @@ export default function Header() {
         .burger-menu { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; z-index: 3001; }
         .burger-menu span { width: 25px; height: 3px; background-color: #7D6443; border-radius: 2px; transition: 0.3s; }
         .mobile-nav { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #FCF8F2; padding: 100px 30px; flex-direction: column; gap: 20px; z-index: 2999; pointer-events: auto; }
+        .mobile-quick-actions { display: none; align-items: center; }
         @media (max-width: 1024px) { 
           .nav-links, .desktop-actions { display: none; } 
-          .burger-menu { display: flex; }
+          .burger-menu, .mobile-quick-actions { display: flex; }
           .mobile-nav { display: ${isMobileMenuOpen ? "flex" : "none"}; }
         }
         @media (max-width: 560px) {
@@ -186,26 +187,37 @@ export default function Header() {
             )}
           </div>
 
-          <button
-            className="burger-menu"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <span
-              style={{
-                transform: isMobileMenuOpen
-                  ? "rotate(45deg) translate(6px, 5px)"
-                  : "none",
-              }}
-            ></span>
-            <span style={{ opacity: isMobileMenuOpen ? 0 : 1 }}></span>
-            <span
-              style={{
-                transform: isMobileMenuOpen
-                  ? "rotate(-45deg) translate(6px, -6px)"
-                  : "none",
-              }}
-            ></span>
-          </button>
+          <div className="mobile-quick-actions">
+            {!isAuthenticated ? (
+              <Link to="/login" className="nav-link" style={{ marginRight: "15px", fontWeight: "700", color: "#B0926A" }}>
+                {t.nav.login}
+              </Link>
+            ) : (
+              <Link to="/dashboard" className="user-profile-circle" style={{ marginRight: "15px", width: "32px", height: "32px", fontSize: "14px" }}>
+                V
+              </Link>
+            )}
+            <button
+              className="burger-menu"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <span
+                style={{
+                  transform: isMobileMenuOpen
+                    ? "rotate(45deg) translate(6px, 5px)"
+                    : "none",
+                }}
+              ></span>
+              <span style={{ opacity: isMobileMenuOpen ? 0 : 1 }}></span>
+              <span
+                style={{
+                  transform: isMobileMenuOpen
+                    ? "rotate(-45deg) translate(6px, -6px)"
+                    : "none",
+                }}
+              ></span>
+            </button>
+          </div>
         </header>
       </div>
 

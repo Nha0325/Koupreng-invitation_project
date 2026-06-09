@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
     IoAddOutline,
     IoCalendarClearOutline,
@@ -17,10 +17,12 @@ import {
     IoTrashOutline,
     IoWalletOutline,
 } from "react-icons/io5";
-import { Link } from "react-router-dom";
 import { invitationService } from "../../shared/services/invitationService";
 import { planningService } from "../../shared/services/planningService";
+import { guestService } from "../../shared/services/guestService";
+import { listManualGuests } from "../../services/hostPlanningStorage";
 import { DatePicker } from "../../shared/ui/DatePicker";
+import { useClickOutside } from "../../shared/hooks/useClickOutside";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./WeddingGiftPage.css";
 
@@ -66,6 +68,172 @@ function formatDate(dateStr) {
     }
 }
 
+function GuestSelectField({ value, onChange, options, placeholder, existingGifts = [] }) {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState("");
+    const ref = useRef();
+    useClickOutside(ref, () => {
+        setOpen(false);
+        setQuery("");
+    });
+
+    const filtered = options.filter(g => g.name.toLowerCase().includes(query.toLowerCase()));
+    const isCustom = query.trim() && !options.find(g => g.name.toLowerCase() === query.toLowerCase());
+
+    const selectedOption = options.find(g => g.name === value) || (value ? { name: value } : null);
+    const existingGiftForSelected = selectedOption ? existingGifts.find(gift => gift.name === selectedOption.name) : null;
+
+    return (
+        <div ref={ref} style={{ position: "relative", width: "100%" }}>
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    width: "100%", padding: "10px 14px", border: existingGiftForSelected ? "1.5px solid #FB7185" : "1.5px solid #eadfce",
+                    borderRadius: "10px", background: "#fdfaf5", fontSize: "14px",
+                    cursor: "pointer", color: value ? "#333" : "#999", textAlign: "left",
+                    fontFamily: "inherit", minHeight: "48px"
+                }}
+            >
+                {selectedOption ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span style={{
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            width: "28px", height: "28px", background: existingGiftForSelected ? "#FFE4E6" : "#f5efe5",
+                            color: existingGiftForSelected ? "#E11D48" : "#2a3b5c",
+                            borderRadius: "50%", fontSize: "12px", fontWeight: "bold", flexShrink: 0
+                        }}>
+                            {selectedOption.name.substring(0, 2).toUpperCase()}
+                        </span>
+                        <span style={{ fontWeight: 600, color: "#111" }}>{selectedOption.name}</span>
+                    </div>
+                ) : (
+                    <span>{placeholder}</span>
+                )}
+                <span style={{ fontSize: "16px", color: "#888", display: "flex", flexDirection: "column", lineHeight: "8px" }}>
+                    <span style={{ fontSize: "10px" }}>▲</span>
+                    <span style={{ fontSize: "10px" }}>▼</span>
+                </span>
+            </button>
+
+            {existingGiftForSelected && !open && (
+                <div style={{ marginTop: "12px" }}>
+                    <div style={{ color: "#E11D48", fontSize: "13px", marginBottom: "8px" }}>
+                        This guest has already given a gift.
+                    </div>
+                    <div style={{
+                        display: "inline-block", background: "#DBEAFE", color: "#1D4ED8",
+                        padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "500"
+                    }}>
+                        {existingGiftForSelected.method.toUpperCase()}: ${existingGiftForSelected.amount}
+                    </div>
+                </div>
+            )}
+
+            {open && (
+                <div style={{
+                    position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
+                    background: "#fff", border: "1px solid #eadfce", borderRadius: "10px",
+                    boxShadow: "0 10px 24px rgba(80,55,20,0.12)", zIndex: 10,
+                    padding: "8px", display: "flex", flexDirection: "column", gap: "8px"
+                }}>
+                    <div style={{ position: "relative" }}>
+                        <IoSearchOutline style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#999", fontSize: "18px" }} />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (query.trim() && isCustom) {
+                                        onChange(query.trim());
+                                        setOpen(false);
+                                        setQuery("");
+                                    } else if (filtered.length > 0) {
+                                        onChange(filtered[0].name);
+                                        setOpen(false);
+                                        setQuery("");
+                                    }
+                                }
+                            }}
+                            placeholder="Search guest..."
+                            style={{
+                                width: "100%", padding: "10px 10px 10px 36px", border: "none", borderBottom: "1px solid #f0f0f0",
+                                borderRadius: "0", fontSize: "15px", boxSizing: "border-box", outline: "none",
+                                fontFamily: "inherit"
+                            }}
+                            autoFocus
+                        />
+                    </div>
+                    <div style={{ maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+                        {isCustom && (
+                            <button
+                                type="button"
+                                onClick={() => { onChange(query.trim()); setOpen(false); setQuery(""); }}
+                                style={{
+                                    display: "flex", alignItems: "center", gap: "10px", width: "100%",
+                                    padding: "12px 14px", border: "none", background: "#fdfaf5",
+                                    textAlign: "left", cursor: "pointer", fontSize: "14px", color: "#B0926A",
+                                    borderRadius: "8px", fontWeight: "bold", marginBottom: "4px",
+                                    fontFamily: "inherit"
+                                }}
+                            >
+                                <IoAddOutline /> ប្រើឈ្មោះថ្មី: "{query.trim()}"
+                            </button>
+                        )}
+                        {filtered.length === 0 && !isCustom && (
+                            <div style={{ padding: "16px", textAlign: "center", color: "#999", fontSize: "14px" }}>
+                                មិនមានទិន្នន័យ
+                            </div>
+                        )}
+                        {filtered.map(g => {
+                            const pastGift = existingGifts.find(gift => gift.name === g.name);
+                            return (
+                                <button
+                                    key={g.id || g.name}
+                                    type="button"
+                                    onClick={() => { onChange(g.name); setOpen(false); setQuery(""); }}
+                                    style={{
+                                        display: "flex", alignItems: "center", gap: "12px", width: "100%",
+                                        padding: "12px 14px", border: "none", background: "transparent",
+                                        textAlign: "left", cursor: "pointer", fontSize: "15px", color: "#111",
+                                        borderBottom: "1px solid #f9f9f9", transition: "background 0.2s",
+                                        fontFamily: "inherit"
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.background = "#fdfaf5"}
+                                    onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
+                                >
+                                    <span style={{
+                                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                        width: "32px", height: "32px", background: pastGift ? "#FFE4E6" : "#f5efe5",
+                                        color: pastGift ? "#E11D48" : "#2a3b5c",
+                                        borderRadius: "50%", fontSize: "13px", fontWeight: "bold", flexShrink: 0
+                                    }}>
+                                        {g.name.substring(0, 2).toUpperCase()}
+                                    </span>
+                                    <span style={{ flexGrow: 1, display: "flex", alignItems: "center", gap: "8px" }}>
+                                        {g.name}
+                                        {pastGift && (
+                                            <span style={{
+                                                background: "#FB7185", color: "white", padding: "2px 8px",
+                                                borderRadius: "12px", fontSize: "11px", fontWeight: "500"
+                                            }}>
+                                                Given Gift
+                                            </span>
+                                        )}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 function WeddingGiftList() {
     const { text: t } = useBackendMessages("gifts");
 
@@ -74,6 +242,7 @@ function WeddingGiftList() {
     const [invitations, setInvitations] = useState([]);
     const [selectedInvitationId, setSelectedInvitationId] = useState("");
     const [gifts, setGifts] = useState([]);
+    const [guestOptions, setGuestOptions] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState({ name: "", amount: "", method: "Bakong QR", date: "", note: "" });
@@ -109,6 +278,30 @@ function WeddingGiftList() {
         return () => { active = false; };
     }, [selectedInvitationId]);
 
+    useEffect(() => {
+        if (!selectedInvitationId) { setGuestOptions([]); return undefined; }
+        let active = true;
+
+        // Load from local storage first
+        const localGuests = listManualGuests() || [];
+        setGuestOptions(localGuests);
+
+        // Then try to fetch from backend
+        guestService.listByInvitation(selectedInvitationId)
+            .then((items) => {
+                if (active && items && items.length > 0) {
+                    setGuestOptions(prev => {
+                        const all = [...prev, ...items];
+                        // Deduplicate by name
+                        return Array.from(new Map(all.map(g => [g.name, g])).values());
+                    });
+                }
+            })
+            .catch(() => { });
+
+        return () => { active = false; };
+    }, [selectedInvitationId]);
+
     const allMethods = [t("methodAll"), ...PAYMENT_METHODS];
 
     const filtered = gifts.filter((gift) => {
@@ -122,6 +315,8 @@ function WeddingGiftList() {
     const maxGift = gifts.length ? Math.max(...gifts.map((gift) => Number(gift.amount) || 0)) : 0;
 
     const updateForm = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+
+    const isDuplicateGift = gifts.some(g => g.name === form.name && g.id !== editingId);
 
     const resetForm = () => { setEditingId(null); setForm({ name: "", amount: "", method: "Bakong QR", date: "", note: "" }); setShowForm(false); };
 
@@ -182,9 +377,9 @@ function WeddingGiftList() {
                     type="button"
                     className="wg-add-btn"
                     disabled={!selectedInvitationId || saving}
-                    onClick={() => { setShowForm((v) => !v); setEditingId(null); setForm({ name: "", amount: "", method: "Bakong QR", date: "", note: "" }); }}
+                    onClick={() => { setEditingId(null); setForm({ name: "", amount: "", method: "Bakong QR", date: "", note: "" }); setShowForm(true); }}
                 >
-                    {showForm ? (<><IoCloseOutline aria-hidden="true" />{t("closeBtn")}</>) : (<><IoAddOutline aria-hidden="true" />{t("addBtn")}</>)}
+                    <IoAddOutline aria-hidden="true" />{t("addBtn")}
                 </button>
             </div>
 
@@ -215,7 +410,6 @@ function WeddingGiftList() {
                     <div className="wg-empty-icon"><IoGiftOutline aria-hidden="true" /></div>
                     <h3>{t("noInvitationsTitle")}</h3>
                     <p>{t("noInvitationsText")}</p>
-                    <Link to="/dashboard/invitations/new" className="wg-add-btn">{t("createInvitation")}</Link>
                 </div>
             )}
 
@@ -253,45 +447,72 @@ function WeddingGiftList() {
                 </div>
             )}
 
-            {/* Form */}
+            {/* Modal */}
             {showForm && selectedInvitationId && (
-                <form className="wg-form" onSubmit={submitGift}>
-                    <h3 className="wg-form-title">
-                        {editingId ? (<><IoCreateOutline aria-hidden="true" />{t("formTitleEdit")}</>) : (<><IoAddOutline aria-hidden="true" />{t("formTitleAdd")}</>)}
-                    </h3>
-                    <div className="wg-form-grid">
-                        <label>
-                            <span>{t("fieldName")} <em>*</em></span>
-                            <input type="text" value={form.name} onChange={(e) => updateForm("name", e.target.value)} placeholder={t("placeholderName")} required />
-                        </label>
-                        <label>
-                            <span>{t("fieldAmount")}</span>
-                            <input type="number" min="0" value={form.amount} onChange={(e) => updateForm("amount", e.target.value)} placeholder="0" />
-                        </label>
-                        <label>
-                            <span>{t("fieldMethod")}</span>
-                            <select value={form.method} onChange={(e) => updateForm("method", e.target.value)}>
-                                {PAYMENT_METHODS.map((method) => (<option key={method} value={method}>{method}</option>))}
-                            </select>
-                        </label>
-                        <label>
-                            <span>{t("fieldDate")}</span>
-                            <DatePicker value={form.date} onChange={(v) => updateForm("date", v)} placeholder={t("fieldDatePlaceholder")} />
-                        </label>
-                        <label className="wg-form-wide">
-                            <span>{t("fieldNote")}</span>
-                            <input type="text" value={form.note} onChange={(e) => updateForm("note", e.target.value)} placeholder={t("placeholderNote")} />
-                        </label>
-                    </div>
-                    <div className="wg-form-actions">
-                        <button type="button" className="wg-secondary-btn" onClick={resetForm}>{t("cancelBtn")}</button>
-                        <button type="submit" className="wg-add-btn" disabled={saving}>
-                            {saving ? t("savingText") : editingId
-                                ? (<><IoSaveOutline aria-hidden="true" />{t("saveBtn")}</>)
-                                : (<><IoAddOutline aria-hidden="true" />{t("addItemBtn")}</>)}
+                <div className="wg-modal-layer" onClick={resetForm}>
+                    <div className="wg-modal" onClick={(e) => e.stopPropagation()}>
+                        <button type="button" className="wg-modal-x" onClick={resetForm}>
+                            <IoCloseOutline aria-hidden="true" />
                         </button>
+                        <div className="wg-modal-content">
+                            <form className="wg-form" onSubmit={submitGift}>
+                                <h3 className="wg-form-title">
+                                    {editingId ? (<><IoCreateOutline aria-hidden="true" />{t("formTitleEdit")}</>) : (<><IoAddOutline aria-hidden="true" />{t("formTitleAdd")}</>)}
+                                </h3>
+                                <div className="wg-form-body">
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                                        <label className="wg-field-full">
+                                            <span>{t("fieldMethod")}</span>
+                                            <select value={form.method} onChange={(e) => updateForm("method", e.target.value)}>
+                                                {PAYMENT_METHODS.map((method) => (<option key={method} value={method}>{method}</option>))}
+                                            </select>
+                                        </label>
+                                        <label className="wg-field-full">
+                                            <span>{t("fieldAmount")}</span>
+                                            <div className="wg-input-with-icon">
+                                                <span className="wg-input-prefix">$</span>
+                                                <input type="number" min="0" step="any" value={form.amount} onChange={(e) => updateForm("amount", e.target.value)} placeholder="0" />
+                                            </div>
+                                        </label>
+                                        <label className="wg-field-full">
+                                            <span>{t("fieldDate")}</span>
+                                            <DatePicker value={form.date} onChange={(v) => updateForm("date", v)} placeholder={t("fieldDatePlaceholder")} />
+                                        </label>
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                                        <label className="wg-field-full">
+                                            <span>{t("fieldName")} <em>*</em></span>
+                                            <GuestSelectField
+                                                value={form.name}
+                                                onChange={(val) => updateForm("name", val)}
+                                                options={guestOptions}
+                                                existingGifts={gifts}
+                                                placeholder={t("placeholderName") || "Search guest..."}
+                                            />
+                                        </label>
+                                        <label className="wg-field-full" style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
+                                            <span>{t("fieldNote")}</span>
+                                            <textarea
+                                                value={form.note}
+                                                onChange={(e) => updateForm("note", e.target.value)}
+                                                placeholder={t("placeholderNote")}
+                                                style={{ flexGrow: 1, resize: "none" }}
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="wg-form-actions">
+                                    <button type="button" className="wg-secondary-btn" onClick={resetForm}>{t("cancelBtn")}</button>
+                                    <button type="submit" className="wg-add-btn" disabled={!form.name.trim() || saving || isDuplicateGift}>
+                                        {saving ? t("savingText") : editingId
+                                            ? (<><IoSaveOutline aria-hidden="true" />{t("saveBtn")}</>)
+                                            : (<><IoAddOutline aria-hidden="true" />{t("addItemBtn")}</>)}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </form>
+                </div>
             )}
 
             {/* Search + filter */}

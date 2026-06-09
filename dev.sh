@@ -224,12 +224,54 @@ PIDS+=($!)
 info "Backend log → logs/backend.log"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. frontend-user
+# Resolve public tunnel URL BEFORE starting frontend-user (so Vite gets
+# VITE_HMR_HOST at startup and WebSocket connects through the tunnel)
+# ─────────────────────────────────────────────────────────────────────────────
+PUBLIC_FRONTEND_URL=""
+HMR_HOST=""
+
+if [ "$USE_CLOUDFLARE" = true ]; then
+  if command -v cloudflared &>/dev/null; then
+    log "Starting Cloudflare Tunnel (pre-flight, resolving URL before Vite)..."
+    cloudflared tunnel --url "http://localhost:$FRONTEND_USER_PORT" --no-autoupdate > "$LOG_DIR/cloudflare-tunnel.log" 2>&1 &
+    PIDS+=($!)
+    # Wait briefly — we'll grab the URL after Vite starts too
+  fi
+elif [ "$USE_NGROK" = true ]; then
+  if command -v ngrok &>/dev/null; then
+    log "Starting ngrok tunnel (pre-flight, resolving URL before Vite)..."
+    warn "⚠️  Ngrok free tier: 40 requests/minute limit"
+    warn "⚠️  Use --cloudflare flag for unlimited free tunneling"
+    ngrok http "$FRONTEND_USER_PORT" --log=stdout > "$LOG_DIR/ngrok-frontend.log" 2>&1 &
+    PIDS+=($!)
+    sleep 4
+    # Grab URL now so we can set VITE_HMR_HOST before Vite launches
+    NGROK_RAW=$(curl -s "http://localhost:$NGROK_API_PORT/api/tunnels" 2>/dev/null \
+      | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for t in d.get('tunnels', []):
+    if '$FRONTEND_USER_PORT' in t.get('config', {}).get('addr', ''):
+        print(t['public_url'])
+        break
+" 2>/dev/null || echo "")
+    if [ -n "$NGROK_RAW" ]; then
+      PUBLIC_FRONTEND_URL="$NGROK_RAW"
+      # Strip protocol → just the hostname
+      HMR_HOST="${NGROK_RAW#https://}"
+      HMR_HOST="${HMR_HOST#http://}"
+      log "frontend-user public URL: ${YELLOW}$NGROK_RAW${NC}"
+    fi
+  fi
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. frontend-user  (VITE_HMR_HOST set so HMR WebSocket uses tunnel)
 # ─────────────────────────────────────────────────────────────────────────────
 log "Starting frontend-user..."
 (
   cd "$PROJECT_ROOT/frontend-user"
-  BACKEND_PORT="$BACKEND_PORT" FRONTEND_USER_PORT="$FRONTEND_USER_PORT" TELEGRAM_BOT_PORT="$TELEGRAM_BOT_PORT" npm run dev -- --port "$FRONTEND_USER_PORT" --strictPort > "$LOG_DIR/frontend-user.log" 2>&1
+  BACKEND_PORT="$BACKEND_PORT" FRONTEND_USER_PORT="$FRONTEND_USER_PORT" TELEGRAM_BOT_PORT="$TELEGRAM_BOT_PORT" VITE_HMR_HOST="$HMR_HOST" npm run dev -- --port "$FRONTEND_USER_PORT" --strictPort > "$LOG_DIR/frontend-user.log" 2>&1
 ) &
 PIDS+=($!)
 info "frontend-user log → logs/frontend-user.log"
@@ -263,7 +305,7 @@ if [ "$USE_BOT" = true ]; then
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. Wait for services before starting ngrok
+# 5. Wait for services before finishing tunnel setup
 # ─────────────────────────────────────────────────────────────────────────────
 echo ""
 log "Waiting for services to start..."
@@ -275,9 +317,8 @@ if [ "$USE_BOT" = true ]; then
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. ngrok tunnels OR cloudflare tunnel
+# 6. Complete tunnel setup (register webhook, update .env)
 # ─────────────────────────────────────────────────────────────────────────────
-PUBLIC_FRONTEND_URL=""
 
 if [ "$USE_CLOUDFLARE" = true ]; then
   if ! command -v cloudflared &>/dev/null; then
@@ -285,15 +326,12 @@ if [ "$USE_CLOUDFLARE" = true ]; then
     err "Install: wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && sudo dpkg -i cloudflared-linux-amd64.deb"
     err "See CLOUDFLARE-TUNNEL-SETUP.md for full setup guide"
   else
-    log "Starting Cloudflare Tunnel for frontend-user (port $FRONTEND_USER_PORT)..."
-    cloudflared tunnel --url "http://localhost:$FRONTEND_USER_PORT" --no-autoupdate > "$LOG_DIR/cloudflare-tunnel.log" 2>&1 &
-    PIDS+=($!)
-
-    # Wait for tunnel URL to appear in logs
+    # Wait for cloudflare URL to appear in logs
     for i in {1..30}; do
       sleep 1
       if grep -q "https://" "$LOG_DIR/cloudflare-tunnel.log" 2>/dev/null; then
         PUBLIC_FRONTEND_URL=$(grep -oP 'https://[a-z0-9-]+\.trycloudflare\.com' "$LOG_DIR/cloudflare-tunnel.log" | head -1)
+        HMR_HOST="${PUBLIC_FRONTEND_URL#https://}"
         break
       fi
     done
@@ -301,7 +339,6 @@ if [ "$USE_CLOUDFLARE" = true ]; then
     if [ -n "$PUBLIC_FRONTEND_URL" ]; then
       log "frontend-user public URL: ${YELLOW}$PUBLIC_FRONTEND_URL${NC}"
 
-      # Update telegram-bot/.env FRONTEND_BASE_URL
       ENV_FILE="$PROJECT_ROOT/telegram-bot/.env"
       if [ -f "$ENV_FILE" ]; then
         sed -i "s|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=$PUBLIC_FRONTEND_URL|" "$ENV_FILE"
@@ -336,68 +373,41 @@ EOF
     fi
   fi
 
-elif [ "$USE_NGROK" = true ]; then
-  if ! command -v ngrok &>/dev/null; then
-    warn "ngrok not found in PATH — skipping tunnels"
-  else
-    log "Starting ngrok tunnel for frontend-user (port $FRONTEND_USER_PORT)..."
-    warn "⚠️  Ngrok free tier: 40 requests/minute limit"
-    warn "⚠️  Use --cloudflare flag for unlimited free tunneling"
-    ngrok http "$FRONTEND_USER_PORT" --log=stdout > "$LOG_DIR/ngrok-frontend.log" 2>&1 &
-    PIDS+=($!)
-    sleep 3
+elif [ "$USE_NGROK" = true ] && [ -n "$PUBLIC_FRONTEND_URL" ]; then
+  # URL already captured pre-flight; just handle webhook registration
+  ENV_FILE="$PROJECT_ROOT/telegram-bot/.env"
+  if [ -f "$ENV_FILE" ]; then
+    sed -i "s|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=$PUBLIC_FRONTEND_URL|" "$ENV_FILE"
+    log "Updated telegram-bot/.env FRONTEND_BASE_URL → $PUBLIC_FRONTEND_URL"
 
-    # Get the ngrok URL for port 5173
-    NGROK_FRONTEND=$(curl -s "http://localhost:$NGROK_API_PORT/api/tunnels" 2>/dev/null \
-      | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-for t in d.get('tunnels', []):
-    if '$FRONTEND_USER_PORT' in t.get('config', {}).get('addr', ''):
-        print(t['public_url'])
-        break
-" 2>/dev/null || echo "")
+    if [ "$USE_BOT" = true ]; then
+      TELEGRAM_BOT_TOKEN=$(
+        awk -F= '/^TELEGRAM_BOT_TOKEN=/{print substr($0, index($0, "=") + 1); exit}' "$ENV_FILE" \
+          | tr -d '\r'
+      )
 
-    if [ -n "$NGROK_FRONTEND" ]; then
-      PUBLIC_FRONTEND_URL="$NGROK_FRONTEND"
-      log "frontend-user public URL: ${YELLOW}$NGROK_FRONTEND${NC}"
-
-      # Update telegram-bot/.env FRONTEND_BASE_URL automatically
-      ENV_FILE="$PROJECT_ROOT/telegram-bot/.env"
-      if [ -f "$ENV_FILE" ]; then
-        sed -i "s|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=$NGROK_FRONTEND|" "$ENV_FILE"
-        log "Updated telegram-bot/.env FRONTEND_BASE_URL → $NGROK_FRONTEND"
-
-        if [ "$USE_BOT" = true ]; then
-          TELEGRAM_BOT_TOKEN=$(
-            awk -F= '/^TELEGRAM_BOT_TOKEN=/{print substr($0, index($0, "=") + 1); exit}' "$ENV_FILE" \
-              | tr -d '\r'
-          )
-
-          if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
-            WEBHOOK_URL="$NGROK_FRONTEND/telegram/webhook"
-            WEBHOOK_RESPONSE=$(
-              curl -sS -G --config - 2>/dev/null <<EOF || true
+      if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
+        WEBHOOK_URL="$PUBLIC_FRONTEND_URL/telegram/webhook"
+        WEBHOOK_RESPONSE=$(
+          curl -sS -G --config - 2>/dev/null <<EOF || true
 url = "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook"
 data-urlencode = "url=$WEBHOOK_URL"
 EOF
-            )
+        )
 
-            if printf '%s' "$WEBHOOK_RESPONSE" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin).get("ok") else 1)' 2>/dev/null; then
-              log "Telegram webhook registered: $WEBHOOK_URL"
-              log "Telegram webhook routes through frontend-user to telegram-bot port $TELEGRAM_BOT_PORT"
-            else
-              warn "Telegram webhook registration failed. Check TELEGRAM_BOT_TOKEN and logs/ngrok-frontend.log."
-            fi
-          else
-            warn "TELEGRAM_BOT_TOKEN is empty; skipping Telegram webhook registration."
-          fi
+        if printf '%s' "$WEBHOOK_RESPONSE" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin).get("ok") else 1)' 2>/dev/null; then
+          log "Telegram webhook registered: $WEBHOOK_URL"
+          log "Telegram webhook routes through frontend-user to telegram-bot port $TELEGRAM_BOT_PORT"
+        else
+          warn "Telegram webhook registration failed. Check TELEGRAM_BOT_TOKEN and logs/ngrok-frontend.log."
         fi
+      else
+        warn "TELEGRAM_BOT_TOKEN is empty; skipping Telegram webhook registration."
       fi
-    else
-      warn "Could not get ngrok URL for frontend (free plan allows 1 tunnel)"
     fi
   fi
+elif [ "$USE_NGROK" = true ]; then
+  warn "Could not get ngrok URL for frontend (free plan allows 1 tunnel)"
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────

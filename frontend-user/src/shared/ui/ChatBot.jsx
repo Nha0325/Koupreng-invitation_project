@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguageStore } from "../../stores/useLanguageStore";
 import "./ChatBot.css";
@@ -35,6 +36,7 @@ const TRANSLATIONS = {
 };
 
 export default function ChatBot() {
+  const location = useLocation();
   const lang = useLanguageStore((state) => state.lang) || "en";
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
   
@@ -52,6 +54,10 @@ export default function ChatBot() {
     setIsOpen(!isOpen);
     setShowGreeting(false);
   };
+
+  if (location.pathname !== "/") {
+    return null;
+  }
 
   return (
     <div className="chatbot-wrapper">

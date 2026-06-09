@@ -6,6 +6,8 @@ import "./PaymentPages.css";
 import templateService from "../templates/templateService";
 import { mergeBackendTemplate } from "../templates/templateCatalogAdapter";
 
+const STATIC_ABA_CHECKOUT_AMOUNT = "0.01";
+
 function numericTemplateId(templateId) {
     const parsed = Number(templateId);
     if (Number.isInteger(parsed) && parsed > 0) {
@@ -50,7 +52,7 @@ export default function TemplateCheckoutPage() {
         templateId: template?.backendId || numericTemplateId(templateId),
         templateName: template?.name || "Khmer Wedding Gold",
         packageName: "Premium",
-        amount: String(template?.price ?? "0.01"),
+        amount: STATIC_ABA_CHECKOUT_AMOUNT,
         currency: template?.currency || "USD",
     }), [template, templateId]);
     const [lastOrder, setLastOrder] = useState(null);
@@ -99,7 +101,7 @@ export default function TemplateCheckoutPage() {
             <section className="payment-hero">
                 <span className="payment-eyebrow">Template checkout</span>
                 <h1>Buy Template</h1>
-                <p>After clicking Buy Template, your order will be created and you will be redirected to the ABA KHQR payment page. This static ABA link is already configured with USD 0.01.</p>
+                <p>After clicking Buy Template, your order will be created and you will be redirected to the ABA KHQR payment page. Static ABA KHQR test payment is fixed at USD 0.01.</p>
                 <p>បន្ទាប់ពីចុច Buy Template ប្រព័ន្ធនឹងបង្កើត order ហើយបញ្ជូនអ្នកទៅទំព័រ ABA KHQR។ Static link នេះបានកំណត់តម្លៃ USD 0.01 រួចហើយ។</p>
             </section>
 
