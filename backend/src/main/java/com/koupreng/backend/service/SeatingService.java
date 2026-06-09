@@ -77,7 +77,7 @@ public class SeatingService {
                         .toList())
                 .unassignedGuests(guestRepository.findByInvitationIdOrderByGuestGroupAscTableNumberAscGuestNameAsc(invitationId).stream()
                         .filter(guest -> !assignedGuestIds.contains(guest.getId()))
-                        .map(GuestResponse::from)
+                        .map(guest -> GuestResponse.from(guest))
                         .toList())
                 .build();
     }

@@ -1,5 +1,23 @@
 package com.koupreng.backend.service;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.budget.BudgetResponse;
 import com.koupreng.backend.dto.budget.CreateBudgetItemRequest;
@@ -10,24 +28,6 @@ import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.repository.BudgetItemRepository;
 import com.koupreng.backend.repository.BudgetRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class BudgetServiceTests {
 
@@ -181,8 +181,8 @@ class BudgetServiceTests {
         item.setCategory("FOOD");
         item.setItemName("Dinner, VIP");
         item.setEstimatedCost(new BigDecimal("350.00"));
-        item.setActualCost(new BigDecimal("375.50"));
-        item.setVendorName("Vendor \"A\"");
+        item.setActualCost(new BigDecimal("-10.00"));
+        item.setVendorName("=cmd|' /C calc'!A0");
 
         when(fixture.invitationService.requireOwnedInvitationEntity(authentication, 10L)).thenReturn(invitation);
         when(fixture.budgetRepository.findByInvitationId(10L)).thenReturn(Optional.of(budget));
@@ -192,7 +192,7 @@ class BudgetServiceTests {
 
         assertTrue(csv.startsWith("itemId,category,itemName,estimatedCost,actualCost,date,status,vendorName,notes"));
         assertTrue(csv.contains("\"Dinner, VIP\""));
-        assertTrue(csv.contains("\"Vendor \"\"A\"\"\""));
+        assertTrue(csv.contains("\"'=cmd|' /C calc'!A0\""));
     }
 
     private Fixture fixture() {
