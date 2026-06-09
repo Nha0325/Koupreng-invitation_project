@@ -92,8 +92,9 @@ Use this checklist with a local or staging backend. Replace `{id}`, `{slug}`, `{
 | **M. Advanced** | DELETE | `/api/v1/invitations/{id}/guests/{guestId}/seat` | Owner | none | Unassigns guest from table | [ ] |
 | **M. Advanced** | GET | `/api/v1/admin/packages` | ADMIN | none | All subscription packages | [ ] |
 | **M. Advanced** | POST | `/api/v1/admin/packages` | ADMIN | `{"packageName":"Silver","price":5.00,"active":true}` | Creates new pricing package | [ ] |
-| **M. Advanced** | GET | `/api/v1/payments` | USER | none | Unified payment history (merged) | [ ] |
-| **M. Advanced** | GET | `/api/v1/payments/{orderCode}` | Owner | none | Detailed order payment receipt | [ ] |
+| **M. Advanced** | GET | `/api/v1/me/payments` | USER | none | Unified payment history (merged) | [x] |
+| **M. Advanced** | GET | `/api/v1/me/payments/{orderCode}` | Owner | none | Detailed order payment record | [x] |
+| **M. Advanced** | GET | `/api/v1/me/payments/{orderCode}/receipt` | Owner | none | Detailed payment receipt | [x] |
 | **M. Advanced** | GET | `/api/v1/admin/payments` | ADMIN | none | Global unified payments | [ ] |
 | **M. Advanced** | POST | `/api/v1/ai/invitation/story` | USER | `{"coupleNames":"A & B"}` | AI generated couple story | [ ] |
 | **M. Advanced** | POST | `/api/v1/ai/invitation/formal-text` | USER | `{"venueName":"Main Hall"}` | AI generated invitation copy | [ ] |
