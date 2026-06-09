@@ -1,0 +1,220 @@
+.te-page {
+    height: calc(100vh - 120px); /* Account for HostNav padding from dash-main-scroll */
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.te-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: #fff;
+    border-bottom: 1px solid rgba(176, 146, 106, 0.2);
+}
+
+.te-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.te-save-btn {
+    background: #E11D48;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 999px;
+    font-family: 'Kantumruy Pro', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.te-save-btn:hover {
+    background: #BE123C;
+}
+
+.te-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.te-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left Sidebar: Controls */
+.te-sidebar {
+    width: 380px;
+    background: #fff;
+    border-right: 1px solid rgba(176, 146, 106, 0.2);
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.te-section {
+    margin-bottom: 32px;
+}
+
+.te-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.te-section-title span.dot {
+    width: 6px;
+    height: 6px;
+    background: #007bff;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.te-field {
+    margin-bottom: 20px;
+}
+
+.te-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.te-field select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(176, 146, 106, 0.3);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fafafa;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.te-field select:focus {
+    border-color: #B0926A;
+}
+
+.te-audio-player {
+    width: 100%;
+    margin-top: 12px;
+    border-radius: 12px;
+}
+
+.te-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(176, 146, 106, 0.3);
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.te-color-picker input[type="color"] {
+    -webkit-appearance: none;
+    border: none;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.te-color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.te-color-picker input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
+.te-color-picker input[type="text"] {
+    border: none;
+    background: transparent;
+    font-family: monospace;
+    font-size: 14px;
+    color: #555;
+    outline: none;
+    flex: 1;
+}
+
+.te-image-upload {
+    border: 2px dashed rgba(176, 146, 106, 0.4);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    background: #fafafa;
+}
+
+.te-image-upload:hover {
+    border-color: #B0926A;
+    background: #fff;
+}
+
+.te-image-preview {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.te-image-upload span {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+}
+
+/* Right Panel: Preview */
+.te-preview-container {
+    flex: 1;
+    background: #fdfaf6;
+    display: flex;
+    flex-direction: column;
+}
+
+.te-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    border-bottom: 1px solid rgba(176, 146, 106, 0.2);
+}
+
+.te-preview-header h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.te-preview-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}

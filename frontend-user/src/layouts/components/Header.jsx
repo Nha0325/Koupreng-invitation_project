@@ -14,7 +14,8 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { lang, setLang } = useLanguageStore();
+  const lang = useLanguageStore((state) => state.lang);
+  const setLang = useLanguageStore((state) => state.setLang);
   const t = useT();
 
   const PUBLIC_NAV_ITEMS = [

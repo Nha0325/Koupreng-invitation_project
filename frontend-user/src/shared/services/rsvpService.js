@@ -1,8 +1,6 @@
 import { api } from "../api/client";
 
-function unwrap(response) {
-    return response?.data ?? response;
-}
+import { unwrap } from "../api/helpers";
 
 function toQuery(params) {
     const search = new URLSearchParams();

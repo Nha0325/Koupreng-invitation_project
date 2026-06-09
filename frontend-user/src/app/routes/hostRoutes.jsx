@@ -21,6 +21,7 @@ import ExpensesPage from "../../pages/host/ExpensesPage";
 import GuestsPage from "../../pages/host/GuestsPage";
 import HostTemplateDemoPage from "../../pages/host/templates/HostTemplateDemoPage";
 import ChangePasswordPage from "../../pages/host/ChangePasswordPage";
+import TemplateEditorPage from "../../pages/host/templates/TemplateEditorPage";
 import InvitationCreatePage from "../../pages/host/invitations/InvitationCreatePage";
 import InvitationEditPage from "../../pages/host/invitations/InvitationEditPage";
 import InvitationGuestsPage from "../../pages/host/invitations/InvitationGuestsPage";
@@ -68,6 +69,7 @@ export function hostRoutes() {
       <Route path="/expenses" element={<ExpensesPage />} />
       <Route path="/gifts" element={<WeddingGiftPage />} />
       <Route path="/templates/browse" element={<BrowseTemplatesPage />} />
+      <Route path="/templates/editor" element={<TemplateEditorPage />} />
       <Route path="/templates/browse/:id" element={<HostTemplateDemoPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/dashboard/profile" element={<ProfilePage />} />

@@ -1,6 +1,6 @@
-import { useRef } from "react";
-import { MusicPicker } from "../../../shared/ui/MusicPicker";
-import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
+import { useEffect, useRef } from "react";
+import { MusicPicker } from "../components/MusicPicker";
+import { MUSIC_TRACKS } from "../data/musicTracks";
 import RepeatableList from "../components/RepeatableList";
 
 export default function EnhancementsStep({ draft, update }) {
@@ -10,13 +10,37 @@ export default function EnhancementsStep({ draft, update }) {
 
     const storyChapters = draft?.storyChapters || [];
 
+    const createdUrlsRef = useRef([]);
+
+    useEffect(() => {
+        return () => {
+            createdUrlsRef.current.forEach((url) => {
+                URL.revokeObjectURL(url);
+            });
+            createdUrlsRef.current = [];
+        };
+    }, []);
+
     const handleFiles = (event) => {
         const files = Array.from(event.target.files || []);
         const urls = files.map((file) => URL.createObjectURL(file));
+
+        createdUrlsRef.current.push(...urls);
+
         update({ gallery: [...gallery, ...urls] });
+        event.target.value = "";
     };
 
     const removeImage = (index) => {
+        const removedUrl = gallery[index];
+
+        if (removedUrl?.startsWith("blob:")) {
+            URL.revokeObjectURL(removedUrl);
+            createdUrlsRef.current = createdUrlsRef.current.filter(
+                (url) => url !== removedUrl
+            );
+        }
+
         update({ gallery: gallery.filter((_, itemIndex) => itemIndex !== index) });
     };
 

@@ -15,6 +15,7 @@ import {
   IoBusinessOutline,
   IoPeopleOutline,
   IoPersonOutline,
+  IoAddOutline,
 } from "react-icons/io5";
 import { useAuth } from "../../pages/auth/context/useAuth";
 import NotificationBell from "../../features/notifications/NotificationBell";
@@ -29,7 +30,8 @@ const NAV_ITEMS = [
   { labelKey: "guests", path: "/guests", Icon: IoPeopleOutline },
   { labelKey: "expenses", path: "/expenses", Icon: IoCashOutline },
   { labelKey: "gifts", path: "/gifts", Icon: IoGiftOutline },
-  { labelKey: "templates", path: "/templates/browse", Icon: IoColorPaletteOutline },
+  { labelKey: "templates", path: "/templates/editor", Icon: IoColorPaletteOutline },
+  { labelKey: "Add Template", path: "/templates/browse", Icon: IoAddOutline },
   { labelKey: "packages", path: "/dashboard/packages", Icon: IoCubeOutline },
   { labelKey: "organizations", path: "/dashboard/organizations", Icon: IoBusinessOutline },
 ];

@@ -96,6 +96,10 @@ export default function TemplateExperience({
             data-theme="wed"
             data-variant={resolvedVariant}
             ref={rootRef}
+            style={{
+                ...(tpl.primaryColor && { '--tpl-accent': tpl.primaryColor }),
+                ...(tpl.textColor && { '--tpl-text': tpl.textColor }),
+            }}
         >
             {!preview && showBreadcrumb && (
                 <div className="tx-breadcrumb">

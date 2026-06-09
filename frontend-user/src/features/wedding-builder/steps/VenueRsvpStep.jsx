@@ -1,5 +1,5 @@
 import { DatePicker } from "../../../shared/ui/DatePicker";
-import { VenuePicker } from "../../../shared/ui/VenuePicker";
+import { VenuePicker } from "../components/VenuePicker";
 
 export default function VenueRsvpStep({ draft, updateField }) {
     const event = draft?.event || {};
