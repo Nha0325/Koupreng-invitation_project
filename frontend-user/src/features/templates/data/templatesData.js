@@ -285,6 +285,33 @@ const BASE_TEMPLATES = [
         label: "NAGA BLESSING",
         description: "រចនាបថនាគ សម្រាប់ពិធីបែបបុរាណដ៏មានន័យ។",
     },
+    {
+        id: "royal-khmer-wedding",
+        name: "រាជហង្សខ្មែរ",
+        style: "Royal Khmer Wedding",
+        category: "ancient",
+        popular: true,
+        image: "/facebook/all/01-card/cover-card.jpg",
+        mainImage: "/facebook/all/01-card/cover-card.jpg",
+        phoneCoverImage: "/facebook/all/01-card/cover-card.jpg",
+        music: { url: musicInstrumental },
+        groom: "សុវណ្ណ",
+        bride: "បុប្ផា",
+        dateText: "ថ្ងៃសៅរ៍ ១៩ ធ្នូ ២០២៦",
+        targetDate: "2026-12-19T17:00:00+07:00",
+        ceremonyTime: "០៩:០០",
+        receptionTime: "១៧:០០",
+        venueName: "សាលមហោស្រពជាតិ",
+        venueAddress: "មហាវិថីព្រះនរោដម ភ្នំពេញ",
+        bg: "#FFF8F0",
+        paper: "#FFFaf2",
+        color: "#C8A24A",
+        accent: "#8B3A4A",
+        dark: "#3A2A2A",
+        label: "ROYAL KHMER WEDDING",
+        description: "គំរូសន្លឹកការលំដាប់ប្រណីត បែបព្រះរាជវង្សខ្មែរ ពណ៌មាស និងក្រហម លម្អដោយក្បាច់ភ្ញីទេស។",
+    },
+
 
     // ═══════════════════════════════════════════════
     // MODERN (ទំនើប) — 10 templates
@@ -827,6 +854,7 @@ const TEMPLATE_MEDIA_GROUPS = [
 
 const TEMPLATE_MEDIA_GROUP_BY_ID = {
     royal: "01-card",
+    "royal-khmer-wedding": "01-card",
     classic: "02-card",
     garden: "03-card",
     "angkor-spirit": "04-card",
@@ -916,6 +944,7 @@ export const TEMPLATES = BASE_TEMPLATES.map(withTemplateMedia);
 
 const FACEBOOK_TEMPLATE_CARD_IDS = [
     "royal",
+    "royal-khmer-wedding",
     "classic",
     "garden",
     "angkor-spirit",

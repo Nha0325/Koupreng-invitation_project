@@ -56,6 +56,7 @@ export default function TemplateExperience({
     showBreadcrumb = true,
     showActions = true,
     showStickyCta = true,
+    children,
 }) {
     const resolvedVariant = useMemo(() => resolveVariant(tpl, variant), [tpl, variant]);
     const theme = useMemo(() => getVariantTheme(resolvedVariant), [resolvedVariant]);
@@ -115,6 +116,12 @@ export default function TemplateExperience({
             <TemplateSchedule content={content} />
             <TemplateVenue content={content} />
             <TemplateGallery content={content} />
+
+            {children && (
+                <div className="tx-children">
+                    {children}
+                </div>
+            )}
 
             {!preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">

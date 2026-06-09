@@ -77,6 +77,19 @@ export const TEMPLATE_VARIANTS = {
             { hex: "#4A130F", name: "ត្នោតចាស់" },
         ],
     },
+    "royal-khmer-wedding": {
+        className: "template-experience--royal-khmer-wedding",
+        mood: "light",
+        badge: "Royal Khmer Wedding",
+        amp: "♛",
+        dressColors: [
+            { hex: "#C8A24A", name: "មាស" },
+            { hex: "#FFF8F0", name: "ភ្លឺ" },
+            { hex: "#F8D7DA", name: "ផ្កាឈូកស្រាល" },
+            { hex: "#8B3A4A", name: "ឈាមជ្រូក" },
+        ],
+    },
+
     "vintage-gold": {
         className: "template-experience--vintage-gold",
         mood: "light",
@@ -128,6 +141,7 @@ export const TEMPLATE_VARIANT_BY_ID = {
 
     // ── Royal Khmer family ────────────────────────────────────
     "khmer-silk": "royal-khmer",
+    "royal-khmer-wedding": "royal-khmer-wedding",
     sky: "royal-khmer",
     "midnight-luxe": "luxury",
     "lush-tropics": "modern-khmer",

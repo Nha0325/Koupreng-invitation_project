@@ -10,6 +10,7 @@ import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
 const FEATURED_TEMPLATE_IDS = [
     "royal",
+    "royal-khmer-wedding",
     "classic",
     "garden",
     "boho-chic",
@@ -18,6 +19,7 @@ const FEATURED_TEMPLATE_IDS = [
 
 const TEMPLATE_CARD_COVER = {
     royal: "/facebook/all/01-card/cover-card.jpg",
+    "royal-khmer-wedding": "/facebook/all/01-card/cover-card.jpg",
     classic: "/facebook/all/02-card/cover-card.jpg",
     garden: "/facebook/all/03-card/cover-card.jpg",
     "boho-chic": "/facebook/all/04-card/cover-card.jpg",
