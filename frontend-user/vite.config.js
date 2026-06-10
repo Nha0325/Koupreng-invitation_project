@@ -29,6 +29,10 @@ export default defineConfig({
           })
         },
       },
+      "/uploads": {
+        target: `http://localhost:${backendPort}`,
+        changeOrigin: true,
+      },
       "/telegram": {
         target: `http://localhost:${telegramBotPort}`,
         changeOrigin: true,

@@ -27,7 +27,7 @@ If a historical `supabase/` folder exists in an older checkout, leave it alone u
 Frontend:
 - React + Vite
 - Tailwind CSS
-- Fetch API client
+- Axios API client (centralized)
 
 Backend:
 - Spring Boot
@@ -311,6 +311,28 @@ WAF_AUDIT_ONLY=false
 ```
 
 Do not use `VITE_API_BASE_URL`.
+
+### Centralized API Client & Vite Proxies
+
+- Both `frontend-user` and `frontend-admin` use centralized Axios clients (`frontend-user/src/shared/api/client.js` and `frontend-admin/src/lib/api.js`).
+- The local API base URL is configured as `/api` via `VITE_API_URL=/api`.
+- Vite proxies `/api` requests to the Spring Boot backend at `http://localhost:8080`.
+- Do not hardcode backend URLs (e.g. `http://localhost:8080/api`) in frontend components or services.
+- The backend runs with:
+  ```bash
+  cd backend
+  ./mvnw spring-boot:run
+  ```
+- The `frontend-user` runs with:
+  ```bash
+  cd frontend-user
+  npm run dev
+  ```
+- The `frontend-admin` runs with:
+  ```bash
+  cd frontend-admin
+  npm run dev
+  ```
 
 Security boundary:
 - Backend secrets are variables like `DB_PASSWORD`, `JWT_SECRET`, `TELEGRAM_BOT_TOKEN`, and mail credentials.

@@ -15,7 +15,7 @@ function unwrap(response) {
 
 export const i18nService = {
     messages: (namespace) =>
-        api.get(`/v1/i18n/messages?namespace=${encodeURIComponent(namespace)}&lang=${getLang()}`, { auth: false }).then(unwrap),
+        api.get(`/v1/i18n/messages?namespace=${encodeURIComponent(namespace)}&lang=${getLang()}`, { skipAuth: true }).then(unwrap),
 };
 
 export default i18nService;

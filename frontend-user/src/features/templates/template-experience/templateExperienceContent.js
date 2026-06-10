@@ -162,6 +162,15 @@ const VARIANT_COPY = {
         dressStyle: "ខ្មែរប្រពៃណី / Ceremonial",
         dressNote: "សូមស្លៀកពាក់សំពត់ ឬឈុតខ្មែរប្រពៃណី ពណ៌ឈាមជ្រូក និងមាសរាជ ដើម្បីបំពេញនូវបរិយាកាសពិធីដ៏ឧឡារិក។",
     },
+    "royal-khmer-wedding": {
+        message:
+            "ដោយសេចក្ដីរីករាយ និងក្ដីស្រឡាញ់ដ៏ជ្រាលជ្រៅ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នក ចូលរួមជាសក្ខីភាព និងភ្ញៀវកិត្តិយស ក្នុងពិធីមង្គលការរបស់យើងទាំងពីរ។",
+        groomIntro: "កូនកំលោះដ៏មានទំនួលខុសត្រូវ ស្រឡាញ់ និងថែរក្សាវប្បធម៌ខ្មែរ។",
+        brideIntro: "កូនក្រមុំដ៏ទន់ភ្លន់ ពោរពេញដោយក្ដីស្រឡាញ់ និងស្នាមញញឹមដ៏កក់ក្ដៅ។",
+        dressName: "មាស និងឈាមជ្រូក",
+        dressStyle: "ខ្មែរប្រពៃណី / Smart Casual",
+        dressNote: "សូមជ្រើសរើសពណ៌មាស ឬឈាមជ្រូក ដើម្បីបំពេញនូវបរិយាកាសដ៏មានសិរីសួស្ដី និងភាពស្រស់ស្អាត។",
+    },
     "vintage-gold": {
         message:
             "ដូចទំព័រនៃសៀវភៅអនុស្សាវរីយ៍ដ៏ចំណាស់ យើងសូមអញ្ជើញលោកអ្នក មកបន្ថែមជំពូកថ្មីមួយ ក្នុងរឿងរ៉ាវស្នេហារបស់យើង។",
@@ -259,7 +268,7 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
     const hostCouple = host.couple || {};
     const hostContact = host.contact || {};
     const hostEnabledSections = host.enabledSections || {};
-    const hasHostContent = Object.keys(host).length > 0;
+    const hasHostContent = Boolean(tpl.hostContent) || Object.keys(host).length > 0;
     const sectionEnabled = (key) => hostEnabledSections[key] !== false;
     const nonEmpty = (arr) => (Array.isArray(arr) && arr.length ? arr : null);
     const nonBlank = (value) => (typeof value === "string" && value.trim() ? value.trim() : "");
@@ -300,8 +309,9 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         : languageMode === "both" && hostStoryTextEn
             ? [hostStoryText, hostStoryTextEn].filter(Boolean).join("\n\n")
             : hostStoryText;
-    const hostStory = nonEmpty(host.storyChapters)
-        ? host.storyChapters.map((c, index) => ({
+    const hostStoryChapters = nonEmpty(host.storyChapters);
+    const hostStory = hostStoryChapters
+        ? hostStoryChapters.map((c, index) => ({
             id: c.id || `chapter-${index}`,
             kicker: c.kicker || `ជំពូកទី ${index + 1}`,
             title: c.title || "",
@@ -312,7 +322,7 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         : combinedStoryText
             ? [{
                 id: "story-text",
-                kicker: "Our Story",
+                kicker: "រឿងរ៉ាវស្នេហា",
                 title: "ដំណើររបស់យើង",
                 date: tpl.dateText || "",
                 text: combinedStoryText,

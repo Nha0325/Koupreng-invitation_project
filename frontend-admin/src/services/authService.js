@@ -6,7 +6,7 @@ import { api } from "../lib/api";
  */
 export const authService = {
     login: (identifier, password) =>
-        api.post("/auth/login", { identifier, password }, { auth: false }),
+        api.post("/auth/login", { identifier, password }, { skipAuth: true }),
 
     logout: () => api.post("/auth/logout"),
 };

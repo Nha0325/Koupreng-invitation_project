@@ -2,7 +2,7 @@ import axios from "axios";
 import { ApiError } from "./errors";
 import { getAccessToken, isCookieAuthStorage } from "../services/authStorage";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function getLang() {
     try {
@@ -15,6 +15,7 @@ function getLang() {
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
+    timeout: 30000,
 });
 
 apiClient.interceptors.request.use(
@@ -24,12 +25,25 @@ apiClient.interceptors.request.use(
         
         config.headers["Accept-Language"] = getLang();
         
-        if (!useCookieAuth && config.auth !== false && token) {
+        const skipAuth = config.skipAuth || config.auth === false;
+        
+        if (config.skipAuth !== undefined) {
+            delete config.skipAuth;
+        }
+        if (config.auth !== undefined) {
+            delete config.auth;
+        }
+        
+        if (!skipAuth && !useCookieAuth && token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         
         if (useCookieAuth) {
             config.withCredentials = true;
+        }
+
+        if (config.data instanceof FormData) {
+            delete config.headers["Content-Type"];
         }
 
         return config;
@@ -57,3 +71,4 @@ export const api = {
 };
 
 export default api;
+
