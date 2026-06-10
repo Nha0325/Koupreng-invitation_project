@@ -201,63 +201,7 @@ export default function PublicInvitationPage() {
         return draftToTemplate({ ...activeDraft, templateId }, gallery);
     }, [activeDraft, gallery]);
 
-    const mergedPublic = useMemo(() => {
-        if (!invitation) return null;
 
-        const content = safeJson(invitation.contentJson);
-        const enabledSections = safeJson(invitation.enabledSections);
-        const templateKey = content.templateId || String(invitation.templateId || "");
-
-        let baseTpl = TEMPLATES.find((t) => t.id === templateKey);
-        if (!baseTpl && invitation.templateId) {
-            baseTpl = TEMPLATES.find((t) => Number(t.backendId) === Number(invitation.templateId));
-        }
-        if (!baseTpl) {
-            baseTpl = TEMPLATES.find((t) => t.id === "royal");
-        }
-
-        const galleryList = (media?.galleryImages || []).map((img) => ({
-            preview: img.fileUrl,
-            type: "image",
-        }));
-
-        const reconstructedDraft = {
-            id: invitation.slug,
-            templateId: baseTpl.id,
-            event: {
-                title: invitation.title,
-                date: invitation.eventDate,
-                ceremonyTime: content.event?.ceremonyTime || invitation.eventTime,
-                receptionTime: content.event?.receptionTime || invitation.eventTime,
-                venueName: invitation.venueName,
-                venueAddress: invitation.venueAddress,
-                mapLink: invitation.googleMapUrl,
-            },
-            couple: {
-                groom: invitation.groomName,
-                bride: invitation.brideName,
-                groomNickname: content.couple?.groomNickname || "",
-                brideNickname: content.couple?.brideNickname || "",
-                groomParents: content.couple?.groomParents || "",
-                brideParents: content.couple?.brideParents || "",
-            },
-            contact: content.contact || {},
-            message: content.message || invitation.storyText || "",
-            story: content.story || invitation.storyText || "",
-            storyChapters: content.storyChapters || [],
-            schedule: content.schedule || [],
-            party: content.party || [],
-            gift: content.gift || [],
-            faq: content.faq || [],
-            dressCode: content.dressCode || {},
-            music: media?.backgroundMusic ? { url: media.backgroundMusic.fileUrl } : null,
-            rsvp: content.rsvp || {},
-            enabledSections,
-            extras: content.extras || {},
-        };
-
-        return draftToTemplate(reconstructedDraft, galleryList);
-    }, [invitation, media]);
 
     if (remoteLoading) {
         return <div className="public-state">Loading invitation...</div>;
@@ -319,7 +263,7 @@ export default function PublicInvitationPage() {
             try {
                 const design = JSON.parse(invitation.designJson);
                 templateSlug = design.templateId;
-            } catch (e) {
+            } catch {
                 // Ignore
             }
         }
@@ -327,7 +271,7 @@ export default function PublicInvitationPage() {
             try {
                 const content = JSON.parse(invitation.contentJson);
                 templateSlug = content.templateId;
-            } catch (e) {
+            } catch {
                 // Ignore
             }
         }
@@ -336,7 +280,7 @@ export default function PublicInvitationPage() {
             let content = {};
             try {
                 content = invitation.contentJson ? JSON.parse(invitation.contentJson) : {};
-            } catch (e) {
+            } catch {
                 // Ignore
             }
 
