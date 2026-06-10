@@ -100,11 +100,12 @@ public class MediaController {
     @GetMapping("/public/invitations/{slug}/media")
     public ResponseEntity<ApiResponse<MediaListResponse>> publicMedia(
             @PathVariable String slug,
-            @RequestParam(required = false) String token
+            @RequestParam(required = false) String accessToken,
+            @RequestParam(required = false, name = "token") String inviteToken
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Media files fetched successfully",
-                mediaService.listPublic(slug, token)
+                mediaService.listPublic(slug, accessToken, inviteToken)
         ));
     }
 

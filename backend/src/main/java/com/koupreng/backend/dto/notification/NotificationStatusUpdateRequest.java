@@ -1,0 +1,15 @@
+package com.koupreng.backend.dto.notification;
+
+import com.koupreng.backend.enums.NotificationStatus;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class NotificationStatusUpdateRequest {
+
+    @NotNull(message = "Notification status is required")
+    private NotificationStatus status;
+
+    private String providerMessageId;
+    private String errorMessage;
+}

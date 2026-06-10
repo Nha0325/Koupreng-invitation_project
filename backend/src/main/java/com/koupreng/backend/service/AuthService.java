@@ -38,7 +38,29 @@ public class AuthService {
     private final AppProperties appProperties;
     private final GoogleIdentityVerifier googleIdentityVerifier;
     private final TelegramIdentityVerifier telegramIdentityVerifier;
+    private final AuditLogService auditLogService;
     private final MessageService msg;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public AuthService(
+            AppUserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtEncoder jwtEncoder,
+            AppProperties appProperties,
+            GoogleIdentityVerifier googleIdentityVerifier,
+            TelegramIdentityVerifier telegramIdentityVerifier,
+            MessageService msg,
+            AuditLogService auditLogService
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtEncoder = jwtEncoder;
+        this.appProperties = appProperties;
+        this.googleIdentityVerifier = googleIdentityVerifier;
+        this.telegramIdentityVerifier = telegramIdentityVerifier;
+        this.msg = msg;
+        this.auditLogService = auditLogService;
+    }
 
     public AuthService(
             AppUserRepository userRepository,
@@ -49,13 +71,8 @@ public class AuthService {
             TelegramIdentityVerifier telegramIdentityVerifier,
             MessageService msg
     ) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtEncoder = jwtEncoder;
-        this.appProperties = appProperties;
-        this.googleIdentityVerifier = googleIdentityVerifier;
-        this.telegramIdentityVerifier = telegramIdentityVerifier;
-        this.msg = msg;
+        this(userRepository, passwordEncoder, jwtEncoder, appProperties,
+                googleIdentityVerifier, telegramIdentityVerifier, msg, null);
     }
 
     @Transactional
@@ -73,6 +90,7 @@ public class AuthService {
         if (phone != null && userRepository.existsByPhone(phone)) {
             throw new ApiException(HttpStatus.CONFLICT, msg.get("auth.phone-taken"));
         }
+        requirePasswordPolicy(request.password());
 
         AppUser user = new AppUser();
         user.setEmail(email);
@@ -85,20 +103,40 @@ public class AuthService {
         return issueToken(userRepository.save(user));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
-        AppUser user = findByIdentifier(request.identifier())
-                .orElseThrow(() -> new BadCredentialsException(msg.get("auth.invalid-credentials")));
+        try {
+            AppUser user = findByIdentifier(request.identifier())
+                    .orElseThrow(() -> {
+                        if (auditLogService != null) {
+                            auditLogService.logSystemEvent("LOGIN_FAILED", "USER", null, "Failed login attempt: user not found for identifier: " + request.identifier(), java.util.Map.of("identifier", request.identifier(), "reason", "USER_NOT_FOUND"));
+                        }
+                        return new BadCredentialsException(msg.get("auth.invalid-credentials"));
+                    });
 
-        if (!user.isActive()) {
-            throw new BadCredentialsException(msg.get("auth.account-disabled"));
-        }
-        if (user.getPasswordHash() == null
-                || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new BadCredentialsException(msg.get("auth.invalid-credentials"));
-        }
+            if (!user.isActive()) {
+                if (auditLogService != null) {
+                    auditLogService.logSystemEvent("LOGIN_FAILED", "USER", user.getId(), "Failed login attempt: account is disabled for identifier: " + request.identifier(), java.util.Map.of("identifier", request.identifier(), "userId", user.getId(), "reason", "ACCOUNT_DISABLED"));
+                }
+                throw new BadCredentialsException(msg.get("auth.account-disabled"));
+            }
+            if (user.getPasswordHash() == null
+                    || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+                if (auditLogService != null) {
+                    auditLogService.logSystemEvent("LOGIN_FAILED", "USER", user.getId(), "Failed login attempt: password mismatch for identifier: " + request.identifier(), java.util.Map.of("identifier", request.identifier(), "userId", user.getId(), "reason", "BAD_CREDENTIALS"));
+                }
+                throw new BadCredentialsException(msg.get("auth.invalid-credentials"));
+            }
 
-        return issueToken(user);
+            return issueToken(user);
+        } catch (BadCredentialsException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            if (auditLogService != null) {
+                auditLogService.logSystemEvent("LOGIN_FAILED", "USER", null, "Failed login attempt due to unexpected error: " + ex.getMessage(), java.util.Map.of("identifier", request.identifier(), "reason", "UNEXPECTED_ERROR"));
+            }
+            throw ex;
+        }
     }
 
     @Transactional
@@ -202,5 +240,15 @@ public class AuthService {
             return null;
         }
         return value.replaceAll("\\s+", "");
+    }
+
+    private void requirePasswordPolicy(String password) {
+        if (password == null || password.length() < 8) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters");
+        }
+        if (!password.chars().anyMatch(Character::isLetter)
+                || !password.chars().anyMatch(Character::isDigit)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password must contain at least one letter and one number");
+        }
     }
 }

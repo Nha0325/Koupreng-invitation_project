@@ -3,10 +3,18 @@ package com.koupreng.backend.controller;
 import com.koupreng.backend.dto.ApiResponse;
 import com.koupreng.backend.dto.budget.BudgetItemRequest;
 import com.koupreng.backend.dto.budget.BudgetItemResponse;
+import com.koupreng.backend.dto.budget.BudgetResponse;
+import com.koupreng.backend.dto.budget.BudgetSummaryResponse;
+import com.koupreng.backend.dto.budget.CreateBudgetItemRequest;
+import com.koupreng.backend.dto.budget.UpdateBudgetItemRequest;
+import com.koupreng.backend.dto.budget.UpdateBudgetRequest;
 import com.koupreng.backend.service.BudgetService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,7 +30,7 @@ import java.util.List;
 
 @RestController
 @Validated
-@RequestMapping("/api/v1/invitations/{invitationId}/budget-items")
+@RequestMapping("/api/v1")
 public class BudgetController {
 
     private final BudgetService budgetService;
@@ -31,8 +39,97 @@ public class BudgetController {
         this.budgetService = budgetService;
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<BudgetItemResponse>>> list(
+    @GetMapping("/invitations/{invitationId}/budget")
+    public ResponseEntity<ApiResponse<BudgetResponse>> getBudget(
+            Authentication authentication,
+            @PathVariable Long invitationId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Budget fetched successfully",
+                budgetService.getOrCreateBudget(authentication, invitationId)
+        ));
+    }
+
+    @PutMapping("/invitations/{invitationId}/budget")
+    public ResponseEntity<ApiResponse<BudgetResponse>> updateBudget(
+            Authentication authentication,
+            @PathVariable Long invitationId,
+            @Valid @RequestBody UpdateBudgetRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Budget updated successfully",
+                budgetService.updateBudget(authentication, invitationId, request)
+        ));
+    }
+
+    @GetMapping("/invitations/{invitationId}/budget/summary")
+    public ResponseEntity<ApiResponse<BudgetSummaryResponse>> getBudgetSummary(
+            Authentication authentication,
+            @PathVariable Long invitationId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Budget summary fetched successfully",
+                budgetService.getBudgetSummary(authentication, invitationId)
+        ));
+    }
+
+    @PostMapping("/invitations/{invitationId}/budget/items")
+    public ResponseEntity<ApiResponse<BudgetResponse>> addBudgetItem(
+            Authentication authentication,
+            @PathVariable Long invitationId,
+            @Valid @RequestBody CreateBudgetItemRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(
+                "Budget item added successfully",
+                budgetService.addBudgetItem(authentication, invitationId, request)
+        ));
+    }
+
+    @PutMapping("/invitations/{invitationId}/budget/items/{itemId}")
+    public ResponseEntity<ApiResponse<BudgetResponse>> updateBudgetItem(
+            Authentication authentication,
+            @PathVariable Long invitationId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody UpdateBudgetItemRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Budget item updated successfully",
+                budgetService.updateBudgetItem(authentication, invitationId, itemId, request)
+        ));
+    }
+
+    @DeleteMapping("/invitations/{invitationId}/budget/items/{itemId}")
+    public ResponseEntity<ApiResponse<Void>> deleteBudgetItem(
+            Authentication authentication,
+            @PathVariable Long invitationId,
+            @PathVariable Long itemId
+    ) {
+        budgetService.deleteBudgetItem(authentication, invitationId, itemId);
+        return ResponseEntity.ok(ApiResponse.success("Budget item deleted successfully", null));
+    }
+
+    @GetMapping("/invitations/{invitationId}/budget/export")
+    public ResponseEntity<String> exportBudget(
+            Authentication authentication,
+            @PathVariable Long invitationId
+    ) {
+        return csv("budget-" + invitationId + ".csv", budgetService.exportBudgetCsv(authentication, invitationId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/invitations/{invitationId}/budget")
+    public ResponseEntity<ApiResponse<BudgetResponse>> adminBudget(
+            Authentication authentication,
+            @PathVariable Long invitationId
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Budget fetched successfully",
+                budgetService.getBudgetForAdmin(authentication, invitationId)
+        ));
+    }
+
+    @GetMapping("/invitations/{invitationId}/budget-items")
+    public ResponseEntity<ApiResponse<List<BudgetItemResponse>>> listBudgetItems(
             Authentication authentication,
             @PathVariable Long invitationId
     ) {
@@ -42,8 +139,8 @@ public class BudgetController {
         ));
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<BudgetItemResponse>> create(
+    @PostMapping("/invitations/{invitationId}/budget-items")
+    public ResponseEntity<ApiResponse<BudgetItemResponse>> createBudgetItem(
             Authentication authentication,
             @PathVariable Long invitationId,
             @Valid @RequestBody BudgetItemRequest request
@@ -55,8 +152,8 @@ public class BudgetController {
                 ));
     }
 
-    @PutMapping("/{itemId}")
-    public ResponseEntity<ApiResponse<BudgetItemResponse>> update(
+    @PutMapping("/invitations/{invitationId}/budget-items/{itemId}")
+    public ResponseEntity<ApiResponse<BudgetItemResponse>> updatePlanningBudgetItem(
             Authentication authentication,
             @PathVariable Long invitationId,
             @PathVariable Long itemId,
@@ -68,13 +165,20 @@ public class BudgetController {
         ));
     }
 
-    @DeleteMapping("/{itemId}")
-    public ResponseEntity<ApiResponse<Void>> delete(
+    @DeleteMapping("/invitations/{invitationId}/budget-items/{itemId}")
+    public ResponseEntity<ApiResponse<Void>> deletePlanningBudgetItem(
             Authentication authentication,
             @PathVariable Long invitationId,
             @PathVariable Long itemId
     ) {
         budgetService.delete(authentication, invitationId, itemId);
         return ResponseEntity.ok(ApiResponse.success("Budget item deleted successfully", null));
+    }
+
+    private ResponseEntity<String> csv(String filename, String content) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(new MediaType("text", "csv"))
+                .body(content);
     }
 }

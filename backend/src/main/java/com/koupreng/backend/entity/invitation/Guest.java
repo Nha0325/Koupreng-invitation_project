@@ -46,6 +46,9 @@ public class Guest {
     @Column(name = "seat_count")
     private Integer seatCount;
 
+    @Column(columnDefinition = "TEXT")
+    private String note;
+
     @Column(name = "last_sent_at")
     private Instant lastSentAt;
 

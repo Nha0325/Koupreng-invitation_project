@@ -1,35 +1,77 @@
 package com.koupreng.backend.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.guest.GuestGroupResponse;
+import com.koupreng.backend.dto.guest.GuestImportErrorResponse;
+import com.koupreng.backend.dto.guest.GuestImportFileResultResponse;
 import com.koupreng.backend.dto.guest.GuestImportRequest;
 import com.koupreng.backend.dto.guest.GuestRequest;
 import com.koupreng.backend.dto.guest.GuestResponse;
 import com.koupreng.backend.dto.guest.GuestSendListItemResponse;
 import com.koupreng.backend.dto.guest.GuestSendListResponse;
 import com.koupreng.backend.entity.invitation.Guest;
+import com.koupreng.backend.entity.invitation.Rsvp;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.repository.GuestRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.koupreng.backend.repository.RsvpRepository;
+import com.koupreng.backend.util.CsvExportUtils;
 
 @Service
 public class GuestService {
 
+    private static final long MAX_IMPORT_FILE_SIZE = 5L * 1024L * 1024L;
+    private static final Set<String> IMPORT_EXTENSIONS = Set.of(".csv", ".xlsx");
+    private static final Set<String> IMPORT_CONTENT_TYPES = Set.of(
+            "text/csv",
+            "application/csv",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/octet-stream"
+    );
+
     private final GuestRepository guestRepository;
+    private final RsvpRepository rsvpRepository;
     private final InvitationService invitationService;
 
-    public GuestService(GuestRepository guestRepository, InvitationService invitationService) {
+    @Autowired
+    public GuestService(
+            GuestRepository guestRepository,
+            RsvpRepository rsvpRepository,
+            InvitationService invitationService
+    ) {
         this.guestRepository = guestRepository;
+        this.rsvpRepository = rsvpRepository;
         this.invitationService = invitationService;
+    }
+
+    public GuestService(GuestRepository guestRepository, InvitationService invitationService) {
+        this(guestRepository, null, invitationService);
     }
 
     @Transactional
@@ -138,6 +180,72 @@ public class GuestService {
                 .toList();
     }
 
+    @Transactional
+    public GuestImportFileResultResponse importGuestsFile(
+            Authentication authentication,
+            Long invitationId,
+            MultipartFile file
+    ) {
+        UserInvitation invitation = invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        validateImportFile(file);
+
+        List<ImportRow> rows = parseImportRows(file);
+        List<GuestResponse> imported = new ArrayList<>();
+        List<GuestImportErrorResponse> errors = new ArrayList<>();
+        int skipped = 0;
+
+        for (ImportRow row : rows) {
+            GuestRequest guestRequest = row.request();
+            String guestName = trimToNull(guestRequest.getGuestName());
+            if (guestName == null) {
+                skipped++;
+                errors.add(errorRow(row.rowNumber(), "Guest name is required"));
+                continue;
+            }
+            if (isDuplicateGuest(invitation.getId(), guestRequest)) {
+                skipped++;
+                errors.add(errorRow(row.rowNumber(), "Guest with the same email or phone already exists"));
+                continue;
+            }
+
+            Guest guest = new Guest();
+            guest.setInvitation(invitation);
+            guest.setInviteToken(uniqueInviteToken());
+            applyRequest(guest, guestRequest);
+            guest.setQrCodeUrl(tokenUrl(invitation, guest.getInviteToken()));
+            imported.add(GuestResponse.from(guestRepository.save(guest)));
+        }
+
+        return GuestImportFileResultResponse.builder()
+                .importedCount(imported.size())
+                .skippedCount(skipped)
+                .errorRows(errors)
+                .guests(imported)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public String exportGuestCsv(Authentication authentication, Long invitationId) {
+        invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        List<Guest> guests = guestRepository.findByInvitationIdOrderByGuestGroupAscTableNumberAscGuestNameAsc(invitationId);
+        Map<Long, Rsvp> rsvpsByGuestId = rsvpRepository.findByInvitationIdOrderByRespondedAtDesc(invitationId).stream()
+                .filter(rsvp -> rsvp.getGuest() != null && rsvp.getGuest().getId() != null)
+                .collect(Collectors.toMap(rsvp -> rsvp.getGuest().getId(), rsvp -> rsvp, (left, right) -> left));
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("guestName,phone,email,category,seatCount,note,sendStatus,rsvpStatus,attendeeCount,lastSentAt\n");
+        for (Guest guest : guests) {
+            Rsvp rsvp = rsvpsByGuestId.get(guest.getId());
+            csv.append(CsvExportUtils.row(
+                    guest.getGuestName(), guest.getPhone(), guest.getEmail(),
+                    guest.getGuestGroup(), guest.getSeatCount(), guest.getNote(),
+                    guest.getSendStatus(), rsvp == null ? null : rsvp.getResponseStatus(),
+                    rsvp == null ? null : rsvp.getAttendeeCount(), guest.getLastSentAt()
+            )).append('\n');
+        }
+        return csv.toString();
+    }
+
     private Guest requireGuest(Long invitationId, Long guestId) {
         return guestRepository.findByIdAndInvitationId(guestId, invitationId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Guest not found"));
@@ -166,8 +274,234 @@ public class GuestService {
         guest.setSideType(trimToNull(request.getSideType()));
         guest.setTableNumber(trimToNull(request.getTableNumber()));
         guest.setSendStatus(trimToNull(request.getSendStatus()));
+        guest.setSeatCount(request.getSeatCount());
+        guest.setNote(trimToNull(request.getNote()));
         guest.setContributionStatus(trimToNull(request.getContributionStatus()));
         guest.setTotalContributed(request.getTotalContributed());
+    }
+
+    private void validateImportFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Import file is required");
+        }
+        if (file.getSize() > MAX_IMPORT_FILE_SIZE) {
+            throw new ApiException(HttpStatus.CONTENT_TOO_LARGE, "Guest import file must be 5MB or smaller");
+        }
+
+        String filename = safeFilename(file.getOriginalFilename());
+        String extension = extension(filename);
+        if (!IMPORT_EXTENSIONS.contains(extension)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Guest import file must be CSV or XLSX");
+        }
+
+        String contentType = file.getContentType() == null ? "" : file.getContentType().trim().toLowerCase(Locale.ROOT);
+        if (!contentType.isBlank() && !IMPORT_CONTENT_TYPES.contains(contentType)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Guest import file type is not allowed");
+        }
+
+        if (".xlsx".equals(extension)) {
+            try {
+                byte[] header = file.getInputStream().readNBytes(4);
+                if (header.length < 2 || header[0] != 0x50 || header[1] != 0x4B) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "XLSX file signature is invalid");
+                }
+            } catch (IOException exception) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Import file could not be read");
+            }
+        }
+    }
+
+    private List<ImportRow> parseImportRows(MultipartFile file) {
+        String filename = safeFilename(file.getOriginalFilename());
+        String extension = extension(filename);
+        try {
+            return ".xlsx".equals(extension) ? parseXlsxRows(file) : parseCsvRows(file);
+        } catch (IOException exception) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Import file could not be parsed");
+        }
+    }
+
+    private List<ImportRow> parseCsvRows(MultipartFile file) throws IOException {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)
+        )) {
+            String headerLine = reader.readLine();
+            if (headerLine == null || headerLine.isBlank()) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Import file has no header row");
+            }
+            Map<String, Integer> headers = headers(parseCsvLine(headerLine));
+            List<ImportRow> rows = new ArrayList<>();
+            String line;
+            int rowNumber = 1;
+            while ((line = reader.readLine()) != null) {
+                rowNumber++;
+                if (line.isBlank()) {
+                    continue;
+                }
+                rows.add(new ImportRow(rowNumber, requestFromColumns(headers, parseCsvLine(line))));
+            }
+            return rows;
+        }
+    }
+
+    private List<ImportRow> parseXlsxRows(MultipartFile file) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getNumberOfSheets() == 0 ? null : workbook.getSheetAt(0);
+            if (sheet == null || sheet.getPhysicalNumberOfRows() == 0) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Import file has no rows");
+            }
+
+            DataFormatter formatter = new DataFormatter();
+            Row headerRow = sheet.getRow(sheet.getFirstRowNum());
+            Map<String, Integer> headers = headers(cells(headerRow, formatter));
+            List<ImportRow> rows = new ArrayList<>();
+            for (int index = sheet.getFirstRowNum() + 1; index <= sheet.getLastRowNum(); index++) {
+                Row row = sheet.getRow(index);
+                if (row == null) {
+                    continue;
+                }
+                List<String> values = cells(row, formatter);
+                if (values.stream().allMatch(value -> value == null || value.isBlank())) {
+                    continue;
+                }
+                rows.add(new ImportRow(index + 1, requestFromColumns(headers, values)));
+            }
+            return rows;
+        }
+    }
+
+    private List<String> cells(Row row, DataFormatter formatter) {
+        List<String> values = new ArrayList<>();
+        if (row == null) {
+            return values;
+        }
+        int last = Math.max(row.getLastCellNum(), (short) 0);
+        for (int index = 0; index < last; index++) {
+            values.add(trimToNull(formatter.formatCellValue(row.getCell(index))));
+        }
+        return values;
+    }
+
+    private Map<String, Integer> headers(List<String> rawHeaders) {
+        Map<String, Integer> headers = new HashMap<>();
+        for (int index = 0; index < rawHeaders.size(); index++) {
+            String normalized = normalizeHeader(rawHeaders.get(index));
+            if (normalized != null) {
+                headers.put(normalized, index);
+            }
+        }
+        if (!headers.containsKey("guestname") && !headers.containsKey("name")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Import file must include guestName column");
+        }
+        return headers;
+    }
+
+    private GuestRequest requestFromColumns(Map<String, Integer> headers, List<String> values) {
+        GuestRequest request = new GuestRequest();
+        request.setGuestName(firstColumn(headers, values, "guestname", "name"));
+        request.setPhone(firstColumn(headers, values, "phone", "tel", "telephone"));
+        request.setEmail(firstColumn(headers, values, "email"));
+        request.setGuestGroup(firstColumn(headers, values, "category", "group", "guestgroup"));
+        request.setTableNumber(firstColumn(headers, values, "table", "tablenumber"));
+        request.setSideType(firstColumn(headers, values, "side", "sidetype"));
+        request.setNote(firstColumn(headers, values, "note", "notes"));
+        request.setSeatCount(parseInteger(firstColumn(headers, values, "seatcount", "seats")));
+        return request;
+    }
+
+    private List<String> parseCsvLine(String line) {
+        List<String> values = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean quoted = false;
+        for (int index = 0; index < line.length(); index++) {
+            char ch = line.charAt(index);
+            if (ch == '"') {
+                if (quoted && index + 1 < line.length() && line.charAt(index + 1) == '"') {
+                    current.append('"');
+                    index++;
+                } else {
+                    quoted = !quoted;
+                }
+            } else if (ch == ',' && !quoted) {
+                values.add(trimToNull(current.toString()));
+                current.setLength(0);
+            } else {
+                current.append(ch);
+            }
+        }
+        values.add(trimToNull(current.toString()));
+        return values;
+    }
+
+    private String firstColumn(Map<String, Integer> headers, List<String> values, String... names) {
+        for (String name : names) {
+            Integer index = headers.get(name);
+            if (index != null && index >= 0 && index < values.size()) {
+                String value = trimToNull(values.get(index));
+                if (value != null) {
+                    return value;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String normalizeHeader(String value) {
+        String trimmed = trimToNull(value);
+        if (trimmed == null) {
+            return null;
+        }
+        return trimmed.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+    }
+
+    private Integer parseInteger(String value) {
+        String trimmed = trimToNull(value);
+        if (trimmed == null) {
+            return null;
+        }
+        try {
+            int parsed = Integer.parseInt(trimmed);
+            return parsed < 0 ? null : parsed;
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private boolean isDuplicateGuest(Long invitationId, GuestRequest request) {
+        String email = trimToNull(request.getEmail());
+        if (email != null && guestRepository.findByInvitationIdAndEmailIgnoreCase(invitationId, email).isPresent()) {
+            return true;
+        }
+        String phone = trimToNull(request.getPhone());
+        return phone != null && guestRepository.findByInvitationIdAndPhone(invitationId, phone).isPresent();
+    }
+
+    private GuestImportErrorResponse errorRow(int rowNumber, String reason) {
+        return GuestImportErrorResponse.builder()
+                .rowNumber(rowNumber)
+                .reason(reason)
+                .build();
+    }
+
+
+    private String safeFilename(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Import file name is required");
+        }
+        String filename = originalFilename.trim();
+        if (filename.contains("/") || filename.contains("\\") || filename.contains("..")
+                || filename.chars().anyMatch(Character::isISOControl)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Import file name is invalid");
+        }
+        return filename;
+    }
+
+    private String extension(String filename) {
+        int index = filename.lastIndexOf('.');
+        if (index < 0 || index == filename.length() - 1) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Import file extension is required");
+        }
+        return filename.substring(index).toLowerCase(Locale.ROOT);
     }
 
     private String uniqueInviteToken() {
@@ -195,5 +529,8 @@ public class GuestService {
             return null;
         }
         return value.trim();
+    }
+
+    private record ImportRow(int rowNumber, GuestRequest request) {
     }
 }
