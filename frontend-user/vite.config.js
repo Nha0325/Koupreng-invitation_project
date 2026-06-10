@@ -12,12 +12,17 @@ const telegramBotPort = process.env.TELEGRAM_BOT_PORT || '8000'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envDir,
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
   server: {
     host: true,
     allowedHosts: ["localhost", ".dev", ".ngrok-free.app", ".ngrok-free.dev"],
     proxy: {
       "/api": {
-        target: `http://localhost:${backendPort}`,
+        target: `http://127.0.0.1:${backendPort}`,
         changeOrigin: true,
         headers: {
           Origin: `http://localhost:${frontendUserPort}`,
@@ -30,11 +35,11 @@ export default defineConfig({
         },
       },
       "/uploads": {
-        target: `http://localhost:${backendPort}`,
+        target: `http://127.0.0.1:${backendPort}`,
         changeOrigin: true,
       },
       "/telegram": {
-        target: `http://localhost:${telegramBotPort}`,
+        target: `http://127.0.0.1:${telegramBotPort}`,
         changeOrigin: true,
       },
     },

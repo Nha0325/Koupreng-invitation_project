@@ -100,6 +100,7 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={auth("passwordPlaceholder")}
                 className="auth-input"
+                autoComplete="current-password"
               />
               <button
                 type="button"
