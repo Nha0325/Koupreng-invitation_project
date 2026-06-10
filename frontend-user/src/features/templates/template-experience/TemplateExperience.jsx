@@ -128,6 +128,12 @@ export default function TemplateExperience({
 
             <TemplateFooter content={content} />
 
+            {children && (
+                <div className="tx-children">
+                    {children}
+                </div>
+            )}
+
             {!preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">
                     <Link to={useTemplateLink} className="tx-btn tx-btn--solid">{primaryCtaLabel}</Link>

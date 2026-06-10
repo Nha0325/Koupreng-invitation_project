@@ -194,6 +194,97 @@ export default function PublicInvitationPage() {
     }
 
     if (invitation) {
+        let templateSlug = null;
+        if (invitation.designJson) {
+            try {
+                const design = JSON.parse(invitation.designJson);
+                templateSlug = design.templateId;
+            } catch (e) {
+                // Ignore
+            }
+        }
+        if (!templateSlug && invitation.contentJson) {
+            try {
+                const content = JSON.parse(invitation.contentJson);
+                templateSlug = content.templateId;
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        if (templateSlug) {
+            let content = {};
+            try {
+                content = invitation.contentJson ? JSON.parse(invitation.contentJson) : {};
+            } catch (e) {
+                // Ignore
+            }
+
+            const reconstructedDraft = {
+                id: invitation.id,
+                templateId: templateSlug,
+                couple: content.couple || {
+                    groom: invitation.groomName,
+                    bride: invitation.brideName,
+                },
+                event: content.event || {
+                    title: invitation.title,
+                    date: invitation.eventDate,
+                    ceremonyTime: invitation.eventTime,
+                    receptionTime: invitation.eventTime,
+                    venueName: invitation.venueName,
+                    venueAddress: invitation.venueAddress,
+                    mapLink: invitation.googleMapUrl,
+                },
+                contact: content.contact || {},
+                message: content.message || invitation.storyText || "",
+                story: content.story || invitation.storyText || "",
+                storyChapters: content.storyChapters || [],
+                schedule: content.schedule || [],
+                party: content.party || [],
+                gift: content.gift || [],
+                faq: content.faq || [],
+                extras: content.extras || {},
+                rsvp: content.rsvp || {
+                    deadline: invitation.rsvpDeadline,
+                },
+            };
+
+            const galleryFromMedia = (media?.galleryImages || [])
+                .filter((item) => item?.fileUrl)
+                .map((item) => ({
+                    preview: item.fileUrl,
+                    type: "image",
+                }));
+
+            const mergedForPublished = draftToTemplate(reconstructedDraft, galleryFromMedia);
+            if (mergedForPublished) {
+                if (media?.coverImage?.fileUrl) {
+                    mergedForPublished.tpl.customMainImage = media.coverImage.fileUrl;
+                }
+                if (media?.backgroundMusic?.fileUrl) {
+                    mergedForPublished.tpl.music = { url: media.backgroundMusic.fileUrl };
+                }
+
+                return (
+                    <TemplateExperience
+                        tpl={mergedForPublished.tpl}
+                        variant={mergedForPublished.variant}
+                        showBreadcrumb={false}
+                        showActions={false}
+                        showStickyCta={true}
+                    >
+                        <PublicRsvpForm
+                            slug={slug}
+                            inviteToken={inviteToken}
+                            accessToken={effectiveAccessToken}
+                            languageMode={invitation.languageMode}
+                        />
+                    </TemplateExperience>
+                );
+            }
+        }
+
         return (
             <InvitationDisplay invitation={invitation} media={media}>
                 <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
