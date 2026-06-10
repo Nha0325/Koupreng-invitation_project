@@ -258,7 +258,11 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
     const host = tpl.hostContent || {};
     const hostCouple = host.couple || {};
     const hostContact = host.contact || {};
+    const hostEnabledSections = host.enabledSections || {};
+    const hasHostContent = Boolean(tpl.hostContent);
+    const sectionEnabled = (name) => hostEnabledSections[name] !== false;
     const nonEmpty = (arr) => (Array.isArray(arr) && arr.length ? arr : null);
+    const hostStoryText = typeof host.storyText === "string" ? host.storyText.trim() : "";
 
     const venueName = tpl.venueName || "";
     const venueAddress = (tpl.venueAddress || "").replace(/\n/g, ", ");
@@ -289,8 +293,9 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
 
     // Map host story chapters onto the timeline shape, layering template images.
     const ownImages = getTemplateOwnImages(tpl);
-    const hostStory = nonEmpty(host.storyChapters)
-        ? host.storyChapters.map((c, index) => ({
+    const hostStoryChapters = nonEmpty(host.storyChapters);
+    const hostStory = hostStoryChapters
+        ? hostStoryChapters.map((c, index) => ({
             id: c.id || `chapter-${index}`,
             kicker: c.kicker || `ជំពូកទី ${index + 1}`,
             title: c.title || "",
@@ -298,6 +303,15 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             text: c.text || "",
             image: ownImages ? ownImages[index % ownImages.length] : undefined,
         }))
+        : hostStoryText
+            ? [{
+                id: "story-text",
+                kicker: "រឿងរ៉ាវស្នេហា",
+                title: "ដំណើររបស់យើង",
+                date: tpl.dateText || "",
+                text: hostStoryText,
+                image: ownImages ? ownImages[0] : undefined,
+            }]
         : null;
 
     const hostSchedule = nonEmpty(host.schedule)
@@ -373,12 +387,12 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             image: tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || coverImage,
         },
         gallery: buildGallery(tpl),
-        story: hostStory || buildStory(tpl),
-        schedule: hostSchedule || buildSchedule(tpl),
-        party: hostParty || DEMO_PARTY,
+        story: hasHostContent ? (sectionEnabled("story") ? (hostStory || []) : []) : buildStory(tpl),
+        schedule: hasHostContent ? (sectionEnabled("schedule") ? (hostSchedule || []) : []) : buildSchedule(tpl),
+        party: hasHostContent ? (sectionEnabled("party") ? (hostParty || []) : []) : DEMO_PARTY,
         dressCode,
-        gift: hostGift || DEMO_GIFT,
-        faq: hostFaq || DEMO_FAQ,
+        gift: hasHostContent ? (sectionEnabled("gift") ? (hostGift || []) : []) : DEMO_GIFT,
+        faq: hasHostContent ? (sectionEnabled("faq") ? (hostFaq || []) : []) : DEMO_FAQ,
         contact: {
             telegram: contactTelegram,
             phone: hostContact.phone || "+855 12 345 678",

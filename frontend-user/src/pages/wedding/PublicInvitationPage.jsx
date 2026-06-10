@@ -15,7 +15,9 @@ import { invitationService } from "../../shared/services/invitationService";
 import { mediaService } from "../../shared/services/mediaService";
 
 function safeJson(value) {
-    if (!value || typeof value !== "string") return {};
+    if (!value) return {};
+    if (typeof value === "object") return value;
+    if (typeof value !== "string") return {};
     try {
         return JSON.parse(value);
     } catch {
@@ -137,6 +139,7 @@ export default function PublicInvitationPage() {
         if (!invitation) return null;
 
         const content = safeJson(invitation.contentJson);
+        const enabledSections = safeJson(invitation.enabledSections);
         const templateKey = content.templateId || String(invitation.templateId || "");
 
         let baseTpl = TEMPLATES.find((t) => t.id === templateKey);
@@ -182,6 +185,8 @@ export default function PublicInvitationPage() {
             faq: content.faq || [],
             dressCode: content.dressCode || {},
             music: media?.backgroundMusic ? { url: media.backgroundMusic.fileUrl } : null,
+            rsvp: content.rsvp || {},
+            enabledSections,
             extras: content.extras || {},
         };
 
@@ -214,6 +219,9 @@ export default function PublicInvitationPage() {
     };
 
     if (invitation) {
+        const enabledSections = safeJson(invitation.enabledSections);
+        const showRsvp = enabledSections.rsvp !== false;
+
         if (mergedPublic) {
             return (
                 <TemplateExperience
@@ -224,24 +232,28 @@ export default function PublicInvitationPage() {
                     showActions={false}
                     showStickyCta={true}
                 >
-                    <PublicRsvpForm
-                        slug={slug}
-                        inviteToken={inviteToken}
-                        accessToken={effectiveAccessToken}
-                        languageMode={invitation.languageMode}
-                    />
+                    {showRsvp && (
+                        <PublicRsvpForm
+                            slug={slug}
+                            inviteToken={inviteToken}
+                            accessToken={effectiveAccessToken}
+                            languageMode={invitation.languageMode}
+                        />
+                    )}
                 </TemplateExperience>
             );
         }
 
         return (
             <InvitationDisplay invitation={invitation} media={media}>
-                <PublicRsvpForm
-                    slug={slug}
-                    inviteToken={inviteToken}
-                    accessToken={effectiveAccessToken}
-                    languageMode={invitation.languageMode}
-                />
+                {showRsvp && (
+                    <PublicRsvpForm
+                        slug={slug}
+                        inviteToken={inviteToken}
+                        accessToken={effectiveAccessToken}
+                        languageMode={invitation.languageMode}
+                    />
+                )}
             </InvitationDisplay>
         );
     }
