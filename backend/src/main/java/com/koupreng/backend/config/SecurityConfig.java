@@ -8,6 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.security.AuthRateLimitFilter;
+import com.koupreng.backend.security.AdminPaymentSecretFilter;
 import com.koupreng.backend.security.ApiRequestLoggingFilter;
 import com.koupreng.backend.security.ApiSecurityProperties;
 import com.koupreng.backend.security.ClientAddressResolver;
@@ -17,6 +18,7 @@ import com.koupreng.backend.waf.WafFilter;
 import com.koupreng.backend.waf.WafProperties;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -53,6 +55,7 @@ public class SecurityConfig {
             AppProperties appProperties,
             CorsConfigurationSource corsConfigurationSource,
             BearerTokenResolver bearerTokenResolver,
+            AdminPaymentSecretFilter adminPaymentSecretFilter,
             RateLimitService rateLimitService,
             ClientAddressResolver clientAddressResolver
     ) throws Exception {
@@ -84,6 +87,7 @@ public class SecurityConfig {
                         })
                 )
                 .addFilterBefore(wafFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterBefore(adminPaymentSecretFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterAfter(authRateLimitFilter, WafFilter.class)
                 .addFilterBefore(apiRequestLoggingFilter, WafFilter.class)
                 .authorizeHttpRequests(auth -> auth
@@ -94,19 +98,20 @@ public class SecurityConfig {
                                 "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/login", "/api/auth/register",
-                                "/api/auth/google", "/api/auth/telegram").permitAll()
+                                "/api/auth/google", "/api/auth/telegram",
+                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/invitations/templates",
                                 "/api/invitations/templates/**").permitAll()
                         .requestMatchers("/api/invitations/shared/**").permitAll()
+                        .requestMatchers("/api/v1/templates",
+                                "/api/v1/templates/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/i18n/messages").permitAll()
                         .requestMatchers("/api/v1/public/invitations/**").permitAll()
                         .requestMatchers("/api/v1/payway/callback",
                                 "/api/v1/payway/return",
                                 "/api/v1/payway/cancel").permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/admin/template-payments/confirm",
-                                "/api/v1/admin/template-payments/telegram-detect").permitAll()
-                        .requestMatchers("/api/v1/admin/template-payments/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/internal/template-payments/**").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -161,6 +166,16 @@ public class SecurityConfig {
     }
 
     @Bean
+    public FilterRegistrationBean<AdminPaymentSecretFilter> adminPaymentSecretFilterRegistration(
+            AdminPaymentSecretFilter adminPaymentSecretFilter
+    ) {
+        FilterRegistrationBean<AdminPaymentSecretFilter> registration =
+                new FilterRegistrationBean<>(adminPaymentSecretFilter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
     public CorsConfigurationSource corsConfigurationSource(ApiSecurityProperties apiSecurityProperties) {
         ApiSecurityProperties.Cors corsProperties = apiSecurityProperties.getCors();
 
@@ -171,7 +186,7 @@ public class SecurityConfig {
         }
 
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.copyOf(corsProperties.getAllowedOrigins()));
+        configuration.setAllowedOriginPatterns(List.copyOf(corsProperties.getAllowedOrigins()));
         configuration.setAllowedMethods(List.copyOf(corsProperties.getAllowedMethods()));
         configuration.setAllowedHeaders(List.copyOf(corsProperties.getAllowedHeaders()));
         configuration.setExposedHeaders(List.copyOf(corsProperties.getExposedHeaders()));
@@ -179,6 +194,7 @@ public class SecurityConfig {
         configuration.setMaxAge(corsProperties.getMaxAgeSeconds());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/v1/internal/**", new CorsConfiguration());
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
