@@ -1,0 +1,1394 @@
+/* ============================================================
+   Wedding builder — Flower-style immersive composer.
+   Dark green botanical shell, cream/glass panels, gold accents.
+   All existing class names preserved; store/route logic untouched.
+   ============================================================ */
+
+.wb-root {
+    /* Flower-style tokens */
+    --wb-flower-bg: #071b13;
+    --wb-flower-bg-soft: #102c20;
+    --wb-flower-panel: rgba(248, 243, 232, 0.96);
+    --wb-flower-glass: rgba(255, 255, 255, 0.08);
+    --wb-flower-line: rgba(234, 220, 190, 0.24);
+    --wb-flower-gold: #b8955f;
+    --wb-flower-gold-soft: #d8b885;
+    --wb-flower-cream: #f8f1e7;
+    --wb-flower-ink: #18251d;
+    --wb-flower-muted: #7d725f;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100svh;
+    position: relative;
+    isolation: isolate;
+    background: var(--wb-flower-bg);
+    color: var(--wb-flower-cream);
+    overflow-x: hidden;
+}
+
+.wb-root::before,
+.wb-root::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Botanical immersive backdrop */
+.wb-root::before {
+    background-image: url("../../assets/icons/background.png");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.16;
+    transform: scale(1.05);
+    animation: tplDemoBgDrift 22s ease-in-out infinite alternate;
+}
+
+.wb-root::after {
+    background:
+        radial-gradient(120% 80% at 50% -10%, rgba(35, 78, 56, 0.55), transparent 60%),
+        radial-gradient(100% 60% at 100% 100%, rgba(11, 38, 26, 0.6), transparent 55%),
+        linear-gradient(180deg, rgba(7, 27, 19, 0.86) 0%, rgba(7, 27, 19, 0.96) 100%);
+}
+
+@keyframes tplDemoBgDrift {
+    from {
+        transform: scale(1.05) translateY(0);
+    }
+
+    to {
+        transform: scale(1.1) translateY(-12px);
+    }
+}
+
+.wb-root>* {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Top Header (glass nav rail) ── */
+.wb-top-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 14px 0;
+    pointer-events: none;
+}
+
+.wb-top-header-inner {
+    pointer-events: auto;
+    max-width: 1440px;
+    margin: 0 auto;
+    width: 94%;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 0 22px;
+    height: 70px;
+    background: rgba(11, 33, 23, 0.72);
+    backdrop-filter: blur(14px);
+    border-radius: 50px;
+    border: 1px solid var(--wb-flower-line);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+.wb-header-brand {
+    flex-shrink: 0;
+}
+
+.wb-header-brand .kp-breadcrumb {
+    max-width: none;
+    margin: 0;
+}
+
+.wb-header-brand .kp-breadcrumb-list {
+    flex-wrap: nowrap;
+    gap: 6px;
+}
+
+.wb-header-brand .kp-breadcrumb-link,
+.wb-header-brand .kp-breadcrumb-current {
+    font-family: "Kantumruy Pro", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.wb-header-brand .kp-breadcrumb-link {
+    color: rgba(234, 220, 190, 0.7);
+}
+
+.wb-header-brand .kp-breadcrumb-link:hover {
+    color: var(--wb-flower-gold-soft);
+}
+
+.wb-header-brand .kp-breadcrumb-current {
+    color: var(--wb-flower-gold-soft);
+}
+
+.wb-header-brand .kp-breadcrumb-separator {
+    color: rgba(184, 149, 95, 0.7);
+    font-size: 16px;
+}
+
+/* ── Numbered Stepper ── */
+.wb-step-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.wb-step-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.wb-step-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: "Kantumruy Pro", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(234, 220, 190, 0.7);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.wb-step-link:hover {
+    background: var(--wb-flower-glass);
+    color: var(--wb-flower-cream);
+}
+
+.wb-step-link:focus-visible {
+    outline: 2px solid var(--wb-flower-gold-soft);
+    outline-offset: 2px;
+}
+
+.wb-step-link.active {
+    background: linear-gradient(135deg, var(--wb-flower-gold) 0%, #9a7740 100%);
+    color: #fff;
+    font-weight: 700;
+    border-color: rgba(216, 184, 133, 0.5);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+}
+
+.wb-step-link.done {
+    color: var(--wb-flower-gold-soft);
+}
+
+.wb-step-link-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 4px;
+    border-radius: 50%;
+    background: var(--wb-flower-glass);
+    color: var(--wb-flower-gold-soft);
+    font-size: 11px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+}
+
+.wb-step-link.active .wb-step-link-num {
+    background: rgba(255, 255, 255, 0.28);
+    color: #fff;
+}
+
+.wb-step-link.done .wb-step-link-num {
+    background: rgba(184, 149, 95, 0.22);
+    color: var(--wb-flower-gold-soft);
+}
+
+/* ── Mobile step dropdown ── */
+.wb-step-menu {
+    display: none;
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.wb-step-menu-trigger,
+.wb-step-menu-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    font-family: "Kantumruy Pro", sans-serif;
+    cursor: pointer;
+}
+
+.wb-step-menu-trigger {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    justify-content: flex-start;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--wb-flower-gold) 0%, #9a7740 100%);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.wb-step-menu-trigger span:nth-child(2) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wb-step-menu-trigger .wb-step-link-num {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.28);
+    color: #fff;
+}
+
+.wb-step-menu-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.wb-step-menu-list {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: grid;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 18px;
+    background: rgba(16, 44, 32, 0.98);
+    border: 1px solid var(--wb-flower-line);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.wb-step-menu-item {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 14px;
+    background: transparent;
+    color: rgba(234, 220, 190, 0.85);
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+}
+
+.wb-step-menu-item.active {
+    background: linear-gradient(135deg, var(--wb-flower-gold) 0%, #9a7740 100%);
+    color: #fff;
+}
+
+.wb-step-menu-item .wb-step-link-num {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.wb-step-menu-item.active .wb-step-link-num {
+    background: rgba(255, 255, 255, 0.28);
+    color: #fff;
+}
+
+/* ── Header Progress ── */
+.wb-header-progress {
+    width: 80px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.wb-header-progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--wb-flower-gold-soft), var(--wb-flower-gold));
+    transition: width 0.25s ease;
+}
+
+/* ── Step banner (above the form) ── */
+.wb-phase-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(176, 146, 106, 0.18);
+}
+
+.wb-phase-banner-step {
+    font-family: "Kantumruy Pro", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--wb-flower-gold);
+}
+
+.wb-phase-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wb-phase-dot {
+    width: 30px;
+    height: 5px;
+    border-radius: 999px;
+    background: #e6dccb;
+    transition: background 0.25s ease;
+}
+
+.wb-phase-dot.is-active {
+    background: linear-gradient(90deg, var(--wb-flower-gold-soft), var(--wb-flower-gold));
+}
+
+/* ── Content area ── */
+.wb-content {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 26px;
+    padding: 24px 40px 56px;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* Hide legacy sidebar/breadcrumb blocks (not rendered, kept safe) */
+.wb-sidebar,
+.wb-breadcrumb {
+    display: none;
+}
+
+/* ── Main panel (cream card on the dark shell) ── */
+.wb-main {
+    background: var(--wb-flower-panel);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 24px;
+    padding: 32px;
+    min-height: 600px;
+    min-width: 0;
+    max-width: 100%;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+}
+
+.wb-main h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    color: var(--wb-flower-ink);
+}
+
+.wb-main .wb-help {
+    color: var(--wb-flower-muted);
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ── Form section cards ── */
+.wb-section,
+.wb-advanced,
+.wb-success {
+    border: 1px solid #ece1cd;
+    border-radius: 16px;
+    background: #fffdf9;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(76, 58, 30, 0.05);
+}
+
+.wb-section-head {
+    margin-bottom: 16px;
+}
+
+.wb-section-kicker {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--wb-flower-gold);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.wb-section h3,
+.wb-success h3 {
+    margin: 0;
+    color: var(--wb-flower-ink);
+    font-size: 17px;
+}
+
+.wb-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+    min-width: 0;
+}
+
+.wb-field label {
+    font-size: 13px;
+    color: #4a3a26;
+    font-weight: 600;
+}
+
+.wb-field input,
+.wb-field textarea,
+.wb-field select {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 14px;
+    border: 1px solid #d8cdb8;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    background: #fff;
+    color: var(--wb-flower-ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.wb-field input::placeholder,
+.wb-field textarea::placeholder {
+    color: #b3a489;
+}
+
+.wb-field input:focus,
+.wb-field textarea:focus,
+.wb-field select:focus {
+    outline: none;
+    border-color: var(--wb-flower-gold);
+    box-shadow: 0 0 0 3px rgba(184, 149, 95, 0.18);
+}
+
+.wb-toggle-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #ece1cd;
+    border-radius: 14px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.wb-toggle-row:hover {
+    border-color: var(--wb-flower-gold);
+    background: #fffaf2;
+}
+
+.wb-toggle-row input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--wb-flower-gold);
+}
+
+.wb-toggle-row span {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.wb-toggle-row strong {
+    font-size: 14px;
+    color: var(--wb-flower-ink);
+}
+
+.wb-toggle-row small {
+    color: var(--wb-flower-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.wb-advanced {
+    padding: 0;
+    overflow: hidden;
+}
+
+.wb-advanced summary {
+    cursor: pointer;
+    padding: 16px 20px;
+    color: var(--wb-flower-ink);
+    font-weight: 700;
+}
+
+.wb-advanced-body {
+    padding: 0 20px 20px;
+}
+
+/* ── Review summary ── */
+.wb-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wb-review-template {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.wb-review-template img {
+    width: 54px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.wb-review-title {
+    font-weight: 700;
+    color: var(--wb-flower-ink);
+}
+
+.wb-review-muted,
+.wb-review-lines {
+    color: #665843;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.wb-review-text {
+    margin: 0;
+    color: var(--wb-flower-ink);
+    font-size: 14px;
+}
+
+.wb-publish-actions,
+.wb-success-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.wb-success {
+    background: #f4fbf3;
+    border-color: #cfe9d4;
+}
+
+.wb-success-badge {
+    display: inline-flex;
+    margin-bottom: 10px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #dff3e3;
+    color: #25613c;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.wb-success p {
+    margin: 8px 0 0;
+    color: #4d6a53;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.wb-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    min-width: 0;
+}
+
+/* ── Bottom nav (Back / Next) ── */
+.wb-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid #ece1cd;
+}
+
+.wb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    border: 1px solid #d8cdb8;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #4a3a26;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.wb-btn:hover {
+    background: #f7efe2;
+    border-color: var(--wb-flower-gold);
+}
+
+.wb-btn:focus-visible {
+    outline: 2px solid var(--wb-flower-gold);
+    outline-offset: 2px;
+}
+
+.wb-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.wb-btn-primary {
+    background: linear-gradient(135deg, var(--wb-flower-gold) 0%, #9a7740 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(122, 92, 45, 0.32);
+}
+
+.wb-btn-primary:hover {
+    background: linear-gradient(135deg, #c5a368 0%, #87662f 100%);
+    border-color: transparent;
+}
+
+/* ── Sticky preview panel (Flower preview side) ── */
+.wb-preview {
+    align-self: start;
+    background: rgba(11, 33, 23, 0.55);
+    border: 1px solid var(--wb-flower-line);
+    border-radius: 24px;
+    padding: 18px;
+    position: sticky;
+    top: 16px;
+    z-index: 5;
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.34);
+}
+
+.wb-preview h3 {
+    margin: 0 0 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--wb-flower-gold-soft);
+    letter-spacing: 0.12em;
+    text-align: center;
+}
+
+/* legacy placeholder phone (kept harmless) */
+.wb-phone {
+    width: 100%;
+    aspect-ratio: 9 / 19;
+    border-radius: 24px;
+    border: 8px solid #0c1f16;
+    overflow: hidden;
+    background: #fbf5ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--wb-flower-muted);
+    font-size: 12px;
+    padding: 12px;
+}
+
+.wb-publish-box {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--wb-flower-glass);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--wb-flower-cream);
+}
+
+.wb-publish-box .wb-btn-primary {
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* ── Dropzone ── */
+.wb-dropzone {
+    border: 2px dashed #d8cdb8;
+    border-radius: 14px;
+    padding: 32px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #fdfbf7;
+}
+
+.wb-dropzone:hover,
+.wb-drop-active {
+    border-color: var(--wb-flower-gold);
+    background: #faf3e6;
+}
+
+.wb-dropzone-content p {
+    margin: 8px 0 4px;
+    font-size: 14px;
+    color: #4a3a26;
+}
+
+.wb-dropzone-content small {
+    font-size: 12px;
+    color: var(--wb-flower-muted);
+}
+
+.wb-dropzone-icon {
+    font-size: 28px;
+}
+
+/* ── Gallery grid ── */
+.wb-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.wb-gallery-item {
+    position: relative;
+    border: 1px solid #ece1cd;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.wb-gallery-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+}
+
+.wb-gallery-item-info {
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wb-gallery-item-name {
+    font-size: 11px;
+    color: #4a3a26;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wb-gallery-item-badge {
+    font-size: 10px;
+    color: var(--wb-flower-muted);
+}
+
+.wb-gallery-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.wb-gallery-item:hover .wb-gallery-remove,
+.wb-gallery-remove:focus-visible {
+    opacity: 1;
+}
+
+/* ── Phone preview (live RoyalInvitation in phone frame) ── */
+.wb-phone-preview {
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: center;
+}
+
+.wb-phone-frame {
+    width: auto;
+    max-width: 100%;
+    height: min(680px, calc(100vh - 132px));
+    height: min(680px, calc(100svh - 132px - env(safe-area-inset-bottom, 0px)));
+    aspect-ratio: 9 / 19;
+    border-radius: 28px;
+    border: 8px solid #0c1f16;
+    overflow: hidden;
+    background: #fbf5ec;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
+    transform: translateZ(0);
+}
+
+.wb-phone-scroll {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+}
+
+.wb-phone-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.wb-phone-scroll::-webkit-scrollbar-thumb {
+    background: rgba(184, 149, 95, 0.5);
+    border-radius: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+    .wb-content {
+        grid-template-columns: 1fr;
+        padding: 20px 24px 48px;
+    }
+
+    .wb-preview {
+        position: static;
+        max-height: none;
+        order: 2;
+    }
+
+    .wb-phone-frame {
+        height: min(620px, 80vh);
+    }
+
+    .wb-step-link {
+        padding: 7px 12px;
+        font-size: 12px;
+    }
+
+    .wb-step-link-label {
+        display: none;
+    }
+
+    .wb-top-header-inner {
+        gap: 12px;
+        padding: 0 16px;
+        height: 62px;
+    }
+}
+
+@media (max-width: 640px) {
+    .wb-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .wb-top-header {
+        padding: 10px 0;
+    }
+
+    .wb-top-header-inner {
+        flex-wrap: nowrap;
+        height: 64px;
+        padding: 10px 12px;
+        border-radius: 22px;
+        gap: 10px;
+    }
+
+    .wb-step-nav {
+        display: none;
+    }
+
+    .wb-step-menu {
+        display: block;
+    }
+
+    .wb-header-brand {
+        display: none;
+    }
+
+    .wb-header-progress {
+        width: 48px;
+    }
+
+    .wb-content {
+        padding: 14px;
+    }
+
+    .wb-main {
+        padding: 20px 16px;
+        border-radius: 20px;
+    }
+
+    .wb-nav {
+        gap: 10px;
+    }
+
+    .wb-nav .wb-btn {
+        flex: 1;
+    }
+
+    .wb-publish-actions .wb-btn,
+    .wb-success-actions .wb-btn {
+        flex: 1 1 auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wb-root::before {
+        animation: none;
+    }
+}
+
+/* ============================================================
+   STEP 1 — Template selection (Flower saved-card grid)
+   ============================================================ */
+.wb-pill-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 22px;
+}
+
+.wb-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 1.5px solid #d8cdb8;
+    background: #fff;
+    color: #6a5c48;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.wb-pill:hover {
+    border-color: var(--wb-flower-gold);
+    color: var(--wb-flower-ink);
+}
+
+.wb-pill:focus-visible {
+    outline: 2px solid var(--wb-flower-gold);
+    outline-offset: 2px;
+}
+
+.wb-pill.is-active {
+    background: var(--wb-flower-ink);
+    border-color: var(--wb-flower-ink);
+    color: #fff;
+}
+
+.wb-pill-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 50px;
+    background: rgba(184, 149, 95, 0.18);
+    color: inherit;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.wb-pill.is-active .wb-pill-count {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.wb-tpl-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.wb-tpl-card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    border: 1px solid #e3d8c2;
+    border-radius: 16px;
+    padding: 10px;
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 4px 14px rgba(76, 58, 30, 0.05);
+}
+
+.wb-tpl-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 34px rgba(76, 58, 30, 0.16);
+    border-color: var(--wb-flower-gold);
+}
+
+.wb-tpl-card:focus-visible {
+    outline: 2px solid var(--wb-flower-gold);
+    outline-offset: 2px;
+}
+
+.wb-tpl-card.is-selected {
+    border-color: var(--wb-flower-gold);
+    box-shadow: 0 0 0 3px rgba(184, 149, 95, 0.3), 0 16px 34px rgba(76, 58, 30, 0.16);
+    background: #fffaf2;
+}
+
+.wb-tpl-card-media {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #efe6d6;
+}
+
+.wb-tpl-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.wb-tpl-card-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--wb-flower-gold);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.wb-tpl-badge {
+    display: inline-block;
+    align-self: flex-start;
+    margin: 10px 0 4px;
+    padding: 2px 9px;
+    border-radius: 50px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.wb-tpl-badge--ancient {
+    background: rgba(176, 146, 106, 0.16);
+    color: #8B6914;
+}
+
+.wb-tpl-badge--modern {
+    background: rgba(139, 92, 246, 0.12);
+    color: #6d28d9;
+}
+
+.wb-tpl-badge--contemporary {
+    background: rgba(16, 185, 129, 0.12);
+    color: #065f46;
+}
+
+.wb-tpl-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--wb-flower-ink);
+}
+
+.wb-tpl-card-style {
+    font-size: 12px;
+    color: var(--wb-flower-muted);
+    margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+    .wb-tpl-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 380px) {
+    .wb-tpl-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   STEP 5 — Review checklist
+   ============================================================ */
+.wb-checklist {
+    border: 1px solid #ece1cd;
+    border-radius: 16px;
+    background: #fffdf9;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(76, 58, 30, 0.05);
+}
+
+.wb-checklist-head {
+    margin-bottom: 14px;
+}
+
+.wb-checklist-head h3 {
+    margin: 0;
+    color: var(--wb-flower-ink);
+    font-size: 17px;
+}
+
+.wb-checklist-progress {
+    height: 8px;
+    border-radius: 999px;
+    background: #efe4d2;
+    overflow: hidden;
+    margin: 0 0 16px;
+}
+
+.wb-checklist-progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #c8a35f, #e3c98a);
+    transition: width 0.35s ease;
+}
+
+.wb-checklist-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.wb-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #ece1cd;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wb-flower-muted);
+    overflow: hidden;
+}
+
+.wb-checklist-item.is-done {
+    color: #2f6b45;
+    border-color: #cfe9d4;
+    background: #f4fbf3;
+}
+
+.wb-checklist-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease;
+}
+
+.wb-checklist-btn:hover {
+    background: rgba(200, 163, 95, 0.1);
+}
+
+.wb-checklist-item.is-done .wb-checklist-btn:hover {
+    background: rgba(47, 107, 69, 0.08);
+}
+
+.wb-checklist-btn:focus-visible {
+    outline: 2px solid var(--wb-flower-muted);
+    outline-offset: -2px;
+}
+
+.wb-checklist-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.wb-checklist-cta {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #b0926a;
+    white-space: nowrap;
+}
+
+.wb-checklist-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(176, 146, 106, 0.16);
+    color: var(--wb-flower-muted);
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.wb-checklist-item.is-done .wb-checklist-mark {
+    background: #d7efdd;
+    color: #2f6b45;
+}
+
+@media (max-width: 640px) {
+    .wb-checklist-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   Repeatable list editor (story / schedule / party / gift / faq)
+   ============================================================ */
+.wb-li-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.wb-li-empty {
+    margin: 0;
+    padding: 14px;
+    border: 1px dashed #d8cdb8;
+    border-radius: 12px;
+    background: #fdfbf7;
+    color: var(--wb-flower-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+.wb-li-card {
+    border: 1px solid #ece1cd;
+    border-radius: 14px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(76, 58, 30, 0.04);
+}
+
+.wb-li-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.wb-li-card-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--wb-flower-gold);
+}
+
+.wb-li-remove {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #e4d8c2;
+    background: #fff;
+    color: #9a5b4f;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.wb-li-remove:hover {
+    background: #fbecea;
+    border-color: #e0b4ac;
+    color: #b33c2c;
+}
+
+.wb-li-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.wb-li-fields .wb-field {
+    margin-bottom: 0;
+}
+
+.wb-li-field-wide {
+    grid-column: 1 / -1;
+}
+
+.wb-li-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1.5px dashed var(--wb-flower-gold);
+    background: #fffaf2;
+    color: #87662f;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wb-li-add:hover {
+    background: #faf3e6;
+    border-style: solid;
+}
+
+.wb-li-add:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .wb-li-fields {
+        grid-template-columns: 1fr;
+    }
+}

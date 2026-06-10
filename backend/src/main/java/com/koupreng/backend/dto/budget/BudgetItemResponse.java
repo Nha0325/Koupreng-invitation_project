@@ -16,13 +16,9 @@ import java.time.LocalDate;
 public class BudgetItemResponse {
 
     private Long id;
-    private Long budgetId;
     private Long invitationId;
     private String name;
     private String category;
-    private String itemName;
-    private BigDecimal estimatedCost;
-    private BigDecimal actualCost;
     private BigDecimal budget;
     private BigDecimal amount;
     private LocalDate date;
@@ -36,13 +32,9 @@ public class BudgetItemResponse {
                 : item.getBudget().getInvitation().getId();
         return BudgetItemResponse.builder()
                 .id(item.getId())
-                .budgetId(item.getBudget() == null ? null : item.getBudget().getId())
                 .invitationId(invitationId)
                 .name(item.getItemName())
                 .category(item.getCategory())
-                .itemName(item.getItemName())
-                .estimatedCost(item.getEstimatedCost())
-                .actualCost(item.getActualCost())
                 .budget(item.getEstimatedCost())
                 .amount(item.getActualCost())
                 .date(item.getExpenseDate())

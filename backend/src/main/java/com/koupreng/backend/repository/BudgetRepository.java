@@ -8,8 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
-
     Optional<Budget> findByInvitationId(Long invitationId);
-
-    boolean existsByInvitationId(Long invitationId);
 }

@@ -1,0 +1,377 @@
+/**
+ * templateExperienceContent — builds the full content model for the shared
+ * TemplateExperience engine.
+ *
+ * Strategy (mirrors royalContent.js):
+ *  - Always prefer REAL template values from `tpl` when present.
+ *  - Fill story / schedule / party / gift / faq with tasteful DEMO content.
+ *    This module powers the /templates/* demo pages only. It never writes
+ *    fake data back into a user's real invitation.
+ *
+ * Per-variant copy (message, couple intros, dress note, badge text) lets each
+ * style read with its own personality while keeping identical structure.
+ */
+
+import { getVariantTheme } from "./templateExperienceThemes";
+
+const DEMO_GALLERY = [
+    { src: "/facebook/all/01-card/01-01.jpg", span: "tall" },
+    { src: "/facebook/all/02-card/02-01.jpg", span: "wide" },
+    { src: "/facebook/all/01-card/01-02.jpg", span: "small" },
+    { src: "/facebook/all/03-card/03-01.jpg", span: "small" },
+    { src: "/facebook/all/02-card/02-03.jpg", span: "tall" },
+    { src: "/facebook/all/01-card/01-03.jpg", span: "small" },
+    { src: "/facebook/all/03-card/03-02.jpg", span: "wide" },
+    { src: "/facebook/all/02-card/02-05.jpg", span: "small" },
+    { src: "/facebook/all/01-card/01-04.jpg", span: "small" },
+    { src: "/facebook/all/03-card/03-04.jpg", span: "tall" },
+];
+
+const DEMO_STORY = [
+    {
+        id: "met",
+        kicker: "ជំពូកទី ១",
+        title: "ថ្ងៃដែលយើងជួបគ្នា",
+        date: "មករា ២០២១",
+        text: "ក្នុងពិធីបុណ្យមួយនៅទីក្រុង ភ្នែកទាំងពីរបានជួបគ្នាដំបូង ដោយមិននឹកស្មានថានឹងក្លាយជារឿងរ៉ាវមួយជីវិត។",
+        image: "/facebook/all/01-card/01-01.jpg",
+    },
+    {
+        id: "first-date",
+        kicker: "ជំពូកទី ២",
+        title: "ការណាត់ជួបលើកដំបូង",
+        date: "មីនា ២០២១",
+        text: "កាហ្វេមួយពែង ការសន្ទនាមួយយប់ ហើយយើងដឹងថា នេះគឺជាមនុស្សដែលយើងចង់នៅជាមួយ។",
+        image: "/facebook/all/02-card/02-02.jpg",
+    },
+    {
+        id: "proposal",
+        kicker: "ជំពូកទី ៣",
+        title: "ថ្ងៃសុំដៃ",
+        date: "ធ្នូ ២០២៥",
+        text: "នៅក្រោមពន្លឺថ្ងៃលិច ជាមួយចិត្តញាប់ញ័រ សំណួរមួយត្រូវបានសួរ ហើយចម្លើយគឺ បាទ/ចាស។",
+        image: "/facebook/all/03-card/03-01.jpg",
+    },
+    {
+        id: "wedding",
+        kicker: "ជំពូកចុងក្រោយ",
+        title: "ថ្ងៃមង្គលការ",
+        date: "ធ្នូ ២០២៦",
+        text: "ថ្ងៃនេះ យើងសូមអញ្ជើញអ្នកមកចែករំលែកនូវការចាប់ផ្ដើមនៃជីវិតថ្មីរបស់យើងទាំងពីរ។",
+        image: "/facebook/all/01-card/01-03.jpg",
+    },
+];
+
+const DEMO_PARTY = [
+    { id: "best-man", role: "កូនកំលោះកិត្តិយស", roleEn: "Best Man", name: "សុខ វិបុល", image: "/facebook/all/02-card/02-04.jpg" },
+    { id: "maid", role: "កូនក្រមុំកិត្តិយស", roleEn: "Maid of Honor", name: "ចាន់ ស្រីនិច", image: "/facebook/all/02-card/02-06.jpg" },
+    { id: "family", role: "គ្រួសារ", roleEn: "Family", name: "ឪពុកម្ដាយទាំងសងខាង", image: "/facebook/all/03-card/03-03.jpg" },
+    { id: "friends", role: "មិត្តភក្ដិ", roleEn: "Friends", name: "ក្រុមមិត្តជិតស្និទ្ធ", image: "/facebook/all/03-card/03-05.jpg" },
+];
+
+const DEMO_GIFT = [
+    { id: "aba", bank: "ABA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "ABA PAY" },
+    { id: "acleda", bank: "ACLEDA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "0000-00-000000-0", note: "Toanchet" },
+    { id: "wing", bank: "Wing", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "WingPay" },
+];
+
+const DEMO_FAQ = [
+    {
+        id: "venue",
+        q: "តើពិធីប្រព្រឹត្តទៅនៅទីណា?",
+        a: "ពិធីនឹងប្រព្រឹត្តទៅនៅទីតាំងដែលបានបញ្ជាក់ក្នុងផ្នែក «ទីតាំង»។ សូមចុចប៊ូតុង «មើលទិសដៅ» ដើម្បីបើកផែនទី Google Maps។",
+    },
+    {
+        id: "dress",
+        q: "តើគួរស្លៀកពាក់បែបណា?",
+        a: "សូមមើលផ្នែក «សម្លៀកបំពាក់» សម្រាប់ពណ៌ និងរចនាបថដែលស្នើ។",
+    },
+    {
+        id: "plus-one",
+        q: "តើខ្ញុំអាចនាំភ្ញៀវបន្ថែមបានទេ?",
+        a: "សូមបញ្ជាក់ចំនួនភ្ញៀវនៅពេលបំពេញ RSVP ដើម្បីឱ្យយើងអាចរៀបចំកន្លែងអង្គុយឱ្យបានគ្រប់គ្រាន់។",
+    },
+    {
+        id: "parking",
+        q: "តើមានកន្លែងចតរថយន្តទេ?",
+        a: "មាន។ កន្លែងចតរថយន្តត្រូវបានរៀបចំនៅជិតទីតាំងពិធី ដោយឥតគិតថ្លៃ។",
+    },
+    {
+        id: "rsvp",
+        q: "តើខ្ញុំ RSVP ដោយរបៀបណា?",
+        a: "សូមចុចប៊ូតុង «ឆ្លើយតបការអញ្ជើញ» ហើយបំពេញព័ត៌មានរបស់អ្នក។ យើងរង់ចាំការឆ្លើយតបពីអ្នក។",
+    },
+];
+
+/**
+ * Per-variant copy. Structure is identical across variants; only the wording
+ * and dress-code framing change so each style reads with its own voice.
+ */
+const VARIANT_COPY = {
+    royal: {
+        message:
+            "ដោយក្ដីរីករាយ និងសេចក្ដីស្រឡាញ់ យើងសូមគោរពអញ្ជើញលោកអ្នក មកចូលរួមជាភ្ញៀវកិត្តិយស ក្នុងពិធីមង្គលការរបស់យើងទាំងពីរ។",
+        groomIntro: "កូនប្រុសដ៏ស្ងប់ស្ងាត់ មានចិត្តសប្បុរស ស្រឡាញ់គ្រួសារ និងប្ដេជ្ញាចិត្តចំពោះអនាគត។",
+        brideIntro: "កូនស្រីដ៏ទន់ភ្លន់ ស្និទ្ធស្នាល ពោរពេញដោយស្នាមញញឹម និងក្ដីសុបិន។",
+        dressName: "មាស ស និងត្នោតស្រាល",
+        dressStyle: "ផ្លូវការ / ខ្មែរប្រពៃណី",
+        dressNote: "ពណ៌មាស ស និងត្នោតស្រាល សមរម្យសម្រាប់បរិយាកាសប្រណីត និងថតរូបជុំគ្នា។",
+    },
+    classic: {
+        message:
+            "ដោយក្ដីគោរព និងសេចក្ដីស្រឡាញ់ដ៏ស្និទ្ធស្នាល យើងសូមអញ្ជើញលោកអ្នកដ៏ជាទីគោរព មកចូលរួមជាសាក្សីនៃថ្ងៃដ៏ពិសេសរបស់យើង។",
+        groomIntro: "បុរសដ៏សុភាពរាបសា ស្រឡាញ់ភាពសាមញ្ញ និងតម្លៃនៃគ្រួសារ។",
+        brideIntro: "ស្ត្រីដ៏ទន់ភ្លន់ ស្លូតបូត ពោរពេញដោយក្ដីមេត្តា និងស្នាមញញឹមកក់ក្ដៅ។",
+        dressName: "ក្រែម មាសស្រាល និងផ្កាឈូក",
+        dressStyle: "បុរាណប្រណិត / Smart Casual",
+        dressNote: "សូមជ្រើសរើសពណ៌ស្រាល ក្រែម និងមាសស្រាល ដើម្បីបំពេញនូវបរិយាកាសដ៏ស្ងប់ស្ងាត់ និងស្រស់ស្អាត។",
+    },
+    luxury: {
+        message:
+            "នៅរាត្រីដ៏ពិសេសមួយ ក្រោមពន្លឺភ្លើងដ៏ប្រណីត យើងសូមគោរពអញ្ជើញលោកអ្នក មកចែករំលែកនូវពេលវេលាដ៏អស្ចារ្យនៃជីវិតរបស់យើង។",
+        groomIntro: "បុរសដ៏មានទំនុកចិត្ត រស់នៅប្រកបដោយរបៀប និងចំណង់ចំណូលចិត្តចំពោះភាពល្អឥតខ្ចោះ។",
+        brideIntro: "ស្ត្រីដ៏ឆើតឆាយ ប្រកបដោយភាពទាក់ទាញ និងស្ទីលដ៏ប្លែកមួយគត់។",
+        dressName: "ខ្មៅ ស្ប៉ាញ់មាស និងភ្លឺ",
+        dressStyle: "Black Tie / Evening Elegant",
+        dressNote: "សូមស្លៀកពាក់ពណ៌ខ្មៅ ស្ប៉ាញ់មាស ឬភ្លឺ ដើម្បីបំពេញនូវបរិយាកាសរាត្រីដ៏ប្រណីត។",
+    },
+    "modern-khmer": {
+        message:
+            "ដោយក្ដីរីករាយ យើងសូមអញ្ជើញលោកអ្នក មកចូលរួមជាមួយយើង ក្នុងការប្រារព្ធពិធីមង្គលការ ដ៏ទំនើប រួមបញ្ចូលនូវភាពជាខ្មែរ និងភាពសាមញ្ញ។",
+        groomIntro: "បុរសជំនាន់ថ្មី ស្រឡាញ់ភាពច្បាស់លាស់ ច្នៃប្រឌិត និងតម្លៃនៃវប្បធម៌ខ្មែរ។",
+        brideIntro: "ស្ត្រីទំនើប ប្រកបដោយទំនុកចិត្ត ស្រស់ស្អាត និងភាពទន់ភ្លន់បែបខ្មែរ។",
+        dressName: "បៃតងស្លឹក ស និងមាស",
+        dressStyle: "ទំនើប / Modern Khmer",
+        dressNote: "ពណ៌ស្រាល បៃតងស្លឹក និងមាស សមរម្យសម្រាប់រចនាបថទំនើបបែបខ្មែរ។",
+    },
+    "royal-khmer": {
+        message:
+            "ក្រោមពរជ័យនៃប្រពៃណីដ៏ឧត្ដុង្គឧត្ដម យើងសូមគោរពអញ្ជើញលោកអ្នកដ៏ខ្ពង់ខ្ពស់ មកចូលរួមជាភ្ញៀវកិត្តិយស ក្នុងពិធីមង្គលការតាមបែបប្រពៃណីខ្មែរ។",
+        groomIntro: "កូនកំលោះដ៏សុភាពរាបសា ប្រកាន់ខ្ជាប់នូវប្រពៃណី និងតម្លៃនៃវប្បធម៌ខ្មែរ។",
+        brideIntro: "កូនក្រមុំដ៏ឧត្ដុង្គ ប្រកបដោយសិរីសួស្ដី ភាពទន់ភ្លន់ និងសម្រស់បែបខ្មែរ។",
+        dressName: "ឈាមជ្រូក មាសរាជ និងក្រមួន",
+        dressStyle: "ខ្មែរប្រពៃណី / Ceremonial",
+        dressNote: "សូមស្លៀកពាក់សំពត់ ឬឈុតខ្មែរប្រពៃណី ពណ៌ឈាមជ្រូក និងមាសរាជ ដើម្បីបំពេញនូវបរិយាកាសពិធីដ៏ឧឡារិក។",
+    },
+    "vintage-gold": {
+        message:
+            "ដូចទំព័រនៃសៀវភៅអនុស្សាវរីយ៍ដ៏ចំណាស់ យើងសូមអញ្ជើញលោកអ្នក មកបន្ថែមជំពូកថ្មីមួយ ក្នុងរឿងរ៉ាវស្នេហារបស់យើង។",
+        groomIntro: "បុរសដ៏ស្ងប់ស្ងាត់ ស្រឡាញ់រឿងរ៉ាវចំណាស់ និងតម្លៃនៃពេលវេលា។",
+        brideIntro: "ស្ត្រីដ៏ទន់ភ្លន់ ស្រឡាញ់ភាពស្រស់ស្អាតបែបបុរាណ និងការចងចាំដ៏កក់ក្ដៅ។",
+        dressName: "មាសបុរាណ ក្រដាសចាស់ និងសេពៀ",
+        dressStyle: "Vintage / Antique",
+        dressNote: "សូមជ្រើសរើសសម្លៀកបំពាក់ពណ៌មាសបុរាណ និងសេពៀ ដើម្បីបំពេញនូវបរិយាកាសបែបបុរាណដ៏កក់ក្ដៅ។",
+    },
+};
+
+const GALLERY_SPANS = ["tall", "wide", "small", "small", "small"];
+
+/**
+ * Collect a template's OWN images (from its primary story card / folder) so the
+ * gallery + story show only that card's photos — never a mix from other cards.
+ * Returns null when the template carries no media, so callers fall back to demo.
+ */
+function getTemplateOwnImages(tpl) {
+    const fromStoryCard = Array.isArray(tpl.storyCards) && tpl.storyCards[0]?.images?.length
+        ? tpl.storyCards[0].images
+        : null;
+    const fromStoryImages = Array.isArray(tpl.storyImages) && tpl.storyImages.length
+        ? tpl.storyImages.map((img) => (typeof img === "string" ? img : img.src)).filter(Boolean)
+        : null;
+    const images = fromStoryCard || fromStoryImages;
+    if (!images || !images.length) return null;
+    // De-duplicate while preserving order (cover image can repeat).
+    return [...new Set(images)];
+}
+
+/** Build the gallery from the template's own images (no cross-card mixing). */
+function buildGallery(tpl) {
+    const own = getTemplateOwnImages(tpl);
+    if (!own) return DEMO_GALLERY;
+    return own.map((src, index) => ({ src, span: GALLERY_SPANS[index % GALLERY_SPANS.length] }));
+}
+
+/** Build the story timeline using the template's own images, demo copy intact. */
+function buildStory(tpl) {
+    const own = getTemplateOwnImages(tpl);
+    if (!own) return DEMO_STORY;
+    return DEMO_STORY.map((chapter, index) => ({
+        ...chapter,
+        image: own[index % own.length],
+    }));
+}
+
+function buildSchedule(tpl) {
+    return [
+        {
+            id: "ceremony",
+            time: tpl.ceremonyTime || "០៩:០០",
+            title: "ពិធីសូត្រមន្ត",
+            titleEn: "Ceremony",
+            description: "ពិធីបុណ្យតាមប្រពៃណីខ្មែរ ស្វាគមន៍ភ្ញៀវកិត្តិយស។",
+        },
+        {
+            id: "reception",
+            time: tpl.receptionTime || "១៧:០០",
+            title: "ពិធីជប់លៀង",
+            titleEn: "Reception",
+            description: "ស្វាគមន៍ភ្ញៀវ ការថតរូប និងពាក្យជូនពរ។",
+        },
+        {
+            id: "dinner",
+            time: "១៨:៣០",
+            title: "អាហារពេលល្ងាច",
+            titleEn: "Dinner",
+            description: "ម្ហូបអាហារ និងតន្ត្រីរីករាយជាមួយគ្រួសារ និងមិត្តភក្ដិ។",
+        },
+        {
+            id: "after",
+            time: "២០:៣០",
+            title: "ថតរូបជាមួយគ្រួសារ",
+            titleEn: "Family Photo",
+            description: "ពេលវេលាពិសេសសម្រាប់ការចងចាំ និងថតរូបអនុស្សាវរីយ៍។",
+        },
+    ];
+}
+
+/**
+ * Build the full content model for a template experience.
+ * @param {object} tpl resolved template object (from getTemplateById)
+ * @param {string} variant variant key (classic | luxury | ...)
+ */
+export function buildTemplateContent(tpl = {}, variant = "classic") {
+    const copy = VARIANT_COPY[variant] || VARIANT_COPY.classic;
+    const theme = getVariantTheme(variant);
+
+    // Host-authored content (from the wedding builder). When present, these
+    // real values are preferred over the demo fallbacks below. The demo pages
+    // pass no hostContent, so they keep showing tasteful sample data.
+    const host = tpl.hostContent || {};
+    const hostCouple = host.couple || {};
+    const hostContact = host.contact || {};
+    const nonEmpty = (arr) => (Array.isArray(arr) && arr.length ? arr : null);
+
+    const venueName = tpl.venueName || "";
+    const venueAddress = (tpl.venueAddress || "").replace(/\n/g, ", ");
+    const mapSearch = (tpl.mapQuery || `${venueName} ${venueAddress}`).replace(/\s+/g, " ").trim();
+    const hasMap = mapSearch.length > 0;
+    const mapLink = hasMap
+        ? (/^https?:\/\//i.test(tpl.mapQuery || "")
+            ? tpl.mapQuery
+            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearch)}`)
+        : null;
+
+    const dressCode = tpl.dressCode && Array.isArray(tpl.dressCode.colors) && tpl.dressCode.colors.length
+        ? {
+            name: tpl.dressCode.name || copy.dressName,
+            description: tpl.dressCode.description || copy.dressNote,
+            style: tpl.dressCode.style || copy.dressStyle,
+            colors: tpl.dressCode.colors,
+        }
+        : {
+            name: copy.dressName,
+            description: copy.dressNote,
+            style: copy.dressStyle,
+            colors: theme.dressColors,
+        };
+
+    const coverImage = tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
+
+    // Map host story chapters onto the timeline shape, layering template images.
+    const ownImages = getTemplateOwnImages(tpl);
+    const hostStory = nonEmpty(host.storyChapters)
+        ? host.storyChapters.map((c, index) => ({
+            id: c.id || `chapter-${index}`,
+            kicker: c.kicker || `ជំពូកទី ${index + 1}`,
+            title: c.title || "",
+            date: c.date || "",
+            text: c.text || "",
+            image: ownImages ? ownImages[index % ownImages.length] : undefined,
+        }))
+        : null;
+
+    const hostSchedule = nonEmpty(host.schedule)
+        ? host.schedule.map((s, index) => ({
+            id: s.id || `sched-${index}`,
+            time: s.time || "",
+            title: s.title || "",
+            titleEn: s.titleEn || "",
+            description: s.description || "",
+            location: s.location || "",
+        }))
+        : null;
+
+    const hostParty = nonEmpty(host.party)
+        ? host.party.map((m, index) => ({
+            id: m.id || `member-${index}`,
+            role: m.role || "",
+            roleEn: m.roleEn || "",
+            name: m.name || "",
+            image: ownImages ? ownImages[index % ownImages.length] : DEMO_PARTY[index % DEMO_PARTY.length].image,
+        }))
+        : null;
+
+    const hostGift = nonEmpty(host.gift)
+        ? host.gift.map((g, index) => ({
+            id: g.id || `gift-${index}`,
+            bank: g.bank || "",
+            account: g.account || "",
+            number: g.number || "",
+            note: g.note || "",
+        }))
+        : null;
+
+    const hostFaq = nonEmpty(host.faq)
+        ? host.faq.map((f, index) => ({
+            id: f.id || `faq-${index}`,
+            q: f.q || "",
+            a: f.a || "",
+        }))
+        : null;
+
+    const contactTelegram = hostContact.telegram
+        ? (/^https?:\/\//i.test(hostContact.telegram)
+            ? hostContact.telegram
+            : `https://t.me/${hostContact.telegram.replace(/^@/, "")}`)
+        : "https://t.me/koupreng";
+
+    return {
+        variant,
+        amp: theme.amp,
+        badge: theme.badge,
+        groom: tpl.groom || "ប្រុស",
+        bride: tpl.bride || "ស្រី",
+        dateText: tpl.dateText || "",
+        targetDate: tpl.targetDate,
+        ceremonyTime: tpl.ceremonyTime || "",
+        receptionTime: tpl.receptionTime || "",
+        coverImage,
+        portraitImage: tpl.phoneCoverImage || tpl.mainImage || coverImage,
+        message: tpl.message || copy.message,
+        families: "រួមជាមួយក្រុមគ្រួសារទាំងសងខាង",
+        couple: {
+            groomIntro: hostCouple.groomIntro || copy.groomIntro,
+            brideIntro: hostCouple.brideIntro || copy.brideIntro,
+            groomParents: hostCouple.groomParents || "បុត្រាលោក ... និងលោកស្រី ...",
+            brideParents: hostCouple.brideParents || "បុត្រីលោក ... និងលោកស្រី ...",
+        },
+        venue: {
+            name: venueName,
+            address: tpl.venueAddress || "",
+            mapLink,
+            image: tpl.mainImage || tpl.phoneCoverImage || coverImage,
+        },
+        gallery: buildGallery(tpl),
+        story: hostStory || buildStory(tpl),
+        schedule: hostSchedule || buildSchedule(tpl),
+        party: hostParty || DEMO_PARTY,
+        dressCode,
+        gift: hostGift || DEMO_GIFT,
+        faq: hostFaq || DEMO_FAQ,
+        contact: {
+            telegram: contactTelegram,
+            phone: hostContact.phone || "+855 12 345 678",
+        },
+        music: tpl.music?.url,
+    };
+}

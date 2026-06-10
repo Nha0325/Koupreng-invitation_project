@@ -148,17 +148,6 @@ public class MediaService {
         return MediaListResponse.from(mediaFileRepository.findByInvitationIdOrderBySortOrderAscCreatedAtAsc(invitation.getId()));
     }
 
-    @Transactional(readOnly = true)
-    public MediaListResponse listPublic(String slug, String accessToken, String inviteToken) {
-        UserInvitation invitation = invitationService.requirePublishedInvitationForRsvp(
-                slug,
-                false,
-                accessToken,
-                inviteToken
-        );
-        return MediaListResponse.from(mediaFileRepository.findByInvitationIdOrderBySortOrderAscCreatedAtAsc(invitation.getId()));
-    }
-
     @Transactional
     public MediaResponse replace(
             Authentication authentication,

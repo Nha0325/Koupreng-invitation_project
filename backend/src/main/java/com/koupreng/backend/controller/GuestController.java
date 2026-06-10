@@ -2,16 +2,13 @@ package com.koupreng.backend.controller;
 
 import com.koupreng.backend.dto.ApiResponse;
 import com.koupreng.backend.dto.guest.GuestGroupResponse;
-import com.koupreng.backend.dto.guest.GuestImportFileResultResponse;
 import com.koupreng.backend.dto.guest.GuestImportRequest;
 import com.koupreng.backend.dto.guest.GuestRequest;
 import com.koupreng.backend.dto.guest.GuestResponse;
 import com.koupreng.backend.dto.guest.GuestSendListResponse;
 import com.koupreng.backend.service.GuestService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -24,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -141,29 +137,5 @@ public class GuestController {
                         "Guests imported successfully",
                         guestService.importGuests(authentication, invitationId, request)
                 ));
-    }
-
-    @PostMapping(value = "/import-file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<GuestImportFileResultResponse>> importGuestsFile(
-            Authentication authentication,
-            @PathVariable Long invitationId,
-            @RequestParam("file") MultipartFile file
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(
-                        "Guest import file processed successfully",
-                        guestService.importGuestsFile(authentication, invitationId, file)
-                ));
-    }
-
-    @GetMapping("/export")
-    public ResponseEntity<String> exportGuests(
-            Authentication authentication,
-            @PathVariable Long invitationId
-    ) {
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"guest-report-" + invitationId + ".csv\"")
-                .contentType(new MediaType("text", "csv"))
-                .body(guestService.exportGuestCsv(authentication, invitationId));
     }
 }

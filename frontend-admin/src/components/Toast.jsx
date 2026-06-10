@@ -9,11 +9,7 @@ export default function Toast({ toast, onClose }) {
 
     if (!toast) return null;
     return (
-        <div
-            className={`toast${toast.type === "error" ? " toast-error" : ""}`}
-            role={toast.type === "error" ? "alert" : "status"}
-            aria-live="polite"
-        >
+        <div className={`toast${toast.type === "error" ? " toast-error" : ""}`}>
             {toast.message}
         </div>
     );

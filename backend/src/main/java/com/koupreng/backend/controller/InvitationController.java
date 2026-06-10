@@ -1,10 +1,6 @@
 package com.koupreng.backend.controller;
 
 import com.koupreng.backend.dto.ApiResponse;
-import com.koupreng.backend.dto.invitation.InvitationCustomizationRequest;
-import com.koupreng.backend.dto.invitation.InvitationCustomizationResponse;
-import com.koupreng.backend.dto.invitation.InvitationAccessVerifyRequest;
-import com.koupreng.backend.dto.invitation.InvitationAccessVerifyResponse;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.InvitationSummaryResponse;
@@ -148,60 +144,14 @@ public class InvitationController {
         ));
     }
 
-    @GetMapping("/invitations/{id}/customization")
-    public ResponseEntity<ApiResponse<InvitationCustomizationResponse>> getCustomization(
-            Authentication authentication,
-            @PathVariable Long id
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(
-                "Invitation customization loaded",
-                invitationService.getCustomization(authentication, id)
-        ));
-    }
-
-    @PutMapping("/invitations/{id}/customization")
-    public ResponseEntity<ApiResponse<InvitationCustomizationResponse>> updateCustomization(
-            Authentication authentication,
-            @PathVariable Long id,
-            @Valid @RequestBody InvitationCustomizationRequest request
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(
-                "Invitation customization saved",
-                invitationService.updateCustomization(authentication, id, request)
-        ));
-    }
-
     @GetMapping("/public/invitations/{slug}")
     public ResponseEntity<ApiResponse<PublicInvitationResponse>> publicInvitation(
             @PathVariable String slug,
-            @RequestParam(required = false) String accessToken,
-            @RequestParam(required = false, name = "token") String inviteToken
+            @RequestParam(required = false) String token
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Invitation fetched successfully",
-                invitationService.publicBySlug(slug, accessToken, inviteToken)
-        ));
-    }
-
-    @GetMapping("/public/invitations/{slug}/guest-view")
-    public ResponseEntity<ApiResponse<com.koupreng.backend.dto.invitation.GuestInvitationViewResponse>> publicGuestInvitationView(
-            @PathVariable String slug,
-            @RequestParam(required = false, name = "token") String inviteToken
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(
-                "Personalized guest invitation fetched successfully",
-                invitationService.guestView(slug, inviteToken)
-        ));
-    }
-
-    @PostMapping("/public/invitations/{slug}/access/verify")
-    public ResponseEntity<ApiResponse<InvitationAccessVerifyResponse>> verifyPublicAccess(
-            @PathVariable String slug,
-            @Valid @RequestBody InvitationAccessVerifyRequest request
-    ) {
-        return ResponseEntity.ok(ApiResponse.success(
-                "Invitation access verified successfully",
-                invitationService.verifyPublicAccess(slug, request)
+                invitationService.publicBySlug(slug, token)
         ));
     }
 }

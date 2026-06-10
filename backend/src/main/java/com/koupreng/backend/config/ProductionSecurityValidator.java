@@ -22,35 +22,22 @@ public class ProductionSecurityValidator implements ApplicationRunner {
     private static final Set<String> PLACEHOLDER_JWT_SECRETS = Set.of(
             "replace_with_a_random_64_character_or_longer_secret"
     );
-    private static final String REQUIRED_STATIC_ABA_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
-    private static final Set<String> PLACEHOLDER_ADMIN_PAYMENT_SECRETS = Set.of(
-            "change-me-local-only",
-            "change_this_to_random_secret",
-            "change_this_to_a_random_secret",
-            "change_this_to_a_random_secret_here",
-            "change-me",
-            "change_me",
-            "placeholder"
-    );
 
     private final Environment environment;
     private final AppProperties appProperties;
     private final ApiSecurityProperties apiSecurityProperties;
     private final WafProperties wafProperties;
-    private final PaymentProperties paymentProperties;
 
     public ProductionSecurityValidator(
             Environment environment,
             AppProperties appProperties,
             ApiSecurityProperties apiSecurityProperties,
-            WafProperties wafProperties,
-            PaymentProperties paymentProperties
+            WafProperties wafProperties
     ) {
         this.environment = environment;
         this.appProperties = appProperties;
         this.apiSecurityProperties = apiSecurityProperties;
         this.wafProperties = wafProperties;
-        this.paymentProperties = paymentProperties;
     }
 
     @Override
@@ -70,7 +57,6 @@ public class ProductionSecurityValidator implements ApplicationRunner {
         validateRateLimiting(failures);
         validateDatabase(failures);
         validateAuthBootstrap(failures);
-        validatePayment(failures);
 
         if (!failures.isEmpty()) {
             throw new IllegalStateException(
@@ -159,7 +145,6 @@ public class ProductionSecurityValidator implements ApplicationRunner {
         String databaseUrl = nullToEmpty(environment.getProperty("spring.datasource.url"));
         String ddlAuto = nullToEmpty(environment.getProperty("spring.jpa.hibernate.ddl-auto", "none"))
                 .toLowerCase(Locale.ROOT);
-        boolean flywayEnabled = environment.getProperty("spring.flyway.enabled", Boolean.class, true);
 
         if (databaseUrl.isBlank()) {
             failures.add("DB_URL must be configured in production");
@@ -169,9 +154,6 @@ public class ProductionSecurityValidator implements ApplicationRunner {
 
         if (!Set.of("none", "validate").contains(ddlAuto)) {
             failures.add("JPA_DDL_AUTO must be none or validate in production");
-        }
-        if (!flywayEnabled) {
-            failures.add("FLYWAY_ENABLED must be true in production");
         }
     }
 
@@ -200,31 +182,6 @@ public class ProductionSecurityValidator implements ApplicationRunner {
     private void validateAuthBootstrap(List<String> failures) {
         if (appProperties.getAuth().isFirstUserAdminEnabled()) {
             failures.add("FIRST_USER_ADMIN_ENABLED must be false in production");
-        }
-    }
-
-    private void validatePayment(List<String> failures) {
-        String adminSecret = nullToEmpty(paymentProperties.getAdminSecret()).trim();
-        String normalizedSecret = adminSecret.toLowerCase(Locale.ROOT);
-        if (adminSecret.isBlank()) {
-            failures.add("ADMIN_PAYMENT_SECRET must be configured in production");
-        } else if (PLACEHOLDER_ADMIN_PAYMENT_SECRETS.contains(normalizedSecret)
-                || normalizedSecret.startsWith("${")
-                || normalizedSecret.contains("replace_with")
-                || normalizedSecret.contains("change-me")
-                || normalizedSecret.contains("change_me")
-                || normalizedSecret.contains("change_this")) {
-            failures.add("ADMIN_PAYMENT_SECRET must not use an example placeholder value");
-        }
-
-        String providerMode = nullToEmpty(paymentProperties.getProviderMode()).trim();
-        if (!"static".equalsIgnoreCase(providerMode)) {
-            failures.add("PAYMENT_PROVIDER_MODE must be static in production");
-        }
-
-        String staticLink = nullToEmpty(paymentProperties.getAba().getStaticLink()).trim();
-        if (!REQUIRED_STATIC_ABA_PAYMENT_LINK.equals(staticLink)) {
-            failures.add("ABA_PAYWAY_STATIC_LINK must use the approved static ABA KHQR link");
         }
     }
 

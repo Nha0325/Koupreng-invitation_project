@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.config.PaymentProperties;
+import com.koupreng.backend.config.payment.AbaPayWayProperties;
 import com.koupreng.backend.dto.payment.ConfirmTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentRequest;
 import com.koupreng.backend.dto.payment.CreateTemplatePaymentResponse;
@@ -21,6 +22,7 @@ import com.koupreng.backend.enums.PaymentStatus;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.TemplatePaymentOrderRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
+import com.koupreng.backend.service.payment.AbaPayWayCheckout;
 import com.koupreng.backend.service.payment.AbaPayWayService;
 import com.koupreng.backend.service.payment.PayWayTransactionVerification;
 import org.slf4j.Logger;
@@ -53,6 +55,7 @@ public class TemplatePaymentService {
             .withZone(BUSINESS_ZONE);
     private static final Pattern ORDER_CODE_PATTERN = Pattern.compile("\\bEVT\\d{9,10}\\b", Pattern.CASE_INSENSITIVE);
     private static final String STATIC_ABA_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
+    private static final String PAYMENT_PROVIDER_MODE_STATIC = "static";
     private static final String STATIC_ABA_PAYMENT_CURRENCY = "USD";
     private static final BigDecimal STATIC_ABA_PAYMENT_AMOUNT = new BigDecimal("0.01");
     private static final List<TelegramAmountPattern> TELEGRAM_AMOUNT_PATTERNS = List.of(
@@ -117,42 +120,29 @@ public class TemplatePaymentService {
     private final InvitationTemplateRepository templateRepository;
     private final CurrentUserService currentUserService;
     private final PaymentProperties paymentProperties;
+    private final AbaPayWayProperties payWayProperties;
     private final AbaPayWayService abaPayWayService;
     private final ObjectMapper objectMapper;
-    private final AuditLogService auditLogService;
     private final SecureRandom random = new SecureRandom();
 
-    @org.springframework.beans.factory.annotation.Autowired
     public TemplatePaymentService(
             TemplatePaymentOrderRepository orderRepository,
             UserTemplateAccessRepository accessRepository,
             InvitationTemplateRepository templateRepository,
             CurrentUserService currentUserService,
             PaymentProperties paymentProperties,
+            AbaPayWayProperties payWayProperties,
             AbaPayWayService abaPayWayService,
-            ObjectMapper objectMapper,
-            AuditLogService auditLogService
+            ObjectMapper objectMapper
     ) {
         this.orderRepository = orderRepository;
         this.accessRepository = accessRepository;
         this.templateRepository = templateRepository;
         this.currentUserService = currentUserService;
         this.paymentProperties = paymentProperties;
+        this.payWayProperties = payWayProperties;
         this.abaPayWayService = abaPayWayService;
         this.objectMapper = objectMapper;
-        this.auditLogService = auditLogService;
-    }
-
-    public TemplatePaymentService(
-            TemplatePaymentOrderRepository orderRepository,
-            UserTemplateAccessRepository accessRepository,
-            InvitationTemplateRepository templateRepository,
-            CurrentUserService currentUserService,
-            PaymentProperties paymentProperties,
-            AbaPayWayService abaPayWayService,
-            ObjectMapper objectMapper
-    ) {
-        this(orderRepository, accessRepository, templateRepository, currentUserService, paymentProperties, abaPayWayService, objectMapper, null);
     }
 
     @Transactional
@@ -160,7 +150,49 @@ public class TemplatePaymentService {
             Authentication authentication,
             CreateTemplatePaymentRequest request
     ) {
-        return createStaticPaymentOrder(authentication, request);
+        if (isStaticProviderMode()) {
+            return createStaticPaymentOrder(authentication, request);
+        }
+
+        AppUser user = currentUserService.currentUser(authentication);
+        Long templateId = requirePositiveTemplateId(request.getTemplateId());
+        validateTemplateIfCatalogExists(templateId);
+        String currency = normalizeCurrency(request.getCurrency());
+        BigDecimal amount = money(request.getAmount(), currency);
+        String templateName = requireText(request.getTemplateName(), "Template name is required");
+        String packageName = requireText(request.getPackageName(), "Package name is required");
+
+        if (accessRepository.existsByUserIdAndTemplateIdAndActiveTrue(user.getId(), templateId)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Template already unlocked");
+        }
+
+        TemplatePaymentOrder order = new TemplatePaymentOrder();
+        order.setOrderCode(uniqueOrderCode());
+        order.setTransactionId(uniqueTransactionId());
+        order.setUser(user);
+        order.setTemplateId(templateId);
+        order.setTemplateName(templateName);
+        order.setPackageName(packageName);
+        order.setAmount(amount);
+        order.setCurrency(currency);
+        order.setProvider(TemplatePaymentOrder.PROVIDER_ABA_PAYWAY_DYNAMIC_QR_SANDBOX);
+        order.setStatus(PaymentStatus.PENDING);
+        order.setExpiresAt(Instant.now().plusSeconds(payWayProperties.getOrderExpiryMinutes() * 60));
+        orderRepository.save(order);
+
+        AbaPayWayCheckout checkout = abaPayWayService.createCheckout(order, request, user);
+        order.setCheckoutUrl(checkout.checkoutUrl());
+        order.setQrString(checkout.qrString());
+        order.setQrImageUrl(checkout.qrImageUrl());
+        order.setPaywayRequestJson(checkout.requestJson());
+        order.setPaywayResponseJson(checkout.responseJson());
+        order.setStatus(PaymentStatus.QR_CREATED);
+        TemplatePaymentOrder saved = orderRepository.save(order);
+
+        return CreateTemplatePaymentResponse.from(
+                saved,
+                "PayWay QR created. Scan with ABA Mobile to complete payment."
+        );
     }
 
     public CreateTemplatePaymentResponse createPaywayCheckout(
@@ -196,7 +228,6 @@ public class TemplatePaymentService {
     ) {
         AppUser user = currentUserService.currentUser(authentication);
         Long templateId = requirePositiveTemplateId(request.getTemplateId());
-        validateTemplateIfCatalogExists(templateId);
         String currency = normalizeCurrency(request.getCurrency());
         BigDecimal amount = money(request.getAmount(), currency);
         requireStaticAbaAmount(currency, amount);
@@ -524,15 +555,6 @@ public class TemplatePaymentService {
         order.setPaidAt(now);
         orderRepository.save(order);
         unlockTemplate(order);
-        if (auditLogService != null) {
-            auditLogService.logSystemEvent(
-                    "PAYMENT_CONFIRMED",
-                    "PAYMENT",
-                    order.getId(),
-                    "Payment confirmed via " + confirmSource + " by " + confirmedBy + " for amount: " + paidAmount + " " + order.getCurrency(),
-                    java.util.Map.of("orderCode", order.getOrderCode(), "confirmSource", confirmSource, "confirmedBy", confirmedBy)
-            );
-        }
     }
 
     private void applyTelegramMetadata(
@@ -772,6 +794,11 @@ public class TemplatePaymentService {
             return "***";
         }
         return link.substring(0, 12) + "..." + link.substring(link.length() - 4);
+    }
+
+    private boolean isStaticProviderMode() {
+        String providerMode = paymentProperties.getProviderMode();
+        return providerMode == null || PAYMENT_PROVIDER_MODE_STATIC.equalsIgnoreCase(providerMode.trim());
     }
 
     private record TelegramAmount(BigDecimal amount, String currency) {

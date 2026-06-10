@@ -26,9 +26,6 @@ public class GuestResponse {
     private String inviteToken;
     private String qrCodeUrl;
     private String sendStatus;
-    private Integer seatCount;
-    private String note;
-    private Instant lastSentAt;
     private Instant invitationViewedAt;
     private String contributionStatus;
     private BigDecimal totalContributed;
@@ -47,9 +44,6 @@ public class GuestResponse {
                 .inviteToken(guest.getInviteToken())
                 .qrCodeUrl(guest.getQrCodeUrl())
                 .sendStatus(guest.getSendStatus())
-                .seatCount(guest.getSeatCount())
-                .note(guest.getNote())
-                .lastSentAt(guest.getLastSentAt())
                 .invitationViewedAt(guest.getInvitationViewedAt())
                 .contributionStatus(guest.getContributionStatus())
                 .totalContributed(guest.getTotalContributed())

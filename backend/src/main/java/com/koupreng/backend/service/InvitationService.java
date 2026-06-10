@@ -4,36 +4,17 @@ import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
 import com.koupreng.backend.dto.invitation.InvitationSummaryResponse;
-import com.koupreng.backend.dto.invitation.InvitationAccessVerifyRequest;
-import com.koupreng.backend.dto.invitation.InvitationAccessVerifyResponse;
-import com.koupreng.backend.dto.invitation.InvitationCustomizationRequest;
-import com.koupreng.backend.dto.invitation.InvitationCustomizationResponse;
 import com.koupreng.backend.dto.invitation.PublicInvitationResponse;
-import com.koupreng.backend.dto.invitation.GuestInvitationViewResponse;
-import com.koupreng.backend.dto.rsvp.WishResponse;
-import com.koupreng.backend.dto.media.MediaListResponse;
 import com.koupreng.backend.entity.invitation.EventType;
-import com.koupreng.backend.entity.invitation.Guest;
-import com.koupreng.backend.entity.invitation.GuestSeatAssignment;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
-import com.koupreng.backend.entity.invitation.Rsvp;
-import com.koupreng.backend.entity.organization.Organization;
 import com.koupreng.backend.entity.user.AppUser;
-import com.koupreng.backend.enums.InvitationModerationStatus;
 import com.koupreng.backend.enums.InvitationStatus;
 import com.koupreng.backend.enums.InvitationVisibility;
 import com.koupreng.backend.repository.InvitationTemplateRepository;
 import com.koupreng.backend.repository.GuestRepository;
-import com.koupreng.backend.repository.OrganizationMemberRepository;
-import com.koupreng.backend.repository.OrganizationRepository;
 import com.koupreng.backend.repository.UserInvitationRepository;
 import com.koupreng.backend.repository.UserTemplateAccessRepository;
-import com.koupreng.backend.repository.GuestSeatAssignmentRepository;
-import com.koupreng.backend.repository.MediaFileRepository;
-import com.koupreng.backend.repository.RsvpRepository;
-import com.koupreng.backend.config.AppProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -43,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -56,87 +36,23 @@ public class InvitationService {
     private final InvitationTemplateRepository templateRepository;
     private final GuestRepository guestRepository;
     private final UserTemplateAccessRepository templateAccessRepository;
-    private final GuestSeatAssignmentRepository seatAssignmentRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
-    private final RsvpRepository rsvpRepository;
-    private final MediaFileRepository mediaFileRepository;
-    private final AuditLogService auditLogService;
-    private final AppProperties appProperties;
-    private final OrganizationRepository organizationRepository;
-    private final OrganizationMemberRepository organizationMemberRepository;
 
-    @Autowired
     public InvitationService(
             UserInvitationRepository invitationRepository,
             InvitationTemplateRepository templateRepository,
-            UserTemplateAccessRepository templateAccessRepository,
             GuestRepository guestRepository,
-            GuestSeatAssignmentRepository seatAssignmentRepository,
+            UserTemplateAccessRepository templateAccessRepository,
             CurrentUserService currentUserService,
-            PasswordEncoder passwordEncoder,
-            RsvpRepository rsvpRepository,
-            MediaFileRepository mediaFileRepository,
-            AuditLogService auditLogService,
-            AppProperties appProperties,
-            OrganizationRepository organizationRepository,
-            OrganizationMemberRepository organizationMemberRepository
+            PasswordEncoder passwordEncoder
     ) {
         this.invitationRepository = invitationRepository;
         this.templateRepository = templateRepository;
-        this.templateAccessRepository = templateAccessRepository;
         this.guestRepository = guestRepository;
-        this.seatAssignmentRepository = seatAssignmentRepository;
+        this.templateAccessRepository = templateAccessRepository;
         this.currentUserService = currentUserService;
         this.passwordEncoder = passwordEncoder;
-        this.rsvpRepository = rsvpRepository;
-        this.mediaFileRepository = mediaFileRepository;
-        this.auditLogService = auditLogService;
-        this.appProperties = appProperties;
-        this.organizationRepository = organizationRepository;
-        this.organizationMemberRepository = organizationMemberRepository;
-    }
-
-    public InvitationService(
-            UserInvitationRepository invitationRepository,
-            InvitationTemplateRepository templateRepository,
-            UserTemplateAccessRepository templateAccessRepository,
-            GuestRepository guestRepository,
-            GuestSeatAssignmentRepository seatAssignmentRepository,
-            CurrentUserService currentUserService,
-            PasswordEncoder passwordEncoder,
-            RsvpRepository rsvpRepository,
-            MediaFileRepository mediaFileRepository,
-            AuditLogService auditLogService,
-            AppProperties appProperties
-    ) {
-        this(invitationRepository, templateRepository, templateAccessRepository, guestRepository,
-                seatAssignmentRepository, currentUserService, passwordEncoder, rsvpRepository,
-                mediaFileRepository, auditLogService, appProperties, null, null);
-    }
-
-    public InvitationService(
-            UserInvitationRepository invitationRepository,
-            InvitationTemplateRepository templateRepository,
-            UserTemplateAccessRepository templateAccessRepository,
-            GuestRepository guestRepository,
-            GuestSeatAssignmentRepository seatAssignmentRepository,
-            CurrentUserService currentUserService,
-            PasswordEncoder passwordEncoder
-    ) {
-        this(invitationRepository, templateRepository, templateAccessRepository, guestRepository, seatAssignmentRepository, currentUserService, passwordEncoder, null, null, null, null);
-    }
-
-    public InvitationService(
-            UserInvitationRepository invitationRepository,
-            InvitationTemplateRepository templateRepository,
-            GuestRepository guestRepository,
-            UserTemplateAccessRepository templateAccessRepository,
-            CurrentUserService currentUserService,
-            PasswordEncoder passwordEncoder
-    ) {
-        this(invitationRepository, templateRepository, templateAccessRepository, guestRepository, null,
-                currentUserService, passwordEncoder, null, null, null, null);
     }
 
     @Transactional
@@ -147,7 +63,6 @@ public class InvitationService {
         invitation.setStatus(InvitationStatus.DRAFT);
         applyRequest(invitation, request, user);
         ensureSlug(invitation);
-        ensureAccessToken(invitation);
         return toResponse(save(invitation));
     }
 
@@ -179,7 +94,6 @@ public class InvitationService {
         UserInvitation invitation = requireOwnedInvitation(authentication, id);
         applyRequest(invitation, request, invitation.getUser());
         ensureSlug(invitation);
-        ensureAccessToken(invitation);
         if (invitation.getStatus() == InvitationStatus.PUBLISHED) {
             validatePublishReady(invitation);
         }
@@ -207,15 +121,10 @@ public class InvitationService {
     public InvitationResponse publish(Authentication authentication, Long id) {
         UserInvitation invitation = requireOwnedInvitation(authentication, id);
         ensureSlug(invitation);
-        ensureAccessToken(invitation);
         validatePublishReady(invitation);
         invitation.setStatus(InvitationStatus.PUBLISHED);
         invitation.setPublishedAt(Instant.now());
-        UserInvitation saved = save(invitation);
-        if (auditLogService != null) {
-            auditLogService.logSystemEvent("INVITATION_PUBLISHED", "INVITATION", saved.getId(), "Invitation published by owner", java.util.Map.of("userId", saved.getUser().getId()));
-        }
-        return toResponse(saved);
+        return toResponse(save(invitation));
     }
 
     @Transactional
@@ -225,11 +134,7 @@ public class InvitationService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invitation is not published");
         }
         invitation.setStatus(InvitationStatus.UNPUBLISHED);
-        UserInvitation saved = save(invitation);
-        if (auditLogService != null) {
-            auditLogService.logSystemEvent("INVITATION_UNPUBLISHED", "INVITATION", saved.getId(), "Invitation unpublished by owner", java.util.Map.of("userId", saved.getUser().getId()));
-        }
-        return toResponse(saved);
+        return toResponse(save(invitation));
     }
 
     @Transactional(readOnly = true)
@@ -238,54 +143,13 @@ public class InvitationService {
     }
 
     @Transactional(readOnly = true)
-    public InvitationCustomizationResponse getCustomization(Authentication authentication, Long id) {
-        return InvitationCustomizationResponse.from(requireOwnedInvitation(authentication, id));
-    }
-
-    @Transactional
-    public InvitationCustomizationResponse updateCustomization(
-            Authentication authentication,
-            Long id,
-            InvitationCustomizationRequest request
-    ) {
-        UserInvitation invitation = requireOwnedInvitation(authentication, id);
-        invitation.setTemplate(resolveTemplate(request.getTemplateId(), invitation.getUser()));
-        invitation.setLanguageMode(trimToNull(request.getLanguageMode()));
-        invitation.setDesignJson(trimToNull(request.getDesignJson()));
-        invitation.setContentJson(trimToNull(request.getContentJson()));
-        invitation.setCustomColors(trimToNull(request.getCustomColors()));
-        invitation.setCustomFonts(trimToNull(request.getCustomFonts()));
-        invitation.setEnabledSections(trimToNull(request.getEnabledSections()));
-        invitation.setLayoutSettings(trimToNull(request.getLayoutSettings()));
-        return InvitationCustomizationResponse.from(save(invitation));
-    }
-
-    @Transactional
     public PublicInvitationResponse publicBySlug(String slug) {
-        return publicBySlug(slug, null, null);
+        return publicBySlug(slug, null);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PublicInvitationResponse publicBySlug(String slug, String inviteToken) {
-        return publicBySlug(slug, null, inviteToken);
-    }
-
-    @Transactional
-    public PublicInvitationResponse publicBySlug(String slug, String accessToken, String inviteToken) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
-
-        requirePubliclyVisibleByModeration(invitation);
-        requirePublicInvitationAccess(invitation, accessToken, inviteToken);
-        Guest guest = guestByToken(invitation, inviteToken);
-        GuestSeatAssignment assignment = guest == null || seatAssignmentRepository == null
-                ? null
-                : seatAssignmentRepository.findByInvitationIdAndGuestId(invitation.getId(), guest.getId()).orElse(null);
-        if (guest != null && guest.getInvitationViewedAt() == null) {
-            guest.setInvitationViewedAt(Instant.now());
-        }
-        return PublicInvitationResponse.from(invitation, guest, assignment);
+        return PublicInvitationResponse.from(requirePublicInvitationForView(slug, inviteToken));
     }
 
     @Transactional(readOnly = true)
@@ -294,35 +158,8 @@ public class InvitationService {
                 .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
 
-        requirePubliclyVisibleByModeration(invitation);
-        requirePublicInvitationAccess(invitation, null, inviteToken);
+        validatePublicViewAccess(invitation, inviteToken);
         return invitation;
-    }
-
-    @Transactional
-    public InvitationAccessVerifyResponse verifyPublicAccess(String slug, InvitationAccessVerifyRequest request) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
-
-        requirePubliclyVisibleByModeration(invitation);
-        ensureAccessToken(invitation);
-
-        String accessToken = request == null ? null : trimToNull(request.getAccessToken());
-        String inviteToken = request == null ? null : trimToNull(request.getInviteToken());
-        String password = request == null ? null : trimToNull(request.getPassword());
-
-        if (invitation.getVisibility() == InvitationVisibility.PUBLIC
-                || hasInvitationAccess(invitation, accessToken, inviteToken)
-                || validPassword(invitation, password)) {
-            return InvitationAccessVerifyResponse.builder()
-                    .slug(invitation.getSlug())
-                    .accessGranted(true)
-                    .accessToken(invitation.getAccessToken())
-                    .build();
-        }
-
-        throw new ApiException(HttpStatus.FORBIDDEN, protectedMessage(invitation));
     }
 
     @Transactional(readOnly = true)
@@ -330,91 +167,19 @@ public class InvitationService {
         return requireOwnedInvitation(authentication, id);
     }
 
-    @Transactional
-    public String ensureAccessTokenValue(UserInvitation invitation) {
-        ensureAccessToken(invitation);
-        invitationRepository.save(invitation);
-        return invitation.getAccessToken();
-    }
-
     @Transactional(readOnly = true)
     public UserInvitation requirePublishedInvitationForRsvp(String slug, boolean tokenAccess) {
-        return requirePublishedInvitationForRsvp(slug, tokenAccess, null, null);
-    }
-
-    @Transactional(readOnly = true)
-    public UserInvitation requirePublishedInvitationForRsvp(
-            String slug,
-            boolean tokenAccess,
-            String accessToken,
-            String inviteToken
-    ) {
         UserInvitation invitation = invitationRepository
                 .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
 
-        requirePubliclyVisibleByModeration(invitation);
-        if (!tokenAccess) {
-            requirePublicInvitationAccess(invitation, accessToken, inviteToken);
+        if (!tokenAccess && invitation.getVisibility() == InvitationVisibility.PRIVATE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
+        }
+        if (!tokenAccess && invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
         }
         return invitation;
-    }
-
-    private void requirePublicInvitationAccess(UserInvitation invitation, String accessToken, String inviteToken) {
-        if (invitation.getVisibility() == null || invitation.getVisibility() == InvitationVisibility.PUBLIC) {
-            return;
-        }
-        if (hasInvitationAccess(invitation, accessToken, inviteToken)) {
-            return;
-        }
-        if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
-        }
-        throw new ApiException(HttpStatus.FORBIDDEN, protectedMessage(invitation));
-    }
-
-    private boolean hasInvitationAccess(UserInvitation invitation, String accessToken, String inviteToken) {
-        String normalizedAccessToken = trimToNull(accessToken);
-        if (normalizedAccessToken != null
-                && invitation.getAccessToken() != null
-                && normalizedAccessToken.equals(invitation.getAccessToken())) {
-            return true;
-        }
-
-        String normalizedInviteToken = trimToNull(inviteToken);
-        return normalizedInviteToken != null
-                && guestRepository != null
-                && guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), normalizedInviteToken).isPresent();
-    }
-
-    private Guest guestByToken(UserInvitation invitation, String inviteToken) {
-        String normalizedInviteToken = trimToNull(inviteToken);
-        if (normalizedInviteToken == null || guestRepository == null) {
-            return null;
-        }
-        return guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), normalizedInviteToken)
-                .orElse(null);
-    }
-
-    private boolean validPassword(UserInvitation invitation, String password) {
-        return invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED
-                && password != null
-                && invitation.getAccessPassword() != null
-                && passwordEncoder.matches(password, invitation.getAccessPassword());
-    }
-
-    private String protectedMessage(UserInvitation invitation) {
-        if (invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
-            return "Invitation password required";
-        }
-        return "Invitation access token required";
-    }
-
-    private void requirePubliclyVisibleByModeration(UserInvitation invitation) {
-        if (invitation.getModerationStatus() != null
-                && invitation.getModerationStatus() != InvitationModerationStatus.ACTIVE) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
-        }
     }
 
     private UserInvitation requireOwnedInvitation(Authentication authentication, Long id) {
@@ -430,7 +195,6 @@ public class InvitationService {
     private void applyRequest(UserInvitation invitation, InvitationRequest request, AppUser user) {
         invitation.setTitle(trimToNull(request.getTitle()));
         invitation.setTemplate(resolveTemplate(request.getTemplateId(), user));
-        invitation.setOrganization(resolveOrganization(request.getOrganizationId(), user));
         invitation.setEventType(request.getEventType());
         invitation.setEventDate(request.getEventDate());
         invitation.setEventTime(request.getEventTime());
@@ -443,12 +207,6 @@ public class InvitationService {
         invitation.setBrideName(trimToNull(request.getBrideName()));
         invitation.setStoryText(trimToNull(request.getStoryText()));
         invitation.setLanguageMode(trimToNull(request.getLanguageMode()));
-        invitation.setDesignJson(trimToNull(request.getDesignJson()));
-        invitation.setContentJson(trimToNull(request.getContentJson()));
-        invitation.setCustomColors(trimToNull(request.getCustomColors()));
-        invitation.setCustomFonts(trimToNull(request.getCustomFonts()));
-        invitation.setEnabledSections(trimToNull(request.getEnabledSections()));
-        invitation.setLayoutSettings(trimToNull(request.getLayoutSettings()));
         invitation.setRsvpDeadline(request.getRsvpDeadline());
 
         InvitationVisibility visibility = parseVisibility(request.getVisibility());
@@ -475,23 +233,6 @@ public class InvitationService {
             throw new ApiException(HttpStatus.FORBIDDEN, "Premium template access is required");
         }
         return template;
-    }
-
-    private Organization resolveOrganization(Long organizationId, AppUser user) {
-        if (organizationId == null) {
-            return null;
-        }
-        if (organizationRepository == null || organizationMemberRepository == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Organization support is not available");
-        }
-        Organization organization = organizationRepository.findById(organizationId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Organization not found"));
-        boolean owner = organization.getOwner() != null && organization.getOwner().getId().equals(user.getId());
-        boolean member = organizationMemberRepository.existsByOrganizationIdAndUserId(organizationId, user.getId());
-        if (!owner && !member) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Organization access is required");
-        }
-        return organization;
     }
 
     private InvitationVisibility parseVisibility(String value) {
@@ -551,6 +292,23 @@ public class InvitationService {
         }
     }
 
+    private void validatePublicViewAccess(UserInvitation invitation, String inviteToken) {
+        if (invitation.getVisibility() == InvitationVisibility.PUBLIC || hasGuestAccess(invitation, inviteToken)) {
+            return;
+        }
+        if (invitation.getVisibility() == InvitationVisibility.PRIVATE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Invitation not found");
+        }
+        if (invitation.getVisibility() == InvitationVisibility.PASSWORD_PROTECTED) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Invitation password required");
+        }
+    }
+
+    private boolean hasGuestAccess(UserInvitation invitation, String inviteToken) {
+        String token = trimToNull(inviteToken);
+        return token != null && guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), token).isPresent();
+    }
+
     private void ensureSlug(UserInvitation invitation) {
         if (trimToNull(invitation.getSlug()) != null) {
             return;
@@ -598,21 +356,6 @@ public class InvitationService {
         return normalized.isBlank() ? "invitation" : normalized;
     }
 
-    private void ensureAccessToken(UserInvitation invitation) {
-        if (trimToNull(invitation.getAccessToken()) != null) {
-            return;
-        }
-        invitation.setAccessToken(uniqueAccessToken());
-    }
-
-    private String uniqueAccessToken() {
-        String token;
-        do {
-            token = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
-        } while (invitationRepository.existsByAccessToken(token));
-        return token;
-    }
-
     private String joinNames(String first, String second) {
         String left = trimToNull(first);
         String right = trimToNull(second);
@@ -648,83 +391,6 @@ public class InvitationService {
 
     private InvitationResponse toResponse(UserInvitation invitation) {
         return InvitationResponse.from(invitation);
-    }
-
-    @Transactional
-    public GuestInvitationViewResponse guestView(String slug, String inviteToken) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
-
-        requirePubliclyVisibleByModeration(invitation);
-
-        String normalizedInviteToken = trimToNull(inviteToken);
-        if (normalizedInviteToken == null) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "Invitation token is required");
-        }
-
-        if (guestRepository == null) {
-            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Guest repository not initialized");
-        }
-
-        Guest guest = guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), normalizedInviteToken)
-                .orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "Invalid invitation token"));
-
-        GuestSeatAssignment assignment = seatAssignmentRepository == null
-                ? null
-                : seatAssignmentRepository.findByInvitationIdAndGuestId(invitation.getId(), guest.getId()).orElse(null);
-
-        if (guest.getInvitationViewedAt() == null) {
-            guest.setInvitationViewedAt(Instant.now());
-            guestRepository.save(guest);
-        }
-
-        Rsvp rsvp = rsvpRepository == null ? null : rsvpRepository.findByInvitationIdAndGuestId(invitation.getId(), guest.getId()).orElse(null);
-        String rsvpStatus = rsvp != null && rsvp.getResponseStatus() != null ? rsvp.getResponseStatus().name() : "PENDING";
-
-        List<WishResponse> wishes = rsvpRepository == null
-                ? new java.util.ArrayList<>()
-                : rsvpRepository.findByInvitationIdAndMessageIsNotNullOrderByRespondedAtDesc(invitation.getId()).stream()
-                .map(WishResponse::from)
-                .toList();
-
-        MediaListResponse media = mediaFileRepository == null
-                ? null
-                : MediaListResponse.from(mediaFileRepository.findByInvitationIdOrderBySortOrderAscCreatedAtAsc(invitation.getId()));
-
-        String guestCategory = guest.getGuestGroup();
-        Integer seatCount = assignment != null ? assignment.getSeatCount() : guest.getSeatCount();
-        String tableName = assignment != null && assignment.getTable() != null ? assignment.getTable().getTableName() : guest.getTableNumber();
-        String seatNumber = assignment != null ? assignment.getSeatLabel() : null;
-
-        String baseUrl = appProperties != null && appProperties.getInvitation() != null ? appProperties.getInvitation().getPublicBaseUrl() : "http://localhost:5173";
-        baseUrl = baseUrl.replaceAll("/+$", "");
-        String invitationUrl = baseUrl + "/i/" + encodeValue(slug) + "?token=" + encodeValue(normalizedInviteToken);
-
-        boolean canRsvp = invitation.getRsvpDeadline() == null || !invitation.getRsvpDeadline().isBefore(LocalDate.now());
-
-        return GuestInvitationViewResponse.builder()
-                .invitation(PublicInvitationResponse.from(invitation, guest, assignment))
-                .guestName(guest.getGuestName())
-                .guestCategory(guestCategory)
-                .seatCount(seatCount)
-                .tableName(tableName)
-                .seatNumber(seatNumber)
-                .rsvpStatus(rsvpStatus)
-                .invitationUrl(invitationUrl)
-                .qrPayload(invitationUrl)
-                .canRsvp(canRsvp)
-                .media(media)
-                .wishes(wishes)
-                .build();
-    }
-
-    private String encodeValue(String value) {
-        try {
-            return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8.name()).replace("+", "%20");
-        } catch (java.io.UnsupportedEncodingException ex) {
-            return value;
-        }
     }
 
     private String trimToNull(String value) {

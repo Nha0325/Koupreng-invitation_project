@@ -1,10 +1,11 @@
 /**
  * Single HTTP client for the admin app.
- * Wraps fetch with JSON handling, base URL, and JWT bearer auth.
+ * Wraps axios with JSON handling, base URL, and JWT bearer auth.
  */
+import axios from "axios";
 import { getAccessToken, clearAuth } from "./authStorage";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
 export class ApiError extends Error {
     constructor(message, status, data) {
@@ -15,58 +16,44 @@ export class ApiError extends Error {
     }
 }
 
-async function parseResponse(res) {
-    if (res.status === 204) return null;
+const apiClient = axios.create({
+    baseURL: API_BASE_URL,
+});
 
-    const contentType = res.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-        return res.json().catch(() => null);
-    }
+apiClient.interceptors.request.use(
+    (config) => {
+        if (config.auth !== false) {
+            const token = getAccessToken();
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
-    const text = await res.text().catch(() => "");
-    return text || null;
-}
-
-async function request(path, { method = "GET", body, headers = {}, auth = true, ...rest } = {}) {
-    const token = getAccessToken();
-    const isFormData = body instanceof FormData;
-
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-        method,
-        headers: {
-            ...(!isFormData ? { "Content-Type": "application/json" } : {}),
-            ...(auth && token ? { Authorization: `Bearer ${token}` } : {}),
-            ...headers,
-        },
-        body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
-        ...rest,
-    });
-
-    const data = await parseResponse(res);
-
-    if (!res.ok) {
-        // Auto-logout on auth failure so the UI can redirect to login.
-        if (res.status === 401) {
+apiClient.interceptors.response.use(
+    (response) => response.data,
+    (error) => {
+        const status = error.response?.status;
+        const data = error.response?.data;
+        
+        if (status === 401) {
             clearAuth();
         }
-        const message =
-            data?.message ||
-            data?.error ||
-            (typeof data === "string" ? data : "") ||
-            res.statusText ||
-            "Request failed";
-        throw new ApiError(message, res.status, data);
-    }
 
-    return data;
-}
+        const message = data?.message || data?.error || error.message || "Request failed";
+        throw new ApiError(message, status, data);
+    }
+);
 
 export const api = {
-    get: (path, opts) => request(path, { ...opts, method: "GET" }),
-    post: (path, body, opts) => request(path, { ...opts, method: "POST", body }),
-    put: (path, body, opts) => request(path, { ...opts, method: "PUT", body }),
-    patch: (path, body, opts) => request(path, { ...opts, method: "PATCH", body }),
-    delete: (path, opts) => request(path, { ...opts, method: "DELETE" }),
+    get: (path, opts) => apiClient.get(path, opts),
+    post: (path, body, opts) => apiClient.post(path, body, opts),
+    put: (path, body, opts) => apiClient.put(path, body, opts),
+    patch: (path, body, opts) => apiClient.patch(path, body, opts),
+    delete: (path, opts) => apiClient.delete(path, opts),
 };
 
 export default api;

@@ -7,11 +7,11 @@ function unwrap(res) {
 
 /**
  * Admin invitation management.
- * Listing uses the current admin route; mutations reuse owner endpoints under /v1.
+ * Listing is admin-scoped; mutations reuse the owner endpoints under /v1.
  */
 export const invitationService = {
-    /** GET /v1/admin/invitations — every invitation across all users */
-    listAll: () => api.get("/v1/admin/invitations").then(unwrap),
+    /** GET /admin/invitations — every invitation across all users */
+    listAll: () => api.get("/admin/invitations").then(unwrap),
 
     /** GET /v1/invitations/{id} — full invitation detail */
     get: (id) => api.get(`/v1/invitations/${id}`).then(unwrap),

@@ -23,8 +23,6 @@ public interface TemplatePaymentOrderRepository extends JpaRepository<TemplatePa
 
     List<TemplatePaymentOrder> findByUserIdOrderByCreatedAtDesc(Long userId);
 
-    List<TemplatePaymentOrder> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
-
     List<TemplatePaymentOrder> findByStatusInOrderByCreatedAtDesc(Collection<PaymentStatus> statuses);
 
     List<TemplatePaymentOrder> findByStatusInAndExpiresAtBefore(

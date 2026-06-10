@@ -1,8 +1,6 @@
 package com.koupreng.backend.dto.invitation;
 
 import com.koupreng.backend.entity.invitation.EventType;
-import com.koupreng.backend.entity.invitation.Guest;
-import com.koupreng.backend.entity.invitation.GuestSeatAssignment;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import lombok.AllArgsConstructor;
@@ -35,24 +33,9 @@ public class PublicInvitationResponse {
     private String brideName;
     private String storyText;
     private String languageMode;
-    private String designJson;
-    private String contentJson;
-    private String customColors;
-    private String customFonts;
-    private String enabledSections;
-    private String layoutSettings;
     private LocalDate rsvpDeadline;
-    private PublicGuestResponse guest;
 
     public static PublicInvitationResponse from(UserInvitation invitation) {
-        return from(invitation, null, null);
-    }
-
-    public static PublicInvitationResponse from(
-            UserInvitation invitation,
-            Guest guest,
-            GuestSeatAssignment assignment
-    ) {
         InvitationTemplate template = invitation.getTemplate();
         return PublicInvitationResponse.builder()
                 .templateId(template == null ? null : template.getId())
@@ -71,14 +54,7 @@ public class PublicInvitationResponse {
                 .brideName(invitation.getBrideName())
                 .storyText(invitation.getStoryText())
                 .languageMode(invitation.getLanguageMode())
-                .designJson(invitation.getDesignJson())
-                .contentJson(invitation.getContentJson())
-                .customColors(invitation.getCustomColors())
-                .customFonts(invitation.getCustomFonts())
-                .enabledSections(invitation.getEnabledSections())
-                .layoutSettings(invitation.getLayoutSettings())
                 .rsvpDeadline(invitation.getRsvpDeadline())
-                .guest(PublicGuestResponse.from(guest, assignment))
                 .build();
     }
 }

@@ -29,10 +29,7 @@ public class ApiWebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new FileUploadValidationInterceptor(apiSecurityProperties, fileUploadValidator))
                 .addPathPatterns("/api/**")
-                .excludePathPatterns(
-                        "/api/v1/invitations/*/media/**",
-                        "/api/v1/invitations/*/guests/import-file"
-                );
+                .excludePathPatterns("/api/v1/invitations/*/media/**");
     }
 
     @Override

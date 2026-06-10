@@ -524,7 +524,7 @@ public class AbaPayWayService {
         if (properties.getMerchantId().isBlank()
                 || properties.getPublicKey().isBlank()
                 || properties.getApiUrl().isBlank()) {
-            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "ABA PayWay dynamic API credentials are not configured");
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "ABA PayWay sandbox credentials are not configured");
         }
     }
 

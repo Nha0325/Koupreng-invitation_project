@@ -17,8 +17,6 @@ public class GuestRequest {
     private String sideType;
     private String tableNumber;
     private String sendStatus;
-    private Integer seatCount;
-    private String note;
     private String contributionStatus;
     private BigDecimal totalContributed;
 }
