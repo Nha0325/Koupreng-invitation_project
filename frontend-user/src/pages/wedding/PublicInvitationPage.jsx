@@ -7,7 +7,7 @@ import PublicRsvpForm from "../../features/invitations/PublicRsvpForm";
 import "../../features/invitations/InvitationPages.css";
 import TemplateExperience from "../../features/templates/template-experience/TemplateExperience";
 import WeddingSite from "../../features/wedding-site/WeddingSite";
-import { getTemplateById } from "../../features/templates/data/templatesData";
+import { getTemplateById, TEMPLATES } from "../../features/templates/data/templatesData";
 import { draftToTemplate } from "../../features/wedding-builder/utils/draftToTemplate";
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { loadGallery } from "../../services/galleryStorage";
@@ -22,6 +22,17 @@ function isGardenRoyalTemplate(invitation) {
 
 function timeValue(value) {
     return value ? String(value).slice(0, 5) : "";
+}
+
+function safeJson(value) {
+    if (!value) return {};
+    if (typeof value === "object") return value;
+    if (typeof value !== "string") return {};
+    try {
+        return JSON.parse(value);
+    } catch {
+        return {};
+    }
 }
 
 function publicInvitationToTemplate(invitation, media) {
@@ -89,6 +100,9 @@ export default function PublicInvitationPage() {
     const [media, setMedia] = useState(null);
     const [remoteLoading, setRemoteLoading] = useState(true);
     const [remoteError, setRemoteError] = useState("");
+    const [protectedMode, setProtectedMode] = useState(false);
+    const [verifiedAccessToken, setVerifiedAccessToken] = useState("");
+    const [verifyingAccess, setVerifyingAccess] = useState(false);
     const draft = useWeddingStore((state) => state.draft);
     const loadDraft = useWeddingStore((state) => state.loadDraft);
     const loadDraftBySlug = useWeddingStore((state) => state.loadDraftBySlug);
@@ -96,9 +110,17 @@ export default function PublicInvitationPage() {
     const [gallery, setGallery] = useState(null);
     const activeDraft = draft?.slug === slug || draft?.id === slug ? draft : null;
     const shouldBackToDashboard = location.state?.backTo === "/dashboard";
+    const queryAccessToken = searchParams.get("accessToken") || "";
+    const accessStorageKey = slug ? `koupreng_invitation_access_${slug}` : "";
+    const effectiveAccessToken = queryAccessToken || verifiedAccessToken;
     const backProps = shouldBackToDashboard
         ? { showBack: true, backTo: "/dashboard", backLabel: "← ផ្ទាំងគ្រប់គ្រង" }
         : { showBack: false };
+
+    useEffect(() => {
+        setVerifiedAccessToken(slug ? sessionStorage.getItem(`koupreng_invitation_access_${slug}`) || "" : "");
+        setProtectedMode(false);
+    }, [slug]);
 
     useEffect(() => {
         if (!slug) {
@@ -112,23 +134,31 @@ export default function PublicInvitationPage() {
         let active = true;
         setRemoteLoading(true);
         setRemoteError("");
+        setProtectedMode(false);
         setInvitation(null);
         setMedia(null);
+        const publicParams = {
+            accessToken: effectiveAccessToken,
+            token: inviteToken,
+        };
 
         Promise.all([
-            invitationService.publicBySlug(slug, inviteToken),
-            mediaService.publicBySlug(slug, inviteToken).catch(() => null),
+            invitationService.publicBySlug(slug, publicParams),
+            mediaService.publicBySlug(slug, publicParams).catch(() => null),
         ])
             .then(([invitationData, mediaData]) => {
                 if (active) {
                     setInvitation(invitationData);
                     setMedia(mediaData);
                     setRemoteError("");
+                    setProtectedMode(false);
                 }
             })
             .catch((err) => {
                 if (active) {
-                    setRemoteError(err?.status === 403 ? "This invitation requires a password." : "Invitation not available.");
+                    const protectedError = err?.status === 403;
+                    setProtectedMode(protectedError);
+                    setRemoteError(protectedError ? (err?.message || "This invitation requires access.") : "Invitation not available.");
                 }
             })
             .finally(() => {
@@ -140,7 +170,7 @@ export default function PublicInvitationPage() {
         return () => {
             active = false;
         };
-    }, [slug, inviteToken]);
+    }, [slug, inviteToken, effectiveAccessToken]);
 
     useEffect(() => {
         if (!slug) {
@@ -171,29 +201,119 @@ export default function PublicInvitationPage() {
         return draftToTemplate({ ...activeDraft, templateId }, gallery);
     }, [activeDraft, gallery]);
 
+    const mergedPublic = useMemo(() => {
+        if (!invitation) return null;
+
+        const content = safeJson(invitation.contentJson);
+        const enabledSections = safeJson(invitation.enabledSections);
+        const templateKey = content.templateId || String(invitation.templateId || "");
+
+        let baseTpl = TEMPLATES.find((t) => t.id === templateKey);
+        if (!baseTpl && invitation.templateId) {
+            baseTpl = TEMPLATES.find((t) => Number(t.backendId) === Number(invitation.templateId));
+        }
+        if (!baseTpl) {
+            baseTpl = TEMPLATES.find((t) => t.id === "royal");
+        }
+
+        const galleryList = (media?.galleryImages || []).map((img) => ({
+            preview: img.fileUrl,
+            type: "image",
+        }));
+
+        const reconstructedDraft = {
+            id: invitation.slug,
+            templateId: baseTpl.id,
+            event: {
+                title: invitation.title,
+                date: invitation.eventDate,
+                ceremonyTime: content.event?.ceremonyTime || invitation.eventTime,
+                receptionTime: content.event?.receptionTime || invitation.eventTime,
+                venueName: invitation.venueName,
+                venueAddress: invitation.venueAddress,
+                mapLink: invitation.googleMapUrl,
+            },
+            couple: {
+                groom: invitation.groomName,
+                bride: invitation.brideName,
+                groomNickname: content.couple?.groomNickname || "",
+                brideNickname: content.couple?.brideNickname || "",
+                groomParents: content.couple?.groomParents || "",
+                brideParents: content.couple?.brideParents || "",
+            },
+            contact: content.contact || {},
+            message: content.message || invitation.storyText || "",
+            story: content.story || invitation.storyText || "",
+            storyChapters: content.storyChapters || [],
+            schedule: content.schedule || [],
+            party: content.party || [],
+            gift: content.gift || [],
+            faq: content.faq || [],
+            dressCode: content.dressCode || {},
+            music: media?.backgroundMusic ? { url: media.backgroundMusic.fileUrl } : null,
+            rsvp: content.rsvp || {},
+            enabledSections,
+            extras: content.extras || {},
+        };
+
+        return draftToTemplate(reconstructedDraft, galleryList);
+    }, [invitation, media]);
+
     if (remoteLoading) {
         return <div className="public-state">Loading invitation...</div>;
     }
 
-    if (invitation && isGardenRoyalTemplate(invitation)) {
-        const mergedPublic = publicInvitationToTemplate(invitation, media);
+    const verifyAccess = async (password) => {
+        setVerifyingAccess(true);
+        setRemoteError("");
+        try {
+            const response = await invitationService.verifyPublicAccess(slug, {
+                password,
+                inviteToken,
+                accessToken: effectiveAccessToken,
+            });
+            if (response?.accessToken) {
+                sessionStorage.setItem(accessStorageKey, response.accessToken);
+                setVerifiedAccessToken(response.accessToken);
+            }
+            setProtectedMode(false);
+        } catch (err) {
+            setRemoteError(err?.message || "Could not verify invitation access.");
+        } finally {
+            setVerifyingAccess(false);
+        }
+    };
 
-        if (mergedPublic) {
+    if (invitation && isGardenRoyalTemplate(invitation)) {
+        const mergedPublicGarden = publicInvitationToTemplate(invitation, media);
+        const enabledSections = safeJson(invitation.enabledSections);
+        const showRsvp = enabledSections.rsvp !== false;
+
+        if (mergedPublicGarden) {
             return (
                 <TemplateExperience
-                    tpl={mergedPublic.tpl}
+                    tpl={mergedPublicGarden.tpl}
                     variant={GARDEN_TEMPLATE_ID}
                     showActions={false}
                     showBreadcrumb={false}
                     showStickyCta={false}
                 >
-                    <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
+                    {showRsvp && (
+                        <PublicRsvpForm
+                            slug={slug}
+                            inviteToken={inviteToken}
+                            accessToken={effectiveAccessToken}
+                            languageMode={invitation.languageMode}
+                        />
+                    )}
                 </TemplateExperience>
             );
         }
     }
 
     if (invitation) {
+        const enabledSections = safeJson(invitation.enabledSections);
+        const showRsvp = enabledSections.rsvp !== false;
         let templateSlug = null;
         if (invitation.designJson) {
             try {
@@ -274,12 +394,14 @@ export default function PublicInvitationPage() {
                         showActions={false}
                         showStickyCta={true}
                     >
-                        <PublicRsvpForm
-                            slug={slug}
-                            inviteToken={inviteToken}
-                            accessToken={effectiveAccessToken}
-                            languageMode={invitation.languageMode}
-                        />
+                        {showRsvp && (
+                            <PublicRsvpForm
+                                slug={slug}
+                                inviteToken={inviteToken}
+                                accessToken={effectiveAccessToken}
+                                languageMode={invitation.languageMode}
+                            />
+                        )}
                     </TemplateExperience>
                 );
             }
@@ -287,17 +409,25 @@ export default function PublicInvitationPage() {
 
         return (
             <InvitationDisplay invitation={invitation} media={media}>
-                <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
+                {showRsvp && (
+                    <PublicRsvpForm
+                        slug={slug}
+                        inviteToken={inviteToken}
+                        accessToken={effectiveAccessToken}
+                        languageMode={invitation.languageMode}
+                    />
+                )}
             </InvitationDisplay>
         );
     }
 
-    if (remoteError === "This invitation requires a password.") {
+    if (protectedMode) {
         return (
-            <main className="public-state">
-                <h1>Invitation not available</h1>
-                <p>{remoteError}</p>
-            </main>
+            <ProtectedInvitationGate
+                error={remoteError}
+                loading={verifyingAccess}
+                onSubmit={verifyAccess}
+            />
         );
     }
 
@@ -343,6 +473,40 @@ export default function PublicInvitationPage() {
         <main className="public-state">
             <h1>Invitation not available</h1>
             <p>{remoteError || "This invitation may be unpublished or unavailable."}</p>
+        </main>
+    );
+}
+
+function ProtectedInvitationGate({ error, loading, onSubmit }) {
+    const [password, setPassword] = useState("");
+
+    return (
+        <main className="public-state protected-gate">
+            <form
+                className="protected-gate-card"
+                onSubmit={(event) => {
+                    event.preventDefault();
+                    onSubmit(password);
+                }}
+            >
+                <p className="pub-kicker">Private invitation</p>
+                <h1>Enter invitation password</h1>
+                <p>This invitation is protected. Use the password or open a guest-specific invitation link.</p>
+                <label>
+                    Password
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        autoComplete="current-password"
+                        required
+                    />
+                </label>
+                {error && <div className="inv-error">{error}</div>}
+                <button className="inv-primary-btn" type="submit" disabled={loading}>
+                    {loading ? "Checking..." : "Open invitation"}
+                </button>
+            </form>
         </main>
     );
 }

@@ -268,7 +268,7 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
     const hostCouple = host.couple || {};
     const hostContact = host.contact || {};
     const hostEnabledSections = host.enabledSections || {};
-    const hasHostContent = Object.keys(host).length > 0;
+    const hasHostContent = Boolean(tpl.hostContent) || Object.keys(host).length > 0;
     const sectionEnabled = (key) => hostEnabledSections[key] !== false;
     const nonEmpty = (arr) => (Array.isArray(arr) && arr.length ? arr : null);
     const nonBlank = (value) => (typeof value === "string" && value.trim() ? value.trim() : "");
@@ -309,8 +309,9 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         : languageMode === "both" && hostStoryTextEn
             ? [hostStoryText, hostStoryTextEn].filter(Boolean).join("\n\n")
             : hostStoryText;
-    const hostStory = nonEmpty(host.storyChapters)
-        ? host.storyChapters.map((c, index) => ({
+    const hostStoryChapters = nonEmpty(host.storyChapters);
+    const hostStory = hostStoryChapters
+        ? hostStoryChapters.map((c, index) => ({
             id: c.id || `chapter-${index}`,
             kicker: c.kicker || `ជំពូកទី ${index + 1}`,
             title: c.title || "",
@@ -321,7 +322,7 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         : combinedStoryText
             ? [{
                 id: "story-text",
-                kicker: "Our Story",
+                kicker: "រឿងរ៉ាវស្នេហា",
                 title: "ដំណើររបស់យើង",
                 date: tpl.dateText || "",
                 text: combinedStoryText,

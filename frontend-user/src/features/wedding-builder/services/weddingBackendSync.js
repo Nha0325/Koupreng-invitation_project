@@ -42,6 +42,8 @@ export function draftToInvitationPayload(draft) {
     const event = draft?.event || {};
     const couple = draft?.couple || {};
     const templateId = positiveNumber(draft?.templateBackendId || draft?.backendTemplateId);
+    const hasStory = Boolean((draft?.story || "").trim())
+        || (Array.isArray(draft?.storyChapters) && draft.storyChapters.length > 0);
     const content = {
         couple,
         event,
@@ -80,7 +82,7 @@ export function draftToInvitationPayload(draft) {
         }),
         contentJson: JSON.stringify(content),
         enabledSections: JSON.stringify({
-            story: Array.isArray(draft?.storyChapters) && draft.storyChapters.length > 0,
+            story: hasStory,
             schedule: Array.isArray(draft?.schedule) && draft.schedule.length > 0,
             party: Array.isArray(draft?.party) && draft.party.length > 0,
             gift: Array.isArray(draft?.gift) && draft.gift.length > 0,

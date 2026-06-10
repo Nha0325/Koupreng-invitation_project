@@ -51,6 +51,7 @@ export function draftToTemplate(draft, gallery = []) {
         hostContent: {
             couple: draft.couple || {},
             contact: draft.contact || {},
+            enabledSections: draft.enabledSections || {},
             storyText: draft.story || "",
             storyTextEn: draft.extras?.storyTextEn || "",
             languageMode: draft.extras?.languageMode || "both",
