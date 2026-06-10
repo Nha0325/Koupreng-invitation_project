@@ -700,6 +700,46 @@
     gap: 16px;
 }
 
+.pub-rsvp-live {
+    display: grid;
+    gap: 22px;
+}
+
+.pub-wishes-wall {
+    display: grid;
+    gap: 14px;
+}
+
+.pub-wishes-wall h2 {
+    margin: 0;
+    color: #241733;
+    font-size: 1.25rem;
+}
+
+.pub-wishes-list {
+    display: grid;
+    gap: 12px;
+}
+
+.pub-wish-card {
+    border: 1px solid #eadfcf;
+    border-radius: 8px;
+    padding: 16px;
+    background: #fffaf2;
+}
+
+.pub-wish-card p {
+    margin: 0 0 10px;
+    color: #253041;
+    line-height: 1.65;
+}
+
+.pub-wish-card span {
+    color: #7d6443;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
 .public-state {
     display: grid;
     place-items: center;

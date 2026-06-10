@@ -33,6 +33,7 @@ export function draftToTemplate(draft, gallery = []) {
         ...baseTpl,
         groom: draft.couple?.groom || baseTpl.groom,
         bride: draft.couple?.bride || baseTpl.bride,
+        monogramText: draft.design?.monogramText || draft.monogramText || baseTpl.monogramText,
         dateText: draft.event?.date || baseTpl.dateText,
         targetDate,
         ceremonyTime: draft.event?.ceremonyTime || baseTpl.ceremonyTime,
@@ -40,7 +41,9 @@ export function draftToTemplate(draft, gallery = []) {
         venueName: draft.event?.venueName || baseTpl.venueName,
         venueAddress: draft.event?.venueAddress || baseTpl.venueAddress,
         mapQuery: draft.event?.mapLink || baseTpl.mapQuery,
+        customMainImage: draft.coverImage || baseTpl.customMainImage,
         message: draft.message || draft.story || baseTpl.message,
+        storyText: draft.story || "",
         dressCode: draft.dressCode || baseTpl.dressCode,
         music: draft.music || baseTpl.music,
         // Host-authored rich sections. Passed straight through so the content
@@ -48,11 +51,18 @@ export function draftToTemplate(draft, gallery = []) {
         hostContent: {
             couple: draft.couple || {},
             contact: draft.contact || {},
+            storyText: draft.story || "",
+            storyTextEn: draft.extras?.storyTextEn || "",
+            languageMode: draft.extras?.languageMode || "both",
             storyChapters: draft.storyChapters || [],
             schedule: draft.schedule || [],
             party: draft.party || [],
             gift: draft.gift || [],
             faq: draft.faq || [],
+            enabledSections: {
+                ...(draft.enabledSections || {}),
+                rsvp: draft.rsvp?.enabled !== false && draft.enabledSections?.rsvp !== false,
+            },
             eventTitle: draft.event?.title || "",
         },
         // When the host has uploaded photos, drive gallery + story from them.

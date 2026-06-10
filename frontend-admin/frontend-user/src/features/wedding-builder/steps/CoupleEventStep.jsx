@@ -43,6 +43,30 @@ export default function CoupleEventStep({ draft, update, updateField }) {
                     </div>
                 </div>
 
+                <div className="wb-row">
+                    <div className="wb-field">
+                        <label htmlFor="couple-groom-nickname">ឈ្មោះហៅក្រៅកូនកំលោះ (ស្រេចចិត្ត)</label>
+                        <input
+                            id="couple-groom-nickname"
+                            type="text"
+                            value={couple.groomNickname || ""}
+                            onChange={(e) => updateField("couple", { groomNickname: e.target.value })}
+                            placeholder="ឧ. V"
+                        />
+                    </div>
+
+                    <div className="wb-field">
+                        <label htmlFor="couple-bride-nickname">ឈ្មោះហៅក្រៅកូនក្រមុំ (ស្រេចចិត្ត)</label>
+                        <input
+                            id="couple-bride-nickname"
+                            type="text"
+                            value={couple.brideNickname || ""}
+                            onChange={(e) => updateField("couple", { brideNickname: e.target.value })}
+                            placeholder="ឧ. P"
+                        />
+                    </div>
+                </div>
+
                 <div className="wb-field">
                     <label htmlFor="event-title">ចំណងជើងសន្លឹកការ (ស្រេចចិត្ត)</label>
                     <input

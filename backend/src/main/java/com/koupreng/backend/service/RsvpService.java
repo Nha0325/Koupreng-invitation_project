@@ -58,6 +58,15 @@ public class RsvpService {
     }
 
     @Transactional(readOnly = true)
+    public List<RsvpResponse> publicWishes(String slug, String inviteToken) {
+        UserInvitation invitation = invitationService.requirePublicInvitationForView(slug, inviteToken);
+        return rsvpRepository.findByInvitationIdOrderByRespondedAtDesc(invitation.getId()).stream()
+                .filter(rsvp -> trimToNull(rsvp.getMessage()) != null)
+                .map(RsvpResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<RsvpResponse> list(Authentication authentication, Long invitationId) {
         invitationService.requireOwnedInvitationEntity(authentication, invitationId);
         return rsvpRepository.findByInvitationIdOrderByRespondedAtDesc(invitationId).stream()

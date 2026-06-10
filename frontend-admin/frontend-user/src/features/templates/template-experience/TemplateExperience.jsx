@@ -12,6 +12,8 @@ import TemplateStory from "./sections/TemplateStory";
 import TemplateSchedule from "./sections/TemplateSchedule";
 import TemplateVenue from "./sections/TemplateVenue";
 import TemplateGallery from "./sections/TemplateGallery";
+import TemplateGift from "./sections/TemplateGift";
+import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
 import TemplateStickyCta from "./controls/TemplateStickyCta";
 import "./template-experience.css";
@@ -56,6 +58,7 @@ export default function TemplateExperience({
     showBreadcrumb = true,
     showActions = true,
     showStickyCta = true,
+    children,
 }) {
     const resolvedVariant = useMemo(() => resolveVariant(tpl, variant), [tpl, variant]);
     const theme = useMemo(() => getVariantTheme(resolvedVariant), [resolvedVariant]);
@@ -89,6 +92,10 @@ export default function TemplateExperience({
     const handleScrollTop = useCallback(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, []);
+    const sectionEnabled = useCallback(
+        (key) => content.enabledSections?.[key] !== false,
+        [content.enabledSections]
+    );
 
     return (
         <div
@@ -106,11 +113,20 @@ export default function TemplateExperience({
             <TemplateHero content={content} onOpen={handleOpen} />
             <TemplateMessage content={content} />
             <TemplateCouple content={content} />
-            <TemplateCountdown content={content} />
-            <TemplateStory content={content} />
-            <TemplateSchedule content={content} />
-            <TemplateVenue content={content} />
-            <TemplateGallery content={content} />
+            {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
+            {sectionEnabled("story") && <TemplateStory content={content} />}
+            {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
+            {sectionEnabled("map") && <TemplateVenue content={content} />}
+            {sectionEnabled("gallery") && <TemplateGallery content={content} />}
+            {sectionEnabled("gift") && <TemplateGift content={content} />}
+
+            {children && sectionEnabled("rsvp") && (
+                <div className="tx-children">
+                    {children}
+                </div>
+            )}
+
+            <TemplateFooter content={content} />
 
             {!preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">

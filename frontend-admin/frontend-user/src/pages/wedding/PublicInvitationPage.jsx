@@ -14,6 +14,72 @@ import { loadGallery } from "../../services/galleryStorage";
 import { invitationService } from "../../shared/services/invitationService";
 import { mediaService } from "../../shared/services/mediaService";
 
+const GARDEN_TEMPLATE_ID = "garden-royal-khmer-wedding";
+
+function isGardenRoyalTemplate(invitation) {
+    return invitation?.templateName === "Garden Royal Khmer Wedding";
+}
+
+function timeValue(value) {
+    return value ? String(value).slice(0, 5) : "";
+}
+
+function publicInvitationToTemplate(invitation, media) {
+    const baseTpl = getTemplateById(GARDEN_TEMPLATE_ID);
+    const gallery = (media?.galleryImages || [])
+        .filter((item) => item?.fileUrl)
+        .map((item) => ({
+            id: item.id,
+            name: item.originalFilename,
+            type: item.mimeType?.startsWith("video/") ? "video" : "image",
+            preview: item.fileUrl,
+        }));
+    const eventTime = timeValue(invitation.eventTime);
+    const draft = {
+        id: invitation.slug,
+        slug: invitation.slug,
+        templateId: baseTpl.id,
+        coverImage: media?.coverImage?.fileUrl || "",
+        couple: {
+            groom: invitation.groomName || invitation.hostName || "",
+            bride: invitation.brideName || invitation.partnerName || "",
+            groomParents: "",
+            brideParents: "",
+        },
+        event: {
+            title: invitation.title || "",
+            date: invitation.eventDate || "",
+            ceremonyTime: eventTime,
+            receptionTime: eventTime,
+            venueName: invitation.venueName || "",
+            venueAddress: invitation.venueAddress || "",
+            mapLink: invitation.googleMapUrl || "",
+        },
+        contact: {},
+        message: invitation.title || "",
+        story: invitation.storyText || "",
+        storyChapters: [],
+        schedule: [],
+        party: [],
+        gift: [],
+        faq: [],
+        gallery,
+        music: media?.backgroundMusic?.fileUrl ? { url: media.backgroundMusic.fileUrl } : baseTpl.music,
+        rsvp: { enabled: true, deadline: invitation.rsvpDeadline || "" },
+        enabledSections: {
+            story: Boolean(invitation.storyText),
+            gallery: gallery.length > 0,
+            schedule: false,
+            party: false,
+            gift: false,
+            faq: false,
+            rsvp: true,
+        },
+    };
+
+    return draftToTemplate(draft, gallery);
+}
+
 export default function PublicInvitationPage() {
     const { slug } = useParams();
     const [searchParams] = useSearchParams();
@@ -109,6 +175,24 @@ export default function PublicInvitationPage() {
         return <div className="public-state">Loading invitation...</div>;
     }
 
+    if (invitation && isGardenRoyalTemplate(invitation)) {
+        const mergedPublic = publicInvitationToTemplate(invitation, media);
+
+        if (mergedPublic) {
+            return (
+                <TemplateExperience
+                    tpl={mergedPublic.tpl}
+                    variant={GARDEN_TEMPLATE_ID}
+                    showActions={false}
+                    showBreadcrumb={false}
+                    showStickyCta={false}
+                >
+                    <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
+                </TemplateExperience>
+            );
+        }
+    }
+
     if (invitation) {
         return (
             <InvitationDisplay invitation={invitation} media={media}>
@@ -150,7 +234,11 @@ export default function PublicInvitationPage() {
                 showBreadcrumb={shouldBackToDashboard}
                 showActions={shouldBackToDashboard}
                 showStickyCta={shouldBackToDashboard}
-            />
+            >
+                {activeDraft.rsvp?.enabled !== false && activeDraft.enabledSections?.rsvp !== false && (
+                    <PublicRsvpForm slug={slug} inviteToken={inviteToken} />
+                )}
+            </TemplateExperience>
         );
     }
 

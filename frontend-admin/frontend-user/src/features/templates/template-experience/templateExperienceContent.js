@@ -117,6 +117,15 @@ const VARIANT_COPY = {
         dressStyle: "ផ្លូវការ / ខ្មែរប្រពៃណី",
         dressNote: "ពណ៌មាស ស និងត្នោតស្រាល សមរម្យសម្រាប់បរិយាកាសប្រណីត និងថតរូបជុំគ្នា។",
     },
+    "garden-royal-khmer-wedding": {
+        message:
+            "ដោយក្តីសោមនស្សរីករាយ និងសេចក្ដីស្រឡាញ់ដ៏ជ្រាលជ្រៅ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នកមកចូលរួមជាភ្ញៀវកិត្តិយសក្នុងពិធីមង្គលការរបស់យើងទាំងពីរ។",
+        groomIntro: "កូនកំលោះដ៏សុភាពរាបសា ស្រឡាញ់គ្រួសារ និងត្រៀមចាប់ផ្តើមជីវិតថ្មីដោយក្តីទទួលខុសត្រូវ។",
+        brideIntro: "កូនក្រមុំដ៏ទន់ភ្លន់ មានស្នាមញញឹមកក់ក្ដៅ និងសេចក្តីស្រឡាញ់ចំពោះគ្រួសារ។",
+        dressName: "ខៀវផ្កា បៃតងស្លឹក ស និងមាស",
+        dressStyle: "ខ្មែរផ្លូវការ / Garden formal",
+        dressNote: "ពណ៌ខៀវ ស បៃតងស្លឹក និងមាសស្រាល សមរម្យសម្រាប់បរិយាកាសសួនផ្កាផ្លូវការនិងរូបថតអនុស្សាវរីយ៍។",
+    },
     classic: {
         message:
             "ដោយក្ដីគោរព និងសេចក្ដីស្រឡាញ់ដ៏ស្និទ្ធស្នាល យើងសូមអញ្ជើញលោកអ្នកដ៏ជាទីគោរព មកចូលរួមជាសាក្សីនៃថ្ងៃដ៏ពិសេសរបស់យើង។",
@@ -249,7 +258,11 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
     const host = tpl.hostContent || {};
     const hostCouple = host.couple || {};
     const hostContact = host.contact || {};
+    const hostEnabledSections = host.enabledSections || {};
+    const hasHostContent = Object.keys(host).length > 0;
+    const sectionEnabled = (key) => hostEnabledSections[key] !== false;
     const nonEmpty = (arr) => (Array.isArray(arr) && arr.length ? arr : null);
+    const nonBlank = (value) => (typeof value === "string" && value.trim() ? value.trim() : "");
 
     const venueName = tpl.venueName || "";
     const venueAddress = (tpl.venueAddress || "").replace(/\n/g, ", ");
@@ -275,10 +288,18 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             colors: theme.dressColors,
         };
 
-    const coverImage = tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
+    const coverImage = tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
 
     // Map host story chapters onto the timeline shape, layering template images.
     const ownImages = getTemplateOwnImages(tpl);
+    const hostStoryText = nonBlank(host.storyText || tpl.storyText);
+    const hostStoryTextEn = nonBlank(host.storyTextEn);
+    const languageMode = host.languageMode || "both";
+    const combinedStoryText = languageMode === "en"
+        ? (hostStoryTextEn || hostStoryText)
+        : languageMode === "both" && hostStoryTextEn
+            ? [hostStoryText, hostStoryTextEn].filter(Boolean).join("\n\n")
+            : hostStoryText;
     const hostStory = nonEmpty(host.storyChapters)
         ? host.storyChapters.map((c, index) => ({
             id: c.id || `chapter-${index}`,
@@ -288,6 +309,15 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             text: c.text || "",
             image: ownImages ? ownImages[index % ownImages.length] : undefined,
         }))
+        : combinedStoryText
+            ? [{
+                id: "story-text",
+                kicker: "Our Story",
+                title: "ដំណើររបស់យើង",
+                date: tpl.dateText || "",
+                text: combinedStoryText,
+                image: ownImages ? ownImages[0] : coverImage,
+            }]
         : null;
 
     const hostSchedule = nonEmpty(host.schedule)
@@ -339,6 +369,8 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         variant,
         amp: theme.amp,
         badge: theme.badge,
+        enabledSections: hostEnabledSections,
+        monogramText: tpl.monogramText || (tpl.groom && tpl.bride ? `${tpl.groom.charAt(0)} & ${tpl.bride.charAt(0)}` : "V & P"),
         groom: tpl.groom || "ប្រុស",
         bride: tpl.bride || "ស្រី",
         dateText: tpl.dateText || "",
@@ -346,7 +378,7 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
         ceremonyTime: tpl.ceremonyTime || "",
         receptionTime: tpl.receptionTime || "",
         coverImage,
-        portraitImage: tpl.phoneCoverImage || tpl.mainImage || coverImage,
+        portraitImage: tpl.customMainImage || tpl.phoneCoverImage || tpl.mainImage || coverImage,
         message: tpl.message || copy.message,
         families: "រួមជាមួយក្រុមគ្រួសារទាំងសងខាង",
         couple: {
@@ -359,15 +391,15 @@ export function buildTemplateContent(tpl = {}, variant = "classic") {
             name: venueName,
             address: tpl.venueAddress || "",
             mapLink,
-            image: tpl.mainImage || tpl.phoneCoverImage || coverImage,
+            image: tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || coverImage,
         },
-        gallery: buildGallery(tpl),
-        story: hostStory || buildStory(tpl),
-        schedule: hostSchedule || buildSchedule(tpl),
-        party: hostParty || DEMO_PARTY,
+        gallery: hasHostContent ? (sectionEnabled("gallery") ? buildGallery(tpl) : []) : buildGallery(tpl),
+        story: hasHostContent ? (sectionEnabled("story") ? (hostStory || []) : []) : buildStory(tpl),
+        schedule: hasHostContent ? (sectionEnabled("schedule") ? (hostSchedule || []) : []) : buildSchedule(tpl),
+        party: hasHostContent ? (sectionEnabled("party") ? (hostParty || []) : []) : DEMO_PARTY,
         dressCode,
-        gift: hostGift || DEMO_GIFT,
-        faq: hostFaq || DEMO_FAQ,
+        gift: hasHostContent ? (sectionEnabled("gift") ? (hostGift || []) : []) : DEMO_GIFT,
+        faq: hasHostContent ? (sectionEnabled("faq") ? (hostFaq || []) : []) : DEMO_FAQ,
         contact: {
             telegram: contactTelegram,
             phone: hostContact.phone || "+855 12 345 678",
