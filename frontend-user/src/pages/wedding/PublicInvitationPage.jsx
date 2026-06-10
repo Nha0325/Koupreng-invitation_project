@@ -24,8 +24,28 @@ function timeValue(value) {
     return value ? String(value).slice(0, 5) : "";
 }
 
+function safeJson(value, fallback = {}) {
+    if (!value) return fallback;
+    if (typeof value === "object") return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return fallback;
+    }
+}
+
 function publicInvitationToTemplate(invitation, media) {
     const baseTpl = getTemplateById(GARDEN_TEMPLATE_ID);
+    const content = safeJson(invitation.contentJson);
+    const enabled = safeJson(invitation.enabledSections);
+    const contentCouple = content.couple || {};
+    const contentEvent = content.event || {};
+    const storyChapters = Array.isArray(content.storyChapters) ? content.storyChapters : [];
+    const schedule = Array.isArray(content.schedule) ? content.schedule : [];
+    const gift = Array.isArray(content.gift) ? content.gift : [];
+    const faq = Array.isArray(content.faq) ? content.faq : [];
+    const party = Array.isArray(content.party) ? content.party : [];
+    const storyText = content.story || invitation.storyText || "";
     const gallery = (media?.galleryImages || [])
         .filter((item) => item?.fileUrl)
         .map((item) => ({
@@ -41,39 +61,41 @@ function publicInvitationToTemplate(invitation, media) {
         templateId: baseTpl.id,
         coverImage: media?.coverImage?.fileUrl || "",
         couple: {
-            groom: invitation.groomName || invitation.hostName || "",
-            bride: invitation.brideName || invitation.partnerName || "",
-            groomParents: "",
-            brideParents: "",
+            ...contentCouple,
+            groom: contentCouple.groom || invitation.groomName || invitation.hostName || "",
+            bride: contentCouple.bride || invitation.brideName || invitation.partnerName || "",
         },
         event: {
-            title: invitation.title || "",
-            date: invitation.eventDate || "",
-            ceremonyTime: eventTime,
-            receptionTime: eventTime,
-            venueName: invitation.venueName || "",
-            venueAddress: invitation.venueAddress || "",
-            mapLink: invitation.googleMapUrl || "",
+            ...contentEvent,
+            title: contentEvent.title || invitation.title || "",
+            date: contentEvent.date || invitation.eventDate || "",
+            ceremonyTime: contentEvent.ceremonyTime || eventTime,
+            receptionTime: contentEvent.receptionTime || eventTime,
+            venueName: contentEvent.venueName || invitation.venueName || "",
+            venueAddress: contentEvent.venueAddress || invitation.venueAddress || "",
+            mapLink: contentEvent.mapLink || invitation.googleMapUrl || "",
         },
-        contact: {},
-        message: invitation.title || "",
-        story: invitation.storyText || "",
-        storyChapters: [],
-        schedule: [],
-        party: [],
-        gift: [],
-        faq: [],
-        gallery,
+        contact: content.contact || {},
+        message: content.message || invitation.title || "",
+        story: storyText,
+        storyChapters,
+        schedule,
+        party,
+        gift,
+        faq,
+        gallery: gallery.length ? gallery : content.gallery || [],
         music: media?.backgroundMusic?.fileUrl ? { url: media.backgroundMusic.fileUrl } : baseTpl.music,
-        rsvp: { enabled: true, deadline: invitation.rsvpDeadline || "" },
+        rsvp: { ...(content.rsvp || {}), enabled: enabled.rsvp !== false, deadline: content.rsvp?.deadline || invitation.rsvpDeadline || "" },
+        extras: content.extras || {},
         enabledSections: {
-            story: Boolean(invitation.storyText),
-            gallery: gallery.length > 0,
-            schedule: false,
-            party: false,
-            gift: false,
-            faq: false,
-            rsvp: true,
+            ...enabled,
+            story: enabled.story !== false && Boolean(storyText || storyChapters.length),
+            gallery: enabled.gallery !== false && Boolean(gallery.length || content.gallery?.length),
+            schedule: enabled.schedule !== false && schedule.length > 0,
+            party: enabled.party !== false && party.length > 0,
+            gift: enabled.gift !== false && gift.length > 0,
+            faq: enabled.faq !== false && faq.length > 0,
+            rsvp: enabled.rsvp !== false,
         },
     };
 

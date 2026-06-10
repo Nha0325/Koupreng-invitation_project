@@ -80,7 +80,10 @@ export function draftToInvitationPayload(draft) {
         }),
         contentJson: JSON.stringify(content),
         enabledSections: JSON.stringify({
-            story: Array.isArray(draft?.storyChapters) && draft.storyChapters.length > 0,
+            story: Boolean(
+                emptyToNull(draft?.story || draft?.message)
+                || (Array.isArray(draft?.storyChapters) && draft.storyChapters.length > 0)
+            ),
             schedule: Array.isArray(draft?.schedule) && draft.schedule.length > 0,
             party: Array.isArray(draft?.party) && draft.party.length > 0,
             gift: Array.isArray(draft?.gift) && draft.gift.length > 0,
