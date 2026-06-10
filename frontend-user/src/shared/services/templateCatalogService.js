@@ -5,7 +5,7 @@ function unwrap(response) {
 }
 
 export const templateCatalogService = {
-    list: () => api.get("/v1/templates").then(unwrap),
+    list: () => api.get("/v1/templates", { skipAuth: true }).then(unwrap),
 };
 
 export default templateCatalogService;

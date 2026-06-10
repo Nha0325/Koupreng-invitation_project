@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { invitationService } from "../services/invitationService";
+import { adminManagementService } from "../features/admin/adminManagementService";
 import { Loading, ErrorState, Empty } from "../components/States";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
@@ -17,7 +17,7 @@ function statusBadge(inv) {
 }
 
 export default function InvitationsPage() {
-    const { data, setData, loading, error, reload } = useResource(invitationService.listAll);
+    const { data, setData, loading, error, reload } = useResource(adminManagementService.invitations);
     const items = useMemo(() => data || [], [data]);
     const [query, setQuery] = useState("");
     const [filter, setFilter] = useState("ALL");
@@ -29,11 +29,11 @@ export default function InvitationsPage() {
         setBusyId(inv.id);
         try {
             if (action === "publish") {
-                const updated = await invitationService.publish(inv.id);
+                const updated = await adminManagementService.activateInvitation(inv.id);
                 setData((prev) => (prev || []).map((i) => (i.id === inv.id ? { ...i, ...updated } : i)));
                 show("បានផ្សាយធៀបការ ✓");
             } else if (action === "unpublish") {
-                const updated = await invitationService.unpublish(inv.id);
+                const updated = await adminManagementService.deactivateInvitation(inv.id);
                 setData((prev) => (prev || []).map((i) => (i.id === inv.id ? { ...i, ...updated } : i)));
                 show("បានដកការផ្សាយ ✓");
             } else if (action === "delete") {
@@ -41,7 +41,7 @@ export default function InvitationsPage() {
                     setBusyId(null);
                     return;
                 }
-                await invitationService.remove(inv.id);
+                await adminManagementService.moderateInvitation(inv.id, { status: "DELETED", reason: "Admin deleted" });
                 setData((prev) => (prev || []).filter((i) => i.id !== inv.id));
                 show("បានលុបធៀបការ ✓");
             }
@@ -55,7 +55,7 @@ export default function InvitationsPage() {
     const openDetail = async (inv) => {
         setDetail({ loading: true, data: inv });
         try {
-            const full = await invitationService.get(inv.id);
+            const full = await adminManagementService.invitation(inv.id);
             setDetail({ loading: false, data: full || inv });
         } catch {
             setDetail({ loading: false, data: inv });

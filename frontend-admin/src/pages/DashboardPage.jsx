@@ -1,5 +1,5 @@
 import { userService } from "../services/userService";
-import { invitationService } from "../services/invitationService";
+import { adminManagementService } from "../features/admin/adminManagementService";
 import { eventService } from "../services/eventService";
 import { paymentService } from "../services/paymentService";
 import { Loading, ErrorState } from "../components/States";
@@ -11,7 +11,7 @@ const PAID_STATUSES = new Set(["PAID", "COMPLETED", "SUCCESS", "APPROVED"]);
 async function loadDashboard() {
     const [users, invitations, events, orders] = await Promise.all([
         userService.list().catch(() => []),
-        invitationService.listAll().catch(() => []),
+        adminManagementService.invitations().catch(() => []),
         eventService.listAll().catch(() => []),
         paymentService.listOrders().catch(() => []),
     ]);
