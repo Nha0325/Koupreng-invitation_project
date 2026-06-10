@@ -5,7 +5,7 @@
 import axios from "axios";
 import { getAccessToken, clearAuth } from "./authStorage";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 export class ApiError extends Error {
     constructor(message, status, data) {
@@ -18,11 +18,21 @@ export class ApiError extends Error {
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
+    timeout: 30000,
 });
 
 apiClient.interceptors.request.use(
     (config) => {
-        if (config.auth !== false) {
+        const skipAuth = config.skipAuth || config.auth === false;
+        
+        if (config.skipAuth !== undefined) {
+            delete config.skipAuth;
+        }
+        if (config.auth !== undefined) {
+            delete config.auth;
+        }
+
+        if (!skipAuth) {
             const token = getAccessToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
@@ -57,3 +67,4 @@ export const api = {
 };
 
 export default api;
+

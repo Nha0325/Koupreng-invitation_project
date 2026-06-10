@@ -1,4 +1,4 @@
-import { api } from "./api/client";
+import { api } from "../../shared/api/client";
 
 export const userService = {
     /** GET /users/me — fetch current user profile */
