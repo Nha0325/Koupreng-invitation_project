@@ -49,7 +49,13 @@ export default function HostNav() {
     || user?.name?.trim()
     || user?.email?.split("@")[0]
     || navText("accountFallback") || "គណនី";
-  const profileImage = user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || "";
+  let rawProfileImage = user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || "";
+  if (rawProfileImage.startsWith("http://localhost:8080")) {
+    rawProfileImage = rawProfileImage.replace("http://localhost:8080", "");
+  } else if (rawProfileImage.startsWith("http://127.0.0.1:8080")) {
+    rawProfileImage = rawProfileImage.replace("http://127.0.0.1:8080", "");
+  }
+  const profileImage = rawProfileImage;
   const profileInitial = displayName.charAt(0)?.toUpperCase() || "K";
 
   useEffect(() => {

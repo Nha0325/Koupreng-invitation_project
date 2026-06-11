@@ -1,5 +1,5 @@
-import WeddingGiftList from "../../features/wedding-gift/WeddingGiftList";
+import GiftsFeature from "../../features/gifts/GiftsFeature";
 
 export default function WeddingGiftPage() {
-    return <WeddingGiftList />;
+    return <GiftsFeature />;
 }

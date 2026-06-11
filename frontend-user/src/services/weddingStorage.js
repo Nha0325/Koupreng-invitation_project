@@ -1,36 +1,3 @@
-/**
- * weddingStorage — minimal localStorage-based draft store for the
- * wedding builder. No backend yet. Drafts are keyed by draftId.
- *
- * Shape of a draft:
- * {
- *   id: string,
- *   templateId: string,
- *   slug: string,
- *   couple: {
- *     groom, bride,
- *     groomNickname, brideNickname,
- *     groomIntro, brideIntro, groomParents, brideParents,
- *   },
- *   event: { title, date, ceremonyTime, receptionTime, venueName, venueAddress, mapLink },
- *   contact: { phone, telegram, email },
- *   message: string,            // greeting / invitation message
- *   story: string,              // short "our story" blurb (legacy)
- *   storyChapters: [{ id, kicker, title, date, text }],
- *   schedule: [{ id, time, title, titleEn, description, location }],
- *   party: [{ id, role, roleEn, name }],
- *   gift: [{ id, bank, account, number, note }],
- *   faq: [{ id, q, a }],
- *   design: { monogramText, primaryColor, accentColor },
- *   enabledSections: { countdown, story, gallery, schedule, map, party, gift, faq, rsvp },
- *   gallery: string[],
- *   rsvp: { enabled, deadline },
- *   openingVideo: object | null,
- *   openingVideoEnabled: boolean,
- *   updatedAt: number,
- * }
- */
-
 const KEY = "koupreng.wedding.drafts";
 
 function readAll() {

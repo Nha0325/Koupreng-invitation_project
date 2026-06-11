@@ -21,8 +21,13 @@ import {
     IoWarningOutline,
 } from "react-icons/io5";
 import { Link } from "react-router-dom";
-import { invitationService } from "../../shared/services/invitationService";
-import { planningService } from "../../shared/services/planningService";
+import {
+    createHostRecordId,
+    getActiveEventId,
+    listBudgetExpenses,
+    saveBudgetExpenses,
+} from "../../services/hostPlanningStorage";
+import { listDrafts } from "../../services/weddingStorage";
 import { DatePicker } from "../../shared/ui/DatePicker";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./ExpensesPage.css";
@@ -64,7 +69,7 @@ function normalizeExpense(expense) {
     }
 
     return {
-        id: expense.id,
+        id: expense.id || createHostRecordId("expense"),
         name: expense.name || "",
         category: expense.category || "Other",
         budget: Number(expense.budget) || 0,
@@ -119,74 +124,23 @@ function ExpensesList() {
 
     const [catFilter, setCat] = useState("ALL");
     const [searchQuery, setSearchQuery] = useState("");
-    const [invitations, setInvitations] = useState([]);
-    const [selectedInvitationId, setSelectedInvitationId] = useState("");
-    const [expenses, setExpenses] = useState([]);
+    const activeEventId = getActiveEventId();
+    const drafts = listDrafts();
+    const currentDraft = drafts.find((draft) => draft.id === activeEventId) || drafts[0] || null;
+    const eventId = currentDraft?.id || activeEventId || "";
+
+    const [expenses, setExpenses] = useState(() => listBudgetExpenses([], eventId).map(normalizeExpense));
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyExpenseForm);
-    const [loadingInvitations, setLoadingInvitations] = useState(true);
-    const [loadingExpenses, setLoadingExpenses] = useState(false);
     const [saving, setSaving] = useState(false);
     const [expenseToDelete, setExpenseToDelete] = useState(null);
     const [overBudgetConfirm, setOverBudgetConfirm] = useState(null);
     const [error, setError] = useState("");
 
     useEffect(() => {
-        let active = true;
-        setLoadingInvitations(true);
-        invitationService.listMine()
-            .then((items) => {
-                if (!active) return;
-                const nextInvitations = items || [];
-                setInvitations(nextInvitations);
-                setSelectedInvitationId((current) => current || (nextInvitations[0]?.id ? String(nextInvitations[0].id) : ""));
-                setError("");
-            })
-            .catch((err) => {
-                if (active) {
-                    setError(err.message || "Could not load invitations");
-                }
-            })
-            .finally(() => {
-                if (active) {
-                    setLoadingInvitations(false);
-                }
-            });
-        return () => {
-            active = false;
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!selectedInvitationId) {
-            setExpenses([]);
-            return undefined;
-        }
-
-        let active = true;
-        setLoadingExpenses(true);
-        planningService.listBudgetItems(selectedInvitationId)
-            .then((items) => {
-                if (active) {
-                    setExpenses((items || []).map(normalizeExpense));
-                    setError("");
-                }
-            })
-            .catch((err) => {
-                if (active) {
-                    setError(err.message || "Could not load budget items");
-                }
-            })
-            .finally(() => {
-                if (active) {
-                    setLoadingExpenses(false);
-                }
-            });
-        return () => {
-            active = false;
-        };
-    }, [selectedInvitationId]);
+        setExpenses(listBudgetExpenses([], eventId).map(normalizeExpense));
+    }, [eventId]);
 
     const filtered = expenses.filter((expense) => {
         const matchesCat = catFilter === "ALL" || expense.category === catFilter;
@@ -210,18 +164,19 @@ function ExpensesList() {
         setShowForm(false);
     };
 
-    const executeSaveExpense = async (formData) => {
+    const executeSaveExpense = (formData) => {
         setSaving(true);
         setError("");
         try {
-            const payload = toExpensePayload(formData);
-            const saved = editingId
-                ? await planningService.updateBudgetItem(selectedInvitationId, editingId, payload)
-                : await planningService.createBudgetItem(selectedInvitationId, payload);
-            const nextExpense = normalizeExpense(saved);
-            setExpenses((current) => editingId
-                ? current.map((expense) => (expense.id === editingId ? nextExpense : expense))
-                : [nextExpense, ...current]);
+            const nextExpense = normalizeExpense(toExpensePayload(formData));
+            if (editingId) nextExpense.id = editingId;
+            
+            const nextExpenses = editingId
+                ? expenses.map((expense) => (expense.id === editingId ? nextExpense : expense))
+                : [nextExpense, ...expenses];
+                
+            setExpenses(nextExpenses);
+            saveBudgetExpenses(nextExpenses, eventId);
             resetForm();
             setOverBudgetConfirm(null);
         } catch (err) {
@@ -233,7 +188,7 @@ function ExpensesList() {
 
     const submitExpense = async (event) => {
         event.preventDefault();
-        if (!form.name.trim() || !selectedInvitationId) return;
+        if (!form.name.trim() || !eventId) return;
 
         const budgetNum = Number(form.budget) || 0;
         const sumPayments = form.payments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
@@ -248,7 +203,7 @@ function ExpensesList() {
             return;
         }
 
-        await executeSaveExpense(form);
+        executeSaveExpense(form);
     };
 
     const editExpense = (expense) => {
@@ -266,21 +221,22 @@ function ExpensesList() {
         setShowForm(true);
     };
 
-    const handleConfirmDelete = async () => {
-        if (!expenseToDelete || !selectedInvitationId) {
-            alert("Cannot delete: Missing expense ID or invitation ID. Please refresh the page.");
+    const handleConfirmDelete = () => {
+        if (!expenseToDelete || !eventId) {
+            alert("Cannot delete: Missing expense ID or event ID. Please refresh the page.");
             return;
         }
         setSaving(true);
         setError("");
         try {
-            await planningService.removeBudgetItem(selectedInvitationId, expenseToDelete.id);
-            setExpenses((current) => current.filter((expense) => expense.id !== expenseToDelete.id));
+            const nextExpenses = expenses.filter((expense) => expense.id !== expenseToDelete.id);
+            setExpenses(nextExpenses);
+            saveBudgetExpenses(nextExpenses, eventId);
             setExpenseToDelete(null);
         } catch (err) {
             console.error("Delete error:", err);
             setError(err.message || "Could not delete budget item");
-            alert("Error deleting: " + (err.message || "Please check your connection."));
+            alert("Error deleting: " + (err.message || "Please try again."));
         } finally {
             setSaving(false);
         }
@@ -301,7 +257,7 @@ function ExpensesList() {
                 <button
                     type="button"
                     className="ep-add-btn"
-                    disabled={!selectedInvitationId || saving}
+                    disabled={!eventId || saving}
                     onClick={() => {
                         setShowForm(true);
                         setEditingId(null);
@@ -315,37 +271,16 @@ function ExpensesList() {
 
             {error && <div className="ep-empty">{error}</div>}
 
-            {!loadingInvitations && invitations.length === 0 && (
+            {!drafts.length && (
                 <div className="ep-empty">
                     <div className="ep-empty-icon"><IoCashOutline aria-hidden="true" /></div>
                     <h3>{t("noInvitationsTitle")}</h3>
                     <p>{t("noInvitationsText")}</p>
-                    <form onSubmit={async (e) => {
-                        e.preventDefault();
-                        const title = e.target.title.value.trim();
-                        if (!title) return;
-                        setSaving(true);
-                        try {
-                            const created = await invitationService.create({ title, eventType: "OTHER", status: "DRAFT" });
-                            setInvitations([created]);
-                            setSelectedInvitationId(String(created.id));
-                            e.target.reset();
-                        } catch (err) {
-                            setError(err.message || "Failed to create event");
-                        } finally {
-                            setSaving(false);
-                        }
-                    }} style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "16px", flexWrap: "wrap" }}>
-                        <input name="title" placeholder="ឈ្មោះកម្មវិធី (ឧ. ជប់លៀង)" required style={{ padding: "12px 16px", borderRadius: "50px", border: "1px solid #eadfce", outline: "none", minWidth: "220px", fontSize: "14px" }} />
-                        <button type="submit" disabled={saving} className="ep-add-btn">
-                            {saving ? "កំពុងបង្កើត..." : "បង្កើតកម្មវិធី"}
-                        </button>
-                    </form>
                 </div>
             )}
 
             {/* Stats summary */}
-            {selectedInvitationId && <div className="ep-summary">
+            {eventId && <div className="ep-summary">
                 <div className="ep-sum-card ep-sum-total">
                     <div className="ep-sum-icon"><IoWalletOutline aria-hidden="true" /></div>
                     <div>
@@ -379,7 +314,7 @@ function ExpensesList() {
             </div>}
 
             {/* Progress bar */}
-            {selectedInvitationId && <div className="ep-progress-card">
+            {eventId && <div className="ep-progress-card">
                 <div className="ep-progress-header">
                     <span>{t("progressLabel", { pct })}</span>
                     <span>${totalSpent.toLocaleString()} / ${totalBudget.toLocaleString()}</span>
@@ -393,7 +328,7 @@ function ExpensesList() {
             </div>}
 
             {/* Form Modal */}
-            {showForm && selectedInvitationId && (
+            {showForm && eventId && (
                 <div className="ep-modal-layer">
                     <div className="ep-modal">
                         <button type="button" className="ep-modal-x" onClick={resetForm}>
@@ -672,7 +607,7 @@ function ExpensesList() {
             )}
 
             {/* Toolbar (search + filters) */}
-            {selectedInvitationId && <div className="ep-toolbar">
+            {eventId && <div className="ep-toolbar">
                 <div className="ep-search">
                     <span className="ep-search-icon"><IoSearchOutline aria-hidden="true" /></span>
                     <input
@@ -702,15 +637,13 @@ function ExpensesList() {
             </div>}
 
             {/* Table */}
-            {loadingExpenses ? (
-                <div className="ep-empty">{t("loadingText")}</div>
-            ) : selectedInvitationId && filtered.length === 0 ? (
+            {eventId && filtered.length === 0 ? (
                 <div className="ep-empty">
                     <div className="ep-empty-icon"><IoCashOutline aria-hidden="true" /></div>
                     <h3>{t("emptyTitle")}</h3>
                     <p>{t("emptyText")}</p>
                 </div>
-            ) : selectedInvitationId ? (
+            ) : eventId ? (
                 <div className="ep-table-wrap">
                     <table className="ep-table">
                         <thead>

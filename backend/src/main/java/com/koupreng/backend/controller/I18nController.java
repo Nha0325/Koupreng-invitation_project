@@ -390,6 +390,15 @@ public class I18nController {
                         "common.delete", "common.edit", "common.loading",
                         "common.error", "common.success"
                 );
+            case "events":
+                return List.of(
+                        "events.title", "events.subtitle", "events.createBtn",
+                        "events.emptyTitle", "events.emptySubtitle", "events.deleteModalTitle",
+                        "events.deleteModalDesc", "events.cancelBtn", "events.confirmBtn",
+                        "events.badgeDraft", "events.badgePublished", "events.noDate",
+                        "events.editBtn", "events.deleteBtn", "events.newInvitation",
+                        "events.groom", "events.bride"
+                );
             default:
                 return null;
         }
