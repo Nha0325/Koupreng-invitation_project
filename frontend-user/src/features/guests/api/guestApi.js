@@ -2,10 +2,6 @@ import { api } from "@/services/api/httpClient";
 import { unwrap } from "@/services/api/helpers";
 
 export const guestService = {
-    list: () => api.get("/guests"),
-    create: (guest) => api.post("/guests", guest),
-    update: (id, guest) => api.put(`/guests/${id}`, guest),
-    remove: (id) => api.delete(`/guests/${id}`),
     listByInvitation: (invitationId) => api.get(`/v1/invitations/${invitationId}/guests`).then(unwrap),
     getByInvitation: (invitationId, guestId) => api.get(`/v1/invitations/${invitationId}/guests/${guestId}`).then(unwrap),
     createForInvitation: (invitationId, guest) => api.post(`/v1/invitations/${invitationId}/guests`, guest).then(unwrap),

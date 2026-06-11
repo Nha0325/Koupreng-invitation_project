@@ -1177,7 +1177,7 @@ export default function GuestsList() {
                                 <IoPencilOutline aria-hidden="true" />
                                 {t("editMenuItem")}
                               </button>
-                              {guest.source === "manual" && (
+                              {guest.source !== "rsvp" && (
                                 <button
                                   type="button"
                                   className="is-danger"
