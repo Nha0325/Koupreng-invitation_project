@@ -159,7 +159,7 @@ export default function InvitationSeatingPage() {
                     <p>Assign guests to tables and keep public guest invitations in sync.</p>
                 </div>
                 <div className="enterprise-actions">
-                    <button className="enterprise-btn secondary" type="button" onClick={() => navigate(`/dashboard/invitations/${invitationId}/guests`)}>
+                    <button className="enterprise-btn secondary" type="button" onClick={() => navigate("/guests")}>
                         Guests
                     </button>
                     <button className="enterprise-btn secondary" type="button" onClick={() => seatingService.exportCsv(invitationId)}>

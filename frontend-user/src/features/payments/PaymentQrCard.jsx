@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { paymentService } from "./paymentService";
 import { isTerminalStatus, statusMessage } from "./paymentStatus";
 import { toast } from "../../shared/ui/toast";
+import { KEEP_TEMPLATE_CODE } from "../templates/data/templatesData";
 import "./PaymentPages.css";
 
 function secondsRemaining(expiresAt, now = Date.now()) {
@@ -130,7 +131,7 @@ export default function PaymentQrCard({ order, onStatusChange, onRetry }) {
             {status === "PAID" && (
                 <div className="payment-confirmed">
                     <strong>Payment confirmed. Template unlocked.</strong>
-                    <Link to={`/create/wedding?template=${order.templateId}`} className="payment-primary-btn link-button">
+                    <Link to={`/create/wedding?template=${KEEP_TEMPLATE_CODE}`} className="payment-primary-btn link-button">
                         Use Template
                     </Link>
                 </div>

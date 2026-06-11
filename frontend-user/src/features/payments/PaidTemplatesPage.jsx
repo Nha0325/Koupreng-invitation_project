@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { paymentService } from "./paymentService";
+import { KEEP_TEMPLATE_CODE } from "../templates/data/templatesData";
 import "./PaymentPages.css";
 
 export default function PaidTemplatesPage() {
@@ -60,7 +61,7 @@ export default function PaidTemplatesPage() {
                         <h2>{template.templateName || `Template #${template.templateId}`}</h2>
                         <p>{template.accessType}</p>
                         {template.createdAt && <small>Unlocked {new Date(template.createdAt).toLocaleString()}</small>}
-                        <Link to={`/create/wedding?template=${template.templateId}`} className="payment-secondary-btn link-button">
+                        <Link to={`/create/wedding?template=${KEEP_TEMPLATE_CODE}`} className="payment-secondary-btn link-button">
                             Use Template
                         </Link>
                     </article>

@@ -104,19 +104,10 @@ const DEMO_FAQ = [
 ];
 
 /**
- * Per-variant copy. Structure is identical across variants; only the wording
- * and dress-code framing change so each style reads with its own voice.
+ * Single-template copy. The experience engine still accepts a variant arg, but
+ * routing now resolves every template/demo alias to this kept template.
  */
 const VARIANT_COPY = {
-    royal: {
-        message:
-            "ដោយក្ដីរីករាយ និងសេចក្ដីស្រឡាញ់ យើងសូមគោរពអញ្ជើញលោកអ្នក មកចូលរួមជាភ្ញៀវកិត្តិយស ក្នុងពិធីមង្គលការរបស់យើងទាំងពីរ។",
-        groomIntro: "កូនប្រុសដ៏ស្ងប់ស្ងាត់ មានចិត្តសប្បុរស ស្រឡាញ់គ្រួសារ និងប្ដេជ្ញាចិត្តចំពោះអនាគត។",
-        brideIntro: "កូនស្រីដ៏ទន់ភ្លន់ ស្និទ្ធស្នាល ពោរពេញដោយស្នាមញញឹម និងក្ដីសុបិន។",
-        dressName: "មាស ស និងត្នោតស្រាល",
-        dressStyle: "ផ្លូវការ / ខ្មែរប្រពៃណី",
-        dressNote: "ពណ៌មាស ស និងត្នោតស្រាល សមរម្យសម្រាប់បរិយាកាសប្រណីត និងថតរូបជុំគ្នា។",
-    },
     "garden-royal-khmer-wedding": {
         message:
             "ដោយក្តីសោមនស្សរីករាយ និងសេចក្ដីស្រឡាញ់ដ៏ជ្រាលជ្រៅ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នកមកចូលរួមជាភ្ញៀវកិត្តិយសក្នុងពិធីមង្គលការរបស់យើងទាំងពីរ។",
@@ -126,61 +117,9 @@ const VARIANT_COPY = {
         dressStyle: "ខ្មែរផ្លូវការ / Garden formal",
         dressNote: "ពណ៌ខៀវ ស បៃតងស្លឹក និងមាសស្រាល សមរម្យសម្រាប់បរិយាកាសសួនផ្កាផ្លូវការនិងរូបថតអនុស្សាវរីយ៍។",
     },
-    classic: {
-        message:
-            "ដោយក្ដីគោរព និងសេចក្ដីស្រឡាញ់ដ៏ស្និទ្ធស្នាល យើងសូមអញ្ជើញលោកអ្នកដ៏ជាទីគោរព មកចូលរួមជាសាក្សីនៃថ្ងៃដ៏ពិសេសរបស់យើង។",
-        groomIntro: "បុរសដ៏សុភាពរាបសា ស្រឡាញ់ភាពសាមញ្ញ និងតម្លៃនៃគ្រួសារ។",
-        brideIntro: "ស្ត្រីដ៏ទន់ភ្លន់ ស្លូតបូត ពោរពេញដោយក្ដីមេត្តា និងស្នាមញញឹមកក់ក្ដៅ។",
-        dressName: "ក្រែម មាសស្រាល និងផ្កាឈូក",
-        dressStyle: "បុរាណប្រណិត / Smart Casual",
-        dressNote: "សូមជ្រើសរើសពណ៌ស្រាល ក្រែម និងមាសស្រាល ដើម្បីបំពេញនូវបរិយាកាសដ៏ស្ងប់ស្ងាត់ និងស្រស់ស្អាត។",
-    },
-    luxury: {
-        message:
-            "នៅរាត្រីដ៏ពិសេសមួយ ក្រោមពន្លឺភ្លើងដ៏ប្រណីត យើងសូមគោរពអញ្ជើញលោកអ្នក មកចែករំលែកនូវពេលវេលាដ៏អស្ចារ្យនៃជីវិតរបស់យើង។",
-        groomIntro: "បុរសដ៏មានទំនុកចិត្ត រស់នៅប្រកបដោយរបៀប និងចំណង់ចំណូលចិត្តចំពោះភាពល្អឥតខ្ចោះ។",
-        brideIntro: "ស្ត្រីដ៏ឆើតឆាយ ប្រកបដោយភាពទាក់ទាញ និងស្ទីលដ៏ប្លែកមួយគត់។",
-        dressName: "ខ្មៅ ស្ប៉ាញ់មាស និងភ្លឺ",
-        dressStyle: "Black Tie / Evening Elegant",
-        dressNote: "សូមស្លៀកពាក់ពណ៌ខ្មៅ ស្ប៉ាញ់មាស ឬភ្លឺ ដើម្បីបំពេញនូវបរិយាកាសរាត្រីដ៏ប្រណីត។",
-    },
-    "modern-khmer": {
-        message:
-            "ដោយក្ដីរីករាយ យើងសូមអញ្ជើញលោកអ្នក មកចូលរួមជាមួយយើង ក្នុងការប្រារព្ធពិធីមង្គលការ ដ៏ទំនើប រួមបញ្ចូលនូវភាពជាខ្មែរ និងភាពសាមញ្ញ។",
-        groomIntro: "បុរសជំនាន់ថ្មី ស្រឡាញ់ភាពច្បាស់លាស់ ច្នៃប្រឌិត និងតម្លៃនៃវប្បធម៌ខ្មែរ។",
-        brideIntro: "ស្ត្រីទំនើប ប្រកបដោយទំនុកចិត្ត ស្រស់ស្អាត និងភាពទន់ភ្លន់បែបខ្មែរ។",
-        dressName: "បៃតងស្លឹក ស និងមាស",
-        dressStyle: "ទំនើប / Modern Khmer",
-        dressNote: "ពណ៌ស្រាល បៃតងស្លឹក និងមាស សមរម្យសម្រាប់រចនាបថទំនើបបែបខ្មែរ។",
-    },
-    "royal-khmer": {
-        message:
-            "ក្រោមពរជ័យនៃប្រពៃណីដ៏ឧត្ដុង្គឧត្ដម យើងសូមគោរពអញ្ជើញលោកអ្នកដ៏ខ្ពង់ខ្ពស់ មកចូលរួមជាភ្ញៀវកិត្តិយស ក្នុងពិធីមង្គលការតាមបែបប្រពៃណីខ្មែរ។",
-        groomIntro: "កូនកំលោះដ៏សុភាពរាបសា ប្រកាន់ខ្ជាប់នូវប្រពៃណី និងតម្លៃនៃវប្បធម៌ខ្មែរ។",
-        brideIntro: "កូនក្រមុំដ៏ឧត្ដុង្គ ប្រកបដោយសិរីសួស្ដី ភាពទន់ភ្លន់ និងសម្រស់បែបខ្មែរ។",
-        dressName: "ឈាមជ្រូក មាសរាជ និងក្រមួន",
-        dressStyle: "ខ្មែរប្រពៃណី / Ceremonial",
-        dressNote: "សូមស្លៀកពាក់សំពត់ ឬឈុតខ្មែរប្រពៃណី ពណ៌ឈាមជ្រូក និងមាសរាជ ដើម្បីបំពេញនូវបរិយាកាសពិធីដ៏ឧឡារិក។",
-    },
-    "royal-khmer-wedding": {
-        message:
-            "ដោយសេចក្ដីរីករាយ និងក្ដីស្រឡាញ់ដ៏ជ្រាលជ្រៅ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នក ចូលរួមជាសក្ខីភាព និងភ្ញៀវកិត្តិយស ក្នុងពិធីមង្គលការរបស់យើងទាំងពីរ។",
-        groomIntro: "កូនកំលោះដ៏មានទំនួលខុសត្រូវ ស្រឡាញ់ និងថែរក្សាវប្បធម៌ខ្មែរ។",
-        brideIntro: "កូនក្រមុំដ៏ទន់ភ្លន់ ពោរពេញដោយក្ដីស្រឡាញ់ និងស្នាមញញឹមដ៏កក់ក្ដៅ។",
-        dressName: "មាស និងឈាមជ្រូក",
-        dressStyle: "ខ្មែរប្រពៃណី / Smart Casual",
-        dressNote: "សូមជ្រើសរើសពណ៌មាស ឬឈាមជ្រូក ដើម្បីបំពេញនូវបរិយាកាសដ៏មានសិរីសួស្ដី និងភាពស្រស់ស្អាត។",
-    },
-    "vintage-gold": {
-        message:
-            "ដូចទំព័រនៃសៀវភៅអនុស្សាវរីយ៍ដ៏ចំណាស់ យើងសូមអញ្ជើញលោកអ្នក មកបន្ថែមជំពូកថ្មីមួយ ក្នុងរឿងរ៉ាវស្នេហារបស់យើង។",
-        groomIntro: "បុរសដ៏ស្ងប់ស្ងាត់ ស្រឡាញ់រឿងរ៉ាវចំណាស់ និងតម្លៃនៃពេលវេលា។",
-        brideIntro: "ស្ត្រីដ៏ទន់ភ្លន់ ស្រឡាញ់ភាពស្រស់ស្អាតបែបបុរាណ និងការចងចាំដ៏កក់ក្ដៅ។",
-        dressName: "មាសបុរាណ ក្រដាសចាស់ និងសេពៀ",
-        dressStyle: "Vintage / Antique",
-        dressNote: "សូមជ្រើសរើសសម្លៀកបំពាក់ពណ៌មាសបុរាណ និងសេពៀ ដើម្បីបំពេញនូវបរិយាកាសបែបបុរាណដ៏កក់ក្ដៅ។",
-    },
 };
+
+const DEFAULT_CONTENT_VARIANT = "garden-royal-khmer-wedding";
 
 const GALLERY_SPANS = ["tall", "wide", "small", "small", "small"];
 
@@ -255,10 +194,10 @@ function buildSchedule(tpl) {
 /**
  * Build the full content model for a template experience.
  * @param {object} tpl resolved template object (from getTemplateById)
- * @param {string} variant variant key (classic | luxury | ...)
+ * @param {string} variant variant key, resolved to the kept template variant.
  */
-export function buildTemplateContent(tpl = {}, variant = "classic") {
-    const copy = VARIANT_COPY[variant] || VARIANT_COPY.classic;
+export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT) {
+    const copy = VARIANT_COPY[DEFAULT_CONTENT_VARIANT];
     const theme = getVariantTheme(variant);
 
     // Host-authored content (from the wedding builder). When present, these

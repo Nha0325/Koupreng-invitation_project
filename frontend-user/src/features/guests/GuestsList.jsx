@@ -128,9 +128,10 @@ function normalizeManualGuest(guest) {
 
 function normalizeBackendGuest(guest) {
   const name = guest.guestName || guest.name || "Guest";
+  const id = guest.id || guest.guestId;
   return {
-    id: guest.id,
-    backendId: guest.id,
+    id,
+    backendId: id,
     raw: guest,
     name,
     companionName: "",
@@ -194,15 +195,20 @@ function backendPayloadFromGuest(guest, overrides = {}) {
   };
 }
 
+function invitationId(invitation) {
+  return invitation?.id || invitation?.invitationId;
+}
+
 function pickBackendInvitation(invitations, draft) {
   if (!invitations?.length) return null;
 
   const draftId = draft?.backendInvitationId || draft?.invitationId || draft?.id;
   return (
-    invitations.find((invitation) => String(invitation.id) === String(draftId)) ||
+    invitations.find((invitation) => String(invitationId(invitation)) === String(draftId)) ||
     invitations.find((invitation) => invitation.slug && invitation.slug === draft?.slug) ||
     invitations.find((invitation) => invitation.status === "PUBLISHED") ||
-    invitations[0]
+    invitations.find((invitation) => invitationId(invitation)) ||
+    null
   );
 }
 
@@ -245,7 +251,7 @@ function pickPublicInvitation(invitations, draft) {
 
   const draftId = draft?.backendInvitationId || draft?.invitationId || draft?.id;
   return (
-    published.find((invitation) => String(invitation.id) === String(draftId)) ||
+    published.find((invitation) => String(invitationId(invitation)) === String(draftId)) ||
     published.find((invitation) => invitation.slug === draft?.slug) ||
     published[0]
   );
@@ -576,45 +582,46 @@ export default function GuestsList() {
 
   useEffect(() => {
     let active = true;
-    Promise.resolve().then(() => {
-      if (active) {
-        setBackendLoading(true);
-        setBackendError("");
-      }
-    });
 
-    invitationService
-      .listMine()
-      .then(async (items) => {
+    async function loadGuests() {
+      setBackendLoading(true);
+      setBackendError("");
+
+      try {
+        const publishedItems = await invitationService.listMine("PUBLISHED");
+        const publishedInvitation = pickBackendInvitation(publishedItems || [], currentDraft);
+        const allItems = publishedInvitation ? publishedItems : await invitationService.listMine();
         if (!active) return;
 
-        const selectedInvitation = pickBackendInvitation(items || [], currentDraft);
+        const selectedInvitation = publishedInvitation || pickBackendInvitation(allItems || [], currentDraft);
+        const selectedInvitationId = invitationId(selectedInvitation);
+        const invitationsForPublicLink = allItems || publishedItems || [];
         setBackendInvitation(selectedInvitation);
-        setPublicInvitation(pickPublicInvitation(items || [], selectedInvitation || currentDraft));
+        setPublicInvitation(pickPublicInvitation(invitationsForPublicLink, selectedInvitation || currentDraft));
 
-        if (!selectedInvitation?.id) {
+        if (!selectedInvitationId) {
           setManualGuests(listManualGuests(eventId).map(normalizeManualGuest));
           return;
         }
 
-        const backendGuests = await guestService.listByInvitation(selectedInvitation.id);
-        if (active) {
-          setManualGuests((backendGuests || []).map(normalizeBackendGuest));
-        }
-      })
-      .catch((err) => {
+        const backendGuests = await guestService.listByInvitation(selectedInvitationId);
+        if (!active) return;
+        setManualGuests((backendGuests || []).map(normalizeBackendGuest));
+      } catch (err) {
         if (active) {
           setBackendInvitation(null);
           setPublicInvitation(null);
           setBackendError(err.message || "Could not load guests from backend");
           setManualGuests(listManualGuests(eventId).map(normalizeManualGuest));
         }
-      })
-      .finally(() => {
+      } finally {
         if (active) {
           setBackendLoading(false);
         }
-      });
+      }
+    }
+
+    loadGuests();
 
     return () => {
       active = false;
@@ -684,10 +691,11 @@ export default function GuestsList() {
       guest.sendStatus === SEND_STATUS.sent ||
       guest.sendStatus === SEND_STATUS.opened,
   ).length;
+  const backendInvitationId = invitationId(backendInvitation);
 
   const persistManualGuests = (nextGuests) => {
     setManualGuests(nextGuests);
-    if (!backendInvitation?.id) {
+    if (!backendInvitationId) {
       saveManualGuests(nextGuests, eventId);
     }
   };
@@ -738,10 +746,10 @@ export default function GuestsList() {
 
     setSaving(true);
     try {
-      if (backendInvitation?.id) {
+      if (backendInvitationId) {
         if (editingId) {
           const updated = await guestService.updateForInvitation(
-            backendInvitation.id,
+            backendInvitationId,
             editingId,
             toBackendGuestPayload(form),
           );
@@ -752,7 +760,7 @@ export default function GuestsList() {
           );
         } else {
           const created = await guestService.createForInvitation(
-            backendInvitation.id,
+            backendInvitationId,
             toBackendGuestPayload(form),
           );
           setManualGuests((current) => [normalizeBackendGuest(created), ...current]);
@@ -782,8 +790,8 @@ export default function GuestsList() {
     const target = manualGuests.find((guest) => guest.id === guestId);
     setSaving(true);
     try {
-      if (backendInvitation?.id && target?.source === "backend") {
-        await guestService.removeFromInvitation(backendInvitation.id, guestId);
+      if (backendInvitationId && target?.source === "backend") {
+        await guestService.removeFromInvitation(backendInvitationId, guestId);
       }
       const nextGuests = manualGuests.filter((guest) => guest.id !== guestId);
       persistManualGuests(nextGuests);
@@ -804,11 +812,11 @@ export default function GuestsList() {
     const selectedGuests = manualGuests.filter((guest) => selectedSet.has(guest.id));
     setSaving(true);
     try {
-      if (backendInvitation?.id) {
+      if (backendInvitationId) {
         await Promise.all(
           selectedGuests
             .filter((guest) => guest.source === "backend")
-            .map((guest) => guestService.removeFromInvitation(backendInvitation.id, guest.id)),
+            .map((guest) => guestService.removeFromInvitation(backendInvitationId, guest.id)),
         );
       }
       const nextGuests = manualGuests.filter(
@@ -861,11 +869,11 @@ export default function GuestsList() {
   };
 
   const markSent = async (guest) => {
-    if (guest.source === "backend" && backendInvitation?.id) {
+    if (guest.source === "backend" && backendInvitationId) {
       setSaving(true);
       try {
         const updated = await guestService.updateForInvitation(
-          backendInvitation.id,
+          backendInvitationId,
           guest.id,
           backendPayloadFromGuest(guest, { sendStatus: SEND_STATUS.sent }),
         );

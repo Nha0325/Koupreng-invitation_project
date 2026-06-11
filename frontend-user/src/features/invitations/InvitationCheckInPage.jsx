@@ -118,7 +118,7 @@ export default function InvitationCheckInPage() {
                     <h1>{invitation?.title || "Invitation check-in"}</h1>
                     <p>Scan guest invitation QR links or check guests in manually.</p>
                 </div>
-                <button className="inv-secondary-btn" type="button" onClick={() => navigate(`/dashboard/invitations/${invitationId}/guests`)}>
+                <button className="inv-secondary-btn" type="button" onClick={() => navigate("/guests")}>
                     Guests
                 </button>
             </header>

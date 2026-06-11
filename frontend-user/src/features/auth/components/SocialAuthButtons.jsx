@@ -3,23 +3,64 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import authService from "@/features/auth/api/authApi";
 
-/* ─── env values ─────────────────────────────────────────── */
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
-// Numeric Telegram client ID from BotFather → Web Login (preferred)
-const telegramClientId = (import.meta.env.VITE_TELEGRAM_CLIENT_ID || "").trim();
-// Numeric bot ID for the legacy popup fallback.
-const telegramBotId = (import.meta.env.VITE_TELEGRAM_BOT_ID || "").trim();
-const rawBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || "";
-const telegramBot = rawBotUsername === "your_bot_username"
-  ? "" : rawBotUsername.trim().replace(/^@/, "");
-const publicAppUrl = (import.meta.env.VITE_PUBLIC_APP_URL || "").trim();
+const isDev = import.meta.env.DEV;
 
-// OIDC flow: needs numeric client_id
-const hasTelegramClientId = /^\d+$/.test(telegramClientId);
-// Direct popup flow: needs numeric bot_id (same number as client_id for most bots)
-const hasTelegramBotId = /^\d+$/.test(telegramBotId);
+function debugSocialAuth(message, details) {
+  if (!isDev) return;
+  if (details === undefined) {
+    console.debug(`[social-auth] ${message}`);
+  } else {
+    console.debug(`[social-auth] ${message}`, details);
+  }
+}
+
+function normalizeEnvValue(value) {
+  return String(value || "").trim();
+}
+
+function isPlaceholder(value) {
+  const normalized = normalizeEnvValue(value).toLowerCase();
+  return !normalized
+    || normalized.startsWith("your_")
+    || normalized.startsWith("your-")
+    || normalized.includes("replace_with")
+    || normalized.includes("replace-me")
+    || normalized.includes("replace_me")
+    || normalized.includes("change_me")
+    || normalized.includes("change-me")
+    || normalized === "null"
+    || normalized === "undefined"
+    || normalized.includes("example");
+}
+
+function isGoogleClientId(value) {
+  return Boolean(value) && !isPlaceholder(value) && /\.apps\.googleusercontent\.com$/.test(value);
+}
+
+function isNumericId(value) {
+  return /^\d+$/.test(value);
+}
+
+/* ─── env values ─────────────────────────────────────────── */
+const rawGoogleClientId = normalizeEnvValue(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+const googleClientId = isGoogleClientId(rawGoogleClientId) ? rawGoogleClientId : "";
+// Numeric Telegram client ID from BotFather → Web Login (preferred)
+const telegramClientId = normalizeEnvValue(import.meta.env.VITE_TELEGRAM_CLIENT_ID);
+// Numeric bot ID for the legacy popup fallback.
+const telegramBotId = normalizeEnvValue(import.meta.env.VITE_TELEGRAM_BOT_ID);
+const rawBotUsername = normalizeEnvValue(import.meta.env.VITE_TELEGRAM_BOT_USERNAME);
+const telegramBot = isPlaceholder(rawBotUsername) ? "" : rawBotUsername.replace(/^@/, "");
+const publicAppUrl = normalizeEnvValue(import.meta.env.VITE_PUBLIC_APP_URL);
+
+// OIDC flow: needs a BotFather Web Login client_id
+const hasTelegramClientId = !isPlaceholder(telegramClientId);
+// Direct popup flow: needs numeric bot_id and bot username
+const hasTelegramBotId = isNumericId(telegramBotId) && Boolean(telegramBot);
 // Widget iframe flow: needs bot username + BotFather /setdomain configured
-const hasTelegramBot = Boolean(telegramBot) && !hasTelegramClientId && !hasTelegramBotId;
+const hasTelegramBot = Boolean(telegramBot);
+const hasPublicAppUrl = Boolean(publicAppUrl) && Boolean(normalizeOrigin(publicAppUrl));
+const TELEGRAM_CONFIG_ERROR = "Telegram login is not configured. Add VITE_TELEGRAM_BOT_ID and VITE_TELEGRAM_BOT_USERNAME to frontend-user/.env.local, add TELEGRAM_BOT_TOKEN to backend .env, then restart frontend and backend.";
+const GOOGLE_CONFIG_ERROR = "Google login is not configured. Add VITE_GOOGLE_CLIENT_ID to frontend-user/.env.local and GOOGLE_CLIENT_IDS to backend .env, then restart frontend and backend.";
 
 const GOOGLE_GSI_ID = "google-gsi-script";
 const TELEGRAM_WIDGET_ID = "telegram-widget-script";
@@ -94,8 +135,26 @@ function normalizeOrigin(value) {
   }
 }
 
+function isLocalOrigin(origin) {
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 function configuredTelegramOrigin() {
-  return normalizeOrigin(publicAppUrl) || window.location.origin;
+  const configuredOrigin = normalizeOrigin(publicAppUrl);
+  if (!configuredOrigin) {
+    return window.location.origin;
+  }
+
+  if (isLocalOrigin(configuredOrigin) && !isLocalOrigin(window.location.origin)) {
+    return window.location.origin;
+  }
+
+  return configuredOrigin;
 }
 
 function redirectToTelegramOrigin() {
@@ -104,8 +163,25 @@ function redirectToTelegramOrigin() {
     return false;
   }
 
+  debugSocialAuth("redirecting to configured Telegram origin", {
+    currentOrigin: window.location.origin,
+    targetOrigin,
+  });
   const target = new URL(window.location.pathname + window.location.search, targetOrigin);
   window.location.assign(target.toString());
+  return true;
+}
+
+function prepareTelegramOrigin(setError) {
+  if (redirectToTelegramOrigin()) {
+    return false;
+  }
+
+  if (isLocalOrigin(window.location.origin)) {
+    setError("Telegram Bot domain invalid for localhost. Set VITE_PUBLIC_APP_URL=https://siren-devoutly-probe.ngrok-free.dev in frontend-user/.env.local, run BotFather /setdomain with siren-devoutly-probe.ngrok-free.dev, then restart Vite and backend.");
+    return false;
+  }
+
   return true;
 }
 
@@ -143,6 +219,7 @@ function telegramAuthResult(data) {
 
   const result = data?.result ?? data?.user ?? data;
   if (typeof result === "string") {
+    debugSocialAuth("Telegram returned an ID token");
     return {
       loginData: { idToken: result },
       user: decodeJwtPayload(result),
@@ -150,6 +227,7 @@ function telegramAuthResult(data) {
   }
 
   if (result?.id_token && typeof result.id_token === "string") {
+    debugSocialAuth("Telegram returned an OIDC id_token");
     return {
       loginData: { idToken: result.id_token },
       user: decodeJwtPayload(result.id_token),
@@ -157,6 +235,7 @@ function telegramAuthResult(data) {
   }
 
   if (isLegacyTelegramPayload(result)) {
+    debugSocialAuth("Telegram returned legacy widget data");
     return {
       loginData: normalizeTelegramUser(result),
       user: result,
@@ -175,6 +254,11 @@ function openTelegramOidcLogin(clientId, onResult, onError) {
   authUrl.searchParams.set("scope", "openid profile telegram:bot_access");
   authUrl.searchParams.set("origin", window.location.origin);
   authUrl.searchParams.set("lang", "en");
+  debugSocialAuth("opening Telegram OIDC login", {
+    clientIdConfigured: Boolean(clientId),
+    origin: window.location.origin,
+    redirectUri,
+  });
 
   const width = 550;
   const height = 650;
@@ -266,6 +350,7 @@ function openTelegramLegacyPopup(botId, onResult, onError) {
   }
 
   try {
+    debugSocialAuth("opening Telegram legacy popup", { botIdConfigured: Boolean(botId) });
     window.Telegram.Login.auth(
       { bot_id: botId, request_access: "write" },
       (authData) => {
@@ -296,8 +381,10 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
   /* ── Load Telegram legacy widget (bot username, no ID) ── */
   useEffect(() => {
     if (!hasTelegramBot) return;
+    if (isLocalOrigin(window.location.origin)) return;
     const host = widgetHostRef.current;
     if (!host) return;
+    debugSocialAuth("loading Telegram widget", { botUsernameConfigured: Boolean(telegramBot) });
 
     const cbName = "_kouprengTgWidgetAuth";
     window[cbName] = async (user) => {
@@ -336,6 +423,10 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
     setError("");
     try {
       const data = await providerFn();
+      debugSocialAuth("social login completed", {
+        hasAccessToken: Boolean(data?.accessToken),
+        hasUser: Boolean(data?.user),
+      });
       login(data); navigate(redirectTo, { replace: true });
     } catch (e) {
       setError(e.message || "Login failed.");
@@ -347,7 +438,17 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
     if (busy) return;
     setBusy("telegram"); setError("");
 
-    if (redirectToTelegramOrigin()) {
+    if (!hasTelegramClientId) {
+      setError(TELEGRAM_CONFIG_ERROR);
+      setBusy("");
+      return;
+    }
+
+    if (!hasPublicAppUrl && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      debugSocialAuth("VITE_PUBLIC_APP_URL is not configured for Telegram on a non-local origin");
+    }
+
+    if (!prepareTelegramOrigin(setError)) {
       setBusy("");
       return;
     }
@@ -366,7 +467,13 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
     if (busy) return;
     setBusy("telegram"); setError("");
 
-    if (redirectToTelegramOrigin()) {
+    if (!hasTelegramBotId) {
+      setError(TELEGRAM_CONFIG_ERROR);
+      setBusy("");
+      return;
+    }
+
+    if (!prepareTelegramOrigin(setError)) {
       setBusy("");
       return;
     }
@@ -387,10 +494,18 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
   /* ─── Render ─────────────────────────────────────────────── */
   // Determine which Telegram flow to use
   const telegramMode =
-    hasTelegramBotId ? "popup" :
-      hasTelegramClientId ? "oidc" :
+    hasTelegramClientId ? "oidc" :
+      hasTelegramBotId ? "popup" :
         hasTelegramBot ? "widget" :
           "none";
+
+  useEffect(() => {
+    debugSocialAuth("configuration", {
+      googleConfigured: Boolean(googleClientId),
+      telegramMode,
+      publicAppUrlConfigured: hasPublicAppUrl,
+    });
+  }, [telegramMode]);
 
   return (
     <>
@@ -406,7 +521,11 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
             onBusyChange={(v) => setBusy(v ? "google" : "")}
           />
         ) : (
-          <button type="button" className="auth-social-btn google" disabled>
+          <button
+            type="button"
+            className="auth-social-btn google"
+            onClick={() => setError(GOOGLE_CONFIG_ERROR)}
+          >
             <GoogleIcon /> Google មិនទាន់កំណត់
           </button>
         )}
@@ -439,18 +558,40 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
 
         {/* Telegram — legacy widget iframe (bot username only) */}
         {telegramMode === "widget" && (
-          <div className="auth-social-widget-tg">
-            <div ref={widgetHostRef} className="auth-tg-iframe-host" />
-            <div className="auth-social-btn telegram auth-tg-fake-btn" aria-hidden="true">
+          isLocalOrigin(window.location.origin) ? (
+            <button
+              type="button"
+              className="auth-social-btn telegram"
+              onClick={() => {
+                setBusy("telegram");
+                setError("");
+                if (!prepareTelegramOrigin(setError)) {
+                  setBusy("");
+                }
+              }}
+              disabled={busy === "telegram"}
+            >
               <TelegramIcon />
               {busy === "telegram" ? "Logging in…" : "បន្តជាមួយ Telegram"}
+            </button>
+          ) : (
+            <div className="auth-social-widget-tg">
+              <div ref={widgetHostRef} className="auth-tg-iframe-host" />
+              <div className="auth-social-btn telegram auth-tg-fake-btn" aria-hidden="true">
+                <TelegramIcon />
+                {busy === "telegram" ? "Logging in…" : "បន្តជាមួយ Telegram"}
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* Telegram — not configured */}
         {telegramMode === "none" && (
-          <button type="button" className="auth-social-btn telegram" disabled>
+          <button
+            type="button"
+            className="auth-social-btn telegram"
+            onClick={() => setError(TELEGRAM_CONFIG_ERROR)}
+          >
             <TelegramIcon /> Telegram មិនទាន់កំណត់
           </button>
         )}
@@ -479,6 +620,7 @@ function GoogleSignInButton({ clientId, onSuccess, onError, busy, onBusyChange }
         client_id: clientId,
         callback: async (response) => {
           if (!response?.credential) { onError("Google did not return a credential."); return; }
+          debugSocialAuth("Google returned an ID token credential");
           onBusyChange(true);
           try { await onSuccess(response.credential); }
           catch (e) { onError(e.message || "Google login failed."); }
@@ -499,15 +641,20 @@ function GoogleSignInButton({ clientId, onSuccess, onError, busy, onBusyChange }
     loadScript(GOOGLE_GSI_ID, "https://accounts.google.com/gsi/client",
       () => Boolean(window.google?.accounts?.id))
       .then(init)
-      .catch(() => { if (!cancelled) onError("Google script failed to load."); });
+      .catch(() => { if (!cancelled) onError("Google script failed to load. Check your network, Google origin settings, and VITE_GOOGLE_CLIENT_ID."); });
     return () => { cancelled = true; };
   }, [clientId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClick = useCallback(() => {
     if (!ready || busy) return;
     const el = containerRef.current?.querySelector('[role="button"], button, div[tabindex="0"]');
-    if (el) el.click();
-  }, [ready, busy]);
+    if (el) {
+      debugSocialAuth("forwarding click to Google Identity Services button");
+      el.click();
+    } else {
+      onError("Google login button is not ready yet.");
+    }
+  }, [ready, busy, onError]);
 
   return (
     <div className="auth-google-wrap">

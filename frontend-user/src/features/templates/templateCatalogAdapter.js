@@ -1,9 +1,8 @@
-import { getTemplateById, isTemplatePremium, TEMPLATES } from "./data/templatesData";
+import { getTemplateById, isTemplatePremium, KEEP_TEMPLATE_CODE, TEMPLATES } from "./data/templatesData";
 import { VARIANT_ROUTE_ALIASES } from "./template-experience/templateExperienceThemes";
 
 const CATEGORY_MAP = {
     traditional: "ancient",
-    luxury: "ancient",
     floral: "contemporary",
     minimalist: "modern",
     modern: "modern",
@@ -28,7 +27,7 @@ export function findStaticTemplate(templateId) {
     return getTemplateById(aliasTargetId || templateId);
 }
 
-export function mergeBackendTemplate(remoteTemplate, fallbackId = "royal") {
+export function mergeBackendTemplate(remoteTemplate, fallbackId = KEEP_TEMPLATE_CODE) {
     const routeId = getTemplateRouteId(remoteTemplate) || fallbackId;
     const localMatch = TEMPLATES.find((template) => template.id === routeId)
         || TEMPLATES.find((template) => template.id === remoteTemplate?.code)

@@ -10,7 +10,11 @@ public interface InvitationTemplateRepository extends JpaRepository<InvitationTe
 
     List<InvitationTemplate> findAllByOrderByCreatedAtDesc();
 
+    List<InvitationTemplate> findAllByCodeIgnoreCaseOrderByCreatedAtDesc(String code);
+
     List<InvitationTemplate> findAllByStatusIgnoreCaseOrderBySortOrderAscCreatedAtDesc(String status);
+
+    List<InvitationTemplate> findAllByCodeIgnoreCaseAndStatusIgnoreCaseOrderBySortOrderAscCreatedAtDesc(String code, String status);
 
     Optional<InvitationTemplate> findByIdAndStatusIgnoreCase(Long id, String status);
 

@@ -10,20 +10,16 @@ import { useAuth } from "../auth/context/useAuth";
 /**
  * TemplateDemoPage — public template detail / demo page.
  *
- * Every template (Royal included) renders the single shared TemplateExperience
- * engine. Each one gets its own visual identity through a theme variant:
- *   royal | classic | luxury | modern-khmer | royal-khmer | vintage-gold
+ * Every template/demo route renders the kept Garden Royal Khmer Wedding
+ * experience.
  *
  * Routing:
- *  - /templates/:id            → resolved template + its mapped variant
- *  - /templates/<style-alias>  → style names (luxury, modern-khmer,
- *                                royal-khmer, vintage-gold) resolve to a
- *                                representative template + that variant.
+ *  - /templates/:id            → kept template
+ *  - /templates/<style-alias>  → old aliases redirect to the kept template
  */
 export default function TemplateDemoPage() {
     const { id } = useParams();
-    // Style-name routes (e.g. /templates/luxury) map to a representative
-    // template id; the variant is forced so the page reads with that identity.
+    // Old style-name routes map to the kept template for backward-compatible URLs.
     const aliasTargetId = VARIANT_ROUTE_ALIASES[id];
     const tpl = getTemplateById(aliasTargetId || id);
     const forcedVariant = aliasTargetId ? id : undefined;

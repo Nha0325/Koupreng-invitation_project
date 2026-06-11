@@ -54,7 +54,7 @@ export function deleteDraft(draftId) {
 
 export function createDraft(initial = {}) {
     return saveDraft({
-        templateId: initial.templateId || "royal",
+        templateId: initial.templateId || "garden-royal-khmer-wedding",
         slug: initial.slug || "",
         couple: {
             groom: "",

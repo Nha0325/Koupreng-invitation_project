@@ -1,17 +1,12 @@
 /* ============================================================
-   Template Experience — shared themeable wedding template page.
+   Template Experience — shared wedding template page.
    Scope: all selectors prefixed .tx- and live under .tx-root.
    Modeled on royal-experience.css (the approved reference) but driven by
-   per-variant CSS variables so each style has its own identity while keeping
-   identical structure / quality / responsive behavior.
+   single kept template theme while keeping structure / quality / responsive
+   behavior.
 
    Variant classes (set on .tx-root):
-     .template-experience--classic
-     .template-experience--luxury
-     .template-experience--modern-khmer
-     .template-experience--royal-khmer
-     .template-experience--vintage-gold
-     .template-experience--royal (fallback parity with Royal)
+     .template-experience--garden-royal-khmer-wedding
 
    Mobile-first. No horizontal overflow. Light animation.
    ============================================================ */
@@ -1518,131 +1513,10 @@
 }
 
 /* ============================================================
-   VARIANT THEMES
-   Each variant only overrides CSS variables (and a few accents).
+   TEMPLATE THEME
+   The kept template overrides CSS variables and a few accents.
    Structure / layout stay identical to keep parity with Royal.
    ============================================================ */
-
-/* ── CLASSIC — soft cream traditional ─────────────────────── */
-.template-experience--classic {
-    --tpl-bg: #f8f1e7;
-    --tpl-surface: #fffaf2;
-    --tpl-surface-alt: #f2e7d6;
-    --tpl-text: #2f261b;
-    --tpl-muted: #837159;
-    --tpl-accent: #b89360;
-    --tpl-accent-dark: #8a6a3a;
-    --tpl-on-accent: #ffffff;
-    --tpl-border: rgba(138, 106, 58, 0.20);
-    --tpl-radius: 12px;
-    --tpl-shadow: 0 20px 50px rgba(80, 60, 30, 0.12);
-    --tpl-shadow-sm: 0 8px 24px rgba(80, 60, 30, 0.08);
-    --tpl-hero-overlay:
-        linear-gradient(180deg, rgba(60, 45, 25, 0.40) 0%, rgba(60, 45, 25, 0.22) 45%, rgba(60, 45, 25, 0.58) 100%);
-    --tpl-footer-bg: #2f261b;
-    --tpl-footer-accent: #cbab73;
-}
-
-/* ── LUXURY — dark premium editorial ──────────────────────── */
-.template-experience--luxury {
-    --tpl-bg: #0d0b09;
-    --tpl-surface: #17120d;
-    --tpl-surface-alt: #1f1812;
-    --tpl-text: #f5ecdc;
-    --tpl-muted: #b3a288;
-    --tpl-accent: #d2a85e;
-    --tpl-accent-dark: #c0924a;
-    --tpl-on-accent: #1a130a;
-    --tpl-border: rgba(210, 168, 94, 0.26);
-    --tpl-radius: 8px;
-    --tpl-shadow: 0 28px 70px rgba(0, 0, 0, 0.6);
-    --tpl-shadow-sm: 0 12px 34px rgba(0, 0, 0, 0.45);
-    --tpl-hero-overlay:
-        linear-gradient(180deg, rgba(8, 6, 4, 0.62) 0%, rgba(8, 6, 4, 0.48) 40%, rgba(8, 6, 4, 0.86) 100%);
-    --tpl-footer-bg: #060504;
-    --tpl-footer-text: rgba(245, 236, 220, 0.9);
-    --tpl-footer-accent: #d2a85e;
-}
-
-/* Luxury: alternating band slightly lighter than base for contrast */
-.template-experience--luxury .tx-section:nth-of-type(even) {
-    background: var(--tpl-surface-alt);
-}
-
-/* Luxury: larger, more dramatic editorial headings */
-.template-experience--luxury .tx-section__title,
-.template-experience--luxury .tx-hero__names {
-    letter-spacing: 0.02em;
-}
-
-.template-experience--luxury .tx-couple__frame,
-.template-experience--luxury .tx-venue__media-frame {
-    border-color: rgba(210, 168, 94, 0.5);
-}
-
-/* ── MODERN KHMER — clean modern Cambodian ────────────────── */
-.template-experience--modern-khmer {
-    --tpl-bg: #f4f1ea;
-    --tpl-surface: #ffffff;
-    --tpl-surface-alt: #eef1ec;
-    --tpl-text: #1f2a26;
-    --tpl-muted: #5f6f68;
-    --tpl-accent: #2e7d6b;
-    --tpl-accent-dark: #1f5b4e;
-    --tpl-on-accent: #ffffff;
-    --tpl-border: rgba(31, 91, 78, 0.18);
-    --tpl-radius: 18px;
-    --tpl-shadow: 0 22px 50px rgba(31, 91, 78, 0.12);
-    --tpl-shadow-sm: 0 10px 26px rgba(31, 91, 78, 0.08);
-    --tpl-hero-overlay:
-        linear-gradient(180deg, rgba(20, 35, 30, 0.42) 0%, rgba(20, 35, 30, 0.22) 45%, rgba(20, 35, 30, 0.6) 100%);
-    --tpl-footer-bg: #16241f;
-    --tpl-footer-accent: #5bbfa6;
-}
-
-/* Modern Khmer: cleaner, app-like cards (lighter borders, rounder) */
-.template-experience--modern-khmer .tx-schedule__card::before {
-    display: none;
-}
-
-.template-experience--modern-khmer .tx-hero__amp {
-    font-style: normal;
-}
-
-/* ── ROYAL KHMER — traditional Khmer royal ────────────────── */
-.template-experience--royal-khmer {
-    --tpl-bg: #f3e7d0;
-    --tpl-surface: #fbf3e3;
-    --tpl-surface-alt: #ecddc2;
-    --tpl-text: #3a130f;
-    --tpl-muted: #7a5a48;
-    --tpl-accent: #b8862b;
-    --tpl-accent-dark: #7c1f24;
-    --tpl-on-accent: #fdf6e7;
-    --tpl-border: rgba(124, 31, 36, 0.22);
-    --tpl-radius: 10px;
-    --tpl-shadow: 0 24px 56px rgba(74, 19, 15, 0.18);
-    --tpl-shadow-sm: 0 10px 28px rgba(74, 19, 15, 0.12);
-    --tpl-hero-overlay:
-        linear-gradient(180deg, rgba(58, 19, 15, 0.55) 0%, rgba(58, 19, 15, 0.34) 45%, rgba(58, 19, 15, 0.74) 100%);
-    --tpl-footer-bg: #3a130f;
-    --tpl-footer-accent: #d6a94e;
-}
-
-/* Royal Khmer: ceremonial double-frame accents (maroon + gold) */
-.template-experience--royal-khmer .tx-couple__frame,
-.template-experience--royal-khmer .tx-venue__media-frame {
-    border-color: rgba(184, 134, 43, 0.65);
-    inset: 10px;
-}
-
-.template-experience--royal-khmer .tx-schedule__card::before {
-    border-color: rgba(184, 134, 43, 0.4);
-}
-
-.template-experience--royal-khmer .tx-hero__badge {
-    border-color: rgba(214, 169, 78, 0.6);
-}
 
 /* ── GARDEN ROYAL KHMER WEDDING — watercolor blue garden ──── */
 .template-experience--garden-royal-khmer-wedding {
@@ -1767,128 +1641,6 @@
         radial-gradient(ellipse at 20% 100%, rgba(73, 129, 191, 0.22), transparent 34%),
         radial-gradient(ellipse at 80% 100%, rgba(111, 158, 46, 0.22), transparent 34%),
         #253f57;
-}
-
-/* ── VINTAGE GOLD — old paper antique gold ────────────────── */
-.template-experience--vintage-gold {
-    --tpl-bg: #e8dcc2;
-    --tpl-surface: #f3ead3;
-    --tpl-surface-alt: #ded0b0;
-    --tpl-text: #4a3b22;
-    --tpl-muted: #7c6a4a;
-    --tpl-accent: #a07c3a;
-    --tpl-accent-dark: #6e5223;
-    --tpl-on-accent: #f7f0dd;
-    --tpl-border: rgba(110, 82, 35, 0.26);
-    --tpl-radius: 6px;
-    --tpl-shadow: 0 20px 48px rgba(74, 59, 34, 0.16);
-    --tpl-shadow-sm: 0 8px 22px rgba(74, 59, 34, 0.12);
-    --tpl-hero-overlay:
-        linear-gradient(180deg, rgba(60, 48, 26, 0.5) 0%, rgba(60, 48, 26, 0.3) 45%, rgba(60, 48, 26, 0.7) 100%);
-    --tpl-footer-bg: #3a2e1a;
-    --tpl-footer-accent: #c2a25c;
-}
-
-/* Vintage Gold: subtle aged-paper grain on surfaces */
-.template-experience--vintage-gold .tx-story__card,
-.template-experience--vintage-gold .tx-schedule__card,
-.template-experience--vintage-gold .tx-gift__card,
-.template-experience--vintage-gold .tx-faq__item,
-.template-experience--vintage-gold .tx-rsvp__card,
-.template-experience--vintage-gold .tx-countdown__cell {
-    background-image:
-        repeating-linear-gradient(0deg, rgba(110, 82, 35, 0.03) 0px, rgba(110, 82, 35, 0.03) 1px, transparent 1px, transparent 4px);
-}
-
-.template-experience--vintage-gold .tx-hero__names {
-    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-    letter-spacing: 0.03em;
-}
-
-/* ── ROYAL (parity fallback) ──────────────────────────────── */
-.template-experience--royal {
-    --tpl-bg: #f6efe4;
-    --tpl-surface: #fffaf1;
-    --tpl-surface-alt: #f1e6d4;
-    --tpl-text: #21180f;
-    --tpl-muted: #816b50;
-    --tpl-accent: #c8a35f;
-    --tpl-accent-dark: #6f4d24;
-    --tpl-on-accent: #ffffff;
-    --tpl-border: rgba(111, 77, 36, 0.18);
-    --tpl-radius: 14px;
-    --tpl-footer-bg: #21180f;
-    --tpl-footer-accent: #c8a35f;
-}
-
-/* ── ROYAL KHMER WEDDING — premium traditional style ──────── */
-.template-experience--royal-khmer-wedding {
-    --tpl-bg: #FFF8F0;          /* Background ivory */
-    --tpl-surface: #FFFFFF;     /* White surface */
-    --tpl-surface-alt: #F7E7CE; /* Champagne */
-    --tpl-text: #3A2A2A;        /* Dark text */
-    --tpl-muted: #8B3A4A;       /* Deep rose / Blush */
-    --tpl-accent: #C8A24A;      /* Gold accent */
-    --tpl-accent-dark: #8B3A4A; /* Deep rose */
-    --tpl-on-accent: #FFF8F0;
-    --tpl-border: rgba(200, 162, 74, 0.22);
-    --tpl-radius: 16px;
-    --tpl-shadow: 0 24px 56px rgba(58, 42, 42, 0.12);
-    --tpl-shadow-sm: 0 10px 28px rgba(58, 42, 42, 0.08);
-    --tpl-hero-overlay:
-        linear-gradient(180deg, rgba(58, 42, 42, 0.55) 0%, rgba(58, 42, 42, 0.35) 45%, rgba(58, 42, 42, 0.72) 100%);
-    --tpl-footer-bg: #3A2A2A;
-    --tpl-footer-accent: #C8A24A;
-    --tpl-heading-font: var(--font-display);
-}
-
-/* Subtle paper texture using repeating gradient + radial gradient */
-.template-experience--royal-khmer-wedding {
-    background-image:
-        radial-gradient(circle at 50% 50%, rgba(247, 231, 206, 0.1) 0%, transparent 80%),
-        repeating-linear-gradient(45deg, rgba(200, 162, 74, 0.005) 0px, rgba(200, 162, 74, 0.005) 1px, transparent 1px, transparent 6px);
-}
-
-/* Floral frame / Corner ornaments in Hero Cover */
-.template-experience--royal-khmer-wedding .tx-hero::before,
-.template-experience--royal-khmer-wedding .tx-hero::after {
-    content: "";
-    position: absolute;
-    width: clamp(80px, 25cqw, 200px);
-    height: clamp(80px, 25cqw, 200px);
-    z-index: 3;
-    pointer-events: none;
-    background-size: contain;
-    background-repeat: no-repeat;
-    opacity: 0.85;
-}
-
-/* Top-Left Corner Ornament */
-.template-experience--royal-khmer-wedding .tx-hero::before {
-    top: 20px;
-    left: 20px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23C8A24A' stroke-width='1.5'><path d='M 10,10 L 90,10 C 70,10 60,20 60,40 C 60,60 20,60 10,90 Z' fill='%23C8A24A' fill-opacity='0.03'/><path d='M 10,10 C 40,10 50,20 50,50 C 50,80 20,90 10,90' /><path d='M 25,25 C 40,25 45,30 45,45 C 45,60 30,65 25,65' /><circle cx='50' cy='50' r='4' fill='%23C8A24A'/><circle cx='25' cy='25' r='2' fill='%23C8A24A'/><circle cx='65' cy='65' r='2' fill='%23C8A24A'/><path d='M 15,15 L 85,15 M 15,15 L 15,85' stroke='%23C8A24A' stroke-opacity='0.5' stroke-width='1'/></svg>");
-}
-
-/* Bottom-Right Corner Ornament */
-.template-experience--royal-khmer-wedding .tx-hero::after {
-    bottom: 20px;
-    right: 20px;
-    transform: rotate(180deg);
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23C8A24A' stroke-width='1.5'><path d='M 10,10 L 90,10 C 70,10 60,20 60,40 C 60,60 20,60 10,90 Z' fill='%23C8A24A' fill-opacity='0.03'/><path d='M 10,10 C 40,10 50,20 50,50 C 50,80 20,90 10,90' /><path d='M 25,25 C 40,25 45,30 45,45 C 45,60 30,65 25,65' /><circle cx='50' cy='50' r='4' fill='%23C8A24A'/><circle cx='25' cy='25' r='2' fill='%23C8A24A'/><circle cx='65' cy='65' r='2' fill='%23C8A24A'/><path d='M 15,15 L 85,15 M 15,15 L 15,85' stroke='%23C8A24A' stroke-opacity='0.5' stroke-width='1'/></svg>");
-}
-
-/* Ceremonial borders and corner accents for cards */
-.template-experience--royal-khmer-wedding .tx-schedule__card::before,
-.template-experience--royal-khmer-wedding .tx-gift__card::before,
-.template-experience--royal-khmer-wedding .tx-rsvp__card::before {
-    border-color: rgba(200, 162, 74, 0.4);
-}
-
-.template-experience--royal-khmer-wedding .tx-couple__frame,
-.template-experience--royal-khmer-wedding .tx-venue__media-frame {
-    border-color: rgba(200, 162, 74, 0.6);
-    inset: 10px;
 }
 
 
@@ -2086,10 +1838,10 @@
     right: auto;
 }
 
-/* Styling for RSVP and Wishes Wall when nested in TemplateExperience (Royal Khmer theme) */
-.template-experience--royal-khmer-wedding .pub-rsvp-form,
-.template-experience--royal-khmer-wedding .pub-wishes-wall,
-.template-experience--royal-khmer-wedding .pub-rsvp-done {
+/* Styling for RSVP and Wishes Wall when nested in TemplateExperience (Garden Royal Khmer Wedding theme) */
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form,
+.template-experience--garden-royal-khmer-wedding .pub-wishes-wall,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-done {
     background: #ffffff;
     border: 1px solid var(--tpl-border);
     border-radius: var(--tpl-radius);
@@ -2102,9 +1854,9 @@
     text-align: left;
 }
 
-.template-experience--royal-khmer-wedding .pub-rsvp-form::before,
-.template-experience--royal-khmer-wedding .pub-wishes-wall::before,
-.template-experience--royal-khmer-wedding .pub-rsvp-done::before {
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form::before,
+.template-experience--garden-royal-khmer-wedding .pub-wishes-wall::before,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-done::before {
     content: "";
     position: absolute;
     inset: 4px;
@@ -2113,9 +1865,9 @@
     pointer-events: none;
 }
 
-.template-experience--royal-khmer-wedding .pub-rsvp-form input,
-.template-experience--royal-khmer-wedding .pub-rsvp-form select,
-.template-experience--royal-khmer-wedding .pub-rsvp-form textarea {
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form input,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form select,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form textarea {
     background: #FFF8F0;
     border: 1px solid rgba(200, 162, 74, 0.3);
     border-radius: 8px;
@@ -2126,15 +1878,15 @@
     box-sizing: border-box;
 }
 
-.template-experience--royal-khmer-wedding .pub-rsvp-form input:focus,
-.template-experience--royal-khmer-wedding .pub-rsvp-form select:focus,
-.template-experience--royal-khmer-wedding .pub-rsvp-form textarea:focus {
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form input:focus,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form select:focus,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form textarea:focus {
     outline: none;
     border-color: #8B3A4A;
     box-shadow: 0 0 0 3px rgba(139, 58, 74, 0.15);
 }
 
-.template-experience--royal-khmer-wedding .pub-rsvp-form label {
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form label {
     color: #8B3A4A;
     font-weight: 600;
     margin-bottom: 6px;
@@ -2142,7 +1894,7 @@
     font-size: 0.9rem;
 }
 
-.template-experience--royal-khmer-wedding .inv-primary-btn {
+.template-experience--garden-royal-khmer-wedding .inv-primary-btn {
     background: #8B3A4A;
     color: #FFF8F0;
     border: none;
@@ -2157,13 +1909,13 @@
     letter-spacing: 0.5px;
 }
 
-.template-experience--royal-khmer-wedding .inv-primary-btn:hover {
+.template-experience--garden-royal-khmer-wedding .inv-primary-btn:hover {
     background: #C8A24A;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(200, 162, 74, 0.3);
 }
 
-.template-experience--royal-khmer-wedding .pub-wish-card {
+.template-experience--garden-royal-khmer-wedding .pub-wish-card {
     background: #FFF8F0;
     border-left: 4px solid #C8A24A;
     border-radius: 8px;
@@ -2172,18 +1924,18 @@
     box-shadow: 0 2px 8px rgba(58, 42, 42, 0.04);
 }
 
-.template-experience--royal-khmer-wedding .pub-wish-card p {
+.template-experience--garden-royal-khmer-wedding .pub-wish-card p {
     color: #3A2A2A;
     font-style: italic;
     margin: 0 0 8px 0;
 }
 
-.template-experience--royal-khmer-wedding .pub-wish-card strong {
+.template-experience--garden-royal-khmer-wedding .pub-wish-card strong {
     color: #8B3A4A;
     font-size: 0.9rem;
 }
 
-.template-experience--royal-khmer-wedding .pub-wish-card time {
+.template-experience--garden-royal-khmer-wedding .pub-wish-card time {
     color: rgba(58, 42, 42, 0.6);
     font-size: 0.8rem;
     display: block;

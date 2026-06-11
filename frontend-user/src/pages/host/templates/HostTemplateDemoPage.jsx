@@ -20,7 +20,7 @@ import {
  */
 export default function HostTemplateDemoPage() {
     const { id } = useParams();
-    // Style-name routes (e.g. luxury) map to a representative template id.
+    // Old style-name routes map to the kept template for backward-compatible URLs.
     const aliasTargetId = VARIANT_ROUTE_ALIASES[id];
     const tpl = getTemplateById(aliasTargetId || id);
     const forcedVariant = aliasTargetId ? id : undefined;

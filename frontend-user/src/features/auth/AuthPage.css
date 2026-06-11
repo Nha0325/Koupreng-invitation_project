@@ -272,11 +272,11 @@
 .auth-gsi-host {
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 2;
     overflow: hidden;
     border-radius: 12px;
     opacity: 0;
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 .auth-gsi-host iframe,
@@ -290,6 +290,7 @@
     position: relative;
     z-index: 1;
     width: 100%;
+    pointer-events: none;
 }
 
 .auth-social-widget-tg {

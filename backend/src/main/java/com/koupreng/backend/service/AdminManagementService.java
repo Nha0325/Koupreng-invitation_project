@@ -55,6 +55,7 @@ public class AdminManagementService {
     private static final String STATUS_DISABLED = AppUser.STATUS_DISABLED;
     private static final String TEMPLATE_STATUS_ACTIVE = "ACTIVE";
     private static final String TEMPLATE_STATUS_INACTIVE = "INACTIVE";
+    private static final String KEEP_TEMPLATE_CODE = "garden-royal-khmer-wedding";
 
     private final AppUserRepository userRepository;
     private final UserInvitationRepository invitationRepository;
@@ -153,7 +154,7 @@ public class AdminManagementService {
 
     @Transactional(readOnly = true)
     public List<AdminTemplateResponse> listTemplates() {
-        return templateRepository.findAllByOrderByCreatedAtDesc().stream()
+        return templateRepository.findAllByCodeIgnoreCaseOrderByCreatedAtDesc(KEEP_TEMPLATE_CODE).stream()
                 .map(AdminTemplateResponse::from)
                 .toList();
     }
@@ -164,15 +165,7 @@ public class AdminManagementService {
             AdminTemplateRequest requestBody,
             HttpServletRequest request
     ) {
-        InvitationTemplate template = new InvitationTemplate();
-        applyTemplateRequest(template, requestBody);
-        if (template.getStatus() == null || template.getStatus().isBlank()) {
-            template.setStatus(TEMPLATE_STATUS_ACTIVE);
-        }
-        InvitationTemplate saved = templateRepository.save(template);
-        auditLogService.logAdminAction(authentication, "TEMPLATE_CREATED", "TEMPLATE", saved.getId(),
-                "Created template", request, Map.of("name", saved.getName()));
-        return AdminTemplateResponse.from(saved);
+        throw new ApiException(HttpStatus.BAD_REQUEST, "Template creation is disabled in single-template mode");
     }
 
     @Transactional(readOnly = true)
@@ -189,6 +182,7 @@ public class AdminManagementService {
     ) {
         InvitationTemplate template = requireTemplate(templateId);
         applyTemplateRequest(template, requestBody);
+        enforceSingleTemplate(template);
         auditLogService.logAdminAction(authentication, "TEMPLATE_UPDATED", "TEMPLATE", templateId,
                 "Updated template", request, Map.of("name", template.getName()));
         return AdminTemplateResponse.from(template);
@@ -205,11 +199,8 @@ public class AdminManagementService {
 
     @Transactional
     public AdminTemplateResponse deactivateTemplate(Authentication authentication, Long templateId, HttpServletRequest request) {
-        InvitationTemplate template = requireTemplate(templateId);
-        template.setStatus(TEMPLATE_STATUS_INACTIVE);
-        auditLogService.logAdminAction(authentication, "TEMPLATE_DEACTIVATED", "TEMPLATE", templateId,
-                "Deactivated template", request, Map.of("status", TEMPLATE_STATUS_INACTIVE));
-        return AdminTemplateResponse.from(template);
+        requireTemplate(templateId);
+        throw new ApiException(HttpStatus.BAD_REQUEST, "The only available template cannot be deactivated");
     }
 
     @Transactional
@@ -220,27 +211,18 @@ public class AdminManagementService {
             HttpServletRequest request
     ) {
         InvitationTemplate template = requireTemplate(templateId);
-        boolean premium = requestBody == null || requestBody.getPremium() == null || requestBody.getPremium();
-        template.setPremium(premium);
+        template.setPremium(false);
+        template.setPrice(BigDecimal.ZERO);
+        template.setCurrency("USD");
         auditLogService.logAdminAction(authentication, "TEMPLATE_PREMIUM_CHANGED", "TEMPLATE", templateId,
-                "Changed template premium flag", request, Map.of("premium", premium));
+                "Kept single template free", request, Map.of("premium", false));
         return AdminTemplateResponse.from(template);
     }
 
     @Transactional
     public void deleteTemplate(Authentication authentication, Long templateId, HttpServletRequest request) {
-        InvitationTemplate template = requireTemplate(templateId);
-        long usageCount = invitationRepository.countByTemplateIdAndDeletedFalse(templateId);
-        if (usageCount > 0) {
-            template.setStatus(TEMPLATE_STATUS_INACTIVE);
-            auditLogService.logAdminAction(authentication, "TEMPLATE_SOFT_DELETED", "TEMPLATE", templateId,
-                    "Template is used by invitations; deactivated instead of deleting", request,
-                    Map.of("usageCount", usageCount));
-            return;
-        }
-        templateRepository.delete(template);
-        auditLogService.logAdminAction(authentication, "TEMPLATE_DELETED", "TEMPLATE", templateId,
-                "Deleted unused template", request, Map.of("usageCount", 0));
+        requireTemplate(templateId);
+        throw new ApiException(HttpStatus.BAD_REQUEST, "The only available template cannot be deleted");
     }
 
     @Transactional(readOnly = true)
@@ -647,7 +629,21 @@ public class AdminManagementService {
 
     private InvitationTemplate requireTemplate(Long templateId) {
         return templateRepository.findById(templateId)
+                .filter(template -> KEEP_TEMPLATE_CODE.equalsIgnoreCase(template.getCode()))
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Template not found"));
+    }
+
+    private void enforceSingleTemplate(InvitationTemplate template) {
+        if (template.getCode() != null && !KEEP_TEMPLATE_CODE.equalsIgnoreCase(template.getCode())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Only the Garden Royal Khmer Wedding template can be edited");
+        }
+        template.setCode(KEEP_TEMPLATE_CODE);
+        template.setStatus(TEMPLATE_STATUS_ACTIVE);
+        template.setPremium(false);
+        template.setPrice(BigDecimal.ZERO);
+        if (template.getCurrency() == null || template.getCurrency().isBlank()) {
+            template.setCurrency("USD");
+        }
     }
 
     private UserInvitation requireInvitation(Long invitationId) {

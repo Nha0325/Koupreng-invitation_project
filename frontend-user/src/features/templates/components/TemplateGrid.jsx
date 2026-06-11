@@ -1,28 +1,16 @@
 import { Link } from "react-router-dom";
 import "../templates.css";
-import { TEMPLATES } from "../data/templatesData";
+import { KEEP_TEMPLATE_CODE, TEMPLATES } from "../data/templatesData";
 import { useAuth } from "../../../pages/auth/context/useAuth";
 import heroBg from "../../../assets/icons/background.png";
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
 const FEATURED_TEMPLATE_IDS = [
-    "royal",
-    "royal-khmer-wedding",
-    "classic",
-    "garden-royal-khmer-wedding",
-    "garden",
-    "boho-chic",
-    "terracotta",
+    KEEP_TEMPLATE_CODE,
 ];
 
 const TEMPLATE_CARD_COVER = {
-    royal: "/facebook/all/01-card/cover-card.jpg",
-    "royal-khmer-wedding": "/facebook/all/01-card/cover-card.jpg",
-    classic: "/facebook/all/02-card/cover-card.jpg",
-    "garden-royal-khmer-wedding": "/facebook/all/03-card/cover-card.jpg",
-    garden: "/facebook/all/03-card/cover-card.jpg",
-    "boho-chic": "/facebook/all/04-card/cover-card.jpg",
-    terracotta: "/facebook/all/05-card/cover-card.jpg",
+    [KEEP_TEMPLATE_CODE]: "/facebook/all/03-card/cover-card.jpg",
 };
 
 const getCategoryLabels = (t) => ({

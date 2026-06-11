@@ -15,7 +15,7 @@ export default function CreateWedding() {
     const location = useLocation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const initialTemplateId = searchParams.get("template") || "royal";
+    const initialTemplateId = searchParams.get("template") || "garden-royal-khmer-wedding";
     const initialized = useRef(false);
     const [publishedDraft, setPublishedDraft] = useState(null);
     const [stepMenuOpen, setStepMenuOpen] = useState(false);

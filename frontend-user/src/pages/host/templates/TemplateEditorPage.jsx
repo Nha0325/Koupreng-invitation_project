@@ -18,7 +18,7 @@ export default function TemplateEditorPage() {
     
     // We keep local state for the form so we don't spam the store/localstorage on every keystroke
     const [form, setForm] = useState({
-        templateId: "royal",
+        templateId: "garden-royal-khmer-wedding",
         musicId: "",
         primaryColor: "#f9af59",
         textColor: "#B08E4F",
@@ -43,7 +43,7 @@ export default function TemplateEditorPage() {
     useEffect(() => {
         if (draft) {
             setForm({
-                templateId: draft.templateId || "royal",
+                templateId: draft.templateId || "garden-royal-khmer-wedding",
                 musicId: draft.extras?.musicId || draft.music?.id || "",
                 primaryColor: draft.extras?.primaryColor || "#f9af59",
                 textColor: draft.extras?.textColor || "#B08E4F",

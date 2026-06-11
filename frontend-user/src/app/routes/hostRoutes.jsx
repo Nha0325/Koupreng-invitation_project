@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 
 import PaidTemplatesPage from "../../features/payments/PaidTemplatesPage";
 import HostShell from "../../layouts/HostShell";
@@ -10,7 +10,6 @@ import GuestsPage from "../../pages/host/GuestsPage";
 import HostTemplateDemoPage from "../../pages/host/templates/HostTemplateDemoPage";
 import InvitationCreatePage from "../../pages/host/invitations/InvitationCreatePage";
 import InvitationEditPage from "../../pages/host/invitations/InvitationEditPage";
-import InvitationGuestsPage from "../../pages/host/invitations/InvitationGuestsPage";
 import InvitationMediaPage from "../../pages/host/invitations/InvitationMediaPage";
 import InvitationPreviewPage from "../../pages/host/invitations/InvitationPreviewPage";
 import InvitationDeliveryPage from "../../pages/host/invitations/InvitationDeliveryPage";
@@ -33,7 +32,7 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/new" element={<InvitationCreatePage />} />
       <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
-      <Route path="/dashboard/invitations/:id/guests" element={<InvitationGuestsPage />} />
+      <Route path="/dashboard/invitations/:id/guests" element={<Navigate to="/guests" replace />} />
       <Route path="/dashboard/invitations/:id/delivery" element={<InvitationDeliveryPage />} />
       <Route path="/dashboard/invitations/:id/media" element={<InvitationMediaPage />} />
       <Route path="/dashboard/templates/paid" element={<PaidTemplatesPage />} />

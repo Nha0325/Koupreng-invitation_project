@@ -2,7 +2,7 @@
 
 > ស្ថាបត្យកម្មថ្មី៖ គ្រប់កាតគំរូទាំងអស់ប្រើ **engine តែមួយ** គឺ
 > `template-experience/`។ មិនមាន folder `previews/` ឬ field `Preview` ទៀតទេ។
-> កាតនីមួយៗខុសគ្នាត្រឹមតែ **variant theme** (ពណ៌ + រចនាបថ)។
+> បច្ចុប្បន្ន catalog ប្រើតែ **Garden Royal Khmer Wedding** template មួយ។
 
 ---
 
@@ -12,7 +12,7 @@
 TemplateExperience  (engine តែមួយ៖ hero, message, couple, countdown, story,
         │            schedule, venue, gallery, party, dress, gift, faq, rsvp, footer)
         │
-        └── variant ──► royal | classic | luxury | modern-khmer | royal-khmer | vintage-gold
+        └── variant ──► garden-royal-khmer-wedding
 ```
 
 engine តែមួយនេះត្រូវបាន render នៅ ៣ កន្លែង៖
@@ -67,7 +67,7 @@ engine តែមួយនេះត្រូវបាន render នៅ ៣ កន
 ```
 
 ➡️ ភ្លាមៗ ទំព័រ `/templates/my-new` នឹងដំណើរការ (render ពេញលេញ
-ដោយ variant default = `classic`)។
+ដោយ variant default = `garden-royal-khmer-wedding`)។
 
 ### 🖼️ រូបភាពផ្ទាល់របស់កាត (gallery + story)
 
@@ -88,12 +88,7 @@ grid បង្ហាញតែ id ដែលនៅក្នុង `FEATURED_TEMPLA
 
 ```js
 const FEATURED_TEMPLATE_IDS = [
-    "royal",
-    "classic",
-    "garden",
-    "boho-chic",
-    "terracotta",
-    "my-new",        // ← កាតថ្មីបង្ហាញក្នុង grid
+    "garden-royal-khmer-wedding",
 ];
 ```
 
@@ -110,17 +105,15 @@ const TEMPLATE_CARD_COVER = {
 
 ## ជំហានទី ៣ — ជ្រើសរចនាបថ (variant) ក្នុង `template-experience/templateExperienceThemes.js`
 
-កំណត់ថា ទំព័រ demo ប្រើ look ណាមួយ (royal / classic / luxury /
-modern-khmer / royal-khmer / vintage-gold)៖
+កំណត់ថា ទំព័រ demo ប្រើ look របស់ template ដែលរក្សាទុកតែមួយ៖
 
 ```js
 export const TEMPLATE_VARIANT_BY_ID = {
-    // ...
-    "my-new": "luxury",     // ← ទំព័រ demo ប្រើ theme luxury
+    "garden-royal-khmer-wedding": "garden-royal-khmer-wedding",
 };
 ```
 
-បើរំលងជំហាននេះ វានឹងប្រើ `classic` ដោយស្វ័យប្រវត្តិ។
+បើរំលងជំហាននេះ វានឹងប្រើ `garden-royal-khmer-wedding` ដោយស្វ័យប្រវត្តិ។
 
 ---
 

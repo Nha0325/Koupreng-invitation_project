@@ -55,6 +55,8 @@ public class TemplatePaymentService {
     private static final String STATIC_ABA_PAYMENT_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
     private static final String STATIC_ABA_PAYMENT_CURRENCY = "USD";
     private static final BigDecimal STATIC_ABA_PAYMENT_AMOUNT = new BigDecimal("0.01");
+    private static final String KEEP_TEMPLATE_CODE = "garden-royal-khmer-wedding";
+    private static final String TEMPLATE_STATUS_ACTIVE = "ACTIVE";
     private static final List<TelegramAmountPattern> TELEGRAM_AMOUNT_PATTERNS = List.of(
             new TelegramAmountPattern(
                     Pattern.compile("\\b(USD|KHR)\\s*([0-9]+(?:\\.[0-9]{1,2})?)\\b", Pattern.CASE_INSENSITIVE),
@@ -634,7 +636,14 @@ public class TemplatePaymentService {
     }
 
     private void validateTemplateIfCatalogExists(Long templateId) {
-        if (templateRepository.count() > 0 && !templateRepository.existsById(templateId)) {
+        if (templateRepository.count() == 0) {
+            return;
+        }
+        boolean purchasable = templateRepository.findById(templateId)
+                .map(template -> KEEP_TEMPLATE_CODE.equalsIgnoreCase(template.getCode())
+                        && TEMPLATE_STATUS_ACTIVE.equalsIgnoreCase(template.getStatus()))
+                .orElse(false);
+        if (!purchasable) {
             throw new ApiException(HttpStatus.NOT_FOUND, "Template not found");
         }
     }

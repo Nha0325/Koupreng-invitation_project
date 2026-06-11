@@ -1,18 +1,14 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loading, ErrorState, Empty } from "../../components/States";
-import Toast from "../../components/Toast";
 import { useResource } from "../../hooks/useResource";
-import { useToast } from "../../hooks/useToast";
 import { formatDate } from "../../lib/format";
 import adminManagementService from "./adminManagementService";
 import "./AdminFeature.css";
 
 export default function AdminTemplatesPage() {
-  const { data, setData, loading, error, reload } = useResource(adminManagementService.templates);
+  const { data, loading, error, reload } = useResource(adminManagementService.templates);
   const [query, setQuery] = useState("");
-  const [busyId, setBusyId] = useState(null);
-  const { toast, show, clear } = useToast();
 
   const templates = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -24,51 +20,14 @@ export default function AdminTemplatesPage() {
     });
   }, [data, query]);
 
-  const replaceTemplate = (updated) => {
-    setData((current) => (current || []).map((item) => (item.id === updated.id ? updated : item)));
-  };
-
-  const runAction = async (template, action) => {
-    if (!window.confirm(`${action} template "${template.name}"?`)) return;
-    setBusyId(template.id);
-    try {
-      if (action === "delete") {
-        await adminManagementService.deleteTemplate(template.id);
-        setData((current) => (current || []).filter((item) => item.id !== template.id));
-      } else {
-        const updated = action === "activate"
-          ? await adminManagementService.activateTemplate(template.id)
-          : await adminManagementService.deactivateTemplate(template.id);
-        replaceTemplate(updated);
-      }
-      show("Template updated successfully");
-    } catch (err) {
-      show(err?.message || "Template action failed", "error");
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const togglePremium = async (template) => {
-    setBusyId(template.id);
-    try {
-      replaceTemplate(await adminManagementService.updateTemplatePremium(template.id, !template.premium));
-      show("Premium flag updated");
-    } catch (err) {
-      show(err?.message || "Premium update failed", "error");
-    } finally {
-      setBusyId(null);
-    }
-  };
-
   return (
     <div>
       <div className="page-head">
         <div>
           <h2 className="page-title">Templates</h2>
-          <p className="page-subtitle">Create, update, activate, deactivate, and mark premium templates.</p>
+          <p className="page-subtitle">Only the Garden Royal Khmer Wedding template is available. Creation is disabled to keep the catalog single-template.</p>
         </div>
-        <Link className="btn btn-primary" to="/admin/templates/new">New template</Link>
+        <Link className="btn btn-primary" to="/admin/templates">Single template mode</Link>
       </div>
 
       <section className="card">
@@ -92,15 +51,8 @@ export default function AdminTemplatesPage() {
                     <td>{formatDate(template.createdAt)}</td>
                     <td>
                       <div className="row-actions">
-                        <button type="button" className="btn btn-ghost btn-sm" disabled={busyId === template.id} onClick={() => togglePremium(template)}>
-                          {template.premium ? "Free" : "Premium"}
-                        </button>
-                        {template.status === "ACTIVE" ? (
-                          <button type="button" className="btn btn-danger btn-sm" disabled={busyId === template.id} onClick={() => runAction(template, "deactivate")}>Deactivate</button>
-                        ) : (
-                          <button type="button" className="btn btn-primary btn-sm" disabled={busyId === template.id} onClick={() => runAction(template, "activate")}>Activate</button>
-                        )}
-                        <button type="button" className="btn btn-danger btn-sm" disabled={busyId === template.id} onClick={() => runAction(template, "delete")}>Delete</button>
+                        <Link className="btn btn-ghost btn-sm" to={`/admin/templates/${template.id}`}>Edit</Link>
+                        <span className="badge badge-gray">Locked</span>
                       </div>
                     </td>
                   </tr>
@@ -110,7 +62,6 @@ export default function AdminTemplatesPage() {
           </div>
         )}
       </section>
-      <Toast toast={toast} onClose={clear} />
     </div>
   );
 }

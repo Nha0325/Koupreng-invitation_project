@@ -1,35 +1,59 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getTemplateById, TEMPLATES } from "../templates/data/templatesData";
+import { getTemplateById, KEEP_TEMPLATE_CODE } from "../templates/data/templatesData";
+import { templateCatalogService } from "../../shared/services/templateCatalogService";
 import { paymentService } from "./paymentService";
 import "./PaymentPages.css";
 
 const ABA_STATIC_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
 
-function numericTemplateId(templateId) {
-    const parsed = Number(templateId);
-    if (Number.isInteger(parsed) && parsed > 0) {
-        return parsed;
-    }
-    const index = TEMPLATES.findIndex((template) => template.id === templateId);
-    return index >= 0 ? index + 10 : 10;
-}
-
 export default function TemplateCheckoutPage() {
-    const { templateId } = useParams();
-    const template = getTemplateById(templateId);
+    const { templateId = KEEP_TEMPLATE_CODE } = useParams();
+    const template = getTemplateById(KEEP_TEMPLATE_CODE);
+    const [catalogTemplateId, setCatalogTemplateId] = useState(null);
+    const [catalogLoading, setCatalogLoading] = useState(true);
     const checkout = useMemo(() => ({
-        templateId: numericTemplateId(templateId),
+        templateId: catalogTemplateId,
         templateName: template?.name || "Khmer Wedding Gold",
         packageName: "Premium",
         amount: "0.01",
         currency: "USD",
-    }), [template, templateId]);
+    }), [catalogTemplateId, template]);
     const [lastOrder, setLastOrder] = useState(null);
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState("");
 
+    useEffect(() => {
+        let active = true;
+        setCatalogLoading(true);
+        templateCatalogService.list()
+            .then((templates) => {
+                if (!active) {
+                    return;
+                }
+                const keptTemplate = (templates || []).find((item) => item?.code === KEEP_TEMPLATE_CODE) || templates?.[0];
+                setCatalogTemplateId(keptTemplate?.id || null);
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load template catalog");
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setCatalogLoading(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
+
     const createOrder = async () => {
+        if (!checkout.templateId) {
+            setError("Template catalog is not available yet. Please refresh and try again.");
+            return;
+        }
         setCreating(true);
         setError("");
         setLastOrder(null);
@@ -62,7 +86,7 @@ export default function TemplateCheckoutPage() {
 
     return (
         <main className="payment-page">
-            <Link className="payment-back-link" to={`/templates/${templateId}`}>
+            <Link className="payment-back-link" to={`/templates/${KEEP_TEMPLATE_CODE}`}>
                 Back to template
             </Link>
             <section className="payment-hero">
@@ -79,8 +103,8 @@ export default function TemplateCheckoutPage() {
                     <p>{checkout.packageName}</p>
                     <strong>{checkout.currency} {checkout.amount}</strong>
                 </div>
-                <button type="button" className="payment-primary-btn" disabled={creating} onClick={createOrder}>
-                    {creating ? "Creating Order..." : "Buy Template"}
+                <button type="button" className="payment-primary-btn" disabled={creating || catalogLoading || !checkout.templateId} onClick={createOrder}>
+                    {creating ? "Creating Order..." : catalogLoading ? "Loading Template..." : "Buy Template"}
                 </button>
             </section>
 
