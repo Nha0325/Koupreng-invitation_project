@@ -3,14 +3,12 @@ package com.koupreng.backend.repository;
 import com.koupreng.backend.entity.payment.TemplateOrder;
 import com.koupreng.backend.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface TemplateOrderRepository extends JpaRepository<TemplateOrder, Long> {
 
     Optional<TemplateOrder> findByOrderCode(String orderCode);

@@ -3,12 +3,10 @@ package com.koupreng.backend.repository;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.enums.InvitationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface UserInvitationRepository extends JpaRepository<UserInvitation, Long> {
 
     Optional<UserInvitation> findByIdAndDeletedFalse(Long id);

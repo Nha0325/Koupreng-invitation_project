@@ -4,12 +4,10 @@ import com.koupreng.backend.entity.notification.Notification;
 import com.koupreng.backend.enums.NotificationStatus;
 import com.koupreng.backend.enums.NotificationType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
 
-@Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     List<Notification> findAllByOrderByCreatedAtDesc();

@@ -2,12 +2,10 @@ package com.koupreng.backend.repository;
 
 import com.koupreng.backend.entity.invitation.GuestSeatAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface GuestSeatAssignmentRepository extends JpaRepository<GuestSeatAssignment, Long> {
 
     List<GuestSeatAssignment> findByInvitationIdOrderByAssignedAtDesc(Long invitationId);
