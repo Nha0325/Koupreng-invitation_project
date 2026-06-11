@@ -5,7 +5,10 @@ const links = [
     { to: "/users", label: "អ្នកប្រើប្រាស់", icon: "👥" },
     { to: "/events", label: "ព្រឹត្តិការណ៍", icon: "🎉" },
     { to: "/invitations", label: "ធៀបការ", icon: "💌" },
+    { to: "/templates", label: "គំរូធៀបការ", icon: "🎨" },
+    { to: "/packages", label: "កញ្ចប់សេវាកម្ម", icon: "📦" },
     { to: "/payments", label: "ការទូទាត់", icon: "💳" },
+    { to: "/system-logs", label: "ប្រវត្តិប្រព័ន្ធ", icon: "📜" },
 ];
 
 export default function Sidebar() {

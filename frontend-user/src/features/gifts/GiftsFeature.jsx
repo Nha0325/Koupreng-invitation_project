@@ -27,6 +27,8 @@ import { listDrafts } from "../../services/weddingStorage";
 import { DatePicker } from "../../shared/ui/DatePicker";
 import { useClickOutside } from "../../shared/hooks/useClickOutside";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
+import { invitationService } from "../../shared/services/invitationService";
+import { planningService } from "../../shared/services/planningService";
 import "./GiftsFeature.css";
 
 
@@ -252,13 +254,51 @@ function GiftsFeature() {
     const [form, setForm] = useState({ name: "", amount: "", method: "Bakong QR", date: "", note: "" });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [backendInvitation, setBackendInvitation] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setGifts(listWeddingGifts([], eventId).map(normalizeGift));
-        setGuestOptions(listManualGuests(eventId));
-    }, [eventId]);
+        let active = true;
+        setLoading(true);
+        setError("");
 
-    // Removed backend loading hooks
+        invitationService.listMine()
+            .then(async (items) => {
+                if (!active) return;
+                const selected = items?.find(inv => String(inv.id) === String(currentDraft?.backendInvitationId || currentDraft?.id))
+                    || items?.find(inv => inv.status === "PUBLISHED")
+                    || items?.[0]
+                    || null;
+
+                setBackendInvitation(selected);
+                setGuestOptions(listManualGuests(eventId));
+
+                if (selected?.id) {
+                    const backendGifts = await planningService.listGifts(selected.id);
+                    if (active) {
+                        setGifts((backendGifts || []).map(normalizeGift));
+                    }
+                } else {
+                    if (active) {
+                        setGifts(listWeddingGifts([], eventId).map(normalizeGift));
+                    }
+                }
+            })
+            .catch((err) => {
+                if (active) {
+                    setError(err.message || "Could not load gifts from backend");
+                    setGifts(listWeddingGifts([], eventId).map(normalizeGift));
+                    setGuestOptions(listManualGuests(eventId));
+                }
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [eventId, currentDraft]);
 
     const total = gifts.reduce((sum, gift) => sum + (Number(gift.amount) || 0), 0);
     const average = gifts.length ? Math.round(total / gifts.length) : 0;
@@ -270,20 +310,31 @@ function GiftsFeature() {
 
     const resetForm = () => { setEditingId(null); setForm({ name: "", amount: "", method: "Bakong QR", date: "", note: "" }); setShowForm(false); };
 
-    const submitGift = (event) => {
+    const submitGift = async (event) => {
         event.preventDefault();
-        if (!form.name.trim() || !eventId) return;
+        if (!form.name.trim() || !eventId || saving) return;
         setSaving(true); setError("");
         try {
-            const nextGift = normalizeGift(toGiftPayload(form));
-            if (editingId) nextGift.id = editingId;
-            
-            const nextGifts = editingId
-                ? gifts.map((gift) => (gift.id === editingId ? nextGift : gift))
-                : [nextGift, ...gifts];
-            
-            setGifts(nextGifts);
-            saveWeddingGifts(nextGifts, eventId);
+            const payload = toGiftPayload(form);
+            if (backendInvitation?.id) {
+                if (editingId) {
+                    const updated = await planningService.updateGift(backendInvitation.id, editingId, payload);
+                    const normalized = normalizeGift(updated);
+                    setGifts((current) => current.map((g) => g.id === editingId ? normalized : g));
+                } else {
+                    const created = await planningService.createGift(backendInvitation.id, payload);
+                    const normalized = normalizeGift(created);
+                    setGifts((current) => [normalized, ...current]);
+                }
+            } else {
+                const nextGift = normalizeGift(payload);
+                if (editingId) nextGift.id = editingId;
+                const nextGifts = editingId
+                    ? gifts.map((gift) => (gift.id === editingId ? nextGift : gift))
+                    : [nextGift, ...gifts];
+                setGifts(nextGifts);
+                saveWeddingGifts(nextGifts, eventId);
+            }
             resetForm();
         } catch (err) {
             setError(err.message || "Could not save wedding gift");
@@ -298,14 +349,19 @@ function GiftsFeature() {
         setShowForm(true);
     };
 
-    const deleteGift = (giftId) => {
+    const deleteGift = async (giftId) => {
         if (!window.confirm(t("deleteConfirm"))) return;
-        if (!eventId) return;
+        if (!eventId || saving) return;
         setSaving(true); setError("");
         try {
-            const nextGifts = gifts.filter((gift) => gift.id !== giftId);
-            setGifts(nextGifts);
-            saveWeddingGifts(nextGifts, eventId);
+            if (backendInvitation?.id) {
+                await planningService.removeGift(backendInvitation.id, giftId);
+                setGifts((current) => current.filter((g) => g.id !== giftId));
+            } else {
+                const nextGifts = gifts.filter((gift) => gift.id !== giftId);
+                setGifts(nextGifts);
+                saveWeddingGifts(nextGifts, eventId);
+            }
         } catch (err) {
             setError(err.message || "Could not delete wedding gift");
         } finally {
