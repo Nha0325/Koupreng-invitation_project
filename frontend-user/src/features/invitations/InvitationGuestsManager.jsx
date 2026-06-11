@@ -173,12 +173,6 @@ export default function InvitationGuestsManager() {
     };
 
     const openQr = (guest) => {
-        const fullUrl = getFullQrUrl(guest);
-        console.log("=== QR CODE DEBUG ===");
-        console.log("Guest data:", guest);
-        console.log("Guest qrCodeUrl:", guest.qrCodeUrl);
-        console.log("Full QR URL:", fullUrl);
-        console.log("===================");
         setQrGuest(guest);
     };
 

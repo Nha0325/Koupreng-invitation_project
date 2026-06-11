@@ -24,9 +24,8 @@ import {
   getActiveEventId,
   listManualGuests,
   saveManualGuests,
-}
-
-from "../../services/hostPlanningStorage";
+} from "../../services/hostPlanningStorage";
+import { guestService } from "../../shared/services/guestService";
 import { invitationService } from "../../shared/services/invitationService";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import "./GuestsPage.css";
@@ -127,6 +126,27 @@ function normalizeManualGuest(guest) {
   };
 }
 
+function normalizeBackendGuest(guest) {
+  const name = guest.guestName || guest.name || "Guest";
+  return {
+    id: guest.id,
+    backendId: guest.id,
+    raw: guest,
+    name,
+    companionName: "",
+    phone: guest.phone === "-" ? "" : guest.phone || "",
+    group: guest.guestGroup || DEFAULT_GROUPS[0].name,
+    category: guest.sideType || DEFAULT_CATEGORIES[0].name,
+    sendStatus: guest.sendStatus || SEND_STATUS.pending,
+    count: Math.max(1, Number(guest.seatCount) || 1),
+    seat: guest.tableNumber || "",
+    note: guest.note || "",
+    inviteToken: guest.inviteToken || "",
+    qrCodeUrl: guest.qrCodeUrl || "",
+    source: "backend",
+  };
+}
+
 function toManualGuest(form, existingId) {
   return {
     id: existingId || createHostRecordId("guest"),
@@ -145,6 +165,47 @@ function toManualGuest(form, existingId) {
   };
 }
 
+function toBackendGuestPayload(form) {
+  return {
+    guestName: form.name.trim(),
+    phone: form.phone.trim() || null,
+    guestGroup: form.group || null,
+    sideType: form.category || null,
+    tableNumber: form.seat.trim() || null,
+    sendStatus: form.sendStatus || null,
+    seatCount: Math.max(1, Number(form.count) || 1),
+    note: form.note.trim() || null,
+  };
+}
+
+function backendPayloadFromGuest(guest, overrides = {}) {
+  return {
+    guestName: overrides.name ?? guest.name ?? guest.raw?.guestName,
+    phone: overrides.phone ?? guest.phone ?? guest.raw?.phone ?? null,
+    email: guest.raw?.email ?? null,
+    guestGroup: overrides.group ?? guest.group ?? guest.raw?.guestGroup ?? null,
+    sideType: overrides.category ?? guest.category ?? guest.raw?.sideType ?? null,
+    tableNumber: overrides.seat ?? guest.seat ?? guest.raw?.tableNumber ?? null,
+    sendStatus: overrides.sendStatus ?? guest.sendStatus ?? guest.raw?.sendStatus ?? null,
+    seatCount: overrides.count ?? Math.max(1, Number(guest.count) || Number(guest.raw?.seatCount) || 1),
+    note: overrides.note ?? guest.note ?? guest.raw?.note ?? null,
+    contributionStatus: guest.raw?.contributionStatus ?? null,
+    totalContributed: guest.raw?.totalContributed ?? null,
+  };
+}
+
+function pickBackendInvitation(invitations, draft) {
+  if (!invitations?.length) return null;
+
+  const draftId = draft?.backendInvitationId || draft?.invitationId || draft?.id;
+  return (
+    invitations.find((invitation) => String(invitation.id) === String(draftId)) ||
+    invitations.find((invitation) => invitation.slug && invitation.slug === draft?.slug) ||
+    invitations.find((invitation) => invitation.status === "PUBLISHED") ||
+    invitations[0]
+  );
+}
+
 function initials(name) {
   return (
     (name || "?")
@@ -158,6 +219,17 @@ function initials(name) {
 
 function guestInviteUrl(draft, guest, publicInvitation) {
   const base = typeof window === "undefined" ? "" : window.location.origin;
+
+  if (guest?.qrCodeUrl) {
+    if (!base) return guest.qrCodeUrl;
+    try {
+      const url = new URL(guest.qrCodeUrl, base);
+      return `${base}${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return guest.qrCodeUrl;
+    }
+  }
+
   const slug = publicInvitation?.slug || draft?.slug || draft?.id || "invitation";
   const token = guest?.inviteToken;
   const query = token ? `?token=${encodeURIComponent(token)}` : "";
@@ -497,25 +569,53 @@ export default function GuestsList() {
   const [qrGuest, setQrGuest] = useState(null);
   const [toast, setToast] = useState("");
   const [publicInvitation, setPublicInvitation] = useState(null);
+  const [backendInvitation, setBackendInvitation] = useState(null);
+  const [backendLoading, setBackendLoading] = useState(true);
+  const [backendError, setBackendError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
+    setBackendLoading(true);
+    setBackendError("");
+
     invitationService
-      .listMine("PUBLISHED")
-      .then((items) => {
+      .listMine()
+      .then(async (items) => {
+        if (!active) return;
+
+        const selectedInvitation = pickBackendInvitation(items || [], currentDraft);
+        setBackendInvitation(selectedInvitation);
+        setPublicInvitation(pickPublicInvitation(items || [], selectedInvitation || currentDraft));
+
+        if (!selectedInvitation?.id) {
+          setManualGuests(listManualGuests(eventId).map(normalizeManualGuest));
+          return;
+        }
+
+        const backendGuests = await guestService.listByInvitation(selectedInvitation.id);
         if (active) {
-          setPublicInvitation(pickPublicInvitation(items, currentDraft));
+          setManualGuests((backendGuests || []).map(normalizeBackendGuest));
         }
       })
-      .catch(() => {
+      .catch((err) => {
         if (active) {
+          setBackendInvitation(null);
           setPublicInvitation(null);
+          setBackendError(err.message || "Could not load guests from backend");
+          setManualGuests(listManualGuests(eventId).map(normalizeManualGuest));
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setBackendLoading(false);
         }
       });
+
     return () => {
       active = false;
     };
-  }, [currentDraft]);
+  }, [currentDraft, eventId]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -525,7 +625,9 @@ export default function GuestsList() {
 
   const rsvpGuests = useMemo(
     () =>
-      getResponsesForDraft(currentDraft).map((entry) => ({
+      backendInvitation
+        ? []
+        : getResponsesForDraft(currentDraft).map((entry) => ({
         id: entry.id,
         name: entry.name || entry.guestName || "RSVP Guest",
         companionName: "",
@@ -539,7 +641,7 @@ export default function GuestsList() {
         note: entry.message || "",
         source: "rsvp",
       })),
-    [currentDraft],
+    [backendInvitation, currentDraft],
   );
 
   const allGuests = useMemo(
@@ -581,7 +683,9 @@ export default function GuestsList() {
 
   const persistManualGuests = (nextGuests) => {
     setManualGuests(nextGuests);
-    saveManualGuests(nextGuests, eventId);
+    if (!backendInvitation?.id) {
+      saveManualGuests(nextGuests, eventId);
+    }
   };
 
   const updateForm = (field, value) => {
@@ -624,39 +728,96 @@ export default function GuestsList() {
     setManagerType(null);
   };
 
-  const submitGuest = (event) => {
+  const submitGuest = async (event) => {
     event.preventDefault();
-    if (!form.name.trim()) return;
+    if (!form.name.trim() || saving) return;
 
-    const nextGuest = toManualGuest(form, editingId);
-    const nextGuests = editingId
-      ? manualGuests.map((guest) =>
-        guest.id === editingId ? nextGuest : guest,
-      )
-      : [nextGuest, ...manualGuests];
+    setSaving(true);
+    try {
+      if (backendInvitation?.id) {
+        if (editingId) {
+          const updated = await guestService.updateForInvitation(
+            backendInvitation.id,
+            editingId,
+            toBackendGuestPayload(form),
+          );
+          setManualGuests((current) =>
+            current.map((guest) =>
+              guest.id === editingId ? normalizeBackendGuest(updated) : guest,
+            ),
+          );
+        } else {
+          const created = await guestService.createForInvitation(
+            backendInvitation.id,
+            toBackendGuestPayload(form),
+          );
+          setManualGuests((current) => [normalizeBackendGuest(created), ...current]);
+        }
+      } else {
+        const nextGuest = toManualGuest(form, editingId);
+        const nextGuests = editingId
+          ? manualGuests.map((guest) =>
+            guest.id === editingId ? nextGuest : guest,
+          )
+          : [nextGuest, ...manualGuests];
+        persistManualGuests(nextGuests);
+      }
 
-    persistManualGuests(nextGuests);
-    setToast(editingId ? t("toastUpdated") : t("toastAdded"));
-    closeGuestModal();
+      setToast(editingId ? t("toastUpdated") : t("toastAdded"));
+      closeGuestModal();
+    } catch (err) {
+      setToast(err.message || "Could not save guest");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const deleteGuest = (guestId) => {
-    const nextGuests = manualGuests.filter((guest) => guest.id !== guestId);
-    persistManualGuests(nextGuests);
-    setSelectedIds((current) => current.filter((id) => id !== guestId));
-    setMenuGuestId(null);
-    setToast(t("toastDeleted"));
+  const deleteGuest = async (guestId) => {
+    if (saving) return;
+
+    const target = manualGuests.find((guest) => guest.id === guestId);
+    setSaving(true);
+    try {
+      if (backendInvitation?.id && target?.source === "backend") {
+        await guestService.removeFromInvitation(backendInvitation.id, guestId);
+      }
+      const nextGuests = manualGuests.filter((guest) => guest.id !== guestId);
+      persistManualGuests(nextGuests);
+      setSelectedIds((current) => current.filter((id) => id !== guestId));
+      setMenuGuestId(null);
+      setToast(t("toastDeleted"));
+    } catch (err) {
+      setToast(err.message || "Could not delete guest");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const deleteSelectedGuests = () => {
-    if (!selectedIds.length) return;
+  const deleteSelectedGuests = async () => {
+    if (!selectedIds.length || saving) return;
+
     const selectedSet = new Set(selectedIds);
-    const nextGuests = manualGuests.filter(
-      (guest) => !selectedSet.has(guest.id),
-    );
-    persistManualGuests(nextGuests);
-    setSelectedIds([]);
-    setToast(t("toastDeleteSelected"));
+    const selectedGuests = manualGuests.filter((guest) => selectedSet.has(guest.id));
+    setSaving(true);
+    try {
+      if (backendInvitation?.id) {
+        await Promise.all(
+          selectedGuests
+            .filter((guest) => guest.source === "backend")
+            .map((guest) => guestService.removeFromInvitation(backendInvitation.id, guest.id)),
+        );
+      }
+      const nextGuests = manualGuests.filter(
+        (guest) => !selectedSet.has(guest.id),
+      );
+      persistManualGuests(nextGuests);
+      setSelectedIds([]);
+      setToast(t("toastDeleteSelected"));
+    } catch (err) {
+      setToast(err.message || "Could not delete selected guests");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleSelected = (guestId) => {
@@ -695,8 +856,26 @@ export default function GuestsList() {
     setManagerType(null);
   };
 
-  const markSent = (guest) => {
-    if (guest.source === "manual") {
+  const markSent = async (guest) => {
+    if (guest.source === "backend" && backendInvitation?.id) {
+      setSaving(true);
+      try {
+        const updated = await guestService.updateForInvitation(
+          backendInvitation.id,
+          guest.id,
+          backendPayloadFromGuest(guest, { sendStatus: SEND_STATUS.sent }),
+        );
+        setManualGuests((current) =>
+          current.map((item) =>
+            item.id === guest.id ? normalizeBackendGuest(updated) : item,
+          ),
+        );
+      } catch (err) {
+        setToast(err.message || "Could not update send status");
+      } finally {
+        setSaving(false);
+      }
+    } else if (guest.source === "manual") {
       const nextGuests = manualGuests.map((item) =>
         item.id === guest.id
           ? { ...item, sendStatus: SEND_STATUS.sent, updatedAt: Date.now() }
@@ -763,7 +942,7 @@ export default function GuestsList() {
             <h1>{t("title")}</h1>
             <p>
               <IoPeopleOutline aria-hidden="true" />
-              {allGuests.length}/{Math.max(20, allGuests.length)}
+              {backendLoading ? "..." : allGuests.length}/{Math.max(20, allGuests.length)}
             </p>
           </div>
           <div className="pe-title-stats">
@@ -771,6 +950,14 @@ export default function GuestsList() {
             <span>{t("sent", { count: sentCount })}</span>
           </div>
         </header>
+
+        {backendError && (
+          <div className="pe-empty" role="status">
+            <IoPeopleOutline aria-hidden="true" />
+            <strong>{backendError}</strong>
+            <span>Showing local guest data instead.</span>
+          </div>
+        )}
 
         <section className="pe-table-shell">
           <div className="pe-toolbar">
@@ -824,6 +1011,7 @@ export default function GuestsList() {
                 type="button"
                 className="pe-excel-btn"
                 onClick={() => alert("Upload Excel coming soon!")}
+                disabled={saving}
               >
                 <IoCloudUploadOutline aria-hidden="true" />
                 {t ? t("importExcel") || "បញ្ចូល Excel" : "បញ្ចូល Excel"}
@@ -832,6 +1020,7 @@ export default function GuestsList() {
                 type="button"
                 className="pe-excel-btn"
                 onClick={() => alert("Download coming soon!")}
+                disabled={saving}
               >
                 <IoDownloadOutline aria-hidden="true" />
                 {t ? t("Export") || "ទាញយក" : "ទាញយក"}
@@ -842,6 +1031,7 @@ export default function GuestsList() {
               type="button"
               className="pe-primary-btn"
               onClick={openCreateModal}
+              disabled={saving || backendLoading}
             >
               <IoAdd aria-hidden="true" />
               {t("addGuest")}
@@ -850,7 +1040,7 @@ export default function GuestsList() {
               type="button"
               className="pe-danger-soft"
               onClick={deleteSelectedGuests}
-              disabled={!selectedCount}
+              disabled={!selectedCount || saving}
             >
               <IoTrashOutline aria-hidden="true" />
               {t("delete")}
@@ -1162,7 +1352,7 @@ export default function GuestsList() {
                 <IoClose aria-hidden="true" />
                 {t("cancel")}
               </button>
-              <button type="submit" className="pe-primary-btn">
+              <button type="submit" className="pe-primary-btn" disabled={saving}>
                 <IoCheckmark aria-hidden="true" />
                 {t("submit")}
               </button>

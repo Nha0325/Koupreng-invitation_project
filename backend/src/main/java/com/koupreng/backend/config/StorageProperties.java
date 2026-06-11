@@ -44,7 +44,7 @@ public class StorageProperties {
         private String uploadDir = "uploads";
 
         @NotBlank
-        private String publicBaseUrl = "http://localhost:8080/uploads";
+        private String publicBaseUrl = "/uploads";
 
         public String getUploadDir() {
             return uploadDir;

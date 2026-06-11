@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@app/*": ["src/app/*"],
-      "@features/*": ["src/features/*"],
-      "@shared/*": ["src/shared/*"],
-      "@pages/*": ["src/pages/*"],
-      "@assets/*": ["src/assets/*"]
+      "@/*": ["./src/*"],
+      "@app/*": ["./src/app/*"],
+      "@features/*": ["./src/features/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@assets/*": ["./src/assets/*"]
     }
   },
   "include": ["src"]

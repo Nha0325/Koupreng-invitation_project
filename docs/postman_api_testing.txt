@@ -2,10 +2,10 @@ Koupreng API Postman Testing Guide
 Generated for local testing only.
 
 Base URL:
-  {{baseUrl}} = http://localhost:8080
+  {{baseUrl}} = http://<backend-host>:8080
 
 Recommended Postman environment variables:
-  baseUrl = http://localhost:8080
+  baseUrl = http://<backend-host>:8080
   accessToken = paste token from register/login/google/telegram response
   adminToken = paste token for a user with role ADMIN
   adminPaymentSecret = value from local ADMIN_PAYMENT_SECRET env only

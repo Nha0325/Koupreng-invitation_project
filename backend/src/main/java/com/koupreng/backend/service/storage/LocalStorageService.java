@@ -85,7 +85,7 @@ public class LocalStorageService implements StorageService {
 
     private String trimTrailingSlash(String value) {
         if (value == null || value.isBlank()) {
-            return "http://localhost:8080/uploads";
+            return "/uploads";
         }
         return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
     }

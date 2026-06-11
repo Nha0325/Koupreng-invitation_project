@@ -56,7 +56,7 @@ Generate React Router code for frontend-admin.  Routes needed: - /login = LoginP
 
 Prompt 7 — Create API Client for React
 
-Create a reusable API client for React.  File: src/services/api/client.js  Requirements: - Use fetch - Base URL from import.meta.env.VITE_API_URL - Default fallback: http://localhost:8080/api - Support GET, POST, PUT, PATCH, DELETE - Automatically send JSON body - Automatically attach Bearer token from auth storage - Support FormData without setting Content-Type manually - Throw custom ApiError on non-2xx response - Return parsed JSON response - Include clean comments  Also create: src/services/api/errors.js  Output full code.
+Create a reusable API client for React.  File: src/services/api/client.js  Requirements: - Use fetch - Base URL from import.meta.env.VITE_API_URL - Default fallback: /api - Support GET, POST, PUT, PATCH, DELETE - Automatically send JSON body - Automatically attach Bearer token from auth storage - Support FormData without setting Content-Type manually - Throw custom ApiError on non-2xx response - Return parsed JSON response - Include clean comments  Also create: src/services/api/errors.js  Output full code.
 
 Prompt 8 — Create Zustand Auth Store
 
@@ -104,4 +104,4 @@ You are a senior Spring Boot backend architect.  Create a clean backend structur
 
 Prompt 19 — Backend Endpoint Contract
 
-Create API contract for Koupreng invitation project.  Frontend apps: - frontend-user - frontend-admin  Backend base URL: http://localhost:8080/api  Create endpoints for: Auth: - register - login - logout - google login - telegram login  User: - profile - update profile  Events: - create event - list my events - update event - delete event  Guests: - create guest - import guests - list guests - update guest - delete guest  Invitation: - create invitation - publish invitation - get public invitation by slug - update invitation  RSVP: - submit RSVP - list RSVPs by event  Admin: - dashboard stats - users - events - invitations - templates - payments - logs  Output: 1. REST endpoint table 2. Method + URL 3. Request body example 4. Response body example 5. Which frontend uses it
+Create API contract for Koupreng invitation project.  Frontend apps: - frontend-user - frontend-admin  Backend base URL: /api  Create endpoints for: Auth: - register - login - logout - google login - telegram login  User: - profile - update profile  Events: - create event - list my events - update event - delete event  Guests: - create guest - import guests - list guests - update guest - delete guest  Invitation: - create invitation - publish invitation - get public invitation by slug - update invitation  RSVP: - submit RSVP - list RSVPs by event  Admin: - dashboard stats - users - events - invitations - templates - payments - logs  Output: 1. REST endpoint table 2. Method + URL 3. Request body example 4. Response body example 5. Which frontend uses it

@@ -19,7 +19,7 @@ function galleryForm(files, sortOrder) {
 export const mediaService = {
     list: (invitationId) => api.get(`/v1/invitations/${invitationId}/media`).then(unwrap),
     publicBySlug: (slug, token) => api
-        .get(`/v1/public/invitations/${encodeURIComponent(slug)}/media${toQuery({ token })}`, { auth: false })
+        .get(`/v1/public/invitations/${encodeURIComponent(slug)}/media${toQuery({ token })}`, { skipAuth: true })
         .then(unwrap),
     uploadCover: (invitationId, file) => api
         .post(`/v1/invitations/${invitationId}/media/cover`, fileForm(file))

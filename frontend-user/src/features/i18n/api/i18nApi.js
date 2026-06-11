@@ -6,7 +6,7 @@ export const i18nService = {
     api
       .get(
         `/v1/i18n/messages?namespace=${encodeURIComponent(namespace)}&lang=${lang}`,
-        { auth: false }
+        { skipAuth: true }
       )
       .then(unwrap),
 };

@@ -25,13 +25,10 @@ apiClient.interceptors.request.use(
         
         config.headers["Accept-Language"] = getLang();
         
-        const skipAuth = config.skipAuth || config.auth === false;
+        const skipAuth = config.skipAuth === true;
         
         if (config.skipAuth !== undefined) {
             delete config.skipAuth;
-        }
-        if (config.auth !== undefined) {
-            delete config.auth;
         }
         
         if (!skipAuth && !useCookieAuth && token) {
@@ -71,4 +68,3 @@ export const api = {
 };
 
 export default api;
-

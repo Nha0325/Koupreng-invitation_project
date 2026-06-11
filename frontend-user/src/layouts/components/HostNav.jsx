@@ -32,6 +32,19 @@ const LANGUAGE_OPTIONS = [
   { code: "km", label: "ភាសាខ្មែរ", buttonLabel: "ភាសាខ្មែរ", flag: "kh", htmlLang: "km" },
 ];
 
+function toAppRelativeUploadUrl(value) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    if (url.pathname.startsWith("/uploads/")) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    // Relative paths can be used as-is.
+  }
+  return value;
+}
+
 export default function HostNav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,13 +62,8 @@ export default function HostNav() {
     || user?.name?.trim()
     || user?.email?.split("@")[0]
     || navText("accountFallback") || "គណនី";
-  let rawProfileImage = user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || "";
-  if (rawProfileImage.startsWith("http://localhost:8080")) {
-    rawProfileImage = rawProfileImage.replace("http://localhost:8080", "");
-  } else if (rawProfileImage.startsWith("http://127.0.0.1:8080")) {
-    rawProfileImage = rawProfileImage.replace("http://127.0.0.1:8080", "");
-  }
-  const profileImage = rawProfileImage;
+  const rawProfileImage = user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || "";
+  const profileImage = toAppRelativeUploadUrl(rawProfileImage);
   const profileInitial = displayName.charAt(0)?.toUpperCase() || "K";
 
   useEffect(() => {

@@ -12,7 +12,7 @@ export const invitationService = {
     unpublish: (id) => api.patch(`/v1/invitations/${id}/unpublish`).then(unwrap),
     preview: (id) => api.get(`/v1/invitations/${id}/preview`).then(unwrap),
     publicBySlug: (slug, token) => api
-        .get(`/v1/public/invitations/${encodeURIComponent(slug)}${toQuery({ token })}`, { auth: false })
+        .get(`/v1/public/invitations/${encodeURIComponent(slug)}${toQuery({ token })}`, { skipAuth: true })
         .then(unwrap),
 };
 

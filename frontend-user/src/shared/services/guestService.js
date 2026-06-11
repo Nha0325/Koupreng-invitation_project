@@ -16,6 +16,18 @@ export const guestService = {
     importForInvitation: (invitationId, guests) => api
         .post(`/v1/invitations/${invitationId}/guests/import`, { guests })
         .then(unwrap),
+    checkInSummary: (invitationId) => api
+        .get(`/v1/invitations/${invitationId}/check-in/summary`)
+        .then(unwrap),
+    checkInList: (invitationId) => api
+        .get(`/v1/invitations/${invitationId}/check-in/list`)
+        .then(unwrap),
+    scanCheckIn: (invitationId, token, note) => api
+        .post(`/v1/invitations/${invitationId}/check-in/scan`, { token, note })
+        .then(unwrap),
+    manualCheckIn: (invitationId, guestId, note) => api
+        .post(`/v1/invitations/${invitationId}/guests/${guestId}/check-in`, { note })
+        .then(unwrap),
 };
 
 export default guestService;

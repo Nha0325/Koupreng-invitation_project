@@ -1,6 +1,6 @@
 # Koupreng Backend API — Test Report
 
-- **Base URL:** `http://localhost:8080`
+- **Base URL:** `${BASE_URL}`
 - **Tested:** 2026-05-31, against the live running backend (`./mvnw spring-boot:run`)
 - **Auth model:** JWT Bearer token. Obtain a token from `POST /api/auth/register` or `POST /api/auth/login`, then send `Authorization: Bearer <accessToken>` on protected routes. The token is also set as an HTTP-only cookie.
 
@@ -8,12 +8,12 @@
 
 ```bash
 # Register (returns accessToken)
-curl -X POST http://localhost:8080/api/auth/register \
+curl -X POST ${BASE_URL}/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"fullName":"Tester","email":"tester@example.com","phone":"012345678","password":"Test@1234"}'
 
 # Login (identifier can be email OR phone)
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST ${BASE_URL}/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"identifier":"tester@example.com","password":"Test@1234"}'
 ```
@@ -66,7 +66,7 @@ Legend: ✅ working as expected · ⚠️ expected non-2xx (validation/auth/conf
 
 ### 1. Health
 ```bash
-curl http://localhost:8080/api/health
+curl ${BASE_URL}/api/health
 ```
 ```json
 {"status":"OK","service":"Spring Boot Backend"}
@@ -74,7 +74,7 @@ curl http://localhost:8080/api/health
 
 ### 2–3. Auth — Register / Login
 ```bash
-curl -X POST http://localhost:8080/api/auth/register -H "Content-Type: application/json" \
+curl -X POST ${BASE_URL}/api/auth/register -H "Content-Type: application/json" \
   -d '{"fullName":"Tester","email":"tester@example.com","phone":"012345678","password":"Test@1234"}'
 ```
 ```json
@@ -95,13 +95,13 @@ curl -X POST http://localhost:8080/api/auth/register -H "Content-Type: applicati
 ### 5–7. User profile
 ```bash
 # no token -> 401
-curl -i http://localhost:8080/api/users/me
+curl -i ${BASE_URL}/api/users/me
 
 # with token
-curl http://localhost:8080/api/users/me -H "Authorization: Bearer $TOKEN"
+curl ${BASE_URL}/api/users/me -H "Authorization: Bearer $TOKEN"
 
 # update name
-curl -X PATCH http://localhost:8080/api/users/me -H "Authorization: Bearer $TOKEN" \
+curl -X PATCH ${BASE_URL}/api/users/me -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" -d '{"fullName":"Tester Updated"}'
 ```
 ```json
@@ -110,7 +110,7 @@ curl -X PATCH http://localhost:8080/api/users/me -H "Authorization: Bearer $TOKE
 
 ### 8–12. Events  ❌ (broken — see Issues)
 ```bash
-curl -X POST http://localhost:8080/api/v1/events -H "Authorization: Bearer $TOKEN" \
+curl -X POST ${BASE_URL}/api/v1/events -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"eventName":"My Wedding","templateType":"WEDDING","groom":"A","bride":"B","eventDate":"2026-12-01","location":"Phnom Penh"}'
 ```
@@ -122,7 +122,7 @@ curl -X POST http://localhost:8080/api/v1/events -H "Authorization: Bearer $TOKE
 
 ### 13–17. Invitations  ✅
 ```bash
-curl -X POST http://localhost:8080/api/v1/invitations -H "Authorization: Bearer $TOKEN" \
+curl -X POST ${BASE_URL}/api/v1/invitations -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Our Wedding","eventType":"WEDDING","eventDate":"2026-12-01","venueName":"Grand Hall","hostName":"A & B"}'
 ```
@@ -143,7 +143,7 @@ curl -X POST http://localhost:8080/api/v1/invitations -H "Authorization: Bearer 
 
 ### 18–20. Guests  ✅
 ```bash
-curl -X POST http://localhost:8080/api/v1/invitations/1/guests -H "Authorization: Bearer $TOKEN" \
+curl -X POST ${BASE_URL}/api/v1/invitations/1/guests -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" -d '{"guestName":"John Doe","phone":"012999888","guestGroup":"Friends"}'
 ```
 ```json
@@ -157,7 +157,7 @@ curl -X POST http://localhost:8080/api/v1/invitations/1/guests -H "Authorization
 
 ### 21–22. RSVP  ✅
 ```bash
-curl http://localhost:8080/api/v1/invitations/1/rsvps/summary -H "Authorization: Bearer $TOKEN"
+curl ${BASE_URL}/api/v1/invitations/1/rsvps/summary -H "Authorization: Bearer $TOKEN"
 ```
 ```json
 {"success":true,"data":{"totalGuests":1,"attending":0,"notAttending":0,"maybe":0,"pending":1,"totalAttendeeCount":0}}
@@ -168,7 +168,7 @@ curl http://localhost:8080/api/v1/invitations/1/rsvps/summary -H "Authorization:
 
 ### 23. Media  ✅
 ```bash
-curl http://localhost:8080/api/v1/invitations/1/media -H "Authorization: Bearer $TOKEN"
+curl ${BASE_URL}/api/v1/invitations/1/media -H "Authorization: Bearer $TOKEN"
 ```
 ```json
 {"success":true,"data":{"coverImage":null,"galleryImages":[],"video":null,"backgroundMusic":null,"all":[]}}
@@ -180,7 +180,7 @@ curl http://localhost:8080/api/v1/invitations/1/media -H "Authorization: Bearer 
 
 ### 24. Templates  ❌
 ```bash
-curl http://localhost:8080/api/invitations/templates
+curl ${BASE_URL}/api/invitations/templates
 ```
 ```json
 {"status":404,"error":"Not Found","message":"Resource not found"}
@@ -189,7 +189,7 @@ curl http://localhost:8080/api/invitations/templates
 
 ### 25–29. Template payments (ABA PayWay)
 ```bash
-curl -X POST http://localhost:8080/api/v1/template-payments/payway/create -H "Authorization: Bearer $TOKEN" \
+curl -X POST ${BASE_URL}/api/v1/template-payments/payway/create -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"templateId":1,"templateName":"Royal","packageName":"Premium","amount":9.99,"currency":"USD"}'
 ```
@@ -216,7 +216,7 @@ Then log in again to get a fresh token with the admin role.
 
 ### 33. Logout
 ```bash
-curl -X POST http://localhost:8080/api/auth/logout -H "Authorization: Bearer $TOKEN"
+curl -X POST ${BASE_URL}/api/auth/logout -H "Authorization: Bearer $TOKEN"
 ```
 ```json
 {"message":"Logged out"}
