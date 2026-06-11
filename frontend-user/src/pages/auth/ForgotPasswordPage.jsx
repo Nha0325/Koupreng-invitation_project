@@ -1,6 +1,7 @@
 import { useId, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useToggle } from "../../shared/hooks/useToggle";
+import authService from "../../services/remote/authService";
 import "./AuthPage.css";
 
 /* ── Eye icon ── */
@@ -18,13 +19,15 @@ function EyeIcon({ open }) {
 }
 
 /* ── Step 1 — Email/Phone ── */
-function StepEmail({ onNext }) {
+function StepEmail({ onNext, loading }) {
   const emailId = useId();
   const [identifier, setIdentifier] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (identifier.trim()) onNext(identifier.trim());
+    if (identifier.trim()) {
+      await onNext(identifier.trim());
+    }
   };
 
   return (
@@ -42,10 +45,10 @@ function StepEmail({ onNext }) {
           required
           className="auth-input"
         />
-        <p className="auth-hint">យើងនឹងផ្ញើ OTP ៦ ខ្ទង់ទៅកាន់អ្នក</p>
+        <p className="auth-hint">យើងនឹងផ្ញើតំណ ឬ Reset Token ទៅកាន់អ្នក</p>
       </div>
-      <button type="submit" className="auth-submit">
-        ផ្ញើ OTP
+      <button type="submit" className="auth-submit" disabled={loading}>
+        {loading ? "កំពុងផ្ញើ..." : "ផ្ញើតំណកំណត់លេខសម្ងាត់"}
       </button>
     </form>
   );
@@ -176,7 +179,7 @@ function StepNewPassword({ onDone }) {
 }
 
 /* ── Step 4 — Success ── */
-function StepSuccess() {
+function StepSuccess({ message }) {
   return (
     <div className="auth-success">
       <div className="auth-success-icon">
@@ -186,10 +189,10 @@ function StepSuccess() {
       </div>
       <div>
         <h2>ជោគជ័យ!</h2>
-        <p>លេខសម្ងាត់ត្រូវបានកំណត់ឡើងវិញដោយជោគជ័យ</p>
+        <p>{message || "បើគណនីមាន ព័ត៌មានកំណត់លេខសម្ងាត់ត្រូវបានផ្ញើរួចហើយ"}</p>
       </div>
-      <Link to="/login" className="auth-submit" style={{ display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", marginTop: "4px" }}>
-        ចូលគណនី
+      <Link to="/reset-password" className="auth-submit" style={{ display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", marginTop: "4px" }}>
+        បញ្ចូល Reset Token
       </Link>
     </div>
   );
@@ -198,12 +201,12 @@ function StepSuccess() {
 /* ── Step config ── */
 const STEPS = [
   { num: 1, label: "អ៊ីមែល" },
-  { num: 2, label: "OTP" },
+  { num: 2, label: "Token" },
   { num: 3, label: "លេខសម្ងាត់" },
 ];
 
 const STEP_META = {
-  1: { title: "ភ្លេចលេខសម្ងាត់", sub: "បញ្ចូលអ៊ីមែល ឬ លេខទូរស័ព្ទ ដើម្បីទទួល OTP" },
+  1: { title: "ភ្លេចលេខសម្ងាត់", sub: "បញ្ចូលអ៊ីមែល ឬ លេខទូរស័ព្ទ ដើម្បីទទួលតំណកំណត់លេខសម្ងាត់" },
   2: { title: "បញ្ចូល OTP", sub: "OTP ៦ ខ្ទង់ត្រូវបានផ្ញើទៅអ្នក" },
   3: { title: "លេខសម្ងាត់ថ្មី", sub: "កំណត់លេខសម្ងាត់ថ្មីរបស់អ្នក" },
   4: { title: "រួចរាល់", sub: "" },
@@ -213,8 +216,27 @@ const STEP_META = {
 function ForgotPassword() {
   const [step, setStep] = useState(1);
   const [identifier, setIdentifier] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const meta = STEP_META[step];
+
+  const requestReset = async (id) => {
+    setIdentifier(id);
+    setError("");
+    setMessage("");
+    setLoading(true);
+    try {
+      const response = await authService.forgotPassword(id);
+      setMessage(response?.message || "If the account exists, password reset instructions will be sent.");
+      setStep(4);
+    } catch (err) {
+      setError(err.message || "Could not request password reset.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -230,6 +252,9 @@ function ForgotPassword() {
           <h1 className="auth-title">{meta.title}</h1>
           {meta.sub && <p className="auth-subtitle">{meta.sub}</p>}
         </div>
+
+        {error && <p className="auth-error">{error}</p>}
+        {message && step !== 4 && <p className="auth-success-text">{message}</p>}
 
         {/* Step indicator */}
         {step <= 3 && (
@@ -252,10 +277,10 @@ function ForgotPassword() {
         )}
 
         {/* Step content */}
-        {step === 1 && <StepEmail onNext={(id) => { setIdentifier(id); setStep(2); }} />}
+        {step === 1 && <StepEmail onNext={requestReset} loading={loading} />}
         {step === 2 && <StepOTP identifier={identifier} onNext={() => setStep(3)} onResend={() => { }} />}
         {step === 3 && <StepNewPassword onDone={() => setStep(4)} />}
-        {step === 4 && <StepSuccess />}
+        {step === 4 && <StepSuccess message={message} />}
 
         {/* Back */}
         {step < 4 && (
