@@ -2,7 +2,81 @@
   "hash": "c85da74e",
   "configHash": "db817487",
   "lockfileHash": "9fe576d6",
-  "browserHash": "a8216c5e",
-  "optimized": {},
-  "chunks": {}
+  "browserHash": "6dbfea5d",
+  "optimized": {
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "a79c5363",
+      "needsInterop": false
+    },
+    "framer-motion": {
+      "src": "../../node_modules/framer-motion/dist/es/index.mjs",
+      "file": "framer-motion.js",
+      "fileHash": "57aff799",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "f50c1cb3",
+      "needsInterop": true
+    },
+    "react-icons/fi": {
+      "src": "../../node_modules/react-icons/fi/index.mjs",
+      "file": "react-icons_fi.js",
+      "fileHash": "75f47b34",
+      "needsInterop": false
+    },
+    "react-icons/io5": {
+      "src": "../../node_modules/react-icons/io5/index.mjs",
+      "file": "react-icons_io5.js",
+      "fileHash": "9c401e4b",
+      "needsInterop": false
+    },
+    "react-qr-code": {
+      "src": "../../node_modules/react-qr-code/lib/index.js",
+      "file": "react-qr-code.js",
+      "fileHash": "d0ba55d9",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "010978ab",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "b1c299bd",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "0994724e",
+      "needsInterop": true
+    },
+    "zustand": {
+      "src": "../../node_modules/zustand/esm/index.mjs",
+      "file": "zustand.js",
+      "fileHash": "e1763978",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-CYJPkc-J": {
+      "file": "chunk-CYJPkc-J.js",
+      "isDynamicEntry": false
+    },
+    "iconBase-QQaxLzB9": {
+      "file": "iconBase-QQaxLzB9.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-BjO_yoAX": {
+      "file": "react-dom-BjO_yoAX.js",
+      "isDynamicEntry": false
+    }
+  }
 }
