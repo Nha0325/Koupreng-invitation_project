@@ -63,15 +63,14 @@ public class LocaleConfig {
         if (tag == null || tag.isBlank()) {
             return Locale.forLanguageTag("km");
         }
-        switch (tag.trim().toLowerCase()) {
-            case "en":
-                return Locale.ENGLISH;
-            case "km":
-                return Locale.forLanguageTag("km");
-            default:
+        return switch (tag.trim().toLowerCase()) {
+            case "en" -> Locale.ENGLISH;
+            case "km" -> Locale.forLanguageTag("km");
+            default -> {
                 Locale locale = Locale.forLanguageTag(tag.trim());
-                return "und".equals(locale.toLanguageTag()) ? Locale.forLanguageTag("km") : locale;
-        }
+                yield "und".equals(locale.toLanguageTag()) ? Locale.forLanguageTag("km") : locale;
+            }
+        };
     }
 
     private static List<Locale> parseSupportedLocales(String tags, Locale defaultLocale) {
@@ -100,15 +99,14 @@ public class LocaleConfig {
         if (tag == null || tag.isBlank()) {
             return null;
         }
-        switch (tag.toLowerCase()) {
-            case "en":
-                return Locale.ENGLISH;
-            case "km":
-                return Locale.forLanguageTag("km");
-            default:
+        return switch (tag.toLowerCase()) {
+            case "en" -> Locale.ENGLISH;
+            case "km" -> Locale.forLanguageTag("km");
+            default -> {
                 Locale locale = Locale.forLanguageTag(tag);
-                return "und".equals(locale.toLanguageTag()) ? null : locale;
-        }
+                yield "und".equals(locale.toLanguageTag()) ? null : locale;
+            }
+        };
     }
 
     private static String[] parseMessageBasenames(String basename) {

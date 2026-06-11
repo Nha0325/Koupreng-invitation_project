@@ -576,8 +576,12 @@ export default function GuestsList() {
 
   useEffect(() => {
     let active = true;
-    setBackendLoading(true);
-    setBackendError("");
+    Promise.resolve().then(() => {
+      if (active) {
+        setBackendLoading(true);
+        setBackendError("");
+      }
+    });
 
     invitationService
       .listMine()

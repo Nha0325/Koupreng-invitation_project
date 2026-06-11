@@ -7,7 +7,6 @@ import {
   IoChevronDownOutline,
   IoColorPaletteOutline,
   IoGiftOutline,
-  IoGlobeOutline,
   IoGridOutline,
   IoLogOutOutline,
   IoPeopleOutline,
