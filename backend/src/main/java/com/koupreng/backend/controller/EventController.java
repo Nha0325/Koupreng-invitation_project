@@ -6,6 +6,7 @@ import com.koupreng.backend.dto.EventResponse;
 import com.koupreng.backend.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/events")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class EventController {
 
     private final EventService eventService;

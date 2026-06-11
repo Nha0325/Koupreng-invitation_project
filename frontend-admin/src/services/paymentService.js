@@ -5,11 +5,11 @@ function unwrap(res) {
 }
 
 /**
- * Admin payment reporting — backed by /api/v1/admin/template-payments (ROLE_ADMIN only).
+ * Admin payment reporting — backed by /api/v1/admin/payments (ROLE_ADMIN only).
  */
 export const paymentService = {
-    /** GET /v1/admin/template-payments — all template payment orders */
-    listOrders: () => api.get("/v1/admin/template-payments").then(unwrap),
+    /** GET /v1/admin/payments — all template and subscription payment orders */
+    listOrders: () => api.get("/v1/admin/payments").then(unwrap),
 };
 
 export default paymentService;
