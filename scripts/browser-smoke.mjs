@@ -152,8 +152,8 @@ function inspectDom(dom) {
 async function main() {
   const chrome = findChrome();
   const previews = [
-    startPreview("frontend-user", userPort),
-    startPreview("frontend-admin", adminPort),
+    startPreview("apps/frontend-user", userPort),
+    startPreview("apps/frontend-admin", adminPort),
   ];
   try {
     await Promise.all([waitForPreview(userPort), waitForPreview(adminPort)]);

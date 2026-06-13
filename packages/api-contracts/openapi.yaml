@@ -1,0 +1,147 @@
+openapi: 3.0.3
+info:
+  title: Koupreng API
+  version: 0.1.0
+  description: Verified route skeleton from Spring controller annotations. Schemas are incomplete where DTO details were not fully mapped.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/auth/login:
+    post:
+      summary: Login
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+  /api/auth/register:
+    post:
+      summary: Register
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+  /api/v1/invitations:
+    post:
+      summary: Create invitation
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Insufficient data to verify response schema.
+  /api/v1/invitations/my:
+    get:
+      summary: List current user's invitations
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+  /api/v1/invitations/{invitationId}:
+    get:
+      summary: Get invitation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+    put:
+      summary: Update invitation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+    delete:
+      summary: Delete invitation and invitation-scoped child data
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Invitation deleted successfully.
+  /api/v1/invitations/{invitationId}/guests:
+    get:
+      summary: List guests
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+    post:
+      summary: Create guest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "201":
+          description: Insufficient data to verify response schema.
+  /api/v1/invitations/{invitationId}/budget:
+    get:
+      summary: Get invitation budget
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+    put:
+      summary: Update invitation budget
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+  /api/v1/invitations/{invitationId}/gifts:
+    get:
+      summary: List wedding gifts
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+    post:
+      summary: Create wedding gift
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/invitationId"
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+  /api/v1/public/invitations/{slug}:
+    get:
+      summary: Get public invitation
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Insufficient data to verify response schema.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    invitationId:
+      name: invitationId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64

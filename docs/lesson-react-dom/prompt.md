@@ -64,7 +64,7 @@ Create a Zustand auth store for frontend-user.  File: src/stores/useAuthStore.js
 
 Prompt 9 — Create Admin Auth Context
 
-Create admin authentication system for frontend-admin.  Files: src/auth/AuthContext.jsx src/auth/RequireAuth.jsx src/lib/authStorage.js src/services/authService.js  Requirements: - Admin login with identifier and password - Call POST /auth/login - Only allow user.role === "ADMIN" - Store accessToken, tokenType, expiresAt, user - Save session to localStorage - logout clears localStorage and calls POST /auth/logout - RequireAuth redirects unauthenticated users to /login - If authenticated, render children - Use React Context + custom useAuth hook  Output full code for all files.
+Create admin authentication system for frontend-admin.  Files: src/app/providers/AdminAuthProvider.jsx src/app/guards/RequireAdmin.jsx src/lib/authStorage.js src/services/authService.js  Requirements: - Admin login with identifier and password - Call POST /auth/login - Only allow user.role === "ADMIN" - Store accessToken, tokenType, expiresAt, user - Save session to sessionStorage - logout clears sessionStorage and calls POST /auth/logout - RequireAdmin redirects unauthenticated users to /login - If authenticated, render children - Use React Context + custom useAuth hook  Output full code for all files.
 
 Prompt 10 — Create Wedding Builder Feature
 

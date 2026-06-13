@@ -1,0 +1,33 @@
+import { BrowserRouter as Router } from "react-router-dom";
+import AppRouter from "./router";
+import ScrollToTop from "./ScrollToTop";
+import AuthProvider from "./providers/AuthProvider";
+import QueryProvider from "./providers/QueryProvider";
+import ThemeProvider from "./providers/ThemeProvider";
+import SiteAnimations from "../shared/animations/SiteAnimations";
+import ChatBot from "../shared/ui/ChatBot";
+
+/**
+ * App — root component.
+ * No more Context providers needed — auth/theme are Zustand stores now.
+ */
+function App() {
+  return (
+    <AuthProvider>
+      <QueryProvider>
+        <ThemeProvider>
+          <Router>
+            <ScrollToTop />
+            <SiteAnimations />
+            <div className="app-container">
+              <AppRouter />
+            </div>
+            <ChatBot />
+          </Router>
+        </ThemeProvider>
+      </QueryProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;

@@ -1102,18 +1102,18 @@ Useful Local Commands
 ============================================================
 
 Run backend:
-  cd backend
+  cd apps/backend
   .\mvnw.cmd spring-boot:run
 
 Run backend tests:
-  cd backend
+  cd apps/backend
   .\mvnw.cmd test
 
 Run frontend user:
-  cd frontend-user
+  cd apps/frontend-user
   npm run dev
 
 Run frontend user checks:
-  cd frontend-user
+  cd apps/frontend-user
   npm run lint
   npm run build

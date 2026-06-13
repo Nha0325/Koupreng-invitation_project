@@ -1,10 +1,10 @@
+# 
 .agents
-
+.continue
 # IDE
 .cursor
 .windsurf
 .kiro
-.github
 .idea/
 .vscode/
 
@@ -18,14 +18,15 @@ credential_info.txt
 .env
 .env.local
 .env.*.local
-backend/.env
-frontend-user/.env.local
-frontend-admin/.env.local
+apps/backend/.env
+apps/frontend-user/.env.local
+apps/frontend-admin/.env.local
 **/.env
 **/.env.local
 **/.env.*.local
 !.env.example
 !**/.env.example
+
 
 # Dependencies and build output
 node_modules/
@@ -41,14 +42,14 @@ logs/
 
 # Local media uploads
 uploads/
-backend/uploads/
+apps/backend/uploads/
 
 # Python
 __pycache__/
 *.py[cod]
 .venv/
-telegram-bot/.venv/
-telegram-bot/main.py
-telegram-bot/start.py
+apps/telegram-bot/.venv/
+apps/telegram-bot/main.py
+apps/telegram-bot/start.py
 
 database.txt

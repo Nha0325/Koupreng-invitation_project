@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-path = Path('frontend-user/src/pages/wedding/PublicInvitationPage.jsx')
+path = Path('apps/frontend-user/src/pages/public/PublicInvitationPage.jsx')
 text = path.read_text(encoding='utf-8')
 pattern = re.compile(r'<<<<<<< HEAD\nfunction safeJson\(value, fallback = \{\}\) \{.*?\n=======\nfunction safeJson\(value\) \{.*?\n>>>>>>> main', re.S)
 replacement = '''function safeJson(value, fallback = {}) {

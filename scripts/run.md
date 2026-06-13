@@ -1,0 +1,1 @@
+"./scripts/run server/dev.sh"
