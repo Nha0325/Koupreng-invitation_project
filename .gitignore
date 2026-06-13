@@ -22,7 +22,7 @@ apps/backend/.env
 apps/frontend-user/.env.local
 apps/frontend-admin/.env.local
 **/.env
-**/.env.local
+# **/.env.local
 **/.env.*.local
 !.env.example
 !**/.env.example
