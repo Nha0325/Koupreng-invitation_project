@@ -313,6 +313,10 @@ function GiftsFeature() {
         };
     }, [eventId, currentDraft]);
 
+    if (loading) {
+        return <div className="gifts-page"><div className="gifts-empty">Loading gifts...</div></div>;
+    }
+
     const total = gifts.reduce((sum, gift) => sum + (Number(gift.amount) || 0), 0);
     const average = gifts.length ? Math.round(total / gifts.length) : 0;
     const maxGift = gifts.length ? Math.max(...gifts.map((gift) => Number(gift.amount) || 0)) : 0;

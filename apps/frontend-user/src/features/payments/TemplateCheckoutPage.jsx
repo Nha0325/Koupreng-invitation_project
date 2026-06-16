@@ -9,7 +9,7 @@ const ABA_STATIC_LINK = "https://link.payway.com.kh/ABAPAYrD450560q";
 
 export default function TemplateCheckoutPage() {
     const { templateId = KEEP_TEMPLATE_CODE } = useParams();
-    const template = getTemplateById(KEEP_TEMPLATE_CODE);
+    const template = getTemplateById(templateId) || getTemplateById(KEEP_TEMPLATE_CODE);
     const [catalogTemplateId, setCatalogTemplateId] = useState(null);
     const [catalogLoading, setCatalogLoading] = useState(true);
     const checkout = useMemo(() => ({

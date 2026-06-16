@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { RequireAuth } from "./guards/RequireAuth";

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks/useAuth";

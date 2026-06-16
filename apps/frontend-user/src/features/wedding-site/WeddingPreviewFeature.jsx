@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 

@@ -217,7 +217,7 @@ export default function InvitationGuestsManager() {
                 document.body.removeChild(field);
             }
             toast("បានចម្លងតំណភ្ជាប់");
-        } catch (err) {
+        } catch {
             toast("Could not copy link");
         }
     };
@@ -399,6 +399,14 @@ export default function InvitationGuestsManager() {
                         >
                             <IoDownloadOutline aria-hidden="true" />
                             ទាញយក QR ផ្ញើរ
+                        </button>
+                        <button
+                            type="button"
+                            className="inv-secondary-btn"
+                            onClick={() => copyInvite(qrGuest)}
+                            style={{ minWidth: "200px" }}
+                        >
+                            Copy invite link
                         </button>
                     </section>
                 </div>

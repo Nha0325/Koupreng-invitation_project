@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { IoSaveOutline, IoWarningOutline, IoImageOutline, IoMusicalNotesOutline, IoColorPaletteOutline } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
+import { IoSaveOutline } from "react-icons/io5";
 
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { getActiveEventId } from "../../shared/storage/hostPlanningStorage";
-import { FACEBOOK_TEMPLATE_CARDS, TEMPLATE_CATEGORIES } from "../templates/data/templatesData";
+import { FACEBOOK_TEMPLATE_CARDS } from "../templates/data/templatesData";
 import { MUSIC_TRACKS } from "../../shared/data/musicTracks";
 import PhonePreview from "../wedding-builder/components/PhonePreview";
 
