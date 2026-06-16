@@ -398,27 +398,20 @@ $(mysql_service_hint)"
     fi
 fi
 
-section "[3/8] Preparing env files"
-if create_env_if_missing "$PROJECT_ROOT/apps/backend/.env.example" "$PROJECT_ROOT/apps/backend/.env" "apps/backend/.env"; then
-    SUMMARY_BACKEND_ENV="Ready"
-fi
-if create_env_if_missing "$PROJECT_ROOT/apps/frontend-user/.env.example" "$PROJECT_ROOT/apps/frontend-user/.env.local" "apps/frontend-user/.env.local"; then
-    SUMMARY_FRONTEND_USER_ENV="Ready"
-fi
-if create_env_if_missing "$PROJECT_ROOT/apps/frontend-admin/.env.example" "$PROJECT_ROOT/apps/frontend-admin/.env.local" "apps/frontend-admin/.env.local"; then
-    SUMMARY_FRONTEND_ADMIN_ENV="Ready"
+section "[3/8] Preparing root env file"
+root_env="$PROJECT_ROOT/.env"
+if create_env_if_missing "$PROJECT_ROOT/.env.example" "$root_env" ".env"; then
+    SUMMARY_BACKEND_ENV="Ready from root .env"
+    SUMMARY_FRONTEND_USER_ENV="Ready from root .env"
+    SUMMARY_FRONTEND_ADMIN_ENV="Ready from root .env"
 fi
 
-if [ -f "$PROJECT_ROOT/apps/frontend-user/.env.local" ] && [ -z "$(get_env_value "$PROJECT_ROOT/apps/frontend-user/.env.local" "VITE_API_URL")" ]; then
-    set_env_value "$PROJECT_ROOT/apps/frontend-user/.env.local" "VITE_API_URL" "http://localhost:8080/api"
-fi
-if [ -f "$PROJECT_ROOT/apps/frontend-admin/.env.local" ] && [ -z "$(get_env_value "$PROJECT_ROOT/apps/frontend-admin/.env.local" "VITE_API_URL")" ]; then
-    set_env_value "$PROJECT_ROOT/apps/frontend-admin/.env.local" "VITE_API_URL" "http://localhost:8080/api"
-fi
-if [ -f "$PROJECT_ROOT/apps/backend/.env" ]; then
-    [ -n "$(get_env_value "$PROJECT_ROOT/apps/backend/.env" "DB_URL")" ] || set_env_value "$PROJECT_ROOT/apps/backend/.env" "DB_URL" "jdbc:mysql://localhost:3306/koupreng_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Phnom_Penh&allowPublicKeyRetrieval=true"
-    [ -n "$(get_env_value "$PROJECT_ROOT/apps/backend/.env" "DB_USERNAME")" ] || set_env_value "$PROJECT_ROOT/apps/backend/.env" "DB_USERNAME" "root"
-    [ -n "$(get_env_value "$PROJECT_ROOT/apps/backend/.env" "DB_PASSWORD")" ] || set_env_value "$PROJECT_ROOT/apps/backend/.env" "DB_PASSWORD" "change_me"
+if [ -f "$root_env" ]; then
+    [ -n "$(get_env_value "$root_env" "DB_URL")" ] || set_env_value "$root_env" "DB_URL" "jdbc:mysql://localhost:3306/koupreng_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Phnom_Penh&allowPublicKeyRetrieval=true"
+    [ -n "$(get_env_value "$root_env" "DB_USERNAME")" ] || set_env_value "$root_env" "DB_USERNAME" "root"
+    [ -n "$(get_env_value "$root_env" "DB_PASSWORD")" ] || set_env_value "$root_env" "DB_PASSWORD" "change_me"
+    [ -n "$(get_env_value "$root_env" "VITE_API_URL")" ] || set_env_value "$root_env" "VITE_API_URL" "/api"
+    [ -n "$(get_env_value "$root_env" "BACKEND_BASE_URL")" ] || set_env_value "$root_env" "BACKEND_BASE_URL" "http://localhost:8080"
 fi
 
 section "[4/8] MySQL database setup"
@@ -435,13 +428,12 @@ elif ! command_exists mysql; then
 Start MySQL after installation:
 $(mysql_service_hint)"
 else
-    backend_env="$PROJECT_ROOT/apps/backend/.env"
-    db_url="$(get_env_value "$backend_env" "DB_URL")"
-    db_user="$(get_env_value "$backend_env" "DB_USERNAME")"
-    db_password="$(get_env_value "$backend_env" "DB_PASSWORD")"
+    db_url="$(get_env_value "$root_env" "DB_URL")"
+    db_user="$(get_env_value "$root_env" "DB_USERNAME")"
+    db_password="$(get_env_value "$root_env" "DB_PASSWORD")"
 
     if [ -z "$db_url" ]; then
-        add_issue "MySQL database setup" "DB_URL is missing from apps/backend/.env." "Edit apps/backend/.env, then rerun ./scripts/setup.sh."
+        add_issue "MySQL database setup" "DB_URL is missing from .env." "Edit .env, then rerun ./scripts/setup.sh."
     elif ! parse_mysql_url "$db_url"; then
         add_issue "MySQL database setup" "Could not parse DB_URL '$db_url'." "Use a MySQL JDBC URL like jdbc:mysql://localhost:3306/koupreng_db?..."
     else
@@ -449,14 +441,14 @@ else
         if is_placeholder "$db_password"; then
             read -rsp "MySQL password for ${db_user}: " db_password
             printf '\n'
-            set_env_value "$backend_env" "DB_PASSWORD" "$db_password"
+            set_env_value "$root_env" "DB_PASSWORD" "$db_password"
         fi
 
         if ! printf '%s' "$DB_NAME" | grep -Eq '^[A-Za-z0-9_]+$'; then
             add_issue "MySQL database setup" "Database name '$DB_NAME' is not safe for automatic setup." "Use letters, numbers, and underscores in DB_URL."
         elif ! MYSQL_PWD="$db_password" mysql -h "$DB_HOST" -P "$DB_PORT" -u "$db_user" -e "SELECT 1;" >/dev/null 2>&1; then
             SUMMARY_MYSQL="Connection failed"
-            add_issue "MySQL database setup" "Could not connect to MySQL at $DB_HOST:$DB_PORT with user '$db_user'." "Check apps/backend/.env credentials and start MySQL:
+            add_issue "MySQL database setup" "Could not connect to MySQL at $DB_HOST:$DB_PORT with user '$db_user'." "Check .env credentials and start MySQL:
 $(mysql_service_hint)"
         elif ! MYSQL_PWD="$db_password" mysql -h "$DB_HOST" -P "$DB_PORT" -u "$db_user" -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >/dev/null 2>&1; then
             SUMMARY_MYSQL="Database creation failed"

@@ -88,27 +88,13 @@ Default local URLs:
 
 ## Environment
 
-Do not commit `.env` files. Use committed `.env.example` files as templates only.
-
-Backend local env:
+Do not commit `.env`. Backend, frontend user, and frontend admin all read configuration from the root `.env` file.
 
 ```bash
-cp apps/backend/.env.example apps/backend/.env
+cp .env.example .env
 ```
 
-Frontend user local env:
-
-```bash
-cp apps/frontend-user/.env.example apps/frontend-user/.env.local
-```
-
-Frontend admin local env:
-
-```bash
-cp apps/frontend-admin/.env.example apps/frontend-admin/.env.local
-```
-
-Root `.env.example` is kept for shared deployment-level examples.
+Use `VITE_*` keys in the root `.env` for browser-exposed frontend settings. Keep secrets such as `DB_PASSWORD`, `JWT_SECRET`, and `TELEGRAM_BOT_TOKEN` in root `.env` only.
 
 ## API Clients
 

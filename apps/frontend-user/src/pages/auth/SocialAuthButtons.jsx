@@ -59,8 +59,8 @@ const hasTelegramBotId = isNumericId(telegramBotId) && Boolean(telegramBot);
 // Widget iframe flow: needs bot username + BotFather /setdomain configured
 const hasTelegramBot = Boolean(telegramBot);
 const hasPublicAppUrl = Boolean(publicAppUrl) && Boolean(normalizeOrigin(publicAppUrl));
-const TELEGRAM_CONFIG_ERROR = "Telegram login is not configured. Add VITE_TELEGRAM_BOT_ID and VITE_TELEGRAM_BOT_USERNAME to frontend-user/.env.local, add TELEGRAM_BOT_TOKEN to backend .env, then restart frontend and backend.";
-const GOOGLE_CONFIG_ERROR = "Google login is not configured. Add VITE_GOOGLE_CLIENT_ID to frontend-user/.env.local and GOOGLE_CLIENT_IDS to backend .env, then restart frontend and backend.";
+const TELEGRAM_CONFIG_ERROR = "Telegram login is not configured. Add VITE_TELEGRAM_BOT_ID, VITE_TELEGRAM_CLIENT_ID, VITE_TELEGRAM_BOT_USERNAME, TELEGRAM_CLIENT_ID, and TELEGRAM_BOT_TOKEN to root .env, then restart frontend and backend.";
+const GOOGLE_CONFIG_ERROR = "Google login is not configured. Add VITE_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_IDS to root .env, then restart frontend and backend.";
 
 const GOOGLE_GSI_ID = "google-gsi-script";
 const TELEGRAM_WIDGET_ID = "telegram-widget-script";
@@ -178,7 +178,7 @@ function prepareTelegramOrigin(setError) {
   }
 
   if (isLocalOrigin(window.location.origin)) {
-    setError("Telegram Bot domain invalid for localhost. Set VITE_PUBLIC_APP_URL=https://siren-devoutly-probe.ngrok-free.dev in frontend-user/.env.local, run BotFather /setdomain with siren-devoutly-probe.ngrok-free.dev, then restart Vite and backend.");
+    setError("Telegram Bot domain invalid for localhost. Set VITE_PUBLIC_APP_URL=https://siren-devoutly-probe.ngrok-free.dev in root .env, run BotFather /setdomain with siren-devoutly-probe.ngrok-free.dev, then restart Vite and backend.");
     return false;
   }
 

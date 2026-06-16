@@ -14,7 +14,8 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$ProjectRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+$ScriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+$ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..")).Path
 Set-Location $ProjectRoot
 
 $ApacheMavenVersion = "3.9.15"
@@ -746,68 +747,57 @@ function Start-DevCommand {
 Write-Host ""
 Write-Host "Koupreng Windows Setup" -ForegroundColor Green
 
-Write-Section "[1/8] Preparing env files"
+Write-Section "[1/8] Preparing root env file"
 try {
-    $backendEnv = Join-Path $ProjectRoot "apps\backend\.env"
-    $frontendUserEnv = Join-Path $ProjectRoot "apps\frontend-user\.env.local"
-    $frontendAdminEnv = Join-Path $ProjectRoot "apps\frontend-admin\.env.local"
+    $rootEnv = Join-Path $ProjectRoot ".env"
+    $rootEnvExample = Join-Path $ProjectRoot ".env.example"
 
     Initialize-EnvFile `
-        -ExamplePath (Join-Path $ProjectRoot "apps\backend\.env.example") `
-        -TargetPath $backendEnv `
-        -Label "apps\backend\.env" | Out-Null
-    Initialize-EnvFile `
-        -ExamplePath (Join-Path $ProjectRoot "apps\frontend-user\.env.example") `
-        -TargetPath $frontendUserEnv `
-        -Label "apps\frontend-user\.env.local" | Out-Null
-    Initialize-EnvFile `
-        -ExamplePath (Join-Path $ProjectRoot "apps\frontend-admin\.env.example") `
-        -TargetPath $frontendAdminEnv `
-        -Label "apps\frontend-admin\.env.local" | Out-Null
+        -ExamplePath $rootEnvExample `
+        -TargetPath $rootEnv `
+        -Label ".env" | Out-Null
 
-    if (Test-Path -LiteralPath $frontendUserEnv) {
-        if (-not (Get-EnvValue $frontendUserEnv "VITE_API_URL")) {
-            Set-EnvValue $frontendUserEnv "VITE_API_URL" "http://localhost:8080/api"
-        }
-        Set-Summary "Frontend-user env" "Ready"
-    }
-
-    if (Test-Path -LiteralPath $frontendAdminEnv) {
-        if (-not (Get-EnvValue $frontendAdminEnv "VITE_API_URL")) {
-            Set-EnvValue $frontendAdminEnv "VITE_API_URL" "http://localhost:8080/api"
-        }
-        Set-Summary "Frontend-admin env" "Ready"
-    }
-
-    if (Test-Path -LiteralPath $backendEnv) {
-        $dbUrl = Get-EnvValue $backendEnv "DB_URL"
+    if (Test-Path -LiteralPath $rootEnv) {
+        $dbUrl = Get-EnvValue $rootEnv "DB_URL"
         if ([string]::IsNullOrWhiteSpace($dbUrl)) {
-            Set-EnvValue $backendEnv "DB_URL" "jdbc:mysql://localhost:3306/koupreng_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Phnom_Penh&allowPublicKeyRetrieval=true"
+            Set-EnvValue $rootEnv "DB_URL" "jdbc:mysql://localhost:3306/koupreng_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Phnom_Penh&allowPublicKeyRetrieval=true"
         }
         elseif ($dbUrl -notmatch '^jdbc:mysql://') {
-            Add-Issue "apps\backend\.env" "DB_URL is not a MySQL JDBC URL. This project now uses MySQL only." "Edit apps\backend\.env so DB_URL starts with jdbc:mysql://, then rerun setup.ps1."
+            Add-Issue ".env" "DB_URL is not a MySQL JDBC URL. This project now uses MySQL only." "Edit .env so DB_URL starts with jdbc:mysql://, then rerun setup.ps1."
         }
 
-        if (-not (Get-EnvValue $backendEnv "DB_USERNAME")) {
-            Set-EnvValue $backendEnv "DB_USERNAME" "root"
+        if (-not (Get-EnvValue $rootEnv "DB_USERNAME")) {
+            Set-EnvValue $rootEnv "DB_USERNAME" "root"
         }
-        if (-not (Get-EnvValue $backendEnv "DB_PASSWORD")) {
-            Set-EnvValue $backendEnv "DB_PASSWORD" "change_me"
+        if (-not (Get-EnvValue $rootEnv "DB_PASSWORD")) {
+            Set-EnvValue $rootEnv "DB_PASSWORD" "change_me"
         }
-        Set-Summary "Backend env" "Ready"
+        if (-not (Get-EnvValue $rootEnv "VITE_API_URL")) {
+            Set-EnvValue $rootEnv "VITE_API_URL" "/api"
+        }
+        if (-not (Get-EnvValue $rootEnv "BACKEND_BASE_URL")) {
+            Set-EnvValue $rootEnv "BACKEND_BASE_URL" "http://localhost:8080"
+        }
+
+        Set-Summary "Backend env" "Ready from root .env"
+        Set-Summary "Frontend-user env" "Ready from root .env"
+        Set-Summary "Frontend-admin env" "Ready from root .env"
     }
 
-    foreach ($legacyFrontendEnv in @(
+    foreach ($legacyEnv in @(
+        (Join-Path $ProjectRoot "apps\backend\.env"),
         (Join-Path $ProjectRoot "apps\frontend-user\.env"),
-        (Join-Path $ProjectRoot "apps\frontend-admin\.env")
+        (Join-Path $ProjectRoot "apps\frontend-user\.env.local"),
+        (Join-Path $ProjectRoot "apps\frontend-admin\.env"),
+        (Join-Path $ProjectRoot "apps\frontend-admin\.env.local")
     )) {
-        if (Test-Path -LiteralPath $legacyFrontendEnv) {
-            Write-WarnLine "Legacy file '$legacyFrontendEnv' exists. Vite local setup now uses .env.local; this script will not delete your old file."
+        if (Test-Path -LiteralPath $legacyEnv) {
+            Write-WarnLine "Legacy env file '$legacyEnv' exists. This project now reads configuration from root .env only."
         }
     }
 }
 catch {
-    Add-Issue "env files" $_.Exception.Message "Check .env.example files and rerun setup.ps1."
+    Add-Issue "root .env" $_.Exception.Message "Check .env and .env.example, then rerun setup.ps1."
 }
 
 Write-Section "[2/8] Checking Windows tools"
@@ -994,18 +984,18 @@ else {
             Set-Summary "Database" "Skipped - MySQL missing"
             Add-Issue "Database" "Cannot create database because mysql.exe was not found." "Install MySQL Server, then rerun setup.ps1."
         }
-        elseif (-not (Test-Path -LiteralPath $backendEnv)) {
-            Set-Summary "Database" "Skipped - backend env missing"
-            Add-Issue "Database" "apps\backend\.env does not exist." "Copy apps\backend\.env.example to apps\backend\.env, update DB credentials, then rerun setup.ps1."
+        elseif (-not (Test-Path -LiteralPath $rootEnv)) {
+            Set-Summary "Database" "Skipped - root .env missing"
+            Add-Issue "Database" ".env does not exist." "Copy .env.example to .env, update DB credentials, then rerun setup.ps1."
         }
         else {
-            $dbUrl = Get-EnvValue $backendEnv "DB_URL"
-            $username = Get-EnvValue $backendEnv "DB_USERNAME"
-            $password = Get-EnvValue $backendEnv "DB_PASSWORD"
+            $dbUrl = Get-EnvValue $rootEnv "DB_URL"
+            $username = Get-EnvValue $rootEnv "DB_USERNAME"
+            $password = Get-EnvValue $rootEnv "DB_PASSWORD"
 
             if ([string]::IsNullOrWhiteSpace($username)) {
                 $username = "root"
-                Set-EnvValue $backendEnv "DB_USERNAME" $username
+                Set-EnvValue $rootEnv "DB_USERNAME" $username
             }
 
             if (Test-PlaceholderValue $password) {
@@ -1013,7 +1003,7 @@ else {
                 Write-Info "Press Enter if your local MySQL user has an empty password."
                 $securePassword = Read-Host "MySQL password" -AsSecureString
                 $plainPassword = Convert-SecureStringToPlainText $securePassword
-                Set-EnvValue $backendEnv "DB_PASSWORD" $plainPassword
+                Set-EnvValue $rootEnv "DB_PASSWORD" $plainPassword
                 $password = $plainPassword
                 $plainPassword = $null
             }
@@ -1032,7 +1022,7 @@ else {
                 -Username $username `
                 -Password $securePasswordForConnect `
                 -Sql "SELECT 1;" `
-                -FailureMessage "Could not connect to MySQL using apps\backend\.env credentials."
+                -FailureMessage "Could not connect to MySQL using .env credentials."
 
             $createDatabaseSql = "CREATE DATABASE IF NOT EXISTS ``$($connection.Database)`` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
             Invoke-MySqlSql `
@@ -1050,7 +1040,7 @@ else {
     }
     catch {
         Set-Summary "Database" "Failed"
-        Add-Issue "Database" $_.Exception.Message "Update apps\backend\.env with the correct DB_USERNAME and DB_PASSWORD, make sure MySQL is running, then rerun setup.ps1."
+        Add-Issue "Database" $_.Exception.Message "Update .env with the correct DB_USERNAME and DB_PASSWORD, make sure MySQL is running, then rerun setup.ps1."
     }
 }
 
@@ -1093,7 +1083,7 @@ if ($script:Issues.Count -gt 0) {
 
     Write-Host ""
     Write-Host "After fixing the issue, rerun:"
-    Write-Host "powershell -ExecutionPolicy Bypass -File .\setup.ps1"
+    Write-Host "powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1"
 }
 
 Write-Host ""

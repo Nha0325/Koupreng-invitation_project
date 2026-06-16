@@ -15,7 +15,7 @@ import InvitationsPage from "../pages/invitations/AdminInvitationsPage";
 import InvitationDetailPage from "../pages/invitations/AdminInvitationDetailPage";
 import PaymentsPage from "../pages/payments/AdminPaymentsPage";
 import PackagesPage from "../pages/payments/AdminPackagesPage";
-import SystemLogsPage from "../pages/logs/AdminSystemLogsPage";
+import SystemLogsPage from "../features/admin/AdminSystemLogsPage";
 import ReportsPage from "../pages/reports/AdminReportsPage";
 
 // Legacy fallback page kept for events reference
