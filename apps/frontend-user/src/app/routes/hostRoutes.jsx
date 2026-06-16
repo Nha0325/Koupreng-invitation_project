@@ -58,6 +58,7 @@ export function hostRoutes() {
       <Route path="/event/list" element={<EventsPage />} />
       <Route path="/events" element={<EventsPage />} />
       <Route path="/expenses" element={<ExpensesPage />} />
+      <Route path="/gift" element={<WeddingGiftPage />} />
       <Route path="/gifts" element={<WeddingGiftPage />} />
       <Route path="/templates/browse" element={<BrowseTemplatesPage />} />
       <Route path="/templates/browse/:id" element={<HostTemplateDemoPage />} />

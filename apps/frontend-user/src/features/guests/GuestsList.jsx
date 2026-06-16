@@ -555,6 +555,15 @@ export default function GuestsList() {
   const currentDraft =
     drafts.find((draft) => draft.id === activeEventId) || drafts[0] || null;
   const eventId = currentDraft?.id || activeEventId || "";
+  const backendDraftInvitationId = currentDraft?.backendInvitationId || currentDraft?.id || "";
+  const draftMatch = useMemo(
+    () => (
+      currentDraft
+        ? { ...currentDraft, id: eventId, backendInvitationId: backendDraftInvitationId }
+        : null
+    ),
+    [backendDraftInvitationId, currentDraft, eventId],
+  );
 
   const [manualGuests, setManualGuests] = useState(() =>
     listManualGuests(eventId).map(normalizeManualGuest),
@@ -596,15 +605,15 @@ export default function GuestsList() {
 
       try {
         const publishedItems = await invitationService.listMine("PUBLISHED");
-        const publishedInvitation = pickBackendInvitation(publishedItems || [], currentDraft);
+        const publishedInvitation = pickBackendInvitation(publishedItems || [], draftMatch);
         const allItems = publishedInvitation ? publishedItems : await invitationService.listMine();
         if (!active) return;
 
-        const selectedInvitation = publishedInvitation || pickBackendInvitation(allItems || [], currentDraft);
+        const selectedInvitation = publishedInvitation || pickBackendInvitation(allItems || [], draftMatch);
         const selectedInvitationId = invitationId(selectedInvitation);
         const invitationsForPublicLink = allItems || publishedItems || [];
         setBackendInvitation(selectedInvitation);
-        setPublicInvitation(pickPublicInvitation(invitationsForPublicLink, selectedInvitation || currentDraft));
+        setPublicInvitation(pickPublicInvitation(invitationsForPublicLink, selectedInvitation || draftMatch));
 
         if (!selectedInvitationId) {
           setManualGuests(listManualGuests(eventId).map(normalizeManualGuest));
@@ -639,7 +648,7 @@ export default function GuestsList() {
     return () => {
       active = false;
     };
-  }, [currentDraft, eventId]);
+  }, [draftMatch, eventId]);
 
   useEffect(() => {
     if (!toast) return undefined;
