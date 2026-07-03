@@ -12,12 +12,13 @@ import {
     IoLocationOutline,
     IoLogoFacebook,
     IoMailOutline,
+    IoMusicalNotes,
     IoPaperPlaneOutline,
+    IoPause,
     IoTimeOutline,
 } from "react-icons/io5";
 
 import TemplateImage from "../TemplateImage";
-import TemplateMusicControl from "../controls/TemplateMusicControl";
 import TemplateRsvp from "../sections/TemplateRsvp";
 
 const ASSET_ROOT = "/invitations/canva-khmer";
@@ -38,8 +39,22 @@ function meaningful(value) {
     return text && !text.includes("...");
 }
 
-function CanvaArtwork({ name }) {
-    return <span className="ck-artwork" style={{ "--ck-art": `url("${ASSET_ROOT}/sections/${name}.webp")` }} aria-hidden="true" />;
+function mediaSource(value) {
+    return typeof value === "string" ? value : value?.url || value?.preview || "";
+}
+
+function CanvaArtwork({ name, eager = false, className = "" }) {
+    return (
+        <img
+            className={`ck-artwork${className ? ` ${className}` : ""}`}
+            src={`${ASSET_ROOT}/sections/${name}.webp`}
+            alt=""
+            loading={eager ? "eager" : "lazy"}
+            decoding={eager ? "sync" : "async"}
+            fetchPriority={eager ? "high" : "auto"}
+            aria-hidden="true"
+        />
+    );
 }
 
 function SectionTitle({ english, children }) {
@@ -80,6 +95,51 @@ function useCountdown(targetDate) {
     return remaining;
 }
 
+function CanvaKhmerMusicButton({ src, audioRef }) {
+    const [playing, setPlaying] = useState(false);
+    const source = mediaSource(src);
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        return () => audio?.pause();
+    }, [audioRef, source]);
+
+    if (!source) return null;
+
+    const toggle = async () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        if (!audio.paused) {
+            audio.pause();
+            setPlaying(false);
+            return;
+        }
+        audio.volume = 0.45;
+        try {
+            await audio.play();
+            setPlaying(true);
+        } catch {
+            setPlaying(false);
+        }
+    };
+
+    return (
+        <>
+            <audio ref={audioRef} src={source} loop preload="none" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
+            <button
+                type="button"
+                className={`ck-music${playing ? " is-playing" : ""}`}
+                onClick={toggle}
+                aria-pressed={playing}
+                aria-label={playing ? "បិទតន្ត្រី" : "បើកតន្ត្រី"}
+            >
+                {playing ? <IoPause aria-hidden="true" /> : <IoMusicalNotes aria-hidden="true" />}
+                <span aria-hidden="true" />
+            </button>
+        </>
+    );
+}
+
 function CanvaKhmerOpeningCover({ content, onOpen }) {
     return (
         <motion.section
@@ -90,7 +150,7 @@ function CanvaKhmerOpeningCover({ content, onOpen }) {
             transition={{ duration: 0.5 }}
             aria-label="បើកសន្លឹកអញ្ជើញ"
         >
-            <img className="ck-cover__art" src={`${ASSET_ROOT}/CoverKhmer.svg`} alt="" />
+            <img className="ck-cover__art" src={`${ASSET_ROOT}/CoverKhmer.svg`} alt="" fetchPriority="high" />
             <div className="ck-cover__monogram" aria-label={`អក្សរកាត់ ${content.monogramText}`}>{content.monogramText}</div>
             <div className="ck-cover__title">
                 <small>THE WEDDING INVITATION</small>
@@ -113,7 +173,12 @@ function CanvaKhmerHero({ content, sectionRef, onDetails }) {
     const nicknames = [content.groomNickname, content.brideNickname].filter(Boolean).join(" · ");
     return (
         <section className="ck-slice ck-hero" ref={sectionRef} data-ck-section="hero">
-            <CanvaArtwork name="hero" />
+            <CanvaArtwork name="hero" eager />
+            {content.coverImage && (
+                <div className="ck-hero__portrait">
+                    <TemplateImage src={content.coverImage} alt={`${content.groom} និង ${content.bride}`} />
+                </div>
+            )}
             <div className="ck-hero__copy">
                 <p>THE WEDDING INVITATION</p>
                 <div className="ck-hero__monogram">{content.monogramText}</div>
@@ -128,18 +193,27 @@ function CanvaKhmerHero({ content, sectionRef, onDetails }) {
     );
 }
 
-function CanvaKhmerDetails({ content, sectionRef, showCountdown }) {
-    const remaining = useCountdown(showCountdown ? content.targetDate : null);
-    const parents = [
-        ["មាតាបិតាកូនកំលោះ", content.couple?.groomParents],
-        ["មាតាបិតាកូនក្រមុំ", content.couple?.brideParents],
-    ].filter(([, value]) => meaningful(value));
-    const units = remaining ? [
+function CanvaKhmerCountdown({ targetDate }) {
+    const remaining = useCountdown(targetDate);
+    if (!remaining) return null;
+    const units = [
         [remaining.days, "ថ្ងៃ"],
         [remaining.hours, "ម៉ោង"],
         [remaining.minutes, "នាទី"],
         [remaining.seconds, "វិនាទី"],
-    ] : [];
+    ];
+    return (
+        <div className="ck-countdown" aria-label="រាប់ថយក្រោយ">
+            {units.map(([value, label]) => <div key={label}><strong>{String(value).padStart(2, "0")}</strong><small>{label}</small></div>)}
+        </div>
+    );
+}
+
+function CanvaKhmerInvitationDetails({ content, sectionRef, showCountdown }) {
+    const parents = [
+        ["មាតាបិតាកូនកំលោះ", content.couple?.groomParents],
+        ["មាតាបិតាកូនក្រមុំ", content.couple?.brideParents],
+    ].filter(([, value]) => meaningful(value));
 
     return (
         <section className="ck-slice ck-details" ref={sectionRef}>
@@ -159,11 +233,7 @@ function CanvaKhmerDetails({ content, sectionRef, showCountdown }) {
                     {content.receptionTime && <p><IoTimeOutline />ពិធីជប់លៀង {content.receptionTime}</p>}
                     {content.venue?.name && <p><IoLocationOutline />{content.venue.name}</p>}
                 </div>
-                {units.length > 0 && (
-                    <div className="ck-countdown" aria-label="រាប់ថយក្រោយ">
-                        {units.map(([value, label]) => <div key={label}><strong>{String(value).padStart(2, "0")}</strong><small>{label}</small></div>)}
-                    </div>
-                )}
+                {showCountdown && <CanvaKhmerCountdown targetDate={content.targetDate} />}
             </div>
         </section>
     );
@@ -198,54 +268,87 @@ function CanvaKhmerProgram({ content }) {
     );
 }
 
-function CanvaKhmerLocation({ content }) {
-    const venue = content.venue || {};
-    if (!venue.name && !venue.address && !venue.mapLink) return null;
+function CanvaKhmerStory({ content }) {
+    const chapters = content.story || [];
+    const storyText = cleanText(content.message);
+    if (!chapters.length && !storyText) return null;
     return (
-        <section id="ck-location" className="ck-slice ck-location">
-            <CanvaArtwork name="location" />
-            <div className="ck-location__title"><SectionTitle english="LOCATION">ទីតាំងកម្មវិធី</SectionTitle></div>
-            <div className="ck-location__info">
-                {venue.name && <h3>{venue.name}</h3>}
-                {venue.address && <p>{venue.address}</p>}
-                {venue.mapLink && <a href={venue.mapLink} target="_blank" rel="noopener noreferrer"><IoLocationOutline /> បើក Google Maps</a>}
+        <div className="ck-story__paper">
+            <SectionTitle english="OUR STORY">រឿងរ៉ាវរបស់យើង</SectionTitle>
+            <div className="ck-story__chapters">
+                {chapters.length ? chapters.map((chapter, index) => (
+                    <article key={chapter.id || index}>
+                        {chapter.kicker && <small>{chapter.kicker}</small>}
+                        {chapter.title && <h3>{chapter.title}</h3>}
+                        {chapter.date && <time>{chapter.date}</time>}
+                        {chapter.text && <p>{chapter.text}</p>}
+                    </article>
+                )) : <p>{storyText}</p>}
             </div>
-        </section>
+        </div>
     );
 }
 
-function CanvaKhmerStory({ content }) {
-    const chapters = content.story || [];
-    const hasStory = chapters.some((chapter) => chapter.title || chapter.text) || cleanText(content.message);
-    if (!hasStory) return null;
+function CanvaKhmerLocation({ content, showLocation, showStory }) {
+    const venue = content.venue || {};
+    const hasLocation = showLocation && Boolean(venue.name || venue.address || venue.mapLink || venue.mapEmbedUrl);
+    const hasStory = showStory && Boolean(content.story?.length || cleanText(content.message));
+    const [mapState, setMapState] = useState(venue.mapEmbedUrl ? "loading" : "fallback");
+
+    useEffect(() => {
+        setMapState(venue.mapEmbedUrl ? "loading" : "fallback");
+    }, [venue.mapEmbedUrl]);
+
+    if (!hasLocation && !hasStory) return null;
     return (
-        <section className="ck-slice ck-story">
-            <CanvaArtwork name="story" />
-            <div className="ck-story__paper">
-                <SectionTitle english="OUR STORY">រឿងរ៉ាវរបស់យើង</SectionTitle>
-                <div className="ck-story__chapters">
-                    {chapters.length ? chapters.map((chapter, index) => (
-                        <article key={chapter.id || index}>
-                            <div>{chapter.kicker && <small>{chapter.kicker}</small>}<h3>{chapter.title}</h3>{chapter.date && <time>{chapter.date}</time>}</div>
-                            {chapter.text && <p>{chapter.text}</p>}
-                        </article>
-                    )) : <p>{content.message}</p>}
+        <section id={hasLocation ? "ck-location" : undefined} className={`ck-slice ck-location${hasStory ? "" : " ck-location--compact"}`}>
+            <CanvaArtwork name="location" />
+            {hasLocation && (
+                <div className="ck-location__card">
+                    <SectionTitle english="LOCATION">ទីតាំងកម្មវិធី</SectionTitle>
+                    <div className="ck-location__map">
+                        {venue.mapEmbedUrl && mapState !== "fallback" ? (
+                            <iframe
+                                src={venue.mapEmbedUrl}
+                                title={`ផែនទី ${venue.name || "ទីតាំងកម្មវិធី"}`}
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                onLoad={() => setMapState("ready")}
+                                onError={() => setMapState("fallback")}
+                            />
+                        ) : (
+                            <div className="ck-location__fallback"><IoLocationOutline aria-hidden="true" /><span>មើលទីតាំងនៅលើ Google Maps</span></div>
+                        )}
+                        {mapState === "loading" && <span className="ck-location__loading">កំពុងផ្ទុកផែនទី...</span>}
+                    </div>
+                    <div className="ck-location__info">
+                        {venue.name && <h3>{venue.name}</h3>}
+                        {venue.address && <p>{venue.address}</p>}
+                        {venue.mapLink && <a href={venue.mapLink} target="_blank" rel="noopener noreferrer"><IoLocationOutline /> បើក Google Maps</a>}
+                    </div>
                 </div>
-            </div>
+            )}
+            {hasStory && <CanvaKhmerStory content={content} />}
         </section>
     );
 }
 
 const GALLERY_FRAMES = [
-    { left: 6, top: 12.2, width: 88, height: 45.2 },
-    { left: 4.5, top: 59.1, width: 44.2, height: 18.8 },
-    { left: 51.3, top: 59.1, width: 44.2, height: 18.8 },
-    { left: 4.5, top: 79.5, width: 44.2, height: 19.1 },
-    { left: 51.3, top: 79.5, width: 44.2, height: 19.1 },
+    { left: 4.5, top: 18.0, width: 91, height: 11.2 },
+    { left: 3.5, top: 29.6, width: 44.3, height: 19.8 },
+    { left: 50.4, top: 29.6, width: 44.3, height: 19.8 },
+    { left: 3.5, top: 49.8, width: 44.3, height: 8.9 },
+    { left: 50.4, top: 49.8, width: 44.3, height: 8.9 },
+    { left: 3.5, top: 58.9, width: 44.3, height: 17.6 },
+    { left: 50.4, top: 58.9, width: 44.3, height: 17.6 },
+    { left: 3.5, top: 77.0, width: 44.3, height: 17.1 },
+    { left: 50.4, top: 77.0, width: 44.3, height: 17.1 },
 ];
 
 function CanvaKhmerGallery({ content }) {
-    const images = content.gallery || [];
+    const images = content.gallery?.length
+        ? content.gallery
+        : (content.coverImage ? [{ src: content.coverImage }] : []);
     const [active, setActive] = useState(null);
     useEffect(() => {
         if (active === null) return undefined;
@@ -256,7 +359,10 @@ function CanvaKhmerGallery({ content }) {
 
     return (
         <section id="ck-gallery" className="ck-slice ck-gallery">
-            <CanvaArtwork name="gallery" />
+            <div className="ck-gallery__art" aria-hidden="true">
+                <CanvaArtwork name="story" />
+                <CanvaArtwork name="gallery" />
+            </div>
             {images.slice(0, GALLERY_FRAMES.length).map((image, index) => {
                 const frame = GALLERY_FRAMES[index];
                 return (
@@ -392,12 +498,21 @@ export default function CanvaKhmerWeddingTemplate({
     showStickyCta = true,
     children,
 }) {
-    const [opened, setOpened] = useState(preview);
+    const [opened, setOpened] = useState(false);
     const canvasRef = useRef(null);
+    const musicRef = useRef(null);
     const heroRef = useRef(null);
     const detailRef = useRef(null);
     const sectionEnabled = useCallback((key) => content.enabledSections?.[key] !== false, [content.enabledSections]);
     const navigateTo = useCallback((id) => canvasRef.current?.querySelector(`#ck-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), []);
+    const handleOpen = useCallback(() => {
+        setOpened(true);
+        const audio = musicRef.current;
+        if (audio && content.music) {
+            audio.volume = 0.45;
+            audio.play().catch(() => undefined);
+        }
+    }, [content.music]);
 
     useEffect(() => {
         if (!opened || preview) return undefined;
@@ -407,9 +522,13 @@ export default function CanvaKhmerWeddingTemplate({
 
     const availableSections = {
         program: Boolean(content.schedule?.length || content.ceremonyTime || content.receptionTime),
-        location: Boolean(content.venue?.name || content.venue?.address || content.venue?.mapLink),
-        gallery: true,
+        location: Boolean(content.venue?.name || content.venue?.address || content.venue?.mapLink || content.venue?.mapEmbedUrl),
+        gallery: Boolean(content.gallery?.length || content.coverImage),
         gift: Boolean(content.gift?.length),
+        wish: sectionEnabled("wish") || sectionEnabled("rsvp"),
+    };
+    const navEnabledSections = {
+        ...content.enabledSections,
         wish: sectionEnabled("wish") || sectionEnabled("rsvp"),
     };
 
@@ -418,14 +537,15 @@ export default function CanvaKhmerWeddingTemplate({
             <div className="ck-phone" ref={canvasRef}>
                 <AnimatePresence mode="wait">
                     {!opened ? (
-                        <CanvaKhmerOpeningCover key="cover" content={content} onOpen={() => setOpened(true)} />
+                        <CanvaKhmerOpeningCover key="cover" content={content} onOpen={handleOpen} />
                     ) : (
                         <motion.main key="invitation" className="ck-invitation" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                             <CanvaKhmerHero content={content} sectionRef={heroRef} onDetails={() => detailRef.current?.scrollIntoView({ behavior: "smooth" })} />
-                            <CanvaKhmerDetails content={content} sectionRef={detailRef} showCountdown={sectionEnabled("countdown")} />
+                            <CanvaKhmerInvitationDetails content={content} sectionRef={detailRef} showCountdown={sectionEnabled("countdown")} />
                             {sectionEnabled("schedule") && <CanvaKhmerProgram content={content} />}
-                            {sectionEnabled("map") && <CanvaKhmerLocation content={content} />}
-                            {sectionEnabled("story") && <CanvaKhmerStory content={content} />}
+                            {(sectionEnabled("map") || sectionEnabled("story")) && (
+                                <CanvaKhmerLocation content={content} showLocation={sectionEnabled("map")} showStory={sectionEnabled("story")} />
+                            )}
                             {sectionEnabled("gallery") && <CanvaKhmerGallery content={content} />}
                             {sectionEnabled("gift") && <CanvaKhmerGift content={content} />}
                             {(sectionEnabled("wish") || sectionEnabled("rsvp")) && <CanvaKhmerWishRsvp content={content} useTemplateLink={useTemplateLink} showRsvp={sectionEnabled("rsvp")}>{children}</CanvaKhmerWishRsvp>}
@@ -434,8 +554,8 @@ export default function CanvaKhmerWeddingTemplate({
                         </motion.main>
                     )}
                 </AnimatePresence>
-                <TemplateMusicControl src={content.music} />
-                {opened && showStickyCta && <CanvaKhmerBottomNav enabledSections={content.enabledSections} availableSections={availableSections} onNavigate={navigateTo} />}
+                <CanvaKhmerMusicButton src={content.music} audioRef={musicRef} />
+                {opened && showStickyCta && <CanvaKhmerBottomNav enabledSections={navEnabledSections} availableSections={availableSections} onNavigate={navigateTo} />}
             </div>
         </div>
     );
