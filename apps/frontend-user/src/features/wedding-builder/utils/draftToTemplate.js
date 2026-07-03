@@ -81,6 +81,7 @@ export function draftToTemplate(draft, gallery = []) {
             schedule: draft.schedule || [],
             party: draft.party || [],
             gift: draft.gift || [],
+            wishMessage: draft.extras?.guestNote || "",
             faq: draft.faq || [],
             enabledSections: {
                 ...(draft.enabledSections || {}),

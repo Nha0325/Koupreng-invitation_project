@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -18,9 +18,11 @@ import TemplateParty from "./sections/TemplateParty";
 import TemplateDressCode from "./sections/TemplateDressCode";
 import TemplateGift from "./sections/TemplateGift";
 import TemplateFaq from "./sections/TemplateFaq";
+import TemplateRsvp from "./sections/TemplateRsvp";
+import TemplateWish from "./sections/TemplateWish";
 import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
-import TemplateStickyCta from "./controls/TemplateStickyCta";
+import TemplateQuickNav from "./controls/TemplateQuickNav";
 import TemplateSectionHeader from "./TemplateSectionHeader";
 import { templateIcons } from "./templateIcons";
 import "./template-experience.css";
@@ -96,6 +98,14 @@ export default function TemplateExperience({
         setGateOpen(true);
     }, []);
 
+    useEffect(() => {
+        if (!gateOpen || preview) return undefined;
+        const frame = window.requestAnimationFrame(() => {
+            scrollToTarget(rootRef.current?.querySelector('[data-tx-section="hero"]'));
+        });
+        return () => window.cancelAnimationFrame(frame);
+    }, [gateOpen, preview, scrollToTarget]);
+
     const handleHeroOpen = useCallback(() => {
         const next = rootRef.current?.querySelector('[data-tx-section="message"]');
         scrollToTarget(next);
@@ -104,6 +114,16 @@ export default function TemplateExperience({
     const handleScrollTop = useCallback(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, []);
+    const handleNavigate = useCallback(
+        (section) => {
+            if (section === "hero") {
+                handleScrollTop();
+                return;
+            }
+            scrollToTarget(rootRef.current?.querySelector(`[data-tx-section="${section}"]`));
+        },
+        [handleScrollTop, scrollToTarget]
+    );
     const sectionEnabled = useCallback(
         (key) => content.enabledSections?.[key] !== false,
         [content.enabledSections]
@@ -134,33 +154,44 @@ export default function TemplateExperience({
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
                     >
-                    <TemplateHero content={content} onOpen={handleHeroOpen} />
-                    <TemplateMessage content={content} />
-                    <TemplateCouple content={content} />
-                    {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
-                    {sectionEnabled("story") && <TemplateStory content={content} />}
-                    {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
-                    {sectionEnabled("party") && <TemplateParty content={content} />}
-                    {sectionEnabled("dressCode") && <TemplateDressCode content={content} />}
-                    {sectionEnabled("map") && <TemplateVenue content={content} />}
-                    {sectionEnabled("gallery") && <TemplateGallery content={content} />}
-                    {sectionEnabled("gift") && <TemplateGift content={content} />}
-                    {sectionEnabled("faq") && <TemplateFaq content={content} />}
+                        <TemplateHero content={content} onOpen={handleHeroOpen} />
+                        <TemplateMessage content={content} />
+                        <TemplateCouple content={content} />
+                        {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
+                        {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
+                        {sectionEnabled("story") && <TemplateStory content={content} />}
+                        {sectionEnabled("party") && <TemplateParty content={content} />}
+                        {sectionEnabled("gallery") && <TemplateGallery content={content} />}
+                        {sectionEnabled("dressCode") && <TemplateDressCode content={content} />}
+                        {sectionEnabled("gift") && <TemplateGift content={content} />}
+                        {sectionEnabled("map") && <TemplateVenue content={content} />}
+                        {sectionEnabled("faq") && <TemplateFaq content={content} />}
 
-                    {children && sectionEnabled("rsvp") && (
-                        <div className="tx-children">
-                            <TemplateSectionHeader
-                                id="tx-rsvp-title"
-                                icon={templateIcons.invitation}
-                                kicker="ការឆ្លើយតប"
-                                title="សូមបញ្ជាក់ការចូលរួម"
-                                subtitle="RSVP"
+                        {sectionEnabled("rsvp") && (
+                            children ? (
+                                <div className="tx-children" data-tx-section="rsvp">
+                                    <TemplateSectionHeader
+                                        id="tx-rsvp-title"
+                                        icon={templateIcons.invitation}
+                                        kicker="ការឆ្លើយតប"
+                                        title="សូមបញ្ជាក់ការចូលរួម"
+                                        subtitle="RSVP"
+                                    />
+                                    {children}
+                                </div>
+                            ) : (
+                                <TemplateRsvp useTemplateLink={useTemplateLink} />
+                            )
+                        )}
+
+                        {sectionEnabled("wish") && (
+                            <TemplateWish
+                                content={content}
+                                onRsvp={() => handleNavigate("rsvp")}
+                                showRsvp={sectionEnabled("rsvp")}
                             />
-                            {children}
-                        </div>
-                    )}
-
-                    <TemplateFooter content={content} />
+                        )}
+                        <TemplateFooter content={content} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -173,12 +204,10 @@ export default function TemplateExperience({
             )}
 
             <TemplateMusicControl src={content.music} />
-            {!preview && gateOpen && showStickyCta && (
-                <TemplateStickyCta
-                    onTop={handleScrollTop}
-                    mapLink={content.venue.mapLink}
-                    useTemplateLink={useTemplateLink}
-                    primaryCtaLabel={primaryCtaLabel}
+            {gateOpen && showStickyCta && (
+                <TemplateQuickNav
+                    enabledSections={content.enabledSections}
+                    onNavigate={handleNavigate}
                 />
             )}
         </div>

@@ -7,7 +7,9 @@
   --font-noto-sans-khmer: 'Noto Sans Khmer', sans-serif;
   --font-khmer-title: 'Moul', 'Noto Sans Khmer', serif;
   --font-khmer-section: 'Koulen', 'Moul', 'Noto Sans Khmer', sans-serif;
+  --font-khmer-heading: var(--font-khmer-section);
   --font-khmer-body: 'Battambang', 'Noto Sans Khmer', sans-serif;
   --font-ui: 'Kantumruy Pro', 'Noto Sans Khmer', sans-serif;
   --font-english-romantic: 'Cormorant Garamond', Georgia, serif;
+  --font-romantic-en: var(--font-english-romantic);
 }

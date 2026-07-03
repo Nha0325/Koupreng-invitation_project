@@ -174,7 +174,7 @@ export default function PublicInvitationPage() {
                     variant={GARDEN_TEMPLATE_ID}
                     showActions={false}
                     showBreadcrumb={false}
-                    showStickyCta={false}
+                    showStickyCta={true}
                 >
                     {showRsvp && (
                         <PublicRsvpForm

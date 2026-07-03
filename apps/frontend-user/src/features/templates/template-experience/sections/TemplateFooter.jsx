@@ -26,6 +26,7 @@ export default function TemplateFooter({ content }) {
                     <p className="tx-footer__thanks">
                         សូមអរគុណចំពោះក្ដីស្រឡាញ់ និងពរជ័យដ៏កក់ក្ដៅរបស់អ្នក
                     </p>
+                    <p className="tx-footer__thanks-en">Thank you for joining our special day</p>
                 </TemplateReveal>
 
                 <TemplateReveal delay={0.12}>
@@ -57,7 +58,7 @@ export default function TemplateFooter({ content }) {
                 )}
 
                 <TemplateReveal delay={0.24}>
-                    <p className="tx-footer__brand">Made with love by Koupreng</p>
+                    <p className="tx-footer__brand">Powered by Koupreng</p>
                 </TemplateReveal>
             </div>
         </footer>

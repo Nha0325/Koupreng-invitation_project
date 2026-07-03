@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { IoQrCode } from "react-icons/io5";
 
+import TemplateImage from "../TemplateImage";
 import TemplateReveal from "../TemplateReveal";
 import TemplateSectionHeader from "../TemplateSectionHeader";
 import { templateIcons } from "../templateIcons";
@@ -10,7 +12,33 @@ import { templateIcons } from "../templateIcons";
  */
 export default function TemplateGift({ content }) {
     const accounts = content.gift || [];
+    const [copiedId, setCopiedId] = useState("");
+    const CopyIcon = templateIcons.copy;
+    const CopiedIcon = templateIcons.copied;
     if (!accounts.length) return null;
+
+    const copyAccount = async (account, key) => {
+        if (!account) return;
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(account);
+            } else {
+                const input = document.createElement("textarea");
+                input.value = account;
+                input.setAttribute("readonly", "");
+                input.style.position = "fixed";
+                input.style.opacity = "0";
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand("copy");
+                input.remove();
+            }
+            setCopiedId(key);
+            window.setTimeout(() => setCopiedId(""), 1800);
+        } catch {
+            setCopiedId("");
+        }
+    };
 
     return (
         <section className="tx-section tx-gift" data-tx-section="gift" aria-labelledby="tx-gift-title">
@@ -18,25 +46,45 @@ export default function TemplateGift({ content }) {
                 <TemplateSectionHeader
                     id="tx-gift-title"
                     icon={templateIcons.gift}
-                    kicker="ចងដៃមង្គល"
-                    title="ការគាំទ្រពីបេះដូង"
-                    subtitle="WEDDING GIFT"
+                    kicker="អំណោយមង្គល"
+                    title="ចំណងដៃ"
+                    subtitle="GIFT"
                     lead="វត្តមានរបស់អ្នកគឺជាអំណោយដ៏ល្អបំផុត។ ប្រសិនបើអ្នកចង់ចែករំលែកពរជ័យបន្ថែម"
                 />
 
                 <div className="tx-gift__grid">
                     {accounts.map((acc, index) => (
-                        <TemplateReveal as="article" key={acc.id} className="tx-gift__card" delay={index * 0.05}>
+                        <TemplateReveal as="article" key={acc.id || `${acc.bank}-${index}`} className="tx-gift__card" delay={index * 0.05}>
                             <div className="tx-gift__head">
                                 <span className="tx-gift__bank">{acc.bank}</span>
                                 {acc.note && <span className="tx-gift__tag">{acc.note}</span>}
                             </div>
-                            <div className="tx-gift__qr" aria-hidden="true">
-                                <IoQrCode />
-                                <span>QR</span>
+                            <div className="tx-gift__qr">
+                                {acc.qrImage ? (
+                                    <TemplateImage src={acc.qrImage} alt={`QR ${acc.bank || "គណនី"}`} />
+                                ) : (
+                                    <span className="tx-gift__qr-placeholder" aria-label="QR payment placeholder">
+                                        <IoQrCode aria-hidden="true" />
+                                        <small>QR</small>
+                                    </span>
+                                )}
                             </div>
                             <p className="tx-gift__account">{acc.account}</p>
                             <p className="tx-gift__number">{acc.number}</p>
+                            {acc.number && (
+                                <button
+                                    type="button"
+                                    className="tx-gift__copy"
+                                    onClick={() => copyAccount(acc.number, acc.id || String(index))}
+                                >
+                                    {copiedId === (acc.id || String(index)) ? (
+                                        <CopiedIcon aria-hidden="true" />
+                                    ) : (
+                                        <CopyIcon aria-hidden="true" />
+                                    )}
+                                    {copiedId === (acc.id || String(index)) ? "បានចម្លង" : "ចម្លងលេខគណនី"}
+                                </button>
+                            )}
                         </TemplateReveal>
                     ))}
                 </div>

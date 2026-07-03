@@ -381,14 +381,33 @@ export default function EnhancementsStep({ draft, update }) {
                 onChange={(next) => update({ gift: next })}
                 addLabel="+ បន្ថែមគណនី"
                 itemLabel="គណនី"
-                makeEmpty={() => ({ bank: "", account: "", number: "", note: "" })}
+                makeEmpty={() => ({ bank: "", account: "", number: "", note: "", qrImage: "" })}
                 fields={[
                     { key: "bank", label: "ធនាគារ", placeholder: "ឧ. ABA Bank" },
                     { key: "account", label: "ឈ្មោះគណនី", placeholder: "ឧ. VANN PISEY" },
                     { key: "number", label: "លេខគណនី", placeholder: "ឧ. 000 000 000" },
                     { key: "note", label: "សម្គាល់", placeholder: "ឧ. ABA PAY" },
+                    { key: "qrImage", label: "តំណរូប QR (ស្រេចចិត្ត)", type: "url", wide: true, placeholder: "https://.../aba-qr.png" },
                 ]}
             />
+
+            <section className="wb-section">
+                <div className="wb-section-head">
+                    <span className="wb-section-kicker">Wish</span>
+                    <h3>សារជូនពរភ្ញៀវ</h3>
+                </div>
+                <p className="wb-help">សារនេះបង្ហាញក្នុងផ្នែក «ជូនពរ» មុនសេចក្ដីអរគុណនៅចុងសន្លឹកការ។</p>
+                <div className="wb-field">
+                    <label htmlFor="wish-message">សារអញ្ជើញឱ្យភ្ញៀវជូនពរ</label>
+                    <textarea
+                        id="wish-message"
+                        rows={4}
+                        value={extras.guestNote || ""}
+                        onChange={(e) => updateExtras({ guestNote: e.target.value })}
+                        placeholder="សរសេរសារខ្លីៗសម្រាប់ភ្ញៀវ..."
+                    />
+                </div>
+            </section>
 
             <RepeatableList
                 kicker="FAQ"
@@ -419,6 +438,7 @@ export default function EnhancementsStep({ draft, update }) {
                     ["party", "Wedding party"],
                     ["dressCode", "Dress code"],
                     ["gift", "Gift"],
+                    ["wish", "Wish / Guest blessing"],
                     ["faq", "FAQ"],
                     ["rsvp", "RSVP"],
                 ].map(([key, label]) => (

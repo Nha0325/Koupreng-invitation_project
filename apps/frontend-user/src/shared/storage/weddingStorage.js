@@ -102,6 +102,7 @@ export function createDraft(initial = {}) {
       party: true,
       dressCode: true,
       gift: true,
+      wish: true,
       faq: true,
       rsvp: true,
       ...initial.enabledSections,

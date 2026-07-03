@@ -84,6 +84,7 @@ export default function TemplateVenue({ content }) {
                         </div>
                     </TemplateReveal>
                 </div>
+                <span className="tx-venue__divider" aria-hidden="true" />
             </div>
         </section>
     );

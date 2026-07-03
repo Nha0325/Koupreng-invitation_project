@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { GiDiamondRing } from "react-icons/gi";
 import { IoEnterOutline } from "react-icons/io5";
 
 import { usePrefersReducedMotion } from "../../../../shared/hooks/usePrefersReducedMotion";
+import TemplateImage from "../TemplateImage";
 
 export default function TemplateOpeningGate({ content, onOpen }) {
     const reduced = usePrefersReducedMotion();
+    const [videoFailed, setVideoFailed] = useState(false);
     const openingVideoUrl = typeof content.openingVideo === "string"
         ? content.openingVideo
         : content.openingVideo?.url || "";
@@ -25,22 +28,26 @@ export default function TemplateOpeningGate({ content, onOpen }) {
             aria-label="បើកសន្លឹកការ"
             {...motionProps}
         >
-            {openingVideoUrl ? (
+            {openingVideoUrl && !videoFailed ? (
                 <video
                     className="tx-gate__media"
                     src={openingVideoUrl}
+                    poster={content.coverImage}
                     autoPlay
                     muted
                     loop
                     playsInline
                     preload="metadata"
+                    onError={() => setVideoFailed(true)}
                     aria-hidden="true"
                 />
             ) : (
-                <div
+                <TemplateImage
                     className="tx-gate__media"
-                    style={{ backgroundImage: `url("${content.coverImage}")` }}
-                    aria-hidden="true"
+                    src={content.coverImage}
+                    alt={`${content.groom} និង ${content.bride}`}
+                    loading="eager"
+                    fetchPriority="high"
                 />
             )}
             <div className="tx-gate__veil" aria-hidden="true" />

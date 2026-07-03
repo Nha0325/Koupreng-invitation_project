@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { IoCalendarOutline, IoChevronDown, IoLocationOutline } from "react-icons/io5";
 
 import { usePrefersReducedMotion } from "../../../../shared/hooks/usePrefersReducedMotion";
+import TemplateImage from "../TemplateImage";
 
 /**
  * TemplateHero — fullscreen opening for the shared experience engine.
@@ -23,13 +24,17 @@ export default function TemplateHero({ content, onOpen }) {
 
     return (
         <section className="tx-hero" data-tx-section="hero" aria-label="ការអញ្ជើញ">
-            <div
+            <TemplateImage
                 className="tx-hero__bg"
-                style={{ backgroundImage: `url("${content.coverImage}")` }}
-                role="img"
-                aria-label={`${content.groom} និង ${content.bride}`}
+                src={content.coverImage}
+                alt={`${content.groom} និង ${content.bride}`}
+                loading="eager"
+                fetchPriority="high"
             />
             <div className="tx-hero__overlay" aria-hidden="true" />
+            <span className="tx-hero__petal tx-hero__petal--one" aria-hidden="true" />
+            <span className="tx-hero__petal tx-hero__petal--two" aria-hidden="true" />
+            <span className="tx-hero__petal tx-hero__petal--three" aria-hidden="true" />
 
             <div className="tx-hero__inner">
                 {content.variant === "garden-royal-khmer-wedding" ? (

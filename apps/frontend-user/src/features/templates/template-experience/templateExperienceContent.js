@@ -70,10 +70,13 @@ const DEMO_PARTY = [
 ];
 
 const DEMO_GIFT = [
-    { id: "aba", bank: "ABA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "ABA PAY" },
-    { id: "acleda", bank: "ACLEDA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "0000-00-000000-0", note: "Toanchet" },
-    { id: "wing", bank: "Wing", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "WingPay" },
+    { id: "aba", bank: "ABA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "ABA PAY", qrImage: "" },
+    { id: "acleda", bank: "ACLEDA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "0000-00-000000-0", note: "Toanchet", qrImage: "" },
+    { id: "wing", bank: "Wing", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "WingPay", qrImage: "" },
 ];
+
+const DEMO_WISH =
+    "សូមឱ្យសេចក្ដីស្រឡាញ់របស់យើងកាន់តែរីកចម្រើន និងពោរពេញដោយសុភមង្គល។ យើងខ្ញុំរីករាយទទួលពាក្យជូនពរពីលោកអ្នកក្នុងថ្ងៃដ៏មានន័យនេះ។";
 
 const DEMO_FAQ = [
     {
@@ -214,14 +217,18 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
 
     const venueName = tpl.venueName || "";
     const venueAddress = (tpl.venueAddress || "").replace(/\n/g, ", ");
-    const mapSearch = (tpl.mapQuery || `${venueName} ${venueAddress}`).replace(/\s+/g, " ").trim();
-    const hasMap = mapSearch.length > 0;
+    const mapValue = nonBlank(tpl.mapQuery);
+    const mapValueIsUrl = /^https?:\/\//i.test(mapValue);
+    const mapSearch = (mapValueIsUrl ? `${venueName} ${venueAddress}` : (mapValue || `${venueName} ${venueAddress}`))
+        .replace(/\s+/g, " ")
+        .trim();
+    const hasMap = Boolean(mapValue || mapSearch);
     const mapLink = hasMap
-        ? (/^https?:\/\//i.test(tpl.mapQuery || "")
-            ? tpl.mapQuery
+        ? (mapValueIsUrl
+            ? mapValue
             : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearch)}`)
         : null;
-    const mapEmbedUrl = hasMap
+    const mapEmbedUrl = mapSearch
         ? `https://www.google.com/maps?q=${encodeURIComponent(mapSearch)}&output=embed`
         : null;
 
@@ -300,6 +307,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             account: g.account || "",
             number: g.number || "",
             note: g.note || "",
+            qrImage: g.qrImage || "",
         }))
         : null;
 
@@ -358,6 +366,9 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         party: hasHostContent ? (sectionEnabled("party") ? (hostParty || []) : []) : DEMO_PARTY,
         dressCode,
         gift: hasHostContent ? (sectionEnabled("gift") ? (hostGift || []) : []) : DEMO_GIFT,
+        wish: {
+            message: nonBlank(host.wishMessage) || DEMO_WISH,
+        },
         faq: hasHostContent ? (sectionEnabled("faq") ? (hostFaq || []) : []) : DEMO_FAQ,
         contact: {
             telegram: contactTelegram,
