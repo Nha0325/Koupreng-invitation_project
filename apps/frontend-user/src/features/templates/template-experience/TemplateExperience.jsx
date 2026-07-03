@@ -131,12 +131,13 @@ export default function TemplateExperience({
     const ornamentTheme = content.design?.ornamentTheme || "royal-floral";
 
     return (
-        <div
-            className={`tx-root ${theme.className} tx-ornament--${ornamentTheme}${preview ? " tx-root--preview" : ""}`}
-            data-theme="wed"
-            data-variant={resolvedVariant}
-            ref={rootRef}
-        >
+        <div className={`tx-stage tx-stage--${resolvedVariant}${preview ? " tx-stage--preview" : ""}`}>
+            <div
+                className={`tx-root ${theme.className} tx-ornament--${ornamentTheme}${preview ? " tx-root--preview" : ""}`}
+                data-theme="wed"
+                data-variant={resolvedVariant}
+                ref={rootRef}
+            >
             {!preview && showBreadcrumb && (
                 <div className="tx-breadcrumb">
                     <Breadcrumb items={crumbs} />
@@ -210,6 +211,7 @@ export default function TemplateExperience({
                     onNavigate={handleNavigate}
                 />
             )}
+            </div>
         </div>
     );
 }

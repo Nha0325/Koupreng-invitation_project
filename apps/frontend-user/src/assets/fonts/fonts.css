@@ -12,4 +12,8 @@
   --font-ui: 'Kantumruy Pro', 'Noto Sans Khmer', sans-serif;
   --font-english-romantic: 'Cormorant Garamond', Georgia, serif;
   --font-romantic-en: var(--font-english-romantic);
+  --font-kh-title: 'Moul', 'Noto Sans Khmer', serif;
+  --font-kh-heading: 'Koulen', 'Noto Sans Khmer', sans-serif;
+  --font-kh-body: 'Battambang', 'Noto Sans Khmer', serif;
+  --font-en-romantic: 'Cormorant Garamond', Georgia, serif;
 }
