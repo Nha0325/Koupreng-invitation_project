@@ -246,7 +246,9 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             colors: theme.dressColors,
         };
 
-    const coverImage = tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
+    const coverImage = hasHostContent
+        ? nonBlank(tpl.customMainImage)
+        : tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || "/facebook/all/01-card/cover-card.jpg";
 
     // Map host story chapters onto the timeline shape, layering template images.
     const ownImages = getTemplateOwnImages(tpl);
@@ -347,12 +349,15 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         monogramText: tpl.monogramText || (tpl.groom && tpl.bride ? `${tpl.groom.charAt(0)} & ${tpl.bride.charAt(0)}` : "V & P"),
         groom: tpl.groom || "ប្រុស",
         bride: tpl.bride || "ស្រី",
+        groomNickname: nonBlank(hostCouple.groomNickname),
+        brideNickname: nonBlank(hostCouple.brideNickname),
+        eventTitle: nonBlank(host.eventTitle),
         dateText: tpl.dateText || "",
         targetDate: tpl.targetDate,
         ceremonyTime: tpl.ceremonyTime || "",
         receptionTime: tpl.receptionTime || "",
         coverImage,
-        portraitImage: tpl.customMainImage || tpl.phoneCoverImage || tpl.mainImage || coverImage,
+        portraitImage: coverImage,
         message: tpl.message || copy.message,
         families: "រួមជាមួយក្រុមគ្រួសារទាំងសងខាង",
         couple: {
@@ -366,7 +371,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             address: tpl.venueAddress || "",
             mapLink,
             mapEmbedUrl,
-            image: tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || coverImage,
+            image: coverImage,
         },
         gallery: hasHostContent ? (sectionEnabled("gallery") ? (hostGallery || []) : []) : buildGallery(tpl),
         story: hasHostContent ? (sectionEnabled("story") ? (hostStory || []) : []) : buildStory(tpl),
@@ -390,5 +395,6 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         },
         music: typeof tpl.music === "string" ? tpl.music : tpl.music?.url,
         openingVideo: tpl.openingVideo || null,
+        rsvpDeadline: nonBlank(host.rsvp?.deadline),
     };
 }

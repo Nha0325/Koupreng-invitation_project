@@ -48,21 +48,21 @@ export function draftToTemplate(draft, gallery = []) {
 
     const targetDate = draft.event?.date
         ? new Date(`${draft.event.date}T${draft.event.ceremonyTime || "17:00"}:00`).toISOString()
-        : baseTpl.targetDate;
+        : undefined;
 
     const tpl = {
         ...baseTpl,
-        groom: draft.couple?.groom || baseTpl.groom,
-        bride: draft.couple?.bride || baseTpl.bride,
-        monogramText: draft.design?.monogramText || draft.monogramText || initials(draft.couple) || baseTpl.monogramText,
-        dateText: displayDate(draft.event?.date) || baseTpl.dateText,
+        groom: draft.couple?.groom || "",
+        bride: draft.couple?.bride || "",
+        monogramText: draft.design?.monogramText || draft.monogramText || initials(draft.couple) || "❦",
+        dateText: displayDate(draft.event?.date),
         targetDate,
-        ceremonyTime: draft.event?.ceremonyTime || baseTpl.ceremonyTime,
-        receptionTime: draft.event?.receptionTime || baseTpl.receptionTime,
-        venueName: draft.event?.venueName || baseTpl.venueName,
-        venueAddress: draft.event?.venueAddress || baseTpl.venueAddress,
-        mapQuery: draft.event?.mapLink || baseTpl.mapQuery,
-        customMainImage: draft.coverImage || baseTpl.customMainImage,
+        ceremonyTime: draft.event?.ceremonyTime || "",
+        receptionTime: draft.event?.receptionTime || "",
+        venueName: draft.event?.venueName || "",
+        venueAddress: draft.event?.venueAddress || "",
+        mapQuery: draft.event?.mapLink || "",
+        customMainImage: draft.coverImage || "",
         message: draft.message || draft.story || baseTpl.message,
         storyText: draft.story || "",
         dressCode: draft.dressCode || baseTpl.dressCode,
@@ -89,6 +89,7 @@ export function draftToTemplate(draft, gallery = []) {
                 rsvp: draft.rsvp?.enabled !== false && draft.enabledSections?.rsvp !== false,
             },
             eventTitle: draft.event?.title || "",
+            rsvp: draft.rsvp || {},
         },
         // When the host has uploaded photos, drive gallery + story from them.
         storyImages: uploadedImages.length ? uploadedImages : baseTpl.storyImages,

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Breadcrumb } from "../../../shared/ui/Breadcrumb";
 import { buildTemplateContent } from "./templateExperienceContent";
 import { getVariantTheme, KEEP_TEMPLATE_CODE, resolveVariant } from "./templateExperienceThemes";
-import GardenRoyalSambotTemplate from "./sambot/GardenRoyalSambotTemplate";
+import CanvaKhmerWeddingTemplate from "./canva-khmer/CanvaKhmerWeddingTemplate";
 import TemplateOpeningGate from "./sections/TemplateOpeningGate";
 import TemplateHero from "./sections/TemplateHero";
 import TemplateMessage from "./sections/TemplateMessage";
@@ -27,7 +27,7 @@ import TemplateQuickNav from "./controls/TemplateQuickNav";
 import TemplateSectionHeader from "./TemplateSectionHeader";
 import { templateIcons } from "./templateIcons";
 import "./template-experience.css";
-import "./sambot/garden-royal-sambot.css";
+import "./canva-khmer/canva-khmer-wedding.css";
 
 /**
  * TemplateExperience — shared, themeable full-page wedding experience.
@@ -134,7 +134,7 @@ export default function TemplateExperience({
 
     if (resolvedVariant === KEEP_TEMPLATE_CODE) {
         return (
-            <GardenRoyalSambotTemplate
+            <CanvaKhmerWeddingTemplate
                 content={content}
                 useTemplateLink={useTemplateLink}
                 backLink={backLink}
@@ -146,7 +146,7 @@ export default function TemplateExperience({
                 isHostedInvitation={Boolean(tpl.hostContent)}
             >
                 {children}
-            </GardenRoyalSambotTemplate>
+            </CanvaKhmerWeddingTemplate>
         );
     }
 
