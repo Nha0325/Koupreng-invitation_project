@@ -250,6 +250,14 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
 
     // Map host story chapters onto the timeline shape, layering template images.
     const ownImages = getTemplateOwnImages(tpl);
+    const hostGallery = nonEmpty(host.gallery)
+        ? host.gallery
+            .map((item, index) => ({
+                src: typeof item === "string" ? item : item?.src || item?.preview || "",
+                span: GALLERY_SPANS[index % GALLERY_SPANS.length],
+            }))
+            .filter((item) => item.src)
+        : null;
     const hostStoryText = nonBlank(host.storyText || tpl.storyText);
     const hostStoryTextEn = nonBlank(host.storyTextEn);
     const languageMode = host.languageMode || "both";
@@ -323,7 +331,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         ? (/^https?:\/\//i.test(hostContact.telegram)
             ? hostContact.telegram
             : `https://t.me/${hostContact.telegram.replace(/^@/, "")}`)
-        : "https://t.me/koupreng";
+        : (hasHostContent ? "" : "https://t.me/koupreng");
     const contactFacebook = hostContact.facebook
         ? (/^https?:\/\//i.test(hostContact.facebook)
             ? hostContact.facebook
@@ -350,8 +358,8 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         couple: {
             groomIntro: hostCouple.groomIntro || copy.groomIntro,
             brideIntro: hostCouple.brideIntro || copy.brideIntro,
-            groomParents: hostCouple.groomParents || "បុត្រាលោក ... និងលោកស្រី ...",
-            brideParents: hostCouple.brideParents || "បុត្រីលោក ... និងលោកស្រី ...",
+            groomParents: hostCouple.groomParents || (hasHostContent ? "" : "បុត្រាលោក ... និងលោកស្រី ..."),
+            brideParents: hostCouple.brideParents || (hasHostContent ? "" : "បុត្រីលោក ... និងលោកស្រី ..."),
         },
         venue: {
             name: venueName,
@@ -360,7 +368,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             mapEmbedUrl,
             image: tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || coverImage,
         },
-        gallery: hasHostContent ? (sectionEnabled("gallery") ? buildGallery(tpl) : []) : buildGallery(tpl),
+        gallery: hasHostContent ? (sectionEnabled("gallery") ? (hostGallery || []) : []) : buildGallery(tpl),
         story: hasHostContent ? (sectionEnabled("story") ? (hostStory || []) : []) : buildStory(tpl),
         schedule: hasHostContent ? (sectionEnabled("schedule") ? (hostSchedule || []) : []) : buildSchedule(tpl),
         party: hasHostContent ? (sectionEnabled("party") ? (hostParty || []) : []) : DEMO_PARTY,
@@ -372,7 +380,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         faq: hasHostContent ? (sectionEnabled("faq") ? (hostFaq || []) : []) : DEMO_FAQ,
         contact: {
             telegram: contactTelegram,
-            phone: hostContact.phone || "+855 12 345 678",
+            phone: hostContact.phone || (hasHostContent ? "" : "+855 12 345 678"),
             email: hostContact.email || "",
             facebook: contactFacebook,
         },

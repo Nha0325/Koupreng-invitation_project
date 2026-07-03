@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 
 import { Breadcrumb } from "../../../shared/ui/Breadcrumb";
 import { buildTemplateContent } from "./templateExperienceContent";
-import { getVariantTheme, resolveVariant } from "./templateExperienceThemes";
+import { getVariantTheme, KEEP_TEMPLATE_CODE, resolveVariant } from "./templateExperienceThemes";
+import GardenRoyalSambotTemplate from "./sambot/GardenRoyalSambotTemplate";
 import TemplateOpeningGate from "./sections/TemplateOpeningGate";
 import TemplateHero from "./sections/TemplateHero";
 import TemplateMessage from "./sections/TemplateMessage";
@@ -26,6 +27,7 @@ import TemplateQuickNav from "./controls/TemplateQuickNav";
 import TemplateSectionHeader from "./TemplateSectionHeader";
 import { templateIcons } from "./templateIcons";
 import "./template-experience.css";
+import "./sambot/garden-royal-sambot.css";
 
 /**
  * TemplateExperience — shared, themeable full-page wedding experience.
@@ -129,6 +131,24 @@ export default function TemplateExperience({
         [content.enabledSections]
     );
     const ornamentTheme = content.design?.ornamentTheme || "royal-floral";
+
+    if (resolvedVariant === KEEP_TEMPLATE_CODE) {
+        return (
+            <GardenRoyalSambotTemplate
+                content={content}
+                useTemplateLink={useTemplateLink}
+                backLink={backLink}
+                backLabel={backLabel}
+                primaryCtaLabel={primaryCtaLabel}
+                preview={preview}
+                showActions={showActions}
+                showStickyCta={showStickyCta}
+                isHostedInvitation={Boolean(tpl.hostContent)}
+            >
+                {children}
+            </GardenRoyalSambotTemplate>
+        );
+    }
 
     return (
         <div className={`tx-stage tx-stage--${resolvedVariant}${preview ? " tx-stage--preview" : ""}`}>
