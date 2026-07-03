@@ -221,6 +221,9 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             ? tpl.mapQuery
             : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapSearch)}`)
         : null;
+    const mapEmbedUrl = hasMap
+        ? `https://www.google.com/maps?q=${encodeURIComponent(mapSearch)}&output=embed`
+        : null;
 
     const dressCode = tpl.dressCode && Array.isArray(tpl.dressCode.colors) && tpl.dressCode.colors.length
         ? {
@@ -313,6 +316,12 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             ? hostContact.telegram
             : `https://t.me/${hostContact.telegram.replace(/^@/, "")}`)
         : "https://t.me/koupreng";
+    const contactFacebook = hostContact.facebook
+        ? (/^https?:\/\//i.test(hostContact.facebook)
+            ? hostContact.facebook
+            : `https://www.facebook.com/${hostContact.facebook.replace(/^@/, "")}`)
+        : "";
+    const design = tpl.design || {};
 
     return {
         variant,
@@ -340,6 +349,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             name: venueName,
             address: tpl.venueAddress || "",
             mapLink,
+            mapEmbedUrl,
             image: tpl.customMainImage || tpl.mainImage || tpl.phoneCoverImage || coverImage,
         },
         gallery: hasHostContent ? (sectionEnabled("gallery") ? buildGallery(tpl) : []) : buildGallery(tpl),
@@ -353,8 +363,13 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             telegram: contactTelegram,
             phone: hostContact.phone || "+855 12 345 678",
             email: hostContact.email || "",
+            facebook: contactFacebook,
         },
-        music: tpl.music?.url,
+        design: {
+            openingStyle: design.openingStyle || "cinematic",
+            ornamentTheme: design.ornamentTheme || "royal-floral",
+        },
+        music: typeof tpl.music === "string" ? tpl.music : tpl.music?.url,
         openingVideo: tpl.openingVideo || null,
     };
 }

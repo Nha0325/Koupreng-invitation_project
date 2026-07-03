@@ -1,4 +1,4 @@
-import { IoLogoWhatsapp, IoPaperPlane } from "react-icons/io5";
+import { IoCallOutline, IoLogoFacebook, IoPaperPlane } from "react-icons/io5";
 
 import TemplateReveal from "../TemplateReveal";
 
@@ -43,15 +43,21 @@ export default function TemplateFooter({ content }) {
                         )}
                         {contact.phone && (
                             <a href={`tel:${contact.phone.replace(/\s+/g, "")}`} className="tx-footer__contact-link">
-                                <IoLogoWhatsapp aria-hidden="true" />
+                                <IoCallOutline aria-hidden="true" />
                                 {contact.phone}
+                            </a>
+                        )}
+                        {contact.facebook && (
+                            <a href={contact.facebook} target="_blank" rel="noopener noreferrer" className="tx-footer__contact-link">
+                                <IoLogoFacebook aria-hidden="true" />
+                                Facebook
                             </a>
                         )}
                     </TemplateReveal>
                 )}
 
                 <TemplateReveal delay={0.24}>
-                    <p className="tx-footer__brand">បង្កើតដោយ ស្នេហា · Koupreng</p>
+                    <p className="tx-footer__brand">Made with love by Koupreng</p>
                 </TemplateReveal>
             </div>
         </footer>

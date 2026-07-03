@@ -77,7 +77,7 @@ export function createDraft(initial = {}) {
       mapLink: "",
       ...initial.event,
     },
-    contact: { phone: "", telegram: "", email: "", ...initial.contact },
+    contact: { phone: "", telegram: "", email: "", facebook: "", ...initial.contact },
     message: initial.message || "",
     story: initial.story || "",
     storyChapters: initial.storyChapters || [],
@@ -87,8 +87,10 @@ export function createDraft(initial = {}) {
     faq: initial.faq || [],
     design: {
       monogramText: "",
-      primaryColor: "#2D7FA6",
-      accentColor: "#D6A63C",
+      primaryColor: "#C99A3D",
+      accentColor: "#6F7D55",
+      openingStyle: "cinematic",
+      ornamentTheme: "royal-floral",
       ...initial.design,
     },
     enabledSections: {

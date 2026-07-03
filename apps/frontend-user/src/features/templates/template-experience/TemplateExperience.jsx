@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 import { Breadcrumb } from "../../../shared/ui/Breadcrumb";
@@ -20,6 +21,8 @@ import TemplateFaq from "./sections/TemplateFaq";
 import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
 import TemplateStickyCta from "./controls/TemplateStickyCta";
+import TemplateSectionHeader from "./TemplateSectionHeader";
+import { templateIcons } from "./templateIcons";
 import "./template-experience.css";
 
 /**
@@ -105,10 +108,11 @@ export default function TemplateExperience({
         (key) => content.enabledSections?.[key] !== false,
         [content.enabledSections]
     );
+    const ornamentTheme = content.design?.ornamentTheme || "royal-floral";
 
     return (
         <div
-            className={`tx-root ${theme.className}${preview ? " tx-root--preview" : ""}`}
+            className={`tx-root ${theme.className} tx-ornament--${ornamentTheme}${preview ? " tx-root--preview" : ""}`}
             data-theme="wed"
             data-variant={resolvedVariant}
             ref={rootRef}
@@ -119,9 +123,17 @@ export default function TemplateExperience({
                 </div>
             )}
 
-            {!gateOpen && <TemplateOpeningGate content={content} onOpen={handleOpen} />}
-            {gateOpen && (
-                <>
+            <AnimatePresence mode="wait">
+                {!gateOpen ? (
+                    <TemplateOpeningGate key="opening-gate" content={content} onOpen={handleOpen} />
+                ) : (
+                    <motion.div
+                        key="invitation-content"
+                        className="tx-experience"
+                        initial={{ opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                    >
                     <TemplateHero content={content} onOpen={handleHeroOpen} />
                     <TemplateMessage content={content} />
                     <TemplateCouple content={content} />
@@ -137,13 +149,21 @@ export default function TemplateExperience({
 
                     {children && sectionEnabled("rsvp") && (
                         <div className="tx-children">
+                            <TemplateSectionHeader
+                                id="tx-rsvp-title"
+                                icon={templateIcons.invitation}
+                                kicker="ការឆ្លើយតប"
+                                title="សូមបញ្ជាក់ការចូលរួម"
+                                subtitle="RSVP"
+                            />
                             {children}
                         </div>
                     )}
 
                     <TemplateFooter content={content} />
-                </>
-            )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {gateOpen && !preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">

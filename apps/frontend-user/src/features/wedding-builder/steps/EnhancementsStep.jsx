@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { IoCameraOutline, IoColorPaletteOutline, IoImagesOutline, IoMusicalNotesOutline, IoVideocamOutline } from "react-icons/io5";
 import { MusicPicker } from "../../../shared/ui/MusicPicker";
 import { OpeningVideoPicker } from "../../../shared/ui/OpeningVideoPicker";
 import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
@@ -159,6 +160,7 @@ export default function EnhancementsStep({ draft, update }) {
                     <div className="wb-field">
                         <label>Cover image</label>
                         <button type="button" className="wb-btn wb-btn-secondary" onClick={() => coverInputRef.current?.click()}>
+                            <IoCameraOutline aria-hidden="true" />
                             ជ្រើសរូប Cover
                         </button>
                         <input
@@ -193,7 +195,7 @@ export default function EnhancementsStep({ draft, update }) {
                         }}
                     >
                         <div className="wb-dropzone-content">
-                            <div className="wb-dropzone-icon">📷</div>
+                            <div className="wb-dropzone-icon"><IoImagesOutline aria-hidden="true" /></div>
                             <p>ចុចដើម្បីបញ្ចូលរូបភាព</p>
                             <small>JPG, PNG — អតិបរមា 5MB ក្នុងមួយរូប</small>
                         </div>
@@ -250,6 +252,64 @@ export default function EnhancementsStep({ draft, update }) {
 
             <section className="wb-section">
                 <div className="wb-section-head">
+                    <span className="wb-section-kicker">Design</span>
+                    <h3>រចនាបថ Garden Royal Khmer</h3>
+                </div>
+
+                <div className="wb-field">
+                    <label>Opening style</label>
+                    <div className="wb-choice-grid wb-choice-grid--three">
+                        {[
+                            ["cinematic", "Cinematic", "រូបភាព ឬវីដេអូពេញអេក្រង់"],
+                            ["paper", "Royal Paper", "ក្រដាសក្រែម និងស៊ុមមាស"],
+                            ["monogram", "Monogram", "ផ្តោតលើនិមិត្តសញ្ញាគូស្នេហ៍"],
+                        ].map(([value, label, description]) => (
+                            <button
+                                type="button"
+                                key={value}
+                                className={`wb-choice${(design.openingStyle || "cinematic") === value ? " is-active" : ""}`}
+                                onClick={() => updateDesign({ openingStyle: value })}
+                            >
+                                <IoVideocamOutline aria-hidden="true" />
+                                <strong>{label}</strong>
+                                <small>{description}</small>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="wb-field">
+                    <label>Icon &amp; ornament theme</label>
+                    <div className="wb-choice-grid">
+                        {[
+                            ["royal-floral", "Royal Floral", "ផ្កា ស្លឹក និងស៊ុមមាស"],
+                            ["khmer-line", "Khmer Line", "លំនាំខ្មែរបែបសាមញ្ញ"],
+                            ["minimal-gold", "Minimal Gold", "ស្អាត ស្រាល និងទំនើប"],
+                        ].map(([value, label, description]) => (
+                            <button
+                                type="button"
+                                key={value}
+                                className={`wb-choice${(design.ornamentTheme || "royal-floral") === value ? " is-active" : ""}`}
+                                onClick={() => updateDesign({ ornamentTheme: value })}
+                            >
+                                <IoColorPaletteOutline aria-hidden="true" />
+                                <strong>{label}</strong>
+                                <small>{description}</small>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="wb-font-preview" aria-label="Font preview">
+                    <span>សិរីមង្គលអាពាហ៍ពិពាហ៍</span>
+                    <strong>កម្មវិធីមង្គលការ</strong>
+                    <p>ដោយក្តីសោមនស្សរីករាយ យើងខ្ញុំសូមគោរពអញ្ជើញ</p>
+                    <small>Garden Royal Wedding Invitation</small>
+                </div>
+            </section>
+
+            <section className="wb-section">
+                <div className="wb-section-head">
                     <span className="wb-section-kicker">Intro</span>
                     <h3>វីដេអូបើកសន្លឹកការ និងតន្ត្រី</h3>
                 </div>
@@ -277,6 +337,7 @@ export default function EnhancementsStep({ draft, update }) {
                 <div className="wb-field">
                     <label>Upload opening video</label>
                     <button type="button" className="wb-btn wb-btn-secondary" onClick={() => openingVideoInputRef.current?.click()}>
+                        <IoVideocamOutline aria-hidden="true" />
                         ជ្រើសវីដេអូផ្ទាល់ខ្លួន
                     </button>
                     <input
@@ -299,6 +360,7 @@ export default function EnhancementsStep({ draft, update }) {
                 <div className="wb-field">
                     <label>Upload background music</label>
                     <button type="button" className="wb-btn wb-btn-secondary" onClick={() => musicInputRef.current?.click()}>
+                        <IoMusicalNotesOutline aria-hidden="true" />
                         ជ្រើសតន្ត្រីផ្ទាល់ខ្លួន
                     </button>
                     <input

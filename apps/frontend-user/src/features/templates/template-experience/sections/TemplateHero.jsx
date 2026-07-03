@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { IoChevronDown } from "react-icons/io5";
+import { IoCalendarOutline, IoChevronDown, IoLocationOutline } from "react-icons/io5";
 
 import { usePrefersReducedMotion } from "../../../../shared/hooks/usePrefersReducedMotion";
 
@@ -50,7 +50,10 @@ export default function TemplateHero({ content, onOpen }) {
                 )}
 
                 <motion.p className="tx-kicker tx-hero__kicker" {...rise(0.12)}>
-                    សូមគោរពអញ្ជើញ
+                    សិរីមង្គលអាពាហ៍ពិពាហ៍
+                </motion.p>
+                <motion.p className="tx-hero__english" {...rise(0.16)}>
+                    Together with their families
                 </motion.p>
 
                 <motion.h1 className="tx-hero__names" {...rise(0.2)}>
@@ -65,12 +68,14 @@ export default function TemplateHero({ content, onOpen }) {
 
                 {content.dateText && (
                     <motion.p className="tx-hero__date" {...rise(0.4)}>
+                        <IoCalendarOutline aria-hidden="true" />
                         {content.dateText}
                     </motion.p>
                 )}
 
                 {venueShort && (
                     <motion.p className="tx-hero__venue" {...rise(0.48)}>
+                        <IoLocationOutline aria-hidden="true" />
                         {venueShort}
                     </motion.p>
                 )}
@@ -81,7 +86,7 @@ export default function TemplateHero({ content, onOpen }) {
 
                 <motion.div {...rise(0.66)}>
                     <button type="button" className="tx-btn tx-btn--solid tx-hero__cta" onClick={onOpen}>
-                        បើកសន្លឹកការ
+                        មើលការអញ្ជើញ
                     </button>
                 </motion.div>
             </div>

@@ -105,6 +105,17 @@ export default function VenueRsvpStep({ draft, updateField }) {
                         placeholder="host@example.com"
                     />
                 </div>
+
+                <div className="wb-field">
+                    <label htmlFor="contact-facebook">Facebook page or profile</label>
+                    <input
+                        id="contact-facebook"
+                        type="text"
+                        value={contact.facebook || ""}
+                        onChange={(e) => updateField("contact", { facebook: e.target.value })}
+                        placeholder="https://facebook.com/... or @username"
+                    />
+                </div>
             </section>
 
             {/* Card 3 — RSVP */}

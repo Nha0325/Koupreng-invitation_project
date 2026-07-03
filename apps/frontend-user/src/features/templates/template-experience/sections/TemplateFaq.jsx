@@ -2,6 +2,8 @@ import { useState } from "react";
 import { IoAdd, IoRemove } from "react-icons/io5";
 
 import TemplateReveal from "../TemplateReveal";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateFaq — accessible accordion.
@@ -18,12 +20,13 @@ export default function TemplateFaq({ content }) {
     return (
         <section className="tx-section tx-faq" data-tx-section="faq" aria-labelledby="tx-faq-title">
             <div className="tx-shell tx-shell--narrow">
-                <header className="tx-section__head">
-                    <TemplateReveal>
-                        <p className="tx-kicker">សំណួរ</p>
-                        <h2 id="tx-faq-title" className="tx-section__title">សំណួរញឹកញាប់</h2>
-                    </TemplateReveal>
-                </header>
+                <TemplateSectionHeader
+                    id="tx-faq-title"
+                    icon={templateIcons.faq}
+                    kicker="សំណួរ"
+                    title="សំណួរញឹកញាប់"
+                    subtitle="FREQUENTLY ASKED QUESTIONS"
+                />
 
                 <TemplateReveal className="tx-faq__list">
                     {items.map((item) => {

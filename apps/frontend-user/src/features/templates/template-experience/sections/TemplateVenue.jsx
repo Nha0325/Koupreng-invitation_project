@@ -1,6 +1,9 @@
-import { IoLocationSharp, IoNavigate } from "react-icons/io5";
+import { IoLogoFacebook, IoLocationSharp, IoMapOutline, IoNavigate } from "react-icons/io5";
 
 import TemplateReveal from "../TemplateReveal";
+import TemplateImage from "../TemplateImage";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateVenue — venue panel with name, address, decorative image.
@@ -10,42 +13,77 @@ import TemplateReveal from "../TemplateReveal";
 export default function TemplateVenue({ content }) {
     const { venue } = content;
     const hasMap = Boolean(venue.mapLink);
+    const hasFacebook = Boolean(content.contact?.facebook);
 
     return (
         <section className="tx-section tx-venue" data-tx-section="venue" aria-labelledby="tx-venue-title">
-            <div className="tx-shell tx-venue__grid">
-                <TemplateReveal className="tx-venue__media">
-                    <img src={venue.image} alt={venue.name || "ទីតាំងពិធី"} loading="lazy" />
-                    <span className="tx-venue__media-frame" aria-hidden="true" />
-                </TemplateReveal>
+            <div className="tx-shell">
+                <TemplateSectionHeader
+                    id="tx-venue-title"
+                    icon={templateIcons.venue}
+                    kicker="ទីតាំងកម្មវិធី"
+                    title="ទីតាំងកម្មវិធី"
+                    subtitle="LOCATION"
+                />
 
-                <TemplateReveal className="tx-venue__body" delay={0.08}>
-                    <p className="tx-kicker">ទីតាំង</p>
-                    <h2 id="tx-venue-title" className="tx-section__title tx-venue__name">
-                        {venue.name || "ទីតាំងពិធីមង្គលការ"}
-                    </h2>
+                <div className="tx-venue__grid">
+                    <TemplateReveal className="tx-venue__media">
+                        {venue.mapEmbedUrl ? (
+                            <iframe
+                                src={venue.mapEmbedUrl}
+                                title={`ផែនទី ${venue.name || "ទីតាំងពិធី"}`}
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                            />
+                        ) : (
+                            <TemplateImage src={venue.image} alt={venue.name || "ទីតាំងពិធី"} />
+                        )}
+                        <span className="tx-venue__media-frame" aria-hidden="true" />
+                    </TemplateReveal>
 
-                    {venue.address && (
-                        <p className="tx-venue__address">
-                            <IoLocationSharp aria-hidden="true" />
-                            <span>{venue.address}</span>
-                        </p>
-                    )}
+                    <TemplateReveal className="tx-venue__body" delay={0.08}>
+                        <span className="tx-venue__pin" aria-hidden="true">
+                            <IoMapOutline />
+                        </span>
+                        <h3 className="tx-section__title tx-venue__name">
+                            {venue.name || "ទីតាំងពិធីមង្គលការ"}
+                        </h3>
 
-                    {hasMap ? (
-                        <a
-                            className="tx-btn tx-btn--solid tx-venue__cta"
-                            href={venue.mapLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <IoNavigate aria-hidden="true" />
-                            មើលទិសដៅ
-                        </a>
-                    ) : (
-                        <p className="tx-venue__no-map">ព័ត៌មានទីតាំងលម្អិតនឹងបញ្ជាក់បន្ថែម</p>
-                    )}
-                </TemplateReveal>
+                        {venue.address && (
+                            <p className="tx-venue__address">
+                                <IoLocationSharp aria-hidden="true" />
+                                <span>{venue.address}</span>
+                            </p>
+                        )}
+
+                        <div className="tx-venue__actions">
+                            {hasMap ? (
+                                <a
+                                    className="tx-btn tx-btn--solid tx-venue__cta"
+                                    href={venue.mapLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <IoNavigate aria-hidden="true" />
+                                    បើកផែនទី <span>/ Open Map</span>
+                                </a>
+                            ) : (
+                                <p className="tx-venue__no-map">ព័ត៌មានទីតាំងលម្អិតនឹងបញ្ជាក់បន្ថែម</p>
+                            )}
+                            {hasFacebook && (
+                                <a
+                                    className="tx-btn tx-btn--ghost tx-venue__facebook"
+                                    href={content.contact.facebook}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <IoLogoFacebook aria-hidden="true" />
+                                    Facebook
+                                </a>
+                            )}
+                        </div>
+                    </TemplateReveal>
+                </div>
             </div>
         </section>
     );

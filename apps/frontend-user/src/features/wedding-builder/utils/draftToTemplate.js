@@ -66,6 +66,7 @@ export function draftToTemplate(draft, gallery = []) {
         message: draft.message || draft.story || baseTpl.message,
         storyText: draft.story || "",
         dressCode: draft.dressCode || baseTpl.dressCode,
+        design: draft.design || {},
         music: draft.music || baseTpl.music,
         openingVideo: draft.openingVideoEnabled === false ? null : draft.openingVideo,
         // Host-authored rich sections. Passed straight through so the content

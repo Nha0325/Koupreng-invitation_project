@@ -1,4 +1,6 @@
 import TemplateReveal from "../TemplateReveal";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateDressCode — guest guidance: color palette, style, note.
@@ -10,12 +12,13 @@ export default function TemplateDressCode({ content }) {
     return (
         <section className="tx-section tx-dress" data-tx-section="dress" aria-labelledby="tx-dress-title">
             <div className="tx-shell tx-shell--narrow">
-                <header className="tx-section__head">
-                    <TemplateReveal>
-                        <p className="tx-kicker">សម្លៀកបំពាក់</p>
-                        <h2 id="tx-dress-title" className="tx-section__title">{dress.name}</h2>
-                    </TemplateReveal>
-                </header>
+                <TemplateSectionHeader
+                    id="tx-dress-title"
+                    icon={templateIcons.dress}
+                    kicker="សម្លៀកបំពាក់"
+                    title={dress.name}
+                    subtitle="DRESS CODE"
+                />
 
                 <TemplateReveal className="tx-dress__palette" aria-label="ក្ដារពណ៌">
                     {dress.colors.map((color) => (

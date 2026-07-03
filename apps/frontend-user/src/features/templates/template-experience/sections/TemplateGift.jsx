@@ -1,6 +1,8 @@
 import { IoQrCode } from "react-icons/io5";
 
 import TemplateReveal from "../TemplateReveal";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateGift — Cambodia-specific gift section (ABA / ACLEDA / Wing).
@@ -13,15 +15,14 @@ export default function TemplateGift({ content }) {
     return (
         <section className="tx-section tx-gift" data-tx-section="gift" aria-labelledby="tx-gift-title">
             <div className="tx-shell">
-                <header className="tx-section__head">
-                    <TemplateReveal>
-                        <p className="tx-kicker">ចងដៃមង្គល</p>
-                        <h2 id="tx-gift-title" className="tx-section__title">ការគាំទ្រពីបេះដូង</h2>
-                        <p className="tx-section__lead">
-                            វត្តមានរបស់អ្នកគឺជាអំណោយដ៏ល្អបំផុត។ ប្រសិនបើអ្នកចង់ចែករំលែកពរជ័យបន្ថែម
-                        </p>
-                    </TemplateReveal>
-                </header>
+                <TemplateSectionHeader
+                    id="tx-gift-title"
+                    icon={templateIcons.gift}
+                    kicker="ចងដៃមង្គល"
+                    title="ការគាំទ្រពីបេះដូង"
+                    subtitle="WEDDING GIFT"
+                    lead="វត្តមានរបស់អ្នកគឺជាអំណោយដ៏ល្អបំផុត។ ប្រសិនបើអ្នកចង់ចែករំលែកពរជ័យបន្ថែម"
+                />
 
                 <div className="tx-gift__grid">
                     {accounts.map((acc, index) => (

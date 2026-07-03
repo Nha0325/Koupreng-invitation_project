@@ -28,8 +28,13 @@
 
     /* Hero overlay + heading fonts (variant can override) */
     --tpl-hero-overlay: linear-gradient(180deg, rgba(33, 24, 15, 0.55) 0%, rgba(33, 24, 15, 0.35) 45%, rgba(33, 24, 15, 0.72) 100%);
-    --tpl-heading-font: var(--font-serif);
-    --tpl-body-font: var(--font-sans);
+    --font-khmer-title: "Moul", "Noto Sans Khmer", serif;
+    --font-khmer-section: "Koulen", "Moul", "Noto Sans Khmer", sans-serif;
+    --font-khmer-body: "Battambang", "Noto Sans Khmer", sans-serif;
+    --font-ui: "Kantumruy Pro", "Noto Sans Khmer", sans-serif;
+    --font-english-romantic: "Cormorant Garamond", Georgia, serif;
+    --tpl-heading-font: var(--font-khmer-title);
+    --tpl-body-font: var(--font-khmer-body);
 
     /* Footer tokens */
     --tpl-footer-bg: var(--tpl-text);
@@ -102,6 +107,41 @@
     margin-inline: auto;
 }
 
+.tx-section__icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 0.9rem;
+    border: 1px solid var(--tpl-border);
+    border-radius: 50%;
+    color: var(--tpl-accent-dark);
+    background: var(--tpl-surface);
+    box-shadow: var(--tpl-shadow-sm);
+}
+
+.tx-section__icon svg {
+    font-size: 1.3rem;
+}
+
+.tx-section__subtitle {
+    margin-top: 0.45rem;
+    color: var(--tpl-accent-dark);
+    font-family: var(--font-english-romantic);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.tx-ornament-divider {
+    display: block;
+    width: min(320px, 78vw);
+    height: 34px;
+    margin: 0.75rem auto -0.5rem;
+    background: center / contain no-repeat;
+}
+
 /* ── Kicker / section label ────────────────────────────────── */
 .tx-kicker {
     font-size: 0.72rem;
@@ -160,7 +200,7 @@
     min-height: 48px;
     padding: 0.85rem 2rem;
     border-radius: 999px;
-    font-family: var(--tpl-body-font);
+    font-family: var(--font-ui);
     font-size: 0.95rem;
     font-weight: 600;
     text-decoration: none;
@@ -2063,4 +2103,787 @@
     font-size: 0.8rem;
     display: block;
     margin-top: 4px;
+}
+
+/* ============================================================
+   GARDEN ROYAL KHMER — PREMIUM PAPER, GOLD & BOTANICAL LAYER
+   ============================================================ */
+.template-experience--garden-royal-khmer-wedding {
+    --tpl-bg: #f7efe1;
+    --tpl-surface: #fffaf0;
+    --tpl-surface-alt: #fff8ed;
+    --tpl-text: #3b2614;
+    --tpl-muted: #74624f;
+    --tpl-accent: #c99a3d;
+    --tpl-accent-dark: #8a6324;
+    --tpl-on-accent: #fffaf0;
+    --tpl-border: rgba(138, 99, 36, 0.24);
+    --tpl-radius: 8px;
+    --tpl-shadow: 0 24px 62px rgba(75, 47, 20, 0.16);
+    --tpl-shadow-sm: 0 10px 28px rgba(75, 47, 20, 0.11);
+    --tpl-hero-overlay:
+        linear-gradient(180deg, rgba(25, 18, 10, 0.48), rgba(58, 39, 19, 0.3) 44%, rgba(32, 23, 12, 0.72));
+    --tpl-footer-bg: #302518;
+    --tpl-footer-text: rgba(255, 250, 240, 0.92);
+    --tpl-footer-accent: #ead6aa;
+    --tpl-heading-font: var(--font-khmer-title);
+    --tpl-body-font: var(--font-khmer-body);
+    background-color: var(--tpl-surface);
+    background-image: url("../../../assets/invitations/garden-royal/paper-texture.svg");
+    background-size: 180px;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-experience {
+    background: var(--tpl-surface);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-section {
+    isolation: isolate;
+    background-color: var(--tpl-surface);
+    background-image:
+        linear-gradient(rgba(255, 250, 240, 0.92), rgba(255, 250, 240, 0.92)),
+        url("../../../assets/invitations/garden-royal/paper-texture.svg");
+    background-size: auto, 180px;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-section:nth-of-type(even),
+.template-experience--garden-royal-khmer-wedding .tx-children {
+    background-color: var(--tpl-bg);
+    background-image:
+        linear-gradient(rgba(247, 239, 225, 0.9), rgba(247, 239, 225, 0.9)),
+        url("../../../assets/invitations/garden-royal/paper-texture.svg");
+    background-size: auto, 180px;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-section::before {
+    content: "";
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: -1;
+    width: clamp(70px, 16vw, 132px);
+    aspect-ratio: 1;
+    background: url("../../../assets/invitations/garden-royal/corner-gold.svg") center / contain no-repeat;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-section:nth-of-type(odd)::before {
+    left: auto;
+    right: 18px;
+    transform: scaleX(-1);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-section__title {
+    font-family: var(--font-khmer-section);
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--tpl-text);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-kicker,
+.template-experience--garden-royal-khmer-wedding .tx-section__subtitle {
+    font-family: var(--font-ui);
+    letter-spacing: 0.12em;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-section__icon {
+    border-color: rgba(201, 154, 61, 0.58);
+    color: var(--tpl-accent-dark);
+    background:
+        radial-gradient(circle, #fffaf0 54%, #ead6aa 55% 57%, #fffaf0 58%);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-ornament-divider {
+    background-image: url("../../../assets/invitations/garden-royal/divider-floral.svg");
+}
+
+.template-experience--garden-royal-khmer-wedding.tx-ornament--khmer-line .tx-ornament-divider {
+    background-image: url("../../../assets/invitations/garden-royal/ornament-line.svg");
+}
+
+.template-experience--garden-royal-khmer-wedding.tx-ornament--minimal-gold .tx-section::before {
+    display: none;
+}
+
+.template-experience--garden-royal-khmer-wedding.tx-ornament--minimal-gold .tx-ornament-divider {
+    height: 18px;
+    background-image: linear-gradient(90deg, transparent, #c99a3d 34%, #8a6324 50%, #c99a3d 66%, transparent);
+    background-size: 100% 1px;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-btn--solid,
+.template-experience--garden-royal-khmer-wedding .inv-primary-btn {
+    border: 1px solid rgba(255, 250, 240, 0.42);
+    background: linear-gradient(135deg, #d8b35d, #9a6c20);
+    color: #fffaf0;
+    box-shadow: 0 12px 28px rgba(92, 57, 18, 0.24);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-btn--ghost {
+    border-color: rgba(138, 99, 36, 0.35);
+    color: var(--tpl-accent-dark);
+    background: rgba(255, 250, 240, 0.74);
+}
+
+/* Opening cover */
+.template-experience--garden-royal-khmer-wedding .tx-gate {
+    padding: 3.5rem 1.35rem;
+    color: #fffaf0;
+    background:
+        radial-gradient(circle at 50% 28%, rgba(234, 214, 170, 0.18), transparent 32%),
+        linear-gradient(150deg, #2e2519, #5c4628 52%, #263225);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__media {
+    opacity: 0.72;
+    filter: saturate(0.78) contrast(0.94);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__veil {
+    background:
+        radial-gradient(circle at 50% 43%, rgba(255, 248, 237, 0.2), transparent 30%),
+        linear-gradient(180deg, rgba(31, 25, 16, 0.5), rgba(45, 35, 21, 0.76));
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__paper {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    opacity: 0.28;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    background: url("../../../assets/invitations/garden-royal/paper-texture.svg") center / 180px;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__frame {
+    position: absolute;
+    inset: clamp(14px, 3vw, 34px);
+    z-index: 3;
+    border: 1px solid rgba(234, 214, 170, 0.8);
+    box-shadow: inset 0 0 0 6px rgba(201, 154, 61, 0.08);
+    pointer-events: none;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__frame i {
+    position: absolute;
+    width: clamp(76px, 19vw, 142px);
+    aspect-ratio: 1;
+    background: url("../../../assets/invitations/garden-royal/corner-gold.svg") center / contain no-repeat;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__frame i:nth-child(1) {
+    top: -1px;
+    left: -1px;
+    transform: rotate(90deg);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__frame i:nth-child(2) {
+    top: -1px;
+    right: -1px;
+    transform: rotate(180deg);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__frame i:nth-child(3) {
+    right: -1px;
+    bottom: -1px;
+    transform: rotate(-90deg);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__frame i:nth-child(4) {
+    bottom: -1px;
+    left: -1px;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__ornament {
+    z-index: 3;
+    height: 54px;
+    background: url("../../../assets/invitations/garden-royal/ornament-line.svg") center / contain no-repeat;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__ornament::before,
+.template-experience--garden-royal-khmer-wedding .tx-gate__ornament::after {
+    display: none;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__content {
+    z-index: 4;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__eyebrow {
+    margin: 0;
+    font-family: var(--font-khmer-title);
+    font-size: clamp(1.15rem, 4.8vw, 1.9rem);
+    line-height: 1.8;
+    color: #fffaf0;
+    text-shadow: 0 4px 22px rgba(0, 0, 0, 0.46);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__english {
+    margin: 0.3rem 0 1rem;
+    font-family: var(--font-english-romantic);
+    font-size: clamp(1.1rem, 4.2vw, 1.55rem);
+    font-style: italic;
+    color: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__crest {
+    position: relative;
+    display: grid;
+    gap: 0.1rem;
+    width: clamp(96px, 26vw, 132px);
+    border: 1px solid rgba(234, 214, 170, 0.88);
+    background:
+        radial-gradient(circle, rgba(255, 250, 240, 0.98), rgba(234, 214, 170, 0.88));
+    color: #8a6324;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__crest::before {
+    content: "";
+    position: absolute;
+    inset: -9px;
+    border: 1px solid rgba(234, 214, 170, 0.58);
+    border-radius: 50%;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__crest svg {
+    font-size: 1.35rem;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__crest strong {
+    font-family: var(--font-english-romantic);
+    font-size: clamp(1.35rem, 6vw, 2.2rem);
+    line-height: 1;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate h1 {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.55rem;
+    font-family: var(--font-khmer-title);
+    font-size: clamp(1.8rem, 8.6vw, 4.5rem);
+    line-height: 1.45;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate h1 em {
+    font-family: var(--font-english-romantic);
+    font-size: 0.7em;
+    line-height: 0.8;
+    color: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__date {
+    font-family: var(--font-ui);
+    color: #fff8ed;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__hint {
+    margin-top: 0.7rem;
+    font-family: var(--font-english-romantic);
+    font-size: 0.88rem;
+    color: rgba(255, 250, 240, 0.72);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__petal {
+    position: absolute;
+    z-index: 3;
+    width: 42px;
+    aspect-ratio: 1;
+    background: url("../../../assets/invitations/garden-royal/flower-petal.svg") center / contain no-repeat;
+    opacity: 0.58;
+    pointer-events: none;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__petal--one {
+    top: 18%;
+    left: 8%;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate__petal--two {
+    right: 9%;
+    bottom: 18%;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate--paper .tx-gate__media {
+    opacity: 0.18;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate--paper .tx-gate__veil {
+    background: linear-gradient(180deg, rgba(59, 38, 20, 0.46), rgba(59, 38, 20, 0.62));
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate--monogram .tx-gate__media {
+    opacity: 0.28;
+    filter: blur(2px) saturate(0.6);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gate--monogram .tx-gate__crest {
+    width: clamp(120px, 34vw, 172px);
+}
+
+/* Main hero */
+.template-experience--garden-royal-khmer-wedding .tx-hero {
+    color: #fffaf0;
+    background: #3b2614;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero::before {
+    z-index: 2;
+    inset: 18px;
+    border: 1px solid rgba(234, 214, 170, 0.7);
+    background:
+        url("../../../assets/invitations/garden-royal/corner-gold.svg") left top / 130px no-repeat,
+        url("../../../assets/invitations/garden-royal/corner-gold.svg") right bottom / 130px no-repeat;
+    opacity: 0.84;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero::after {
+    display: none;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__bg {
+    opacity: 1;
+    mix-blend-mode: normal;
+    filter: saturate(0.82) contrast(0.92);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__overlay {
+    z-index: 1;
+    background: var(--tpl-hero-overlay);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__inner {
+    z-index: 3;
+    color: #fffaf0;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__kicker,
+.template-experience--garden-royal-khmer-wedding .tx-hero__date,
+.template-experience--garden-royal-khmer-wedding .tx-hero__venue,
+.template-experience--garden-royal-khmer-wedding .tx-hero__families {
+    color: #fffaf0;
+    text-shadow: 0 3px 18px rgba(0, 0, 0, 0.52);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__english {
+    margin: -0.3rem 0 1rem;
+    font-family: var(--font-english-romantic);
+    font-size: 1.15rem;
+    font-style: italic;
+    color: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__names {
+    font-family: var(--font-khmer-title);
+    color: #fffaf0;
+    text-shadow: 0 5px 30px rgba(0, 0, 0, 0.62);
+    line-height: 1.5;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__date,
+.template-experience--garden-royal-khmer-wedding .tx-hero__venue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-hero__date svg,
+.template-experience--garden-royal-khmer-wedding .tx-hero__venue svg {
+    color: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-crest-circle {
+    border-color: #ead6aa;
+    background: rgba(255, 250, 240, 0.92);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-crest-initials {
+    font-family: var(--font-english-romantic);
+    color: #8a6324;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-crest-ribbon {
+    background: linear-gradient(135deg, #c99a3d, #8a6324);
+}
+
+/* Content cards and imagery */
+.template-experience--garden-royal-khmer-wedding .tx-message__text {
+    font-family: var(--font-khmer-body);
+    font-size: clamp(1.08rem, 3.5vw, 1.45rem);
+    font-weight: 400;
+    line-height: 2.05;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-message__couple,
+.template-experience--garden-royal-khmer-wedding .tx-couple__name,
+.template-experience--garden-royal-khmer-wedding .tx-footer__title {
+    font-family: var(--font-khmer-title);
+    line-height: 1.55;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-couple__media,
+.template-experience--garden-royal-khmer-wedding .tx-story__card,
+.template-experience--garden-royal-khmer-wedding .tx-schedule__card,
+.template-experience--garden-royal-khmer-wedding .tx-countdown__cell,
+.template-experience--garden-royal-khmer-wedding .tx-gift__card,
+.template-experience--garden-royal-khmer-wedding .tx-faq__item {
+    border-color: rgba(201, 154, 61, 0.34);
+    background:
+        linear-gradient(rgba(255, 250, 240, 0.94), rgba(255, 250, 240, 0.94)),
+        url("../../../assets/invitations/garden-royal/paper-texture.svg");
+    background-size: auto, 150px;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-couple__frame,
+.template-experience--garden-royal-khmer-wedding .tx-venue__media-frame {
+    inset: 9px;
+    border-color: rgba(234, 214, 170, 0.9);
+    box-shadow: inset 0 0 0 3px rgba(59, 38, 20, 0.14);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-story__media,
+.template-experience--garden-royal-khmer-wedding .tx-couple__media {
+    background: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-story__media {
+    aspect-ratio: 4 / 3;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-story__media img,
+.template-experience--garden-royal-khmer-wedding .tx-story__media .tx-image-fallback {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-schedule__card {
+    padding-top: 2rem;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-schedule__icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 0.75rem;
+    border-radius: 50%;
+    color: #fffaf0;
+    background: linear-gradient(135deg, #c99a3d, #8a6324);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-schedule__time {
+    font-family: var(--font-english-romantic);
+    font-weight: 700;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-schedule__title,
+.template-experience--garden-royal-khmer-wedding .tx-story__title {
+    font-family: var(--font-khmer-section);
+    font-weight: 400;
+    line-height: 1.55;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-countdown {
+    background:
+        linear-gradient(rgba(111, 125, 85, 0.88), rgba(71, 80, 54, 0.92)),
+        url("../../../assets/invitations/garden-royal/paper-texture.svg");
+    color: #fffaf0;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-countdown .tx-section__title,
+.template-experience--garden-royal-khmer-wedding .tx-countdown .tx-kicker,
+.template-experience--garden-royal-khmer-wedding .tx-countdown .tx-section__subtitle,
+.template-experience--garden-royal-khmer-wedding .tx-countdown__date {
+    color: #fffaf0;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-countdown .tx-section__icon {
+    background: rgba(255, 250, 240, 0.14);
+    color: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-countdown__cell {
+    border-color: rgba(234, 214, 170, 0.5);
+    box-shadow: 0 14px 30px rgba(35, 38, 25, 0.2);
+}
+
+/* Venue and social actions */
+.template-experience--garden-royal-khmer-wedding .tx-venue__media {
+    border: 7px solid #fffaf0;
+    outline: 1px solid rgba(201, 154, 61, 0.55);
+    background: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-venue__media iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    filter: sepia(0.1) saturate(0.8);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-venue__pin {
+    display: grid;
+    place-items: center;
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 1rem;
+    color: #8a6324;
+    background: url("../../../assets/invitations/garden-royal/location-pin-gold.svg") center / contain no-repeat;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-venue__pin svg {
+    display: none;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-venue__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.7rem;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-venue__cta span {
+    font-family: var(--font-english-romantic);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-venue__facebook svg {
+    color: #4267b2;
+}
+
+/* Gallery */
+.template-experience--garden-royal-khmer-wedding .tx-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+    columns: auto;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gallery__item {
+    min-height: 0;
+    margin: 0;
+    aspect-ratio: 4 / 5;
+    border: 5px solid #fffaf0;
+    outline: 1px solid rgba(201, 154, 61, 0.48);
+    box-shadow: var(--tpl-shadow-sm);
+    background: #ead6aa;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gallery__item:first-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 10;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gallery__item img,
+.template-experience--garden-royal-khmer-wedding .tx-gallery__item .tx-image-fallback {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gallery__number {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255, 250, 240, 0.6);
+    border-radius: 50%;
+    color: #fffaf0;
+    background: rgba(59, 38, 20, 0.62);
+    font-family: var(--font-english-romantic);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gallery__empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.45rem;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    border: 1px dashed rgba(201, 154, 61, 0.55);
+    background: rgba(255, 250, 240, 0.76);
+    color: var(--tpl-muted);
+    text-align: center;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gallery__empty svg {
+    font-size: 2rem;
+    color: var(--tpl-accent-dark);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-gallery__empty span {
+    font-family: var(--font-english-romantic);
+    font-style: italic;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-party__media {
+    border-color: #c99a3d;
+    box-shadow: 0 0 0 6px #fffaf0, 0 0 0 7px rgba(201, 154, 61, 0.45);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-party__media .tx-image-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-dress__chip {
+    border: 5px solid #fffaf0;
+    outline: 1px solid rgba(138, 99, 36, 0.26);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-image-fallback {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 0.4rem;
+    min-height: 140px;
+    color: #8a6324;
+    background:
+        linear-gradient(135deg, rgba(255, 250, 240, 0.94), rgba(234, 214, 170, 0.78)),
+        url("../../../assets/invitations/garden-royal/paper-texture.svg");
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-image-fallback svg {
+    font-size: 1.7rem;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-image-fallback small {
+    font-family: var(--font-ui);
+}
+
+/* RSVP, footer and floating music */
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form,
+.template-experience--garden-royal-khmer-wedding .pub-wishes-wall,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-done {
+    border-color: rgba(201, 154, 61, 0.38);
+    background:
+        linear-gradient(rgba(255, 250, 240, 0.96), rgba(255, 250, 240, 0.96)),
+        url("../../../assets/invitations/garden-royal/paper-texture.svg");
+}
+
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form label {
+    color: #8a6324;
+    font-family: var(--font-ui);
+}
+
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form input:focus,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form select:focus,
+.template-experience--garden-royal-khmer-wedding .pub-rsvp-form textarea:focus {
+    border-color: #c99a3d;
+    box-shadow: 0 0 0 3px rgba(201, 154, 61, 0.16);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-footer {
+    background:
+        linear-gradient(rgba(48, 37, 24, 0.94), rgba(48, 37, 24, 0.96)),
+        url("../../../assets/invitations/garden-royal/paper-texture.svg");
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-footer::before,
+.template-experience--garden-royal-khmer-wedding .tx-footer::after {
+    content: "";
+    position: absolute;
+    top: 18px;
+    width: 150px;
+    aspect-ratio: 1;
+    background: url("../../../assets/invitations/garden-royal/corner-gold.svg") center / contain no-repeat;
+    opacity: 0.55;
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-footer::before {
+    left: 18px;
+    transform: rotate(90deg);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-footer::after {
+    right: 18px;
+    transform: rotate(180deg);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-footer__contact-link {
+    font-family: var(--font-ui);
+    border-color: rgba(234, 214, 170, 0.4);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-music {
+    width: 56px;
+    height: 56px;
+    border: 1px solid #c99a3d;
+    color: #fffaf0;
+    background: linear-gradient(135deg, #d8b35d, #8a6324);
+    box-shadow: 0 14px 32px rgba(75, 47, 20, 0.28);
+}
+
+.template-experience--garden-royal-khmer-wedding .tx-music__pulse {
+    border-color: #c99a3d;
+}
+
+@media (min-width: 768px) {
+    .template-experience--garden-royal-khmer-wedding .tx-gallery__grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-gallery__item:first-child {
+        grid-column: span 2;
+        grid-row: span 2;
+        aspect-ratio: auto;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-venue__actions {
+        justify-content: flex-start;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-venue__pin {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .template-experience--garden-royal-khmer-wedding .tx-gate__ornament {
+        width: 72vw;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-gate__ornament--top {
+        top: 22px;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-gate__ornament--bottom {
+        bottom: 22px;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-hero::before {
+        inset: 12px;
+        background-size: 86px;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-section::before {
+        top: 10px;
+        left: 8px;
+        opacity: 0.24;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-section:nth-of-type(odd)::before {
+        right: 8px;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-venue__actions {
+        flex-direction: column;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-venue__actions .tx-btn {
+        width: 100%;
+    }
+
+    .template-experience--garden-royal-khmer-wedding .tx-footer::before,
+    .template-experience--garden-royal-khmer-wedding .tx-footer::after {
+        width: 82px;
+        opacity: 0.34;
+    }
 }

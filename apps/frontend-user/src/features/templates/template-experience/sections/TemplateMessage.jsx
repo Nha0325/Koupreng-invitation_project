@@ -1,4 +1,6 @@
 import TemplateReveal from "../TemplateReveal";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateMessage — centered editorial invitation message with themed divider.
@@ -7,20 +9,18 @@ export default function TemplateMessage({ content }) {
     return (
         <section className="tx-section tx-message" data-tx-section="message" aria-labelledby="tx-message-title">
             <div className="tx-shell tx-shell--narrow tx-message__inner">
-                <TemplateReveal>
-                    <p className="tx-kicker">ការអញ្ជើញ</p>
-                </TemplateReveal>
-
-                <TemplateReveal delay={0.05}>
-                    <span className="tx-divider" aria-hidden="true">
-                        <i /><span className="tx-divider__dot" /><i />
-                    </span>
-                </TemplateReveal>
+                <TemplateSectionHeader
+                    id="tx-message-title"
+                    icon={templateIcons.invitation}
+                    kicker="ការអញ្ជើញ"
+                    title="សូមគោរពអញ្ជើញ"
+                    subtitle="A JOYFUL INVITATION"
+                />
 
                 <TemplateReveal delay={0.1}>
-                    <h2 id="tx-message-title" className="tx-message__text">
+                    <p className="tx-message__text">
                         {content.message}
-                    </h2>
+                    </p>
                 </TemplateReveal>
 
                 <TemplateReveal delay={0.16}>
