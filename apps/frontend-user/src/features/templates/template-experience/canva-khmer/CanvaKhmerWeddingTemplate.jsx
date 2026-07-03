@@ -91,6 +91,21 @@ function CanvaKhmerImage({ src, alt, className = "", loading = "lazy", ...props 
 }
 
 function CanvaArtwork({ name, eager = false, className = "" }) {
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        setFailed(false);
+    }, [name]);
+
+    if (failed) {
+        return (
+            <span
+                className={`ck-artwork ck-artwork-fallback ck-artwork-fallback--${name}${className ? ` ${className}` : ""}`}
+                aria-hidden="true"
+            />
+        );
+    }
+
     return (
         <img
             className={`ck-artwork${className ? ` ${className}` : ""}`}
@@ -100,6 +115,7 @@ function CanvaArtwork({ name, eager = false, className = "" }) {
             decoding={eager ? "sync" : "async"}
             fetchPriority={eager ? "high" : "auto"}
             aria-hidden="true"
+            onError={() => setFailed(true)}
         />
     );
 }
@@ -189,6 +205,7 @@ function CanvaKhmerMusicButton({ src, audioRef }) {
 
 function CanvaKhmerOpeningCover({ content, onOpen }) {
     const openingVideo = mediaSource(content.openingVideo);
+    const [coverFailed, setCoverFailed] = useState(false);
 
     return (
         <motion.section
@@ -199,7 +216,17 @@ function CanvaKhmerOpeningCover({ content, onOpen }) {
             transition={{ duration: 0.5 }}
             aria-label="បើកសន្លឹកអញ្ជើញ"
         >
-            <img className="ck-cover__art" src={`${ASSET_ROOT}/CoverKhmer.svg`} alt="" fetchPriority="high" />
+            {coverFailed ? (
+                <span className="ck-cover__fallback" aria-hidden="true" />
+            ) : (
+                <img
+                    className="ck-cover__art"
+                    src={`${ASSET_ROOT}/CoverKhmer.svg`}
+                    alt=""
+                    fetchPriority="high"
+                    onError={() => setCoverFailed(true)}
+                />
+            )}
             {openingVideo && (
                 <video
                     className="ck-cover__video"
@@ -417,6 +444,8 @@ function CanvaKhmerGallery({ content }) {
     const images = (content.gallery?.length ? content.gallery : (content.coverImage ? [content.coverImage] : []))
         .map(normalizeImageItem)
         .filter(Boolean);
+    const visibleImages = images.slice(0, GALLERY_FRAMES.length);
+    const placeholderFrames = !visibleImages.length ? GALLERY_FRAMES.slice(0, 5) : [];
     const [active, setActive] = useState(null);
     useEffect(() => {
         if (active === null) return undefined;
@@ -431,7 +460,7 @@ function CanvaKhmerGallery({ content }) {
                 <CanvaArtwork name="story" />
                 <CanvaArtwork name="gallery" />
             </div>
-            {images.slice(0, GALLERY_FRAMES.length).map((image, index) => {
+            {visibleImages.map((image, index) => {
                 const frame = GALLERY_FRAMES[index];
                 return (
                     <button
@@ -447,11 +476,26 @@ function CanvaKhmerGallery({ content }) {
                     </button>
                 );
             })}
-            {!images.length && (
-                <div className="ck-gallery__empty">
-                    <IoCameraOutline aria-hidden="true" />
-                    <p>រូបភាពអនុស្សាវរីយ៍នឹងបង្ហាញនៅទីនេះ</p>
-                </div>
+            {!visibleImages.length && (
+                <>
+                    {placeholderFrames.map((frame, index) => (
+                        <div
+                            className="ck-gallery__photo ck-gallery__placeholder"
+                            style={{ left: `${frame.left}%`, top: `${frame.top}%`, width: `${frame.width}%`, height: `${frame.height}%` }}
+                            key={`gallery-placeholder-${index}`}
+                            aria-hidden="true"
+                        >
+                            <span className="ck-gallery__placeholder-inner">
+                                <IoCameraOutline aria-hidden="true" />
+                                <small>រូបភាពអនុស្សាវរីយ៍</small>
+                            </span>
+                        </div>
+                    ))}
+                    <div className="ck-gallery__empty">
+                        <IoCameraOutline aria-hidden="true" />
+                        <p>បន្ថែមរូបភាពក្នុង Builder ដើម្បីបង្ហាញជាស៊ុមអនុស្សាវរីយ៍លើសន្លឹកអញ្ជើញនេះ</p>
+                    </div>
+                </>
             )}
             {active !== null && images[active] && (
                 <div className="ck-lightbox" role="dialog" aria-modal="true" onClick={() => setActive(null)}>
@@ -647,7 +691,7 @@ export default function CanvaKhmerWeddingTemplate({
     showStickyCta = true,
     children,
 }) {
-    const [opened, setOpened] = useState(false);
+    const [opened, setOpened] = useState(() => Boolean(preview));
     const canvasRef = useRef(null);
     const musicRef = useRef(null);
     const heroRef = useRef(null);
@@ -664,6 +708,10 @@ export default function CanvaKhmerWeddingTemplate({
     }, [content.music]);
 
     useEffect(() => {
+        if (preview) setOpened(true);
+    }, [preview]);
+
+    useEffect(() => {
         if (!opened || preview) return undefined;
         const frame = window.requestAnimationFrame(() => heroRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
         return () => window.cancelAnimationFrame(frame);
@@ -672,7 +720,7 @@ export default function CanvaKhmerWeddingTemplate({
     const availableSections = {
         program: Boolean(content.schedule?.length || content.ceremonyTime || content.receptionTime),
         location: Boolean(content.venue?.name || content.venue?.address || content.venue?.mapLink || content.venue?.mapEmbedUrl),
-        gallery: Boolean(content.gallery?.length || content.coverImage),
+        gallery: sectionEnabled("gallery"),
         gift: Boolean(content.gift?.length),
         wish: sectionEnabled("wish") || sectionEnabled("rsvp"),
     };

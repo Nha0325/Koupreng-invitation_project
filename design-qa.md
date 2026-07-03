@@ -22,5 +22,5 @@ viewport: intended iPhone SE, iPhone 14/15, Android, desktop
 state: opening cover and opened invitation body
 full-view comparison evidence: unavailable because browser capture is blocked
 focused region comparison evidence: unavailable because browser capture is blocked
-patches made since previous QA pass: implemented Canva-specific renderer hardening, dynamic media/data normalization, optional opening video, FAQ panel, section reveal/petal/button animations, sticky nav safe spacing, gift/gallery fallback handling, native Canva RSVP demo, and Khmer labels for the real public RSVP form inside this renderer
+patches made since previous QA pass: implemented Canva-specific renderer hardening, dynamic media/data normalization, optional opening video, FAQ panel, section reveal/petal/button animations, sticky nav safe spacing, gift/gallery fallback handling, native Canva RSVP demo, Khmer labels for the real public RSVP form inside this renderer, builder preview auto-open behavior, cover SVG load fallback, section artwork load fallbacks, and poster-style empty gallery frames
 final result: blocked
