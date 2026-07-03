@@ -77,6 +77,15 @@ export default function TemplateExperience({
         () => contentProp || buildTemplateContent(tpl, resolvedVariant),
         [contentProp, tpl, resolvedVariant]
     );
+    const isCanvaKhmerTemplate =
+        variant === KEEP_TEMPLATE_CODE ||
+        tpl?.variant === KEEP_TEMPLATE_CODE ||
+        tpl?.templateId === KEEP_TEMPLATE_CODE ||
+        tpl?.id === KEEP_TEMPLATE_CODE ||
+        tpl?.slug === KEEP_TEMPLATE_CODE ||
+        tpl?.code === KEEP_TEMPLATE_CODE ||
+        tpl?.templateCode === KEEP_TEMPLATE_CODE ||
+        content?.variant === KEEP_TEMPLATE_CODE;
 
     const crumbs = useMemo(
         () =>
@@ -132,7 +141,7 @@ export default function TemplateExperience({
     );
     const ornamentTheme = content.design?.ornamentTheme || "royal-floral";
 
-    if (resolvedVariant === KEEP_TEMPLATE_CODE) {
+    if (isCanvaKhmerTemplate) {
         return (
             <CanvaKhmerWeddingTemplate
                 content={content}

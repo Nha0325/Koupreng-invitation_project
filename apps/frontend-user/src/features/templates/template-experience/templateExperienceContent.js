@@ -314,10 +314,10 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         ? host.gift.map((g, index) => ({
             id: g.id || `gift-${index}`,
             bank: g.bank || "",
-            account: g.account || "",
-            number: g.number || "",
+            account: g.account || g.accountName || g.name || "",
+            number: g.number || g.accountNumber || "",
             note: g.note || "",
-            qrImage: g.qrImage || "",
+            qrImage: g.qrImage || g.qr || g.qrUrl || "",
         }))
         : null;
 

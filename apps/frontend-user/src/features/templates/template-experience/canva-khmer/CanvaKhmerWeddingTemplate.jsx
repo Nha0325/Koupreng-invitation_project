@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -6,6 +6,7 @@ import {
     IoCallOutline,
     IoCameraOutline,
     IoCheckmarkOutline,
+    IoChevronDownOutline,
     IoCopyOutline,
     IoGiftOutline,
     IoHeartOutline,
@@ -17,9 +18,6 @@ import {
     IoPause,
     IoTimeOutline,
 } from "react-icons/io5";
-
-import TemplateImage from "../TemplateImage";
-import TemplateRsvp from "../sections/TemplateRsvp";
 
 const ASSET_ROOT = "/invitations/canva-khmer";
 const NAV_ITEMS = [
@@ -40,7 +38,56 @@ function meaningful(value) {
 }
 
 function mediaSource(value) {
-    return typeof value === "string" ? value : value?.url || value?.preview || "";
+    return typeof value === "string" ? value : value?.url || value?.preview || value?.src || value?.fileUrl || "";
+}
+
+function normalizeImageItem(value, index = 0) {
+    const src = mediaSource(value);
+    if (!src) return null;
+    return {
+        ...((value && typeof value === "object") ? value : {}),
+        id: value?.id || `image-${index}`,
+        src,
+    };
+}
+
+function scheduleTime(item) {
+    return item?.time || item?.startTime || item?.timeText || "";
+}
+
+function scheduleTitle(item) {
+    return item?.title || item?.name || item?.label || "";
+}
+
+function giftAccountField(account, ...fields) {
+    return fields.map((field) => cleanText(account?.[field])).find(Boolean) || "";
+}
+
+function CanvaKhmerImage({ src, alt, className = "", loading = "lazy", ...props }) {
+    const [failed, setFailed] = useState(!src);
+
+    useEffect(() => {
+        setFailed(!src);
+    }, [src]);
+
+    if (failed) {
+        return (
+            <span className={`ck-image-fallback${className ? ` ${className}` : ""}`} role="img" aria-label={alt}>
+                <span>រូបភាពអនុស្សាវរីយ៍</span>
+            </span>
+        );
+    }
+
+    return (
+        <img
+            src={src}
+            alt={alt}
+            className={className}
+            loading={loading}
+            onError={() => setFailed(true)}
+            {...props}
+        />
+    );
 }
 
 function CanvaArtwork({ name, eager = false, className = "" }) {
@@ -141,6 +188,8 @@ function CanvaKhmerMusicButton({ src, audioRef }) {
 }
 
 function CanvaKhmerOpeningCover({ content, onOpen }) {
+    const openingVideo = mediaSource(content.openingVideo);
+
     return (
         <motion.section
             className="ck-cover"
@@ -151,6 +200,18 @@ function CanvaKhmerOpeningCover({ content, onOpen }) {
             aria-label="បើកសន្លឹកអញ្ជើញ"
         >
             <img className="ck-cover__art" src={`${ASSET_ROOT}/CoverKhmer.svg`} alt="" fetchPriority="high" />
+            {openingVideo && (
+                <video
+                    className="ck-cover__video"
+                    src={openingVideo}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    aria-label="វីដេអូបើកសន្លឹកអញ្ជើញ"
+                />
+            )}
             <div className="ck-cover__monogram" aria-label={`អក្សរកាត់ ${content.monogramText}`}>{content.monogramText}</div>
             <div className="ck-cover__title">
                 <small>THE WEDDING INVITATION</small>
@@ -163,20 +224,22 @@ function CanvaKhmerOpeningCover({ content, onOpen }) {
             </p>
             <button type="button" className="ck-cover__open" onClick={onOpen}>
                 ចុចទីនេះដើម្បីមើលព័ត៌មានលម្អិត
+                <IoChevronDownOutline aria-hidden="true" />
             </button>
             {content.dateText && <time className="ck-cover__date">{content.dateText}</time>}
         </motion.section>
     );
 }
 
-function CanvaKhmerHero({ content, sectionRef, onDetails }) {
+function CanvaKhmerGardenHero({ content, sectionRef, onDetails }) {
     const nicknames = [content.groomNickname, content.brideNickname].filter(Boolean).join(" · ");
+    const portrait = mediaSource(content.coverImage || content.portraitImage);
     return (
-        <section className="ck-slice ck-hero" ref={sectionRef} data-ck-section="hero">
+        <section id="ck-hero" className="ck-slice ck-hero" ref={sectionRef} data-ck-section="hero">
             <CanvaArtwork name="hero" eager />
-            {content.coverImage && (
+            {portrait && (
                 <div className="ck-hero__portrait">
-                    <TemplateImage src={content.coverImage} alt={`${content.groom} និង ${content.bride}`} />
+                    <CanvaKhmerImage src={portrait} alt={`${content.groom} និង ${content.bride}`} loading="eager" />
                 </div>
             )}
             <div className="ck-hero__copy">
@@ -216,7 +279,7 @@ function CanvaKhmerInvitationDetails({ content, sectionRef, showCountdown }) {
     ].filter(([, value]) => meaningful(value));
 
     return (
-        <section className="ck-slice ck-details" ref={sectionRef}>
+        <section id="ck-details" className="ck-slice ck-details" ref={sectionRef} data-ck-section="details">
             <CanvaArtwork name="details" />
             <div className="ck-details__paper">
                 <SectionTitle english="TOGETHER WITH OUR FAMILIES">សូមគោរពអញ្ជើញ</SectionTitle>
@@ -250,16 +313,21 @@ function CanvaKhmerProgram({ content }) {
 
     if (!items.length) return null;
     return (
-        <section id="ck-program" className="ck-slice ck-program">
+        <section id="ck-program" className="ck-slice ck-program" data-ck-section="program">
             <CanvaArtwork name="program" />
             <div className="ck-program__paper">
                 <SectionTitle english="WEDDING PROGRAM">កម្មវិធីមង្គលការ</SectionTitle>
                 {content.dateText && <time className="ck-program__date">{content.dateText}</time>}
                 <div className="ck-program__list">
                     {items.map((item, index) => (
-                        <article key={item.id || `${item.time}-${index}`}>
+                        <article key={item.id || `${scheduleTime(item)}-${index}`}>
                             <div className="ck-program__icon"><IoTimeOutline /></div>
-                            <div><time>{item.time}</time><h3>{item.title}</h3>{item.description && <p>{item.description}</p>}{item.location && <small>{item.location}</small>}</div>
+                            <div>
+                                {scheduleTime(item) && <time>{scheduleTime(item)}</time>}
+                                {scheduleTitle(item) && <h3>{scheduleTitle(item)}</h3>}
+                                {item.description && <p>{item.description}</p>}
+                                {item.location && <small>{item.location}</small>}
+                            </div>
                         </article>
                     ))}
                 </div>
@@ -301,7 +369,7 @@ function CanvaKhmerLocation({ content, showLocation, showStory }) {
 
     if (!hasLocation && !hasStory) return null;
     return (
-        <section id={hasLocation ? "ck-location" : undefined} className={`ck-slice ck-location${hasStory ? "" : " ck-location--compact"}`}>
+        <section id={hasLocation ? "ck-location" : undefined} className={`ck-slice ck-location${hasStory ? "" : " ck-location--compact"}`} data-ck-section="location">
             <CanvaArtwork name="location" />
             {hasLocation && (
                 <div className="ck-location__card">
@@ -346,9 +414,9 @@ const GALLERY_FRAMES = [
 ];
 
 function CanvaKhmerGallery({ content }) {
-    const images = content.gallery?.length
-        ? content.gallery
-        : (content.coverImage ? [{ src: content.coverImage }] : []);
+    const images = (content.gallery?.length ? content.gallery : (content.coverImage ? [content.coverImage] : []))
+        .map(normalizeImageItem)
+        .filter(Boolean);
     const [active, setActive] = useState(null);
     useEffect(() => {
         if (active === null) return undefined;
@@ -358,7 +426,7 @@ function CanvaKhmerGallery({ content }) {
     }, [active]);
 
     return (
-        <section id="ck-gallery" className="ck-slice ck-gallery">
+        <section id="ck-gallery" className="ck-slice ck-gallery" data-ck-section="gallery">
             <div className="ck-gallery__art" aria-hidden="true">
                 <CanvaArtwork name="story" />
                 <CanvaArtwork name="gallery" />
@@ -374,15 +442,21 @@ function CanvaKhmerGallery({ content }) {
                         onClick={() => setActive(index)}
                         aria-label={`មើលរូបភាពទី ${index + 1}`}
                     >
-                        <TemplateImage src={image.src} alt={`រូបភាពអនុស្សាវរីយ៍ទី ${index + 1}`} />
+                        <CanvaKhmerImage src={image.src} alt={`រូបភាពអនុស្សាវរីយ៍ទី ${index + 1}`} />
                         {index === GALLERY_FRAMES.length - 1 && images.length > GALLERY_FRAMES.length && <span>+{images.length - GALLERY_FRAMES.length}</span>}
                     </button>
                 );
             })}
+            {!images.length && (
+                <div className="ck-gallery__empty">
+                    <IoCameraOutline aria-hidden="true" />
+                    <p>រូបភាពអនុស្សាវរីយ៍នឹងបង្ហាញនៅទីនេះ</p>
+                </div>
+            )}
             {active !== null && images[active] && (
                 <div className="ck-lightbox" role="dialog" aria-modal="true" onClick={() => setActive(null)}>
                     <button type="button" onClick={() => setActive(null)} aria-label="បិទ">×</button>
-                    <div onClick={(event) => event.stopPropagation()}><TemplateImage src={images[active].src} alt="រូបភាពអនុស្សាវរីយ៍" /></div>
+                    <div onClick={(event) => event.stopPropagation()}><CanvaKhmerImage src={images[active].src} alt="រូបភាពអនុស្សាវរីយ៍" /></div>
                 </div>
             )}
         </section>
@@ -394,16 +468,24 @@ function CanvaKhmerGift({ content }) {
     const [selected, setSelected] = useState(0);
     const [copied, setCopied] = useState(false);
     const account = accounts[selected] || accounts[0];
+    const accountName = giftAccountField(account, "account", "accountName", "name");
+    const accountNumber = giftAccountField(account, "number", "accountNumber", "phone");
+    const qrImage = mediaSource(account?.qrImage || account?.qr || account?.qrUrl);
+
+    useEffect(() => {
+        if (selected >= accounts.length) setSelected(0);
+    }, [accounts.length, selected]);
+
     if (!account) return null;
 
     const copyNumber = async () => {
-        if (!account.number) return;
+        if (!accountNumber) return;
         try {
             if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(account.number);
+                await navigator.clipboard.writeText(accountNumber);
             } else {
                 const input = document.createElement("textarea");
-                input.value = account.number;
+                input.value = accountNumber;
                 input.style.position = "fixed";
                 input.style.opacity = "0";
                 document.body.appendChild(input);
@@ -419,16 +501,16 @@ function CanvaKhmerGift({ content }) {
     };
 
     return (
-        <section id="ck-gift" className="ck-slice ck-gift">
+        <section id="ck-gift" className="ck-slice ck-gift" data-ck-section="gift">
             <CanvaArtwork name="gift" />
             <div className="ck-gift__card">
                 <SectionTitle english="A GIFT FROM THE HEART">ចំណងដៃ</SectionTitle>
                 <p className="ck-gift__note">{account.note || "វត្តមាន និងពរជ័យរបស់លោកអ្នក គឺជាអំណោយដ៏មានតម្លៃបំផុត"}</p>
                 <h3>{account.bank || "ធនាគារ"}</h3>
-                {account.account && <p>{account.account}</p>}
-                {account.number && <strong>{account.number}</strong>}
-                <div className="ck-gift__qr">{account.qrImage ? <TemplateImage src={account.qrImage} alt={`QR ${account.bank || "ធនាគារ"}`} /> : <IoGiftOutline />}</div>
-                {account.number && <button type="button" onClick={copyNumber}>{copied ? <IoCheckmarkOutline /> : <IoCopyOutline />}{copied ? "បានចម្លង" : "ចម្លងលេខគណនី"}</button>}
+                {accountName && <p>{accountName}</p>}
+                {accountNumber && <strong>{accountNumber}</strong>}
+                <div className="ck-gift__qr">{qrImage ? <CanvaKhmerImage src={qrImage} alt={`QR ${account.bank || "ធនាគារ"}`} /> : <IoGiftOutline />}</div>
+                {accountNumber && <button type="button" onClick={copyNumber}>{copied ? <IoCheckmarkOutline /> : <IoCopyOutline />}{copied ? "បានចម្លង" : "ចម្លងលេខគណនី"}</button>}
                 {accounts.length > 1 && (
                     <div className="ck-gift__tabs">
                         {accounts.map((item, index) => <button type="button" className={selected === index ? "is-active" : ""} key={item.id || index} onClick={() => setSelected(index)}>{item.bank || index + 1}</button>)}
@@ -439,9 +521,74 @@ function CanvaKhmerGift({ content }) {
     );
 }
 
-function CanvaKhmerWishRsvp({ content, children, useTemplateLink, showRsvp }) {
+function CanvaKhmerFaq({ items }) {
+    const faqs = Array.isArray(items) ? items.filter((item) => cleanText(item?.q) || cleanText(item?.a)) : [];
+    if (!faqs.length) return null;
+
     return (
-        <section id="ck-wish" className="ck-slice ck-wish">
+        <div className="ck-faq">
+            <h3>សំណួរញឹកញាប់</h3>
+            {faqs.slice(0, 5).map((item, index) => (
+                <details key={item.id || index}>
+                    <summary>{item.q || `សំណួរទី ${index + 1}`}</summary>
+                    {item.a && <p>{item.a}</p>}
+                </details>
+            ))}
+        </div>
+    );
+}
+
+function CanvaKhmerDemoRsvp({ useTemplateLink }) {
+    return (
+        <form className="ck-demo-rsvp" onSubmit={(event) => event.preventDefault()} aria-label="គំរូ RSVP សម្រាប់សន្លឹកការ">
+            <div className="ck-demo-rsvp__grid">
+                <label>
+                    ឈ្មោះភ្ញៀវ
+                    <input type="text" placeholder="បញ្ចូលឈ្មោះរបស់អ្នក" />
+                </label>
+                <label>
+                    លេខទូរស័ព្ទ
+                    <input type="tel" placeholder="012 345 678" />
+                </label>
+                <label>
+                    ការចូលរួម
+                    <select defaultValue="ATTENDING">
+                        <option value="ATTENDING">ចូលរួម</option>
+                        <option value="NOT_ATTENDING">មិនអាចចូលរួម</option>
+                        <option value="MAYBE">ប្រហែលជាចូលរួម</option>
+                    </select>
+                </label>
+                <label>
+                    ចំនួនភ្ញៀវ
+                    <input type="number" min="0" defaultValue="1" />
+                </label>
+            </div>
+            <label>
+                សារជូនពរ
+                <textarea rows={3} placeholder="សូមសរសេរពាក្យជូនពរ..." />
+            </label>
+            {useTemplateLink ? (
+                <Link to={useTemplateLink} className="ck-demo-rsvp__submit">
+                    <IoHeartOutline aria-hidden="true" />
+                    បើក RSVP ពិតប្រាកដ
+                </Link>
+            ) : (
+                <button type="submit" className="ck-demo-rsvp__submit">
+                    <IoHeartOutline aria-hidden="true" />
+                    ផ្ញើការឆ្លើយតប
+                </button>
+            )}
+        </form>
+    );
+}
+
+function CanvaKhmerWishRsvp({ content, children, useTemplateLink, showRsvp, showFaq }) {
+    const rsvpContent = children
+        ? (isValidElement(children) ? cloneElement(children, { khmerLabels: true }) : children)
+        : <CanvaKhmerDemoRsvp useTemplateLink={useTemplateLink} />;
+
+    return (
+        <section id="ck-wish" className="ck-slice ck-wish" data-ck-section="wish">
             <CanvaArtwork name="rsvp" />
             <div className="ck-wish__panel">
                 <SectionTitle english="WISHES & RSVP">ជូនពរ</SectionTitle>
@@ -449,9 +596,10 @@ function CanvaKhmerWishRsvp({ content, children, useTemplateLink, showRsvp }) {
                 {showRsvp && (
                     <div className="ck-rsvp">
                         {content.rsvpDeadline && <p className="ck-rsvp__deadline">សូមឆ្លើយតបមុនថ្ងៃទី {content.rsvpDeadline}</p>}
-                        {children || <TemplateRsvp useTemplateLink={useTemplateLink} />}
+                        {rsvpContent}
                     </div>
                 )}
+                {showFaq && <CanvaKhmerFaq items={content.faq} />}
             </div>
         </section>
     );
@@ -480,6 +628,7 @@ function CanvaKhmerFooter({ content }) {
 
 function CanvaKhmerBottomNav({ enabledSections, availableSections, onNavigate }) {
     const items = NAV_ITEMS.filter((item) => enabledSections?.[item.section] !== false && availableSections[item.id] !== false);
+    if (!items.length) return null;
     return (
         <nav className="ck-bottom-nav" aria-label="រុករកសន្លឹកអញ្ជើញ" style={{ "--ck-nav-count": items.length }}>
             {items.map(({ id, label, icon: Icon }) => <button type="button" key={id} onClick={() => onNavigate(id)}><Icon /><span>{label}</span></button>)}
@@ -540,7 +689,7 @@ export default function CanvaKhmerWeddingTemplate({
                         <CanvaKhmerOpeningCover key="cover" content={content} onOpen={handleOpen} />
                     ) : (
                         <motion.main key="invitation" className="ck-invitation" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <CanvaKhmerHero content={content} sectionRef={heroRef} onDetails={() => detailRef.current?.scrollIntoView({ behavior: "smooth" })} />
+                            <CanvaKhmerGardenHero content={content} sectionRef={heroRef} onDetails={() => detailRef.current?.scrollIntoView({ behavior: "smooth" })} />
                             <CanvaKhmerInvitationDetails content={content} sectionRef={detailRef} showCountdown={sectionEnabled("countdown")} />
                             {sectionEnabled("schedule") && <CanvaKhmerProgram content={content} />}
                             {(sectionEnabled("map") || sectionEnabled("story")) && (
@@ -548,7 +697,16 @@ export default function CanvaKhmerWeddingTemplate({
                             )}
                             {sectionEnabled("gallery") && <CanvaKhmerGallery content={content} />}
                             {sectionEnabled("gift") && <CanvaKhmerGift content={content} />}
-                            {(sectionEnabled("wish") || sectionEnabled("rsvp")) && <CanvaKhmerWishRsvp content={content} useTemplateLink={useTemplateLink} showRsvp={sectionEnabled("rsvp")}>{children}</CanvaKhmerWishRsvp>}
+                            {(sectionEnabled("wish") || sectionEnabled("rsvp") || sectionEnabled("faq")) && (
+                                <CanvaKhmerWishRsvp
+                                    content={content}
+                                    useTemplateLink={useTemplateLink}
+                                    showRsvp={sectionEnabled("rsvp")}
+                                    showFaq={sectionEnabled("faq")}
+                                >
+                                    {children}
+                                </CanvaKhmerWishRsvp>
+                            )}
                             <CanvaKhmerFooter content={content} />
                             {!preview && showActions && useTemplateLink && <div className="ck-actions"><Link to={useTemplateLink}>{primaryCtaLabel}</Link><Link to={backLink}>{backLabel}</Link></div>}
                         </motion.main>
