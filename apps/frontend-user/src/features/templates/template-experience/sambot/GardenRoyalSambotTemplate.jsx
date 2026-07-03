@@ -268,45 +268,80 @@ function SambotProgramSection({ content }) {
 
 function SambotLocationSection({ content }) {
     const venue = content.venue || {};
+    const [mapState, setMapState] = useState(venue.mapEmbedUrl ? "loading" : "fallback");
     const hasLocation = venue.name || venue.address || venue.mapLink || venue.mapEmbedUrl;
+
+    useEffect(() => {
+        if (!venue.mapEmbedUrl) {
+            setMapState("fallback");
+            return undefined;
+        }
+
+        setMapState("loading");
+        const fallbackTimer = window.setTimeout(() => {
+            setMapState((current) => (current === "loading" ? "fallback" : current));
+        }, 5000);
+
+        return () => window.clearTimeout(fallbackTimer);
+    }, [venue.mapEmbedUrl]);
+
     if (!hasLocation) return null;
+
+    const mapReady = mapState === "ready";
+    const showIframe = Boolean(venue.mapEmbedUrl) && mapState !== "fallback";
+
+    const locationActions = (
+        <div className="grs-location__actions">
+            {venue.mapLink && (
+                <a className="grs-button" href={venue.mapLink} target="_blank" rel="noopener noreferrer">
+                    <IoLocationOutline aria-hidden="true" />
+                    បើកផែនទី
+                </a>
+            )}
+            {content.contact?.facebook && (
+                <a className="grs-button grs-button--outline" href={content.contact.facebook} target="_blank" rel="noopener noreferrer">
+                    <IoLogoFacebook aria-hidden="true" />
+                    Facebook
+                </a>
+            )}
+        </div>
+    );
 
     return (
         <section id="grs-location" className="grs-section grs-location">
             <SambotSectionTitle english="LOCATION" title="ទីតាំងកម្មវិធី" icon={IoLocationOutline} />
-            <div className="grs-location__panel">
-                <div className="grs-location__map">
-                    {venue.mapEmbedUrl ? (
+            <div className="grs-location__panel" data-map-state={mapState}>
+                <div className={`grs-location__map${mapReady ? " is-ready" : " is-fallback"}`}>
+                    <div className="grs-location__fallback">
+                        <span className="grs-location__fallback-pin" aria-hidden="true"><IoLocationOutline /></span>
+                        <p className="grs-location__fallback-label">LOCATION</p>
+                        <h3>{venue.name || "ទីតាំងកម្មវិធី"}</h3>
+                        {venue.address && <p className="grs-location__fallback-address">{venue.address}</p>}
+                        <p className="grs-location__fallback-note">សូមបើក Google Maps ដើម្បីមើលទិសដៅ</p>
+                        {locationActions}
+                    </div>
+                    {showIframe && (
                         <iframe
+                            className={mapReady ? "is-ready" : ""}
                             src={venue.mapEmbedUrl}
                             title={`ផែនទី ${venue.name || "ទីតាំងកម្មវិធី"}`}
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
+                            allowFullScreen
+                            onLoad={() => setMapState("ready")}
+                            onError={() => setMapState("fallback")}
                         />
-                    ) : (
-                        <SambotMedia src={venue.image} alt={venue.name || "ទីតាំងកម្មវិធី"} />
                     )}
-                    <span className="grs-location__map-frame" aria-hidden="true" />
+                    {mapReady && <span className="grs-location__map-frame" aria-hidden="true" />}
                 </div>
-                <div className="grs-location__copy">
-                    <span className="grs-location__pin" aria-hidden="true"><IoMapOutline /></span>
-                    {venue.name && <h3>{venue.name}</h3>}
-                    {venue.address && <p>{venue.address}</p>}
-                    <div className="grs-location__actions">
-                        {venue.mapLink && (
-                            <a className="grs-button" href={venue.mapLink} target="_blank" rel="noopener noreferrer">
-                                <IoLocationOutline aria-hidden="true" />
-                                បើកផែនទី
-                            </a>
-                        )}
-                        {content.contact?.facebook && (
-                            <a className="grs-button grs-button--outline" href={content.contact.facebook} target="_blank" rel="noopener noreferrer">
-                                <IoLogoFacebook aria-hidden="true" />
-                                Facebook
-                            </a>
-                        )}
+                {mapReady && (
+                    <div className="grs-location__copy">
+                        <span className="grs-location__pin" aria-hidden="true"><IoMapOutline /></span>
+                        {venue.name && <h3>{venue.name}</h3>}
+                        {venue.address && <p>{venue.address}</p>}
+                        {locationActions}
                     </div>
-                </div>
+                )}
             </div>
         </section>
     );

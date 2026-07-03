@@ -715,18 +715,105 @@
     background: var(--gr-paper-2);
 }
 
-.grs-location__map iframe,
-.grs-location__map img,
-.grs-location__map .grs-media-fallback {
+.grs-location__map.is-fallback {
+    min-height: 340px;
+    aspect-ratio: auto;
+}
+
+.grs-location__map iframe {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
     width: 100%;
     height: 100%;
     border: 0;
-    object-fit: cover;
+    opacity: 0;
     filter: sepia(0.08) saturate(0.78);
+    pointer-events: none;
+    transition: opacity 260ms ease;
+}
+
+.grs-location__map iframe.is-ready {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.grs-location__fallback {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    padding: 28px 18px;
+    background:
+        url("../../../../assets/invitations/garden-royal/corner-gold.svg") left top / 92px no-repeat,
+        url("../../../../assets/invitations/garden-royal/corner-gold.svg") right bottom / 92px no-repeat,
+        linear-gradient(rgba(247, 234, 211, 0.9), rgba(255, 248, 236, 0.96)),
+        url("../../../../assets/invitations/garden-royal/paper-texture.svg") center / 160px;
+    text-align: center;
+    transition: opacity 220ms ease;
+}
+
+.grs-location__map.is-ready .grs-location__fallback {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.grs-location__fallback-pin {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    place-items: center;
+    margin-bottom: 6px;
+    border: 1px solid rgba(214, 168, 79, 0.56);
+    border-radius: 50%;
+    background: rgba(255, 248, 236, 0.76);
+    color: var(--gr-gold-deep);
+    font-size: 1.4rem;
+}
+
+.grs-location__fallback-label {
+    margin: 0;
+    color: var(--gr-gold-deep);
+    font-family: var(--font-gr-romantic);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+}
+
+.grs-location__fallback h3 {
+    margin: 2px 0 0;
+    font-family: var(--font-gr-heading);
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.55;
+}
+
+.grs-location__fallback-address {
+    max-width: 28ch;
+    margin: 5px 0 0;
+    color: var(--gr-muted);
+    font-size: 0.84rem;
+    line-height: 1.7;
+    white-space: pre-line;
+}
+
+.grs-location__fallback-note {
+    margin: 9px 0 0;
+    color: var(--gr-muted);
+    font-family: var(--font-gr-ui);
+    font-size: 0.72rem;
+}
+
+.grs-location__fallback .grs-location__actions {
+    width: 100%;
+    margin-top: 13px;
 }
 
 .grs-location__map-frame {
     position: absolute;
+    z-index: 3;
     inset: 7px;
     border: 1px solid rgba(255, 248, 236, 0.7);
     pointer-events: none;
