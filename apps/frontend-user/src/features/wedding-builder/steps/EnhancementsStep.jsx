@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { MusicPicker } from "../../../shared/ui/MusicPicker";
+import { OpeningVideoPicker } from "../../../shared/ui/OpeningVideoPicker";
 import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
 import { saveGallery } from "../../../shared/storage/galleryStorage";
 import RepeatableList from "../components/RepeatableList";
@@ -7,12 +8,16 @@ import RepeatableList from "../components/RepeatableList";
 export default function EnhancementsStep({ draft, update }) {
     const fileInputRef = useRef(null);
     const coverInputRef = useRef(null);
+    const musicInputRef = useRef(null);
+    const openingVideoInputRef = useRef(null);
     const gallery = draft?.gallery || [];
     const music = draft?.music || MUSIC_TRACKS[0];
+    const openingVideo = draft?.openingVideo || null;
     const design = draft?.design || {};
     const enabledSections = draft?.enabledSections || {};
     const extras = draft?.extras || {};
     const gift = draft?.gift || [];
+    const faq = draft?.faq || [];
 
     const storyChapters = draft?.storyChapters || [];
 
@@ -47,6 +52,35 @@ export default function EnhancementsStep({ draft, update }) {
             preview: await fileToDataUrl(file),
         })));
         syncGallery([...gallery, ...items]);
+    };
+
+    const handleOpeningVideoFile = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const preview = await fileToDataUrl(file);
+        update({
+            openingVideo: {
+                id: "custom-opening-video",
+                name: file.name,
+                description: "Custom opening video",
+                url: preview,
+            },
+            openingVideoEnabled: true,
+        });
+    };
+
+    const handleMusicFile = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const preview = await fileToDataUrl(file);
+        update({
+            music: {
+                id: "custom-music",
+                name: file.name,
+                description: "Custom background music",
+                url: preview,
+            },
+        });
     };
 
     const removeImage = (index) => {
@@ -214,6 +248,69 @@ export default function EnhancementsStep({ draft, update }) {
                 ]}
             />
 
+            <section className="wb-section">
+                <div className="wb-section-head">
+                    <span className="wb-section-kicker">Intro</span>
+                    <h3>វីដេអូបើកសន្លឹកការ និងតន្ត្រី</h3>
+                </div>
+
+                <label className="wb-toggle-row">
+                    <input
+                        type="checkbox"
+                        checked={draft?.openingVideoEnabled !== false && Boolean(openingVideo)}
+                        onChange={(e) => update({ openingVideoEnabled: e.target.checked })}
+                    />
+                    <span>
+                        <strong>ប្រើវីដេអូបើកសន្លឹកការ</strong>
+                        <small>បង្ហាញវីដេអូនៅលើអេក្រង់ “ចុចដើម្បីបើក” ប្រសិនបើបានជ្រើស។</small>
+                    </span>
+                </label>
+
+                <div className="wb-field">
+                    <label>ជ្រើសវីដេអូបើក</label>
+                    <OpeningVideoPicker
+                        value={openingVideo}
+                        onChange={(video) => update({ openingVideo: video, openingVideoEnabled: Boolean(video) })}
+                    />
+                </div>
+
+                <div className="wb-field">
+                    <label>Upload opening video</label>
+                    <button type="button" className="wb-btn wb-btn-secondary" onClick={() => openingVideoInputRef.current?.click()}>
+                        ជ្រើសវីដេអូផ្ទាល់ខ្លួន
+                    </button>
+                    <input
+                        ref={openingVideoInputRef}
+                        type="file"
+                        accept="video/*"
+                        hidden
+                        onChange={handleOpeningVideoFile}
+                    />
+                </div>
+
+                <div className="wb-field">
+                    <label>តន្ត្រី Background</label>
+                    <MusicPicker
+                        value={music}
+                        onChange={(track) => update({ music: track })}
+                    />
+                </div>
+
+                <div className="wb-field">
+                    <label>Upload background music</label>
+                    <button type="button" className="wb-btn wb-btn-secondary" onClick={() => musicInputRef.current?.click()}>
+                        ជ្រើសតន្ត្រីផ្ទាល់ខ្លួន
+                    </button>
+                    <input
+                        ref={musicInputRef}
+                        type="file"
+                        accept="audio/*"
+                        hidden
+                        onChange={handleMusicFile}
+                    />
+                </div>
+            </section>
+
             <RepeatableList
                 kicker="Gift"
                 title="គណនីចងដៃ (ស្រេចចិត្ត)"
@@ -231,6 +328,21 @@ export default function EnhancementsStep({ draft, update }) {
                 ]}
             />
 
+            <RepeatableList
+                kicker="FAQ"
+                title="សំណួរញឹកញាប់ (ស្រេចចិត្ត)"
+                help="បន្ថែមចម្លើយសម្រាប់ទីតាំង ការចតរថយន្ត សម្លៀកបំពាក់ ឬការនាំភ្ញៀវបន្ថែម។"
+                items={faq}
+                onChange={(next) => update({ faq: next })}
+                addLabel="+ បន្ថែមសំណួរ"
+                itemLabel="សំណួរ"
+                makeEmpty={() => ({ q: "", a: "" })}
+                fields={[
+                    { key: "q", label: "សំណួរ", placeholder: "ឧ. តើមានកន្លែងចតរថយន្តទេ?" },
+                    { key: "a", label: "ចម្លើយ", type: "textarea", rows: 3, wide: true, placeholder: "ឧ. មាន កន្លែងចតរថយន្តនៅខាងមុខសាល។" },
+                ]}
+            />
+
             <section className="wb-section">
                 <div className="wb-section-head">
                     <span className="wb-section-kicker">Sections</span>
@@ -242,6 +354,8 @@ export default function EnhancementsStep({ draft, update }) {
                     ["gallery", "Gallery"],
                     ["schedule", "Timeline"],
                     ["map", "Venue and map"],
+                    ["party", "Wedding party"],
+                    ["dressCode", "Dress code"],
                     ["gift", "Gift"],
                     ["faq", "FAQ"],
                     ["rsvp", "RSVP"],
@@ -259,19 +373,6 @@ export default function EnhancementsStep({ draft, update }) {
                     </label>
                 ))}
             </section>
-
-            <details className="wb-advanced">
-                <summary>តន្ត្រី</summary>
-                <div className="wb-advanced-body">
-                    <div className="wb-field">
-                        <label>តន្ត្រី Background</label>
-                        <MusicPicker
-                            value={music}
-                            onChange={(track) => update({ music: track })}
-                        />
-                    </div>
-                </div>
-            </details>
         </div>
     );
 }

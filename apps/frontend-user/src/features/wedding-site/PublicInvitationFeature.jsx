@@ -8,6 +8,7 @@ import TemplateExperience from "../templates/template-experience/TemplateExperie
 import WeddingSite from "../wedding-site/WeddingSite";
 import { getTemplateById } from "../templates/data/templatesData";
 import { draftToTemplate } from "../wedding-builder/utils/draftToTemplate";
+import { publicInvitationToDraft, safeJson } from "../wedding-builder/utils/invitationDraftAdapter";
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { loadGallery } from "../../shared/storage/galleryStorage";
 import { invitationService } from "@/features/invitations/api/invitationApi";
@@ -16,89 +17,11 @@ import { mediaService } from "@/features/invitations/api/mediaApi";
 const GARDEN_TEMPLATE_ID = "garden-royal-khmer-wedding";
 
 function isGardenRoyalTemplate(invitation) {
-    return invitation?.templateName === "Garden Royal Khmer Wedding";
-}
-
-function timeValue(value) {
-    return value ? String(value).slice(0, 5) : "";
-}
-
-function safeJson(value, fallback = {}) {
-    if (!value) return fallback;
-    if (typeof value === "object") return value;
-    try {
-        return JSON.parse(value);
-    } catch {
-        return fallback;
-    }
-}
-
-function publicInvitationToTemplate(invitation, media) {
-    const baseTpl = getTemplateById(GARDEN_TEMPLATE_ID);
-    const content = safeJson(invitation.contentJson);
-    const enabled = safeJson(invitation.enabledSections);
-    const contentCouple = content.couple || {};
-    const contentEvent = content.event || {};
-    const storyChapters = Array.isArray(content.storyChapters) ? content.storyChapters : [];
-    const schedule = Array.isArray(content.schedule) ? content.schedule : [];
-    const gift = Array.isArray(content.gift) ? content.gift : [];
-    const faq = Array.isArray(content.faq) ? content.faq : [];
-    const party = Array.isArray(content.party) ? content.party : [];
-    const storyText = content.story || invitation.storyText || "";
-    const gallery = (media?.galleryImages || [])
-        .filter((item) => item?.fileUrl)
-        .map((item) => ({
-            id: item.id,
-            name: item.originalFilename,
-            type: item.mimeType?.startsWith("video/") ? "video" : "image",
-            preview: item.fileUrl,
-        }));
-    const eventTime = timeValue(invitation.eventTime);
-    const draft = {
-        id: invitation.slug,
-        slug: invitation.slug,
-        templateId: baseTpl.id,
-        coverImage: media?.coverImage?.fileUrl || "",
-        couple: {
-            ...contentCouple,
-            groom: contentCouple.groom || invitation.groomName || invitation.hostName || "",
-            bride: contentCouple.bride || invitation.brideName || invitation.partnerName || "",
-        },
-        event: {
-            ...contentEvent,
-            title: contentEvent.title || invitation.title || "",
-            date: contentEvent.date || invitation.eventDate || "",
-            ceremonyTime: contentEvent.ceremonyTime || eventTime,
-            receptionTime: contentEvent.receptionTime || eventTime,
-            venueName: contentEvent.venueName || invitation.venueName || "",
-            venueAddress: contentEvent.venueAddress || invitation.venueAddress || "",
-            mapLink: contentEvent.mapLink || invitation.googleMapUrl || "",
-        },
-        contact: content.contact || {},
-        message: content.message || invitation.title || "",
-        story: storyText,
-        storyChapters,
-        schedule,
-        party,
-        gift,
-        faq,
-        gallery: gallery.length ? gallery : content.gallery || [],
-        music: media?.backgroundMusic?.fileUrl ? { url: media.backgroundMusic.fileUrl } : baseTpl.music,
-        rsvp: { ...(content.rsvp || {}), enabled: enabled.rsvp !== false, deadline: content.rsvp?.deadline || invitation.rsvpDeadline || "" },
-        extras: content.extras || {},
-        enabledSections: {
-            ...enabled,
-            story: enabled.story !== false && Boolean(storyText || storyChapters.length),
-            gallery: enabled.gallery !== false && Boolean(gallery.length || content.gallery?.length),
-            schedule: enabled.schedule !== false && schedule.length > 0,
-            party: enabled.party !== false && party.length > 0,
-            gift: enabled.gift !== false && gift.length > 0,
-            faq: enabled.faq !== false && faq.length > 0,
-            rsvp: enabled.rsvp !== false,
-        },
-    };
-
-    return draftToTemplate(draft, gallery);
+    const content = safeJson(invitation?.contentJson);
+    const design = safeJson(invitation?.designJson);
+    return invitation?.templateName === "Garden Royal Khmer Wedding"
+        || content.templateId === GARDEN_TEMPLATE_ID
+        || design.templateId === GARDEN_TEMPLATE_ID;
 }
 
 export default function PublicInvitationPage() {
@@ -239,7 +162,8 @@ export default function PublicInvitationPage() {
     };
 
     if (invitation && isGardenRoyalTemplate(invitation)) {
-        const mergedPublicGarden = publicInvitationToTemplate(invitation, media);
+        const publicDraft = publicInvitationToDraft(invitation, media);
+        const mergedPublicGarden = draftToTemplate(publicDraft, publicDraft.gallery);
         const enabledSections = safeJson(invitation.enabledSections);
         const showRsvp = enabledSections.rsvp !== false;
 

@@ -214,6 +214,129 @@
 }
 
 /* ============================================================
+   OPENING GATE
+   ============================================================ */
+.tx-gate {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    padding: 4rem 1.25rem;
+    color: #fffdf7;
+    text-align: center;
+    isolation: isolate;
+}
+
+.tx-gate__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.04);
+}
+
+.tx-gate__veil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(255, 253, 247, 0.2), transparent 34%),
+        linear-gradient(180deg, rgba(19, 36, 31, 0.58), rgba(22, 25, 18, 0.76));
+}
+
+.tx-gate__ornament {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    width: min(520px, 80vw);
+    height: 90px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0.86;
+}
+
+.tx-gate__ornament::before,
+.tx-gate__ornament::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-color: rgba(233, 199, 126, 0.86);
+    border-style: solid;
+}
+
+.tx-gate__ornament::before {
+    border-width: 1px 0 0;
+}
+
+.tx-gate__ornament::after {
+    inset: 14px 12%;
+    border-width: 1px 0 0;
+}
+
+.tx-gate__ornament--top {
+    top: 34px;
+}
+
+.tx-gate__ornament--bottom {
+    bottom: 34px;
+    transform: translateX(-50%) rotate(180deg);
+}
+
+.tx-gate__content {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    justify-items: center;
+    width: min(620px, 100%);
+}
+
+.tx-gate__crest {
+    display: grid;
+    place-items: center;
+    width: clamp(88px, 24vw, 132px);
+    aspect-ratio: 1;
+    margin-bottom: 1.15rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 250, 241, 0.78);
+    background:
+        radial-gradient(circle, rgba(255, 253, 247, 0.96), rgba(247, 224, 171, 0.76)),
+        linear-gradient(135deg, rgba(45, 127, 166, 0.28), rgba(111, 158, 46, 0.2));
+    color: var(--tpl-accent-dark);
+    font-family: var(--tpl-heading-font);
+    font-size: clamp(1.9rem, 8vw, 3.1rem);
+    box-shadow: 0 22px 56px rgba(0, 0, 0, 0.28);
+}
+
+.tx-gate h1 {
+    margin: 0;
+    font-family: var(--tpl-heading-font);
+    font-weight: 600;
+    font-size: clamp(2.25rem, 12vw, 5.8rem);
+    line-height: 1.08;
+    text-shadow: 0 8px 36px rgba(0, 0, 0, 0.42);
+}
+
+.tx-gate h1 em {
+    color: var(--tpl-accent);
+    font-style: italic;
+}
+
+.tx-gate__date {
+    margin: 1rem 0 0;
+    color: rgba(255, 250, 241, 0.9);
+    font-size: clamp(0.95rem, 3vw, 1.18rem);
+    letter-spacing: 0.04em;
+}
+
+.tx-gate__button {
+    margin-top: 2rem;
+}
+
+/* ============================================================
    HERO
    ============================================================ */
 .tx-hero {

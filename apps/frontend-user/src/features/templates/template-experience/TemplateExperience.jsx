@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Breadcrumb } from "../../../shared/ui/Breadcrumb";
 import { buildTemplateContent } from "./templateExperienceContent";
 import { getVariantTheme, resolveVariant } from "./templateExperienceThemes";
+import TemplateOpeningGate from "./sections/TemplateOpeningGate";
 import TemplateHero from "./sections/TemplateHero";
 import TemplateMessage from "./sections/TemplateMessage";
 import TemplateCouple from "./sections/TemplateCouple";
@@ -12,7 +13,10 @@ import TemplateStory from "./sections/TemplateStory";
 import TemplateSchedule from "./sections/TemplateSchedule";
 import TemplateVenue from "./sections/TemplateVenue";
 import TemplateGallery from "./sections/TemplateGallery";
+import TemplateParty from "./sections/TemplateParty";
+import TemplateDressCode from "./sections/TemplateDressCode";
 import TemplateGift from "./sections/TemplateGift";
+import TemplateFaq from "./sections/TemplateFaq";
 import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
 import TemplateStickyCta from "./controls/TemplateStickyCta";
@@ -78,6 +82,7 @@ export default function TemplateExperience({
     );
 
     const rootRef = useRef(null);
+    const [gateOpen, setGateOpen] = useState(preview);
 
     const scrollToTarget = useCallback((node) => {
         if (!node) return;
@@ -85,6 +90,10 @@ export default function TemplateExperience({
     }, []);
 
     const handleOpen = useCallback(() => {
+        setGateOpen(true);
+    }, []);
+
+    const handleHeroOpen = useCallback(() => {
         const next = rootRef.current?.querySelector('[data-tx-section="message"]');
         scrollToTarget(next);
     }, [scrollToTarget]);
@@ -110,31 +119,33 @@ export default function TemplateExperience({
                 </div>
             )}
 
-            <TemplateHero content={content} onOpen={handleOpen} />
-            <TemplateMessage content={content} />
-            <TemplateCouple content={content} />
-            {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
-            {sectionEnabled("story") && <TemplateStory content={content} />}
-            {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
-            {sectionEnabled("map") && <TemplateVenue content={content} />}
-            {sectionEnabled("gallery") && <TemplateGallery content={content} />}
-            {sectionEnabled("gift") && <TemplateGift content={content} />}
+            {!gateOpen && <TemplateOpeningGate content={content} onOpen={handleOpen} />}
+            {gateOpen && (
+                <>
+                    <TemplateHero content={content} onOpen={handleHeroOpen} />
+                    <TemplateMessage content={content} />
+                    <TemplateCouple content={content} />
+                    {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
+                    {sectionEnabled("story") && <TemplateStory content={content} />}
+                    {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
+                    {sectionEnabled("party") && <TemplateParty content={content} />}
+                    {sectionEnabled("dressCode") && <TemplateDressCode content={content} />}
+                    {sectionEnabled("map") && <TemplateVenue content={content} />}
+                    {sectionEnabled("gallery") && <TemplateGallery content={content} />}
+                    {sectionEnabled("gift") && <TemplateGift content={content} />}
+                    {sectionEnabled("faq") && <TemplateFaq content={content} />}
 
-            {children && sectionEnabled("rsvp") && (
-                <div className="tx-children">
-                    {children}
-                </div>
+                    {children && sectionEnabled("rsvp") && (
+                        <div className="tx-children">
+                            {children}
+                        </div>
+                    )}
+
+                    <TemplateFooter content={content} />
+                </>
             )}
 
-            <TemplateFooter content={content} />
-
-            {children && (
-                <div className="tx-children">
-                    {children}
-                </div>
-            )}
-
-            {!preview && showActions && useTemplateLink && (
+            {gateOpen && !preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">
                     <Link to={useTemplateLink} className="tx-btn tx-btn--solid">{primaryCtaLabel}</Link>
                     <Link to={backLink} className="tx-btn tx-btn--ghost">{backLabel}</Link>
@@ -142,7 +153,7 @@ export default function TemplateExperience({
             )}
 
             <TemplateMusicControl src={content.music} />
-            {!preview && showStickyCta && (
+            {!preview && gateOpen && showStickyCta && (
                 <TemplateStickyCta
                     onTop={handleScrollTop}
                     mapLink={content.venue.mapLink}

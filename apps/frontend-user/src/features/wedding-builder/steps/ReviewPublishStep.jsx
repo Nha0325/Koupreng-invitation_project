@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import QRCode from "react-qr-code";
 import { getTemplateById } from "../../templates/data/templatesData";
 
-export default function ReviewPublishStep({ draft, onPublish, publishedDraft, goToStep }) {
+export default function ReviewPublishStep({ draft, onSaveDraft, onPublish, publishedDraft, publishState, goToStep }) {
     const [copied, setCopied] = useState(false);
+    const qrRef = useRef(null);
     const template = getTemplateById(draft?.templateId);
     const couple = draft?.couple || {};
     const event = draft?.event || {};
@@ -12,16 +14,47 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
     const schedule = draft?.schedule || [];
     const activeDraft = publishedDraft || draft;
     const isPublished = Boolean(activeDraft?.publishedAt || publishedDraft);
-    const publicPath = activeDraft?.slug ? `/w/${activeDraft.slug}` : "";
+    const publicPath = activeDraft?.slug ? `/i/${activeDraft.slug}` : "";
+    const publicUrl = publicPath ? `${window.location.origin}${publicPath}` : "";
+    const isBusy = Boolean(publishState?.action);
 
     const handleCopy = async () => {
-        if (!publicPath) return;
+        if (!publicUrl) return;
 
         try {
-            await navigator.clipboard.writeText(`${window.location.origin}${publicPath}`);
+            await navigator.clipboard.writeText(publicUrl);
             setCopied(true);
         } catch {
             setCopied(false);
+        }
+    };
+
+    const handleDownloadQr = () => {
+        const svg = qrRef.current?.querySelector("svg");
+        if (!svg || !activeDraft?.slug) return;
+        const data = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${activeDraft.slug}-qr.svg`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleSaveDraft = async () => {
+        try {
+            await onSaveDraft?.();
+        } catch {
+            // Error text is owned by publishState.
+        }
+    };
+
+    const handlePublish = async () => {
+        try {
+            await onPublish?.();
+        } catch {
+            // Error text is owned by publishState.
         }
     };
 
@@ -88,17 +121,34 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
                 <section className="wb-success" aria-live="polite">
                     <span className="wb-success-badge">Published</span>
                     <h3>សន្លឹកការរបស់អ្នកត្រូវបានបោះផ្សាយ</h3>
-                    <p>អ្នកអាចទៅផ្ទាំងគ្រប់គ្រង មើលជាមុន ចម្លងតំណភ្ជាប់ ឬគ្រប់គ្រងភ្ញៀវ។</p>
+                    <p>អ្នកអាចចម្លងតំណភ្ជាប់ បើកសន្លឹកការសាធារណៈ ឬទាញយក QR code សម្រាប់ចែករំលែក។</p>
+                    {publicUrl && (
+                        <div className="wb-share-panel">
+                            <div className="wb-share-qr" ref={qrRef}>
+                                <QRCode value={publicUrl} size={168} level="M" />
+                            </div>
+                            <div className="wb-share-copy">
+                                <label htmlFor="published-url">Public URL</label>
+                                <input id="published-url" value={publicUrl} readOnly />
+                            </div>
+                        </div>
+                    )}
                     <div className="wb-success-actions">
-                        <Link to="/dashboard" className="wb-btn wb-btn-primary">
-                            ទៅផ្ទាំងគ្រប់គ្រង
-                        </Link>
-                        <Link to={`/event/${activeDraft.id}`} className="wb-btn">
-                            មើលជាមុន
-                        </Link>
                         <button type="button" className="wb-btn" onClick={handleCopy} disabled={!publicPath}>
                             {copied ? "បានចម្លង" : "ចម្លងតំណភ្ជាប់"}
                         </button>
+                        <Link to={publicPath || `/event/${activeDraft.id}`} className="wb-btn wb-btn-primary" target="_blank" rel="noopener noreferrer">
+                            បើកសន្លឹកការ
+                        </Link>
+                        <button type="button" className="wb-btn" onClick={handleDownloadQr} disabled={!publicUrl}>
+                            ទាញយក QR
+                        </button>
+                        <Link to="/dashboard" className="wb-btn">
+                            ទៅផ្ទាំងគ្រប់គ្រង
+                        </Link>
+                        <Link to="/events" className="wb-btn">
+                            ត្រឡប់ទៅកម្មវិធី
+                        </Link>
                         <Link to="/guests" className="wb-btn">
                             គ្រប់គ្រងភ្ញៀវ
                         </Link>
@@ -163,10 +213,16 @@ export default function ReviewPublishStep({ draft, onPublish, publishedDraft, go
                 </div>
             </div>
 
+            {publishState?.error && <div className="wb-publish-message is-error">{publishState.error}</div>}
+            {publishState?.warning && <div className="wb-publish-message is-warning">{publishState.warning}</div>}
+
             {!isPublished && (
                 <div className="wb-publish-actions">
-                    <button type="button" className="wb-btn wb-btn-primary" onClick={onPublish}>
-                        បោះផ្សាយសន្លឹកការ
+                    <button type="button" className="wb-btn" onClick={handleSaveDraft} disabled={isBusy}>
+                        {publishState?.action === "draft" ? "កំពុងរក្សាទុក..." : "រក្សាទុក Draft"}
+                    </button>
+                    <button type="button" className="wb-btn wb-btn-primary" onClick={handlePublish} disabled={isBusy}>
+                        {publishState?.action === "publish" ? "កំពុងបោះផ្សាយ..." : "បោះផ្សាយសន្លឹកការ"}
                     </button>
                     <Link to={`/event/${draft.id}`} className="wb-btn">
                         មើលជាមុន

@@ -607,6 +607,74 @@
     line-height: 1.6;
 }
 
+.wb-share-panel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid #cfe9d4;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.wb-share-qr {
+    display: grid;
+    place-items: center;
+    width: 192px;
+    aspect-ratio: 1;
+    padding: 12px;
+    border: 1px solid #e2eadf;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.wb-share-copy {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.wb-share-copy label {
+    color: #2f6b45;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.wb-share-copy input {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 14px;
+    border: 1px solid #cfe9d4;
+    border-radius: 12px;
+    color: var(--wb-flower-ink);
+    background: #f8fff8;
+    font: inherit;
+}
+
+.wb-publish-message {
+    margin: 18px 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.wb-publish-message.is-error {
+    border: 1px solid #efc6c6;
+    color: #8d2f2f;
+    background: #fff4f4;
+}
+
+.wb-publish-message.is-warning {
+    border: 1px solid #ead6a6;
+    color: #7a5b16;
+    background: #fff8e6;
+}
+
 .wb-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -957,6 +1025,15 @@
     .wb-publish-actions .wb-btn,
     .wb-success-actions .wb-btn {
         flex: 1 1 auto;
+    }
+
+    .wb-share-panel {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .wb-share-copy {
+        width: 100%;
     }
 }
 

@@ -98,6 +98,7 @@ export function createDraft(initial = {}) {
       schedule: true,
       map: true,
       party: true,
+      dressCode: true,
       gift: true,
       faq: true,
       rsvp: true,

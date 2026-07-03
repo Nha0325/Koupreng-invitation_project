@@ -3,6 +3,7 @@ import { VenuePicker } from "../../../shared/ui/VenuePicker";
 
 export default function VenueRsvpStep({ draft, updateField }) {
     const event = draft?.event || {};
+    const contact = draft?.contact || {};
     const rsvp = draft?.rsvp || { enabled: true, deadline: "" };
 
     return (
@@ -59,6 +60,49 @@ export default function VenueRsvpStep({ draft, updateField }) {
                         value={event.mapLink || ""}
                         onChange={(e) => updateField("event", { mapLink: e.target.value })}
                         placeholder="https://maps.google.com/..."
+                    />
+                </div>
+            </section>
+
+            {/* Card 3 — Contact */}
+            <section className="wb-section">
+                <div className="wb-section-head">
+                    <span className="wb-section-kicker">Contact</span>
+                    <h3>ព័ត៌មានទំនាក់ទំនង</h3>
+                </div>
+
+                <div className="wb-row">
+                    <div className="wb-field">
+                        <label htmlFor="contact-phone">លេខទូរស័ព្ទ</label>
+                        <input
+                            id="contact-phone"
+                            type="tel"
+                            value={contact.phone || ""}
+                            onChange={(e) => updateField("contact", { phone: e.target.value })}
+                            placeholder="+855 12 345 678"
+                        />
+                    </div>
+
+                    <div className="wb-field">
+                        <label htmlFor="contact-telegram">Telegram</label>
+                        <input
+                            id="contact-telegram"
+                            type="text"
+                            value={contact.telegram || ""}
+                            onChange={(e) => updateField("contact", { telegram: e.target.value })}
+                            placeholder="@koupreng"
+                        />
+                    </div>
+                </div>
+
+                <div className="wb-field">
+                    <label htmlFor="contact-email">Email</label>
+                    <input
+                        id="contact-email"
+                        type="email"
+                        value={contact.email || ""}
+                        onChange={(e) => updateField("contact", { email: e.target.value })}
+                        placeholder="host@example.com"
                     />
                 </div>
             </section>

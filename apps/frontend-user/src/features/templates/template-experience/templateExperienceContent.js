@@ -352,7 +352,9 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         contact: {
             telegram: contactTelegram,
             phone: hostContact.phone || "+855 12 345 678",
+            email: hostContact.email || "",
         },
         music: tpl.music?.url,
+        openingVideo: tpl.openingVideo || null,
     };
 }

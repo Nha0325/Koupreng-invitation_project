@@ -1,6 +1,27 @@
 import { getTemplateById } from "../../templates/data/templatesData";
 import { resolveVariant } from "../../templates/template-experience/templateExperienceThemes";
 
+function displayDate(date) {
+    if (!date) return "";
+    try {
+        return new Intl.DateTimeFormat("km-KH", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        }).format(new Date(`${date}T00:00:00`));
+    } catch {
+        return date;
+    }
+}
+
+function initials(couple = {}) {
+    const groom = couple.groomNickname || couple.groom || "";
+    const bride = couple.brideNickname || couple.bride || "";
+    if (!groom && !bride) return "";
+    return [groom.trim().charAt(0), bride.trim().charAt(0)].filter(Boolean).join(" & ");
+}
+
 /**
  * draftToTemplate — merge a host's wedding draft (+ uploaded gallery) onto the
  * chosen base template, producing the `tpl` object the shared
@@ -33,8 +54,8 @@ export function draftToTemplate(draft, gallery = []) {
         ...baseTpl,
         groom: draft.couple?.groom || baseTpl.groom,
         bride: draft.couple?.bride || baseTpl.bride,
-        monogramText: draft.design?.monogramText || draft.monogramText || baseTpl.monogramText,
-        dateText: draft.event?.date || baseTpl.dateText,
+        monogramText: draft.design?.monogramText || draft.monogramText || initials(draft.couple) || baseTpl.monogramText,
+        dateText: displayDate(draft.event?.date) || baseTpl.dateText,
         targetDate,
         ceremonyTime: draft.event?.ceremonyTime || baseTpl.ceremonyTime,
         receptionTime: draft.event?.receptionTime || baseTpl.receptionTime,
@@ -46,6 +67,7 @@ export function draftToTemplate(draft, gallery = []) {
         storyText: draft.story || "",
         dressCode: draft.dressCode || baseTpl.dressCode,
         music: draft.music || baseTpl.music,
+        openingVideo: draft.openingVideoEnabled === false ? null : draft.openingVideo,
         // Host-authored rich sections. Passed straight through so the content
         // builder can prefer them over its demo fallbacks (see hostContent).
         hostContent: {

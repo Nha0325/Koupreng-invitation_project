@@ -10,7 +10,7 @@ const initialForm = {
     message: "",
 };
 
-export default function PublicRsvpForm({ slug, inviteToken }) {
+export default function PublicRsvpForm({ slug, inviteToken, accessToken }) {
     const [form, setForm] = useState(initialForm);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -19,10 +19,10 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
 
     const loadWishes = useCallback(() => {
         if (!slug) return;
-        rsvpService.publicWishes(slug, inviteToken)
+        rsvpService.publicWishes(slug, { token: inviteToken, accessToken })
             .then((items) => setWishes(Array.isArray(items) ? items : []))
             .catch(() => setWishes([]));
-    }, [slug, inviteToken]);
+    }, [slug, inviteToken, accessToken]);
 
     useEffect(() => {
         loadWishes();
@@ -43,7 +43,7 @@ export default function PublicRsvpForm({ slug, inviteToken }) {
             };
             const response = inviteToken
                 ? await rsvpService.submitPublicWithToken(slug, inviteToken, payload)
-                : await rsvpService.submitPublic(slug, payload);
+                : await rsvpService.submitPublic(slug, payload, { accessToken });
             setSubmitted(response);
             setForm(initialForm);
             if (response?.message) {
