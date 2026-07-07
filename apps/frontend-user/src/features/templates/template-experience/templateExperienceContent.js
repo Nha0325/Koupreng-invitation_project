@@ -75,6 +75,18 @@ const DEMO_GIFT = [
     { id: "wing", bank: "Wing", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "WingPay", qrImage: "" },
 ];
 
+const KHMER_GOLDEN_DEMO_SCHEDULE = [
+    { id: "procession", time: "០៧:០០", title: "ពិធីហែជំនូន", titleEn: "Procession", description: "ស្វាគមន៍ក្រុមគ្រួសារទាំងសងខាង និងភ្ញៀវកិត្តិយស។" },
+    { id: "fruit", time: "០៧:៣០", title: "ពិធីរៀបរាប់ផ្លែឈើ", titleEn: "Fruit Ceremony", description: "រៀបចំជំនូនតាមប្រពៃណីខ្មែរ។" },
+    { id: "rings", time: "០៨:១៥", title: "ពិធីបំពាក់ចិញ្ចៀន", titleEn: "Ring Ceremony", description: "ពេលវេលាសន្យាស្នេហ៍របស់គូស្វាមីភរិយា។" },
+    { id: "blessing", time: "០៨:៣០", title: "ពិធីសូត្រមន្តចម្រើនព្រះបរិត្ត", titleEn: "Blessing Ceremony", description: "ទទួលពរជ័យ និងសុភមង្គលសម្រាប់ជីវិតថ្មី។" },
+    { id: "hair", time: "០៩:៣០", title: "ពិធីកាត់សក់ បង្កក់សិរី", titleEn: "Hair Cutting", description: "ពិធីប្រពៃណីដ៏ពិសិដ្ឋសម្រាប់គូស្វាមីភរិយា។" },
+    { id: "palms", time: "១០:២៥", title: "ពិធីសំពះផ្ទឹម", titleEn: "Sompeas Ptem", description: "គោរពដល់មាតាបិតា និងចាស់ទុំទាំងសងខាង។" },
+    { id: "lunch", time: "១២:០០", title: "អញ្ជើញភ្ញៀវពិសាអាហារថ្ងៃត្រង់", titleEn: "Lunch", description: "អាហារថ្ងៃត្រង់ជាមួយក្រុមគ្រួសារ និងភ្ញៀវកិត្តិយស។" },
+    { id: "welcome", time: "១៧:០០", title: "ទទួលបដិសណ្ឋារកិច្ចភ្ញៀវកិត្តិយស", titleEn: "Guest Welcome", description: "ចុះឈ្មោះ ថតរូប និងទទួលភ្ញៀវ។" },
+    { id: "reception", time: "១៨:០០", title: "ពិធីជប់លៀងមង្គលការ", titleEn: "Reception Dinner", description: "អាហារពេលល្ងាច តន្ត្រី និងពាក្យជូនពរ។" },
+];
+
 const DEMO_WISH =
     "សូមឱ្យសេចក្ដីស្រឡាញ់របស់យើងកាន់តែរីកចម្រើន និងពោរពេញដោយសុភមង្គល។ យើងខ្ញុំរីករាយទទួលពាក្យជូនពរពីលោកអ្នកក្នុងថ្ងៃដ៏មានន័យនេះ។";
 
@@ -120,6 +132,49 @@ const VARIANT_COPY = {
         dressStyle: "ខ្មែរផ្លូវការ / Garden formal",
         dressNote: "ពណ៌ខៀវ ស បៃតងស្លឹក និងមាសស្រាល សមរម្យសម្រាប់បរិយាកាសសួនផ្កាផ្លូវការនិងរូបថតអនុស្សាវរីយ៍។",
     },
+    "khmer-golden-canva-inspired-wedding": {
+        message:
+            "ដោយក្តីសោមនស្សរីករាយ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នក និងក្រុមគ្រួសារ មកចូលរួមជាភ្ញៀវកិត្តិយសក្នុងពិធីអាពាហ៍ពិពាហ៍របស់យើងខ្ញុំ។ វត្តមានរបស់លោកអ្នកគឺជាកិត្តិយសដ៏ខ្ពង់ខ្ពស់សម្រាប់គ្រួសារយើងខ្ញុំ។",
+        groomIntro: "កូនកំលោះសុភាព មានចិត្តថ្លៃថ្នូរ និងស្រឡាញ់ការរួមដំណើរជីវិតដោយការគោរពគ្នាទៅវិញទៅមក។",
+        brideIntro: "កូនក្រមុំមានស្នាមញញឹមទន់ភ្លន់ ចិត្តកក់ក្ដៅ និងសេចក្តីស្រឡាញ់ចំពោះគ្រួសារយ៉ាងជ្រាលជ្រៅ។",
+        dressName: "Ivory មាស Champagne និងត្នោតខ្ចី",
+        dressStyle: "Khmer formal / Golden evening elegant",
+        dressNote: "សូមជ្រើសរើសពណ៌ស្រាលប្រណិតដូចជា ivory, champagne, មាស និងត្នោតខ្ចី ដើម្បីសមនឹងបរិយាកាសពិធីខ្មែរបែបមាស។",
+        giftNote: "វត្តមាន និងពរជ័យរបស់លោកអ្នកមានន័យជាងអ្វីៗទាំងអស់។ សម្រាប់ភ្ញៀវដែលចង់ផ្ញើចំណងដៃ យើងបានរៀបចំព័ត៌មានគណនីគំរូខាងក្រោម។",
+        footerThanks: "សូមអរគុណចំពោះវត្តមាន ក្ដីស្រឡាញ់ និងពរជ័យដ៏កក់ក្ដៅរបស់លោកអ្នក",
+        footerThanksEn: "With love, gratitude, and golden memories",
+        wishMessage:
+            "សូមឱ្យថ្ងៃមង្គលនេះក្លាយជាការចាប់ផ្តើមដ៏ភ្លឺរលោង សម្រាប់ជីវិតគូពោរពេញដោយសេចក្តីស្រឡាញ់ ការគោរព និងសុភមង្គល។",
+    },
+};
+
+const VARIANT_STORY = {
+    "khmer-golden-canva-inspired-wedding": [
+        {
+            id: "first-light",
+            kicker: "OUR STORY",
+            title: "ថ្ងៃដែលស្នេហាចាប់ផ្តើម",
+            date: "២០២១",
+            text: "ពីការជួបគ្នាដំបូង រហូតដល់ថ្ងៃសន្យារួមដំណើរជីវិត យើងបានរៀនថាសេចក្តីស្រឡាញ់ពិតប្រាកដ គឺកើតពីការគោរព ការយកចិត្តទុកដាក់ និងស្នាមញញឹមរៀងរាល់ថ្ងៃ។",
+            image: "/facebook/all/05-card/05-01.jpg",
+        },
+        {
+            id: "promise",
+            kicker: "PROMISE",
+            title: "ពាក្យសន្យាមួយជីវិត",
+            date: "២០២៥",
+            text: "ពាក្យសន្យារបស់យើងគឺរស់នៅជាមួយគ្នាដោយចិត្តស្មោះ តស៊ូជាមួយគ្នា និងថែរក្សាអនុស្សាវរីយ៍ល្អៗជារៀងរហូត។",
+            image: "/facebook/all/05-card/05-02.jpg",
+        },
+        {
+            id: "golden-day",
+            kicker: "WEDDING DAY",
+            title: "ថ្ងៃមាសរបស់យើង",
+            date: "២៨ មករា ២០២៦",
+            text: "ថ្ងៃនេះ យើងសូមអញ្ជើញលោកអ្នកមកចែករំលែកសុភមង្គល និងធ្វើជាសាក្សីដ៏មានតម្លៃក្នុងការចាប់ផ្តើមជីវិតថ្មីរបស់យើង។",
+            image: "/facebook/all/05-card/05-03.jpg",
+        },
+    ],
 };
 
 const DEFAULT_CONTENT_VARIANT = "garden-royal-khmer-wedding";
@@ -152,16 +207,39 @@ function buildGallery(tpl) {
 }
 
 /** Build the story timeline using the template's own images, demo copy intact. */
-function buildStory(tpl) {
+function buildStory(tpl, variant) {
     const own = getTemplateOwnImages(tpl);
-    if (!own) return DEMO_STORY;
-    return DEMO_STORY.map((chapter, index) => ({
+    const story = VARIANT_STORY[variant] || DEMO_STORY;
+    const storyWithTemplateText = tpl.storyText && story.length
+        ? story.map((chapter, index) => (index === 0 ? { ...chapter, text: tpl.storyText } : chapter))
+        : story;
+    if (!own) return storyWithTemplateText;
+    return storyWithTemplateText.map((chapter, index) => ({
         ...chapter,
         image: own[index % own.length],
     }));
 }
 
-function buildSchedule(tpl) {
+function normalizeScheduleItems(schedule) {
+    if (!Array.isArray(schedule)) return null;
+    const items = schedule
+        .map((s, index) => ({
+            id: s.id || `schedule-${index}`,
+            time: s.time || s.startTime || s.timeText || "",
+            title: s.title || s.name || s.label || "",
+            titleEn: s.titleEn || "",
+            description: s.description || "",
+            location: s.location || "",
+        }))
+        .filter((item) => item.time || item.title || item.description);
+    return items.length ? items : null;
+}
+
+function buildSchedule(tpl, variant) {
+    const templateSchedule = normalizeScheduleItems(tpl.schedule);
+    if (templateSchedule) return templateSchedule;
+    if (variant === "khmer-golden-canva-inspired-wedding") return KHMER_GOLDEN_DEMO_SCHEDULE;
+
     return [
         {
             id: "ceremony",
@@ -194,13 +272,33 @@ function buildSchedule(tpl) {
     ];
 }
 
+function normalizeGiftAccounts(gift) {
+    const accounts = Array.isArray(gift) ? gift : (gift ? [gift] : []);
+    return accounts
+        .map((g, index) => ({
+            id: g.id || `gift-${index}`,
+            bank: g.bank || "",
+            account: g.account || g.accountName || g.name || "",
+            number: g.number || g.accountNumber || g.phone || "",
+            note: g.note || "",
+            qrImage: g.qrImage || g.qr || g.qrUrl || "",
+            qrValue: g.qrValue || g.qrPayload || "",
+        }))
+        .filter((account) => account.bank || account.account || account.number || account.qrImage || account.qrValue);
+}
+
+function buildGift(tpl) {
+    const templateGift = normalizeGiftAccounts(tpl.gift);
+    return templateGift.length ? templateGift : DEMO_GIFT;
+}
+
 /**
  * Build the full content model for a template experience.
  * @param {object} tpl resolved template object (from getTemplateById)
  * @param {string} variant variant key, resolved to the kept template variant.
  */
 export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT) {
-    const copy = VARIANT_COPY[DEFAULT_CONTENT_VARIANT];
+    const copy = VARIANT_COPY[variant] || VARIANT_COPY[DEFAULT_CONTENT_VARIANT];
     const theme = getVariantTheme(variant);
 
     // Host-authored content (from the wedding builder). When present, these
@@ -318,6 +416,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             number: g.number || g.accountNumber || "",
             note: g.note || "",
             qrImage: g.qrImage || g.qr || g.qrUrl || "",
+            qrValue: g.qrValue || g.qrPayload || "",
         }))
         : null;
 
@@ -374,13 +473,14 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             image: coverImage,
         },
         gallery: hasHostContent ? (sectionEnabled("gallery") ? (hostGallery || []) : []) : buildGallery(tpl),
-        story: hasHostContent ? (sectionEnabled("story") ? (hostStory || []) : []) : buildStory(tpl),
-        schedule: hasHostContent ? (sectionEnabled("schedule") ? (hostSchedule || []) : []) : buildSchedule(tpl),
+        story: hasHostContent ? (sectionEnabled("story") ? (hostStory || []) : []) : buildStory(tpl, variant),
+        schedule: hasHostContent ? (sectionEnabled("schedule") ? (hostSchedule || []) : []) : buildSchedule(tpl, variant),
         party: hasHostContent ? (sectionEnabled("party") ? (hostParty || []) : []) : DEMO_PARTY,
         dressCode,
-        gift: hasHostContent ? (sectionEnabled("gift") ? (hostGift || []) : []) : DEMO_GIFT,
+        gift: hasHostContent ? (sectionEnabled("gift") ? (hostGift || []) : []) : buildGift(tpl),
+        giftNote: tpl.giftNote || copy.giftNote || "",
         wish: {
-            message: nonBlank(host.wishMessage) || DEMO_WISH,
+            message: nonBlank(host.wishMessage) || copy.wishMessage || DEMO_WISH,
         },
         faq: hasHostContent ? (sectionEnabled("faq") ? (hostFaq || []) : []) : DEMO_FAQ,
         contact: {
@@ -389,6 +489,8 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             email: hostContact.email || "",
             facebook: contactFacebook,
         },
+        footerThanks: copy.footerThanks,
+        footerThanksEn: copy.footerThanksEn,
         design: {
             openingStyle: design.openingStyle || "cinematic",
             ornamentTheme: design.ornamentTheme || "royal-floral",

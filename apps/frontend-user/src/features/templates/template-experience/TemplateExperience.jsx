@@ -4,7 +4,11 @@ import { Link } from "react-router-dom";
 
 import { Breadcrumb } from "../../../shared/ui/Breadcrumb";
 import { buildTemplateContent } from "./templateExperienceContent";
-import { getVariantTheme, KEEP_TEMPLATE_CODE, resolveVariant } from "./templateExperienceThemes";
+import {
+    getVariantTheme,
+    KHMER_GOLDEN_CANVA_INSPIRED_CODE,
+    resolveVariant,
+} from "./templateExperienceThemes";
 import CanvaKhmerWeddingTemplate from "./canva-khmer/CanvaKhmerWeddingTemplate";
 import TemplateOpeningGate from "./sections/TemplateOpeningGate";
 import TemplateHero from "./sections/TemplateHero";
@@ -18,7 +22,6 @@ import TemplateGallery from "./sections/TemplateGallery";
 import TemplateParty from "./sections/TemplateParty";
 import TemplateDressCode from "./sections/TemplateDressCode";
 import TemplateGift from "./sections/TemplateGift";
-import TemplateFaq from "./sections/TemplateFaq";
 import TemplateRsvp from "./sections/TemplateRsvp";
 import TemplateWish from "./sections/TemplateWish";
 import TemplateFooter from "./sections/TemplateFooter";
@@ -78,14 +81,14 @@ export default function TemplateExperience({
         [contentProp, tpl, resolvedVariant]
     );
     const isCanvaKhmerTemplate =
-        variant === KEEP_TEMPLATE_CODE ||
-        tpl?.variant === KEEP_TEMPLATE_CODE ||
-        tpl?.templateId === KEEP_TEMPLATE_CODE ||
-        tpl?.id === KEEP_TEMPLATE_CODE ||
-        tpl?.slug === KEEP_TEMPLATE_CODE ||
-        tpl?.code === KEEP_TEMPLATE_CODE ||
-        tpl?.templateCode === KEEP_TEMPLATE_CODE ||
-        content?.variant === KEEP_TEMPLATE_CODE;
+        variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.templateId === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.id === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.slug === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.code === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.templateCode === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        content?.variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE;
 
     const crumbs = useMemo(
         () =>
@@ -195,7 +198,6 @@ export default function TemplateExperience({
                         {sectionEnabled("dressCode") && <TemplateDressCode content={content} />}
                         {sectionEnabled("gift") && <TemplateGift content={content} />}
                         {sectionEnabled("map") && <TemplateVenue content={content} />}
-                        {sectionEnabled("faq") && <TemplateFaq content={content} />}
 
                         {sectionEnabled("rsvp") && (
                             children ? (

@@ -311,7 +311,7 @@ export default function EnhancementsStep({ draft, update }) {
             <section className="wb-section">
                 <div className="wb-section-head">
                     <span className="wb-section-kicker">Intro</span>
-                    <h3>វីដេអូបើកសន្លឹកការ និងតន្ត្រី</h3>
+                    <h3>វីដេអូបើកសន្លឹកការ និងតន្ត្រីផ្ទាល់ខ្លួន</h3>
                 </div>
 
                 <label className="wb-toggle-row">
@@ -358,11 +358,14 @@ export default function EnhancementsStep({ draft, update }) {
                 </div>
 
                 <div className="wb-field">
-                    <label>Upload background music</label>
+                    <label>Upload your own song</label>
                     <button type="button" className="wb-btn wb-btn-secondary" onClick={() => musicInputRef.current?.click()}>
                         <IoMusicalNotesOutline aria-hidden="true" />
-                        ជ្រើសតន្ត្រីផ្ទាល់ខ្លួន
+                        Choose song from my device
                     </button>
+                    {music?.id === "custom-music" && (
+                        <p className="wb-help">Selected: {music.name}</p>
+                    )}
                     <input
                         ref={musicInputRef}
                         type="file"

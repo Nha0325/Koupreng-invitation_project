@@ -214,7 +214,7 @@ function CanvaKhmerOpeningCover({ content, onOpen }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.01 }}
             transition={{ duration: 0.5 }}
-            aria-label="បើកសន្លឹកអញ្ជើញ"
+            aria-label="បើកសំបុត្រអញ្ចើញ"
         >
             {coverFailed ? (
                 <span className="ck-cover__fallback" aria-hidden="true" />
@@ -236,7 +236,7 @@ function CanvaKhmerOpeningCover({ content, onOpen }) {
                     loop
                     playsInline
                     preload="metadata"
-                    aria-label="វីដេអូបើកសន្លឹកអញ្ជើញ"
+                    aria-label="វីដេអូបើកសំបុត្រអញ្ចើញ"
                 />
             )}
             <div className="ck-cover__monogram" aria-label={`អក្សរកាត់ ${content.monogramText}`}>{content.monogramText}</div>
@@ -565,23 +565,6 @@ function CanvaKhmerGift({ content }) {
     );
 }
 
-function CanvaKhmerFaq({ items }) {
-    const faqs = Array.isArray(items) ? items.filter((item) => cleanText(item?.q) || cleanText(item?.a)) : [];
-    if (!faqs.length) return null;
-
-    return (
-        <div className="ck-faq">
-            <h3>សំណួរញឹកញាប់</h3>
-            {faqs.slice(0, 5).map((item, index) => (
-                <details key={item.id || index}>
-                    <summary>{item.q || `សំណួរទី ${index + 1}`}</summary>
-                    {item.a && <p>{item.a}</p>}
-                </details>
-            ))}
-        </div>
-    );
-}
-
 function CanvaKhmerDemoRsvp({ useTemplateLink }) {
     return (
         <form className="ck-demo-rsvp" onSubmit={(event) => event.preventDefault()} aria-label="គំរូ RSVP សម្រាប់សន្លឹកការ">
@@ -623,6 +606,30 @@ function CanvaKhmerDemoRsvp({ useTemplateLink }) {
                 </button>
             )}
         </form>
+    );
+}
+
+function CanvaKhmerFaq({ items = [] }) {
+    const visibleItems = items
+        .map((item, index) => ({
+            id: item?.id || `faq-${index}`,
+            question: cleanText(item?.q || item?.question || item?.title),
+            answer: cleanText(item?.a || item?.answer || item?.description),
+        }))
+        .filter((item) => item.question && item.answer);
+
+    if (!visibleItems.length) return null;
+
+    return (
+        <div className="ck-faq">
+            <h3>សំណួរញឹកញាប់</h3>
+            {visibleItems.map((item) => (
+                <details key={item.id}>
+                    <summary>{item.question}</summary>
+                    <p>{item.answer}</p>
+                </details>
+            ))}
+        </div>
     );
 }
 

@@ -4031,3 +4031,508 @@
         opacity: 0.34;
     }
 }
+
+/* ============================================================
+   KHMER GOLDEN CANVA INSPIRED — ORIGINAL IVORY & GOLD THEME
+   ============================================================ */
+.template-experience--khmer-golden-canva-inspired-wedding {
+    --kg-paper: #fffdf7;
+    --kg-paper-warm: #f8f0e3;
+    --kg-ivory: #fff8ec;
+    --kg-gold: #c99a3d;
+    --kg-gold-soft: #e9d0a2;
+    --kg-gold-deep: #8c6424;
+    --kg-brown: #3a2514;
+    --kg-muted: #71593b;
+    --kg-rose: #9e5f55;
+    --kg-olive: #67724d;
+    --tpl-bg: var(--kg-paper-warm);
+    --tpl-surface: var(--kg-paper);
+    --tpl-surface-alt: var(--kg-ivory);
+    --tpl-text: var(--kg-brown);
+    --tpl-muted: var(--kg-muted);
+    --tpl-accent: var(--kg-gold);
+    --tpl-accent-dark: var(--kg-gold-deep);
+    --tpl-on-accent: #fffdf7;
+    --tpl-border: rgba(140, 100, 36, 0.28);
+    --tpl-radius: 7px;
+    --tpl-shadow: 0 24px 64px rgba(58, 37, 20, 0.14);
+    --tpl-shadow-sm: 0 10px 28px rgba(58, 37, 20, 0.1);
+    --tpl-hero-overlay:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.74), rgba(248, 240, 227, 0.84)),
+        linear-gradient(140deg, rgba(140, 100, 36, 0.16), rgba(103, 114, 77, 0.1));
+    --tpl-footer-bg: #332112;
+    --tpl-footer-text: rgba(255, 253, 247, 0.92);
+    --tpl-footer-accent: var(--kg-gold-soft);
+    --tpl-heading-font: "Noto Serif Khmer", "Moul", "Hanuman", "Battambang", serif;
+    --tpl-body-font: "Noto Sans Khmer", "Battambang", "Kantumruy Pro", sans-serif;
+    background:
+        linear-gradient(90deg, rgba(140, 100, 36, 0.06) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(140, 100, 36, 0.04) 1px, transparent 1px),
+        linear-gradient(180deg, #fffdf7, #f8f0e3 42%, #fff8ec);
+    background-size: 36px 36px, 36px 36px, auto;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-experience {
+    background:
+        linear-gradient(90deg, rgba(201, 154, 61, 0.06) 1px, transparent 1px),
+        linear-gradient(180deg, var(--kg-paper), var(--kg-paper-warm));
+    background-size: 34px 34px, auto;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-children {
+    isolation: isolate;
+    background:
+        radial-gradient(ellipse at top, rgba(233, 208, 162, 0.22), transparent 34rem),
+        linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(248, 240, 227, 0.9));
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section:nth-of-type(even) {
+    background:
+        linear-gradient(135deg, rgba(103, 114, 77, 0.07), transparent 34%),
+        linear-gradient(180deg, #fff8ec, #fffdf7);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section::before,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 7.5rem;
+    height: 7.5rem;
+    opacity: 0.26;
+    pointer-events: none;
+    background:
+        linear-gradient(45deg, transparent 47%, var(--kg-gold) 48% 52%, transparent 53%),
+        linear-gradient(135deg, transparent 47%, var(--kg-gold) 48% 52%, transparent 53%);
+    mask:
+        radial-gradient(circle at 0 0, transparent 0 2rem, #000 2.05rem 2.25rem, transparent 2.3rem),
+        linear-gradient(#000 0 0);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section::before {
+    top: 1.3rem;
+    left: 1.1rem;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section::after {
+    right: 1.1rem;
+    bottom: 1.3rem;
+    transform: rotate(180deg);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-shell--narrow,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-message__inner,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-wish__card,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-rsvp__card {
+    position: relative;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section__title,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-message__text,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-couple__name,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-footer__title {
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section__title {
+    color: var(--kg-brown);
+    font-size: 2.05rem;
+    font-weight: 500;
+    line-height: 1.55;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section__lead,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-couple__intro,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-story__text,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__desc,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-dress__note {
+    color: var(--kg-muted);
+    line-height: 1.85;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-kicker,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section__subtitle {
+    color: var(--kg-gold-deep);
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-section__icon {
+    color: var(--kg-gold-deep);
+    border-color: rgba(201, 154, 61, 0.42);
+    background: linear-gradient(180deg, #fffdf7, #f7ead5);
+    box-shadow: 0 10px 22px rgba(58, 37, 20, 0.08);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-divider__dot {
+    background: var(--kg-gold);
+    border: 1px solid var(--kg-gold-deep);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-btn {
+    border-radius: 7px;
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-btn--solid {
+    background: linear-gradient(135deg, #d9b35b, #9c7428);
+    box-shadow: 0 14px 28px rgba(140, 100, 36, 0.22);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-btn--ghost {
+    color: var(--kg-gold-deep);
+    background: rgba(255, 253, 247, 0.72);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gate,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero {
+    color: var(--kg-brown);
+    background: var(--kg-paper);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gate__media,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__bg {
+    opacity: 0.22;
+    filter: saturate(0.96) contrast(0.96);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gate__veil {
+    background:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.7), rgba(248, 240, 227, 0.86)),
+        linear-gradient(135deg, rgba(201, 154, 61, 0.18), rgba(158, 95, 85, 0.08));
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gate__crest,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-crest-circle {
+    border-color: rgba(201, 154, 61, 0.7);
+    background: linear-gradient(180deg, #fffdf7, #efd8a5);
+    color: var(--kg-gold-deep);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gate h1,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__names {
+    color: var(--kg-brown);
+    font-size: 4.1rem;
+    font-weight: 500;
+    line-height: 1.22;
+    text-shadow: none;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gate__date,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__date,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__venue,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__families,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__english {
+    color: var(--kg-muted);
+    text-shadow: none;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__badge {
+    color: var(--kg-gold-deep);
+    border-color: rgba(201, 154, 61, 0.5);
+    background: rgba(255, 253, 247, 0.72);
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__kicker,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__amp {
+    color: var(--kg-gold-deep);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__rule span {
+    background: linear-gradient(90deg, transparent, var(--kg-gold), transparent);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__scroll {
+    color: var(--kg-gold-deep);
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-message__inner,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-countdown__cell,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-story__card,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__card,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-venue__grid,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__card,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-faq__item,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-wish__card,
+.template-experience--khmer-golden-canva-inspired-wedding .pub-rsvp-form,
+.template-experience--khmer-golden-canva-inspired-wedding .pub-wishes-wall,
+.template-experience--khmer-golden-canva-inspired-wedding .pub-rsvp-done {
+    border: 1px solid rgba(140, 100, 36, 0.28);
+    border-radius: var(--tpl-radius);
+    background:
+        linear-gradient(90deg, rgba(201, 154, 61, 0.08) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(255, 248, 236, 0.92));
+    background-size: 28px 28px, auto;
+    box-shadow: var(--tpl-shadow-sm);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-message__inner {
+    padding: 2.2rem 1.5rem;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-message__text {
+    max-width: 36rem;
+    margin-inline: auto;
+    color: var(--kg-brown);
+    font-family: var(--tpl-body-font);
+    font-size: 1.18rem;
+    font-weight: 400;
+    line-height: 2;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-message__couple {
+    color: var(--kg-gold-deep);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-couple__media,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gallery__item {
+    border: 6px solid var(--kg-paper);
+    border-radius: 7px;
+    outline: 1px solid rgba(201, 154, 61, 0.5);
+    box-shadow: 0 12px 30px rgba(58, 37, 20, 0.11);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-countdown {
+    color: #fffdf7;
+    background:
+        linear-gradient(135deg, rgba(58, 37, 20, 0.94), rgba(89, 62, 28, 0.94)),
+        linear-gradient(90deg, rgba(233, 208, 162, 0.12) 1px, transparent 1px);
+    background-size: auto, 32px 32px;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-countdown__cell {
+    background: rgba(255, 253, 247, 0.06);
+    border-color: rgba(233, 208, 162, 0.34);
+    box-shadow: none;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-countdown__cell strong,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-countdown__date {
+    color: var(--kg-gold-soft);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-countdown__cell span {
+    color: rgba(255, 253, 247, 0.8);
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    max-width: 820px;
+    margin-inline: auto;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__card {
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.2rem 0.85rem;
+    text-align: left;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__icon {
+    grid-row: 1 / span 4;
+    color: var(--kg-gold-deep);
+    background: linear-gradient(180deg, #fffdf7, #efd8a5);
+    border-color: rgba(201, 154, 61, 0.52);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__time,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__title,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__en,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__desc,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__loc {
+    grid-column: 2;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__time {
+    color: var(--kg-gold-deep);
+    font-family: var(--font-english-romantic);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__title {
+    color: var(--kg-brown);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-story__node {
+    border-color: var(--kg-gold);
+    box-shadow: 0 0 0 4px rgba(201, 154, 61, 0.18);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-story__line::before {
+    background: linear-gradient(180deg, transparent, var(--kg-gold), transparent);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-story__kicker,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-story__date {
+    color: var(--kg-gold-deep);
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-venue__pin {
+    color: var(--kg-gold-deep);
+    background: #fffdf7;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__grid {
+    max-width: 620px;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__card {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.35rem 1rem;
+    text-align: left;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__head,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__account,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__number,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__copy {
+    grid-column: 2;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__head {
+    justify-content: flex-start;
+    margin-bottom: 0.2rem;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__qr {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    width: 6rem;
+    height: 6rem;
+    margin: 0;
+    padding: 0.45rem;
+    border: 1px solid rgba(201, 154, 61, 0.4);
+    border-radius: 6px;
+    background: #fffdf7;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__qr > svg {
+    width: 100%;
+    height: 100%;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__tag {
+    color: var(--kg-rose);
+    background: rgba(158, 95, 85, 0.1);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__number {
+    color: var(--kg-brown);
+    font-family: var(--font-english-romantic);
+    font-size: 1.18rem;
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-dress__chip {
+    box-shadow: inset 0 0 0 1px rgba(58, 37, 20, 0.12), 0 8px 18px rgba(58, 37, 20, 0.08);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-footer {
+    background:
+        linear-gradient(180deg, rgba(51, 33, 18, 0.96), rgba(51, 33, 18, 0.98)),
+        linear-gradient(90deg, rgba(233, 208, 162, 0.12) 1px, transparent 1px);
+    background-size: auto, 34px 34px;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-footer__thanks,
+.template-experience--khmer-golden-canva-inspired-wedding .tx-footer__meta {
+    color: rgba(255, 253, 247, 0.84);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-quick-nav {
+    border-color: rgba(201, 154, 61, 0.38);
+    background: rgba(255, 253, 247, 0.94);
+    box-shadow: 0 12px 32px rgba(58, 37, 20, 0.18);
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-quick-nav__item {
+    color: var(--kg-muted);
+    letter-spacing: 0;
+}
+
+.template-experience--khmer-golden-canva-inspired-wedding .tx-quick-nav__item svg {
+    color: var(--kg-gold-deep);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-hero {
+    padding: clamp(2.25rem, 8cqw, 3rem) clamp(0.9rem, 5cqw, 1.2rem) clamp(2.5rem, 9cqw, 3.3rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-hero__names {
+    font-size: clamp(1.9rem, 15cqw, 2.7rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-message__inner {
+    padding: clamp(1.25rem, 6cqw, 1.75rem) clamp(0.9rem, 5cqw, 1.2rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-message__text {
+    font-size: clamp(1rem, 4.8cqw, 1.25rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__card {
+    grid-template-columns: clamp(2.5rem, 12cqw, 3rem) minmax(0, 1fr);
+    padding: clamp(0.9rem, 4cqw, 1.15rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__card {
+    grid-template-columns: clamp(4.8rem, 24cqw, 6rem) minmax(0, 1fr);
+    gap: 0.25rem clamp(0.7rem, 4cqw, 1rem);
+    padding: clamp(0.85rem, 4cqw, 1.1rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__qr {
+    width: clamp(4.4rem, 22cqw, 5.5rem);
+    height: clamp(4.4rem, 22cqw, 5.5rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__bank {
+    font-size: clamp(0.95rem, 4.5cqw, 1.1rem);
+}
+
+.tx-root--preview.template-experience--khmer-golden-canva-inspired-wedding .tx-gift__number {
+    font-size: clamp(0.95rem, 4.4cqw, 1.08rem);
+}
+
+@media (max-width: 640px) {
+    .template-experience--khmer-golden-canva-inspired-wedding .tx-hero__names {
+        font-size: 2.55rem;
+    }
+
+    .template-experience--khmer-golden-canva-inspired-wedding .tx-section__title {
+        font-size: 1.65rem;
+    }
+
+    .template-experience--khmer-golden-canva-inspired-wedding .tx-message__inner {
+        padding: 1.5rem 1rem;
+    }
+
+    .template-experience--khmer-golden-canva-inspired-wedding .tx-gift__card {
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+        gap: 0.25rem 0.8rem;
+        padding: 1rem;
+    }
+
+    .template-experience--khmer-golden-canva-inspired-wedding .tx-gift__qr {
+        width: 5rem;
+        height: 5rem;
+    }
+}
+
+@media (min-width: 760px) {
+    .template-experience--khmer-golden-canva-inspired-wedding .tx-schedule__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .template-experience--khmer-golden-canva-inspired-wedding .tx-gift__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

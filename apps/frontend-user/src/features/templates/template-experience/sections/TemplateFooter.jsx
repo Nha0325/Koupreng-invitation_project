@@ -24,9 +24,11 @@ export default function TemplateFooter({ content }) {
                         <i /><span className="tx-divider__dot" /><i />
                     </span>
                     <p className="tx-footer__thanks">
-                        សូមអរគុណចំពោះក្ដីស្រឡាញ់ និងពរជ័យដ៏កក់ក្ដៅរបស់អ្នក
+                        {content.footerThanks || "សូមអរគុណចំពោះក្ដីស្រឡាញ់ និងពរជ័យដ៏កក់ក្ដៅរបស់អ្នក"}
                     </p>
-                    <p className="tx-footer__thanks-en">Thank you for joining our special day</p>
+                    <p className="tx-footer__thanks-en">
+                        {content.footerThanksEn || "Thank you for joining our special day"}
+                    </p>
                 </TemplateReveal>
 
                 <TemplateReveal delay={0.12}>
