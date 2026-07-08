@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { IoCalendarOutline, IoChevronDown, IoLocationOutline } from "react-icons/io5";
 
 import { usePrefersReducedMotion } from "../../../../shared/hooks/usePrefersReducedMotion";
+import { COVER_KHMER_GOLDEN_CODE } from "../templateExperienceThemes";
+import CoverKhmerOpening from "./CoverKhmerOpening";
 import TemplateImage from "../TemplateImage";
 
 /**
@@ -11,6 +13,11 @@ import TemplateImage from "../TemplateImage";
  */
 export default function TemplateHero({ content, onOpen }) {
     const reduced = usePrefersReducedMotion();
+
+    if (content.variant === COVER_KHMER_GOLDEN_CODE) {
+        return <CoverKhmerOpening content={content} onOpen={onOpen} />;
+    }
+
     const venueShort = (content.venue.name || "").split(",")[0].trim();
 
     const rise = (delay) =>

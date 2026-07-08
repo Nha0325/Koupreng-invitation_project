@@ -1,7 +1,9 @@
 import musicWaitingDay from "../../../assets/music/ថ្ងៃដែលរង់ចាំ.mp3";
+import musicInstrumental from "../../../assets/music/Instrumental Wedding Music (VioSounds Cover).m4a";
 
 export const KEEP_TEMPLATE_CODE = "garden-royal-khmer-wedding";
 export const KHMER_GOLDEN_CANVA_INSPIRED_CODE = "khmer-golden-canva-inspired-wedding";
+export const COVER_KHMER_GOLDEN_CODE = "cover-khmer-golden-wedding";
 
 export const TEMPLATE_CATEGORIES = [
     { id: "all", label: "ទាំងអស់", labelEn: "All" },
@@ -154,7 +156,63 @@ const KHMER_GOLDEN_CANVA_INSPIRED_TEMPLATE = withTemplateMedia({
     ],
 });
 
-export const TEMPLATES = [KEPT_TEMPLATE, KHMER_GOLDEN_CANVA_INSPIRED_TEMPLATE];
+const COVER_KHMER_GOLDEN_TEMPLATE = withTemplateMedia({
+    id: COVER_KHMER_GOLDEN_CODE,
+    name: "សំបុត្រអញ្ជើញមាសខ្មែរ",
+    style: "Cover Khmer Golden Wedding",
+    category: "modern",
+    popular: true,
+    image: "/templates/cover-khmer-golden-wedding/cover-preview.svg",
+    mainImage: "/templates/cover-khmer-golden-wedding/cover-bg.svg",
+    phoneCoverImage: "/templates/cover-khmer-golden-wedding/cover-bg.svg",
+    slideshowImages: [
+        "/templates/cover-khmer-golden-wedding/cover-bg.svg",
+        "/facebook/all/03-card/03-01.jpg",
+        "/facebook/all/03-card/03-02.jpg",
+        "/facebook/all/03-card/03-03.jpg",
+    ],
+    storyImages: [
+        "/facebook/all/03-card/03-01.jpg",
+        "/facebook/all/03-card/03-02.jpg",
+        "/facebook/all/03-card/03-03.jpg",
+        "/facebook/all/03-card/03-04.jpg",
+    ],
+    storyCards: [
+        {
+            id: "cover-khmer-golden-card",
+            title: "Cover Khmer Golden Wedding",
+            images: [
+                "/templates/cover-khmer-golden-wedding/cover-bg.svg",
+                "/facebook/all/03-card/03-01.jpg",
+                "/facebook/all/03-card/03-02.jpg",
+                "/facebook/all/03-card/03-03.jpg",
+                "/facebook/all/03-card/03-04.jpg",
+            ],
+        },
+    ],
+    music: { url: musicInstrumental },
+    groom: "វណ្ណដា",
+    bride: "ស្រីពេជ្រ",
+    monogramText: "វ & ព",
+    shortName: "វ & ព",
+    guestName: "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា",
+    dateText: "ថ្ងៃពុធ ទី២៨ ខែមករា ឆ្នាំ២០២៦",
+    targetDate: "2026-01-28T17:00:00+07:00",
+    ceremonyTime: "០៧:០០",
+    receptionTime: "១៧:០០",
+    venueName: "The Premier Center Sen Sok",
+    venueAddress: "អគារ A, សែនសុខ, ភ្នំពេញ",
+    mapQuery: "The Premier Center Sen Sok Phnom Penh Cambodia",
+    bg: "#FFF7E8",
+    paper: "#FFFDF7",
+    color: "#C89B3C",
+    accent: "#8A5A20",
+    dark: "#3B220F",
+    label: "COVER KHMER GOLDEN",
+    description: "គំរូសំបុត្រអញ្ជើញបែបខ្មែរមាស ប្រណិត មានស៊ុមលម្អ ផ្កា និងទំព័របើកសំបុត្របែបអនិមេសិន។",
+});
+
+export const TEMPLATES = [KEPT_TEMPLATE, COVER_KHMER_GOLDEN_TEMPLATE, KHMER_GOLDEN_CANVA_INSPIRED_TEMPLATE];
 
 export const FACEBOOK_TEMPLATE_CARDS = TEMPLATES;
 

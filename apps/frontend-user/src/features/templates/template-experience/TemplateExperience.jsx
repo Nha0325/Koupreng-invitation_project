@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Breadcrumb } from "../../../shared/ui/Breadcrumb";
 import { buildTemplateContent } from "./templateExperienceContent";
 import {
+    COVER_KHMER_GOLDEN_CODE,
     getVariantTheme,
     KHMER_GOLDEN_CANVA_INSPIRED_CODE,
     resolveVariant,
@@ -101,7 +102,9 @@ export default function TemplateExperience({
     );
 
     const rootRef = useRef(null);
-    const [gateOpen, setGateOpen] = useState(preview);
+    const usesHeroAsOpening = resolvedVariant === COVER_KHMER_GOLDEN_CODE;
+    const [gateOpen, setGateOpen] = useState(preview || usesHeroAsOpening);
+    const [heroOpened, setHeroOpened] = useState(!usesHeroAsOpening);
 
     const scrollToTarget = useCallback((node) => {
         if (!node) return;
@@ -121,6 +124,7 @@ export default function TemplateExperience({
     }, [gateOpen, preview, scrollToTarget]);
 
     const handleHeroOpen = useCallback(() => {
+        setHeroOpened(true);
         const next = rootRef.current?.querySelector('[data-tx-section="message"]');
         scrollToTarget(next);
     }, [scrollToTarget]);
@@ -236,7 +240,7 @@ export default function TemplateExperience({
             )}
 
             <TemplateMusicControl src={content.music} />
-            {gateOpen && showStickyCta && (
+            {gateOpen && showStickyCta && heroOpened && (
                 <TemplateQuickNav
                     enabledSections={content.enabledSections}
                     onNavigate={handleNavigate}

@@ -1,5 +1,6 @@
 export const KEEP_TEMPLATE_CODE = "garden-royal-khmer-wedding";
 export const KHMER_GOLDEN_CANVA_INSPIRED_CODE = "khmer-golden-canva-inspired-wedding";
+export const COVER_KHMER_GOLDEN_CODE = "cover-khmer-golden-wedding";
 
 export const TEMPLATE_VARIANTS = {
     [KEEP_TEMPLATE_CODE]: {
@@ -26,6 +27,18 @@ export const TEMPLATE_VARIANTS = {
             { hex: "#4B2F1A", name: "ត្នោត" },
         ],
     },
+    [COVER_KHMER_GOLDEN_CODE]: {
+        className: "template-experience--cover-khmer-golden-wedding",
+        mood: "light",
+        badge: "Cover Khmer",
+        amp: "✦",
+        dressColors: [
+            { hex: "#C89B3C", name: "មាស" },
+            { hex: "#FFF8E7", name: "ភ្លុក" },
+            { hex: "#E8C98A", name: "សាំប៉ាញ" },
+            { hex: "#5C3418", name: "ត្នោតចាស់" },
+        ],
+    },
 };
 
 export const DEFAULT_VARIANT = KEEP_TEMPLATE_CODE;
@@ -33,6 +46,7 @@ export const DEFAULT_VARIANT = KEEP_TEMPLATE_CODE;
 export const TEMPLATE_VARIANT_BY_ID = {
     [KEEP_TEMPLATE_CODE]: KEEP_TEMPLATE_CODE,
     [KHMER_GOLDEN_CANVA_INSPIRED_CODE]: KHMER_GOLDEN_CANVA_INSPIRED_CODE,
+    [COVER_KHMER_GOLDEN_CODE]: COVER_KHMER_GOLDEN_CODE,
 };
 
 export const VARIANT_ROUTE_ALIASES = {

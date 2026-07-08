@@ -12,7 +12,9 @@
  * style read with its own personality while keeping identical structure.
  */
 
-import { getVariantTheme } from "./templateExperienceThemes";
+import { COVER_KHMER_GOLDEN_CODE, getVariantTheme, KHMER_GOLDEN_CANVA_INSPIRED_CODE } from "./templateExperienceThemes";
+
+const DEFAULT_GUEST_NAME = "លោកអ្នក និងក្រុមគ្រួសារ";
 
 const DEMO_GALLERY = [
     { src: "/facebook/all/01-card/01-01.jpg", span: "tall" },
@@ -132,7 +134,7 @@ const VARIANT_COPY = {
         dressStyle: "ខ្មែរផ្លូវការ / Garden formal",
         dressNote: "ពណ៌ខៀវ ស បៃតងស្លឹក និងមាសស្រាល សមរម្យសម្រាប់បរិយាកាសសួនផ្កាផ្លូវការនិងរូបថតអនុស្សាវរីយ៍។",
     },
-    "khmer-golden-canva-inspired-wedding": {
+    [KHMER_GOLDEN_CANVA_INSPIRED_CODE]: {
         message:
             "ដោយក្តីសោមនស្សរីករាយ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នក និងក្រុមគ្រួសារ មកចូលរួមជាភ្ញៀវកិត្តិយសក្នុងពិធីអាពាហ៍ពិពាហ៍របស់យើងខ្ញុំ។ វត្តមានរបស់លោកអ្នកគឺជាកិត្តិយសដ៏ខ្ពង់ខ្ពស់សម្រាប់គ្រួសារយើងខ្ញុំ។",
         groomIntro: "កូនកំលោះសុភាព មានចិត្តថ្លៃថ្នូរ និងស្រឡាញ់ការរួមដំណើរជីវិតដោយការគោរពគ្នាទៅវិញទៅមក។",
@@ -146,10 +148,24 @@ const VARIANT_COPY = {
         wishMessage:
             "សូមឱ្យថ្ងៃមង្គលនេះក្លាយជាការចាប់ផ្តើមដ៏ភ្លឺរលោង សម្រាប់ជីវិតគូពោរពេញដោយសេចក្តីស្រឡាញ់ ការគោរព និងសុភមង្គល។",
     },
+    [COVER_KHMER_GOLDEN_CODE]: {
+        message:
+            "ដោយក្តីសោមនស្សរីករាយ និងកិត្តិយសដ៏ខ្ពង់ខ្ពស់ យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នកមកចូលរួមជាភ្ញៀវកិត្តិយសក្នុងពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍របស់យើងខ្ញុំ។",
+        groomIntro: "កូនកំលោះសុភាពរាបសា មានចិត្តថ្លៃថ្នូរ និងត្រៀមចាប់ផ្តើមជីវិតគូដោយក្តីគោរព។",
+        brideIntro: "កូនក្រមុំទន់ភ្លន់ មានស្នាមញញឹមកក់ក្ដៅ និងសេចក្តីស្រឡាញ់ចំពោះគ្រួសារ។",
+        dressName: "មាស ភ្លុក សាំប៉ាញ និងត្នោតចាស់",
+        dressStyle: "Khmer formal / Golden wedding elegance",
+        dressNote: "សូមជ្រើសរើសសម្លៀកបំពាក់ពណ៌ភ្លុក សាំប៉ាញ មាស ឬត្នោតចាស់ ដើម្បីសមនឹងបរិយាកាសសំបុត្រអញ្ជើញខ្មែរបែបមាសប្រណិត។",
+        giftNote: "វត្តមាន និងពរជ័យរបស់លោកអ្នកជាកិត្តិយសដ៏ខ្ពង់ខ្ពស់សម្រាប់គ្រួសារយើងខ្ញុំ។",
+        footerThanks: "សូមអរគុណចំពោះវត្តមាន និងពរជ័យដ៏កក់ក្ដៅរបស់លោកអ្នក",
+        footerThanksEn: "With gratitude and golden memories",
+        wishMessage:
+            "សូមឱ្យពិធីមង្គលនេះពោរពេញដោយពន្លឺមាស សេចក្ដីស្រឡាញ់ និងសុភមង្គលសម្រាប់ជីវិតគូរបស់យើង។",
+    },
 };
 
 const VARIANT_STORY = {
-    "khmer-golden-canva-inspired-wedding": [
+    [KHMER_GOLDEN_CANVA_INSPIRED_CODE]: [
         {
             id: "first-light",
             kicker: "OUR STORY",
@@ -173,6 +189,24 @@ const VARIANT_STORY = {
             date: "២៨ មករា ២០២៦",
             text: "ថ្ងៃនេះ យើងសូមអញ្ជើញលោកអ្នកមកចែករំលែកសុភមង្គល និងធ្វើជាសាក្សីដ៏មានតម្លៃក្នុងការចាប់ផ្តើមជីវិតថ្មីរបស់យើង។",
             image: "/facebook/all/05-card/05-03.jpg",
+        },
+    ],
+    [COVER_KHMER_GOLDEN_CODE]: [
+        {
+            id: "golden-cover",
+            kicker: "COVER KHMER",
+            title: "ទំព័រអញ្ជើញមាសខ្មែរ",
+            date: "២៨ មករា ២០២៦",
+            text: "ពីសំបុត្របើកដំបូង រហូតដល់ពេលវេលាពិធី យើងសូមចែករំលែកសុភមង្គលជាមួយលោកអ្នកក្នុងថ្ងៃដ៏មានន័យនេះ។",
+            image: "/templates/cover-khmer-golden-wedding/cover-bg.svg",
+        },
+        {
+            id: "family-honor",
+            kicker: "FAMILY",
+            title: "កិត្តិយសគ្រួសារ",
+            date: "ថ្ងៃមង្គល",
+            text: "វត្តមានរបស់លោកអ្នកគឺជាកិត្តិយស និងពរជ័យដ៏សំខាន់សម្រាប់គ្រួសារទាំងសងខាង។",
+            image: "/facebook/all/03-card/03-01.jpg",
         },
     ],
 };
@@ -238,7 +272,7 @@ function normalizeScheduleItems(schedule) {
 function buildSchedule(tpl, variant) {
     const templateSchedule = normalizeScheduleItems(tpl.schedule);
     if (templateSchedule) return templateSchedule;
-    if (variant === "khmer-golden-canva-inspired-wedding") return KHMER_GOLDEN_DEMO_SCHEDULE;
+    if (variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE || variant === COVER_KHMER_GOLDEN_CODE) return KHMER_GOLDEN_DEMO_SCHEDULE;
 
     return [
         {
@@ -290,6 +324,29 @@ function normalizeGiftAccounts(gift) {
 function buildGift(tpl) {
     const templateGift = normalizeGiftAccounts(tpl.gift);
     return templateGift.length ? templateGift : DEMO_GIFT;
+}
+
+function sanitizeDisplayText(value, maxLength = 80) {
+    if (typeof value !== "string") return "";
+    return Array.from(value)
+        .filter((char) => {
+            const code = char.charCodeAt(0);
+            return code >= 32 && code !== 127 && char !== "<" && char !== ">";
+        })
+        .join("")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, maxLength);
+}
+
+function readGuestNameFromQuery() {
+    if (typeof window === "undefined" || !window.location?.search) return "";
+
+    try {
+        return sanitizeDisplayText(new URLSearchParams(window.location.search).get("guest") || "");
+    } catch {
+        return "";
+    }
 }
 
 /**
@@ -439,13 +496,32 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             : `https://www.facebook.com/${hostContact.facebook.replace(/^@/, "")}`)
         : "";
     const design = tpl.design || {};
+    const queryGuestName = readGuestNameFromQuery();
+    const guestName = sanitizeDisplayText(
+        tpl.guestName ||
+        tpl.invitedGuestName ||
+        host.guestName ||
+        host.invitedGuestName ||
+        host.guest?.name ||
+        queryGuestName ||
+        DEFAULT_GUEST_NAME
+    );
+    const monogramText = sanitizeDisplayText(
+        tpl.shortName ||
+        tpl.monogramText ||
+        design.monogramText ||
+        (tpl.groom && tpl.bride ? `${tpl.groom.charAt(0)} & ${tpl.bride.charAt(0)}` : "V & P"),
+        24
+    ) || "V & P";
 
     return {
         variant,
         amp: theme.amp,
         badge: theme.badge,
         enabledSections: hostEnabledSections,
-        monogramText: tpl.monogramText || (tpl.groom && tpl.bride ? `${tpl.groom.charAt(0)} & ${tpl.bride.charAt(0)}` : "V & P"),
+        monogramText,
+        shortName: sanitizeDisplayText(tpl.shortName || tpl.monogramText || monogramText, 24) || "V & P",
+        guestName,
         groom: tpl.groom || "ប្រុស",
         bride: tpl.bride || "ស្រី",
         groomNickname: nonBlank(hostCouple.groomNickname),

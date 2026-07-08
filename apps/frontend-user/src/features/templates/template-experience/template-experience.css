@@ -4536,3 +4536,692 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* ============================================================
+   COVER KHMER GOLDEN WEDDING — FIRST PAGE OPENING COVER ONLY
+   ============================================================ */
+.template-experience--cover-khmer-golden-wedding {
+    --ckg-paper: #fffdf7;
+    --ckg-ivory: #fff8e7;
+    --ckg-cream: #fff2d2;
+    --ckg-gold: #c89b3c;
+    --ckg-gold-soft: #e8c98a;
+    --ckg-gold-deep: #8a5a20;
+    --ckg-brown: #3b220f;
+    --ckg-muted: #6f512c;
+    --tpl-bg: #fff7e8;
+    --tpl-surface: var(--ckg-paper);
+    --tpl-surface-alt: #f8ead0;
+    --tpl-text: var(--ckg-brown);
+    --tpl-muted: var(--ckg-muted);
+    --tpl-accent: var(--ckg-gold);
+    --tpl-accent-dark: var(--ckg-gold-deep);
+    --tpl-on-accent: #fffdf7;
+    --tpl-border: rgba(138, 90, 32, 0.24);
+    --tpl-radius: 8px;
+    --tpl-shadow: 0 24px 70px rgba(73, 42, 13, 0.14);
+    --tpl-shadow-sm: 0 12px 34px rgba(73, 42, 13, 0.1);
+    --tpl-heading-font: "Moul", "Noto Serif Khmer", "Noto Sans Khmer", "Battambang", "Hanuman", serif;
+    --tpl-body-font: "Noto Sans Khmer", "Battambang", "Kantumruy Pro", "Hanuman", sans-serif;
+    background: var(--tpl-bg);
+}
+
+.template-experience--cover-khmer-golden-wedding .tx-experience {
+    background: var(--tpl-surface);
+}
+
+.template-experience--cover-khmer-golden-wedding .tx-section,
+.template-experience--cover-khmer-golden-wedding .tx-children {
+    background:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.96), rgba(255, 248, 231, 0.94)),
+        radial-gradient(circle at 20% 12%, rgba(232, 201, 138, 0.2), transparent 28%);
+}
+
+.template-experience--cover-khmer-golden-wedding .tx-btn--solid,
+.template-experience--cover-khmer-golden-wedding .inv-primary-btn {
+    border-radius: 7px;
+    background: linear-gradient(135deg, #d8b35d, #9a6c20);
+    color: #fffdf7;
+    box-shadow: 0 14px 30px rgba(101, 61, 18, 0.22);
+}
+
+.template-experience--cover-khmer-golden-wedding .tx-btn--ghost {
+    border-color: rgba(138, 90, 32, 0.32);
+    color: var(--ckg-gold-deep);
+    background: rgba(255, 253, 247, 0.78);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    width: 100%;
+    min-height: 100svh;
+    place-items: center;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    overflow: hidden;
+    aspect-ratio: auto;
+    color: var(--ckg-brown);
+    font-family: var(--tpl-body-font);
+    text-align: center;
+    background:
+        radial-gradient(circle at 50% 31%, rgba(255, 255, 255, 0.82), transparent 30%),
+        linear-gradient(180deg, #fffdf7 0%, #fff4d8 54%, #f0d493 100%);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover button {
+    font-family: var(--tpl-body-font);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__bg,
+.template-experience--cover-khmer-golden-wedding .ck-cover__floral-layer,
+.template-experience--cover-khmer-golden-wedding .ck-cover__particles,
+.template-experience--cover-khmer-golden-wedding .ck-cover__petals {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__bg {
+    z-index: -3;
+    background:
+        linear-gradient(180deg, rgba(255, 253, 247, 0.38), rgba(255, 246, 222, 0.34)),
+        url("/templates/cover-khmer-golden-wedding/cover-bg.svg") center / cover no-repeat;
+    transform: scale(1.01);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.42), transparent 32%),
+        linear-gradient(90deg, rgba(138, 90, 32, 0.06), transparent 18% 82%, rgba(138, 90, 32, 0.06));
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__floral-layer {
+    z-index: -2;
+    opacity: 0.9;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__flower {
+    position: absolute;
+    display: block;
+    width: clamp(8rem, 26vw, 18rem);
+    aspect-ratio: 1;
+    border-radius: 48% 52% 50% 50%;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(199, 146, 48, 0.42) 0 8%, transparent 9%),
+        radial-gradient(ellipse at 50% 18%, rgba(255, 250, 240, 0.78) 0 17%, transparent 18%),
+        radial-gradient(ellipse at 18% 50%, rgba(255, 241, 220, 0.72) 0 17%, transparent 18%),
+        radial-gradient(ellipse at 82% 50%, rgba(255, 241, 220, 0.7) 0 17%, transparent 18%),
+        radial-gradient(ellipse at 50% 82%, rgba(255, 246, 229, 0.74) 0 17%, transparent 18%);
+    filter: blur(0.5px);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__flower--top-left {
+    top: -2.5rem;
+    left: -3.3rem;
+    transform: rotate(-18deg);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__flower--top-right {
+    top: 1.1rem;
+    right: -4rem;
+    transform: rotate(23deg) scale(0.92);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__flower--bottom-left {
+    bottom: -4.2rem;
+    left: -3rem;
+    transform: rotate(15deg) scale(1.04);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__flower--bottom-right {
+    right: -3.6rem;
+    bottom: -2.3rem;
+    transform: rotate(-22deg);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__particles {
+    z-index: -1;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(216, 179, 93, 0.74);
+    box-shadow: 0 0 14px rgba(216, 179, 93, 0.72);
+    animation: ck-cover-dust 6s ease-in-out infinite;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--1 { top: 14%; left: 26%; animation-delay: -0.4s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--2 { top: 20%; left: 72%; animation-delay: -1.8s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--3 { top: 30%; left: 16%; animation-delay: -2.7s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--4 { top: 38%; left: 84%; animation-delay: -1.1s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--5 { top: 48%; left: 22%; animation-delay: -4.4s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--6 { top: 58%; left: 77%; animation-delay: -3.4s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--7 { top: 68%; left: 13%; animation-delay: -5.1s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--8 { top: 76%; left: 62%; animation-delay: -0.9s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--9 { top: 84%; left: 38%; animation-delay: -2.1s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--10 { top: 12%; left: 54%; animation-delay: -3.9s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--11 { top: 43%; left: 51%; animation-delay: -4.8s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--12 { top: 90%; left: 78%; animation-delay: -1.4s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--13 { top: 62%; left: 43%; animation-delay: -2.9s; }
+.template-experience--cover-khmer-golden-wedding .ck-cover__particle--14 { top: 25%; left: 39%; animation-delay: -5.5s; }
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__petal {
+    position: absolute;
+    display: block;
+    width: 0.72rem;
+    height: 1.04rem;
+    border-radius: 999px 999px 999px 0;
+    background: linear-gradient(145deg, rgba(255, 253, 247, 0.9), rgba(238, 199, 161, 0.7));
+    filter: drop-shadow(0 6px 10px rgba(128, 77, 23, 0.12));
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__petal--one {
+    top: 17%;
+    left: 18%;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__petal--two {
+    top: 34%;
+    right: 16%;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__petal--three {
+    bottom: 22%;
+    left: 23%;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__frame {
+    position: absolute;
+    inset: clamp(0.9rem, 2.7vw, 2.5rem);
+    z-index: 0;
+    border: 1px solid rgba(138, 90, 32, 0.72);
+    border-radius: clamp(1.75rem, 8vw, 7rem);
+    box-shadow:
+        inset 0 0 0 6px rgba(232, 201, 138, 0.12),
+        inset 0 0 42px rgba(255, 255, 255, 0.38),
+        0 16px 50px rgba(93, 53, 16, 0.1);
+    pointer-events: none;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__frame::before,
+.template-experience--cover-khmer-golden-wedding .ck-cover__frame::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__frame::before {
+    inset: clamp(0.42rem, 1.4vw, 1rem);
+    border: 1px solid rgba(232, 201, 138, 0.72);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__frame::after {
+    inset: clamp(1rem, 2.7vw, 1.8rem);
+    border: 1px solid rgba(255, 253, 247, 0.58);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner {
+    position: absolute;
+    display: block;
+    width: clamp(4.6rem, 17vw, 9.5rem);
+    aspect-ratio: 1;
+    color: rgba(154, 108, 32, 0.82);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner circle {
+    fill: currentColor;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner--tl {
+    top: -0.2rem;
+    left: -0.2rem;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner--tr {
+    top: -0.2rem;
+    right: -0.2rem;
+    transform: scaleX(-1);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner--br {
+    right: -0.2rem;
+    bottom: -0.2rem;
+    transform: scale(-1);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__corner--bl {
+    bottom: -0.2rem;
+    left: -0.2rem;
+    transform: scaleY(-1);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: min(100%, 23.5rem);
+    min-height: min(42rem, calc(100svh - 3rem));
+    align-content: center;
+    justify-items: center;
+    gap: clamp(0.58rem, 1.5vw, 0.9rem);
+    padding: clamp(2.2rem, 7vw, 4rem) clamp(1.15rem, 4vw, 2rem);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__monogram-wrap {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: clamp(6.4rem, 25vw, 9rem);
+    margin-bottom: clamp(0.1rem, 1vw, 0.45rem);
+    aspect-ratio: 1;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__monogram-ring {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(138, 90, 32, 0.76);
+    border-radius: 50%;
+    background:
+        conic-gradient(from 90deg, rgba(255, 255, 255, 0), rgba(255, 239, 170, 0.8), rgba(255, 255, 255, 0) 38%),
+        radial-gradient(circle, rgba(255, 253, 247, 0.86) 0 58%, rgba(232, 201, 138, 0.2) 59% 100%);
+    box-shadow:
+        inset 0 0 0 8px rgba(255, 253, 247, 0.46),
+        0 14px 34px rgba(101, 61, 18, 0.16);
+    animation: ck-cover-ring 4.8s linear infinite;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__monogram-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0.75rem;
+    border: 1px solid rgba(232, 201, 138, 0.78);
+    border-radius: inherit;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__monogram {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: grid;
+    width: auto;
+    min-width: 0;
+    aspect-ratio: auto;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: var(--ckg-gold-deep);
+    font: 400 clamp(1.65rem, 7vw, 2.55rem)/1 "Moul", "Noto Serif Khmer", serif;
+    text-align: center;
+    background: transparent;
+    transform: none;
+    text-shadow: 0 1px 0 #fffdf7;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__leaf {
+    position: absolute;
+    left: 50%;
+    width: clamp(5.2rem, 19vw, 7rem);
+    color: rgba(138, 90, 32, 0.68);
+    overflow: visible;
+    transform: translateX(-50%);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__leaf--top {
+    top: -0.92rem;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__leaf--bottom {
+    bottom: -0.92rem;
+    transform: translateX(-50%) rotate(180deg);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__leaf path:first-child {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__leaf path:not(:first-child) {
+    fill: currentColor;
+    opacity: 0.72;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__couple {
+    margin: 0;
+    color: var(--ckg-brown);
+    font-family: "Moul", "Noto Serif Khmer", serif;
+    font-size: clamp(1.04rem, 4.6vw, 1.55rem);
+    line-height: 1.45;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__title {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: min(100%, 19rem);
+    padding: 0;
+    color: var(--ckg-brown);
+    text-align: center;
+    background: transparent;
+    transform: none;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__title h1 {
+    margin: 0;
+    color: var(--ckg-brown);
+    font-family: "Moul", "Noto Serif Khmer", "Noto Sans Khmer", serif;
+    font-size: clamp(1.42rem, 6.3vw, 2.22rem);
+    font-weight: 400;
+    line-height: 1.58;
+    text-wrap: balance;
+    text-shadow: 0 2px 0 rgba(255, 253, 247, 0.76);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__invite {
+    margin: 0;
+    color: var(--ckg-gold-deep);
+    font-family: "Noto Sans Khmer", "Battambang", "Kantumruy Pro", sans-serif;
+    font-size: clamp(1.02rem, 4.1vw, 1.28rem);
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame {
+    position: relative;
+    width: min(100%, 21rem);
+    margin-top: clamp(0.12rem, 1vw, 0.4rem);
+    padding: clamp(0.95rem, 3vw, 1.2rem) clamp(0.95rem, 3.8vw, 1.4rem);
+    border: 1px solid rgba(138, 90, 32, 0.62);
+    border-radius: 8px;
+    color: var(--ckg-brown);
+    background:
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent) 50% 0 / 82% 1px no-repeat,
+        linear-gradient(180deg, rgba(255, 253, 247, 0.86), rgba(255, 248, 231, 0.82));
+    box-shadow:
+        inset 0 0 0 5px rgba(232, 201, 138, 0.1),
+        0 14px 30px rgba(73, 42, 13, 0.1);
+    backdrop-filter: blur(4px);
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame::before,
+.template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame::after {
+    content: "";
+    position: absolute;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-color: rgba(200, 155, 60, 0.78);
+    pointer-events: none;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame::before {
+    top: 0.38rem;
+    left: 0.38rem;
+    border-top: 1px solid;
+    border-left: 1px solid;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame::after {
+    right: 0.38rem;
+    bottom: 0.38rem;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__guest-ornament {
+    display: block;
+    width: min(8.5rem, 58%);
+    height: 0.65rem;
+    margin: 0 auto 0.45rem;
+    background:
+        radial-gradient(circle, var(--ckg-gold) 0 2px, transparent 2.5px) center / 0.8rem 0.65rem repeat-x;
+    opacity: 0.76;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__guest-name {
+    margin: 0;
+    color: var(--ckg-brown);
+    font-family: "Noto Serif Khmer", "Battambang", "Noto Sans Khmer", serif;
+    font-size: clamp(0.94rem, 3.8vw, 1.16rem);
+    font-weight: 600;
+    line-height: 1.75;
+    text-wrap: balance;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__open-frame {
+    position: relative;
+    display: grid;
+    width: min(100%, 18.5rem);
+    margin-top: clamp(0.18rem, 1vw, 0.45rem);
+    padding: 0.42rem;
+    border: 1px solid rgba(200, 155, 60, 0.78);
+    border-radius: 999px;
+    background: rgba(255, 253, 247, 0.52);
+    box-shadow: 0 14px 30px rgba(90, 54, 18, 0.14);
+    animation: ck-cover-open-pulse 2.8s ease-in-out infinite;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__open-button {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: inline-flex;
+    width: 100%;
+    min-height: 3.2rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.72rem 1.25rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 248, 215, 0.84);
+    border-radius: 999px;
+    color: #fffdf7;
+    font-size: clamp(0.95rem, 3.8vw, 1.06rem);
+    font-weight: 700;
+    line-height: 1.3;
+    background: linear-gradient(135deg, #dfbd68 0%, #b98228 46%, #7d4c18 100%);
+    box-shadow:
+        inset 0 1px rgba(255, 255, 255, 0.42),
+        inset 0 -10px 20px rgba(83, 45, 12, 0.18);
+    transform: none;
+    cursor: pointer;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__open-button::before {
+    content: "";
+    position: absolute;
+    inset: -40% auto -40% -32%;
+    width: 28%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.74), transparent);
+    transform: skewX(-18deg);
+    animation: ck-cover-button-shimmer 3.1s ease-in-out infinite;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__open-button span,
+.template-experience--cover-khmer-golden-wedding .ck-cover__open-button svg {
+    position: relative;
+    z-index: 1;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__open-button svg {
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+    animation: ck-cover-chevron 1.5s ease-in-out infinite;
+}
+
+.template-experience--cover-khmer-golden-wedding .ck-cover__date {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: min(100%, 19rem);
+    margin: clamp(0.25rem, 1vw, 0.5rem) 0 0;
+    color: var(--ckg-gold-deep);
+    font: 600 clamp(0.86rem, 3.3vw, 1rem)/1.55 "Noto Sans Khmer", "Battambang", sans-serif;
+    text-align: center;
+    transform: none;
+}
+
+@keyframes ck-cover-ring {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes ck-cover-dust {
+    0%,
+    100% {
+        opacity: 0.25;
+        transform: translate3d(0, 0, 0) scale(0.82);
+    }
+    50% {
+        opacity: 0.9;
+        transform: translate3d(0, -12px, 0) scale(1.16);
+    }
+}
+
+@keyframes ck-cover-open-pulse {
+    0%,
+    100% {
+        box-shadow: 0 14px 30px rgba(90, 54, 18, 0.14), 0 0 0 rgba(200, 155, 60, 0);
+    }
+    50% {
+        box-shadow: 0 16px 34px rgba(90, 54, 18, 0.18), 0 0 22px rgba(200, 155, 60, 0.35);
+    }
+}
+
+@keyframes ck-cover-button-shimmer {
+    0% { transform: translateX(0) skewX(-18deg); }
+    42%,
+    100% { transform: translateX(560%) skewX(-18deg); }
+}
+
+@keyframes ck-cover-chevron {
+    0%,
+    100% { transform: translateY(0); }
+    50% { transform: translateY(3px); }
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover {
+    min-height: 0;
+    aspect-ratio: 9 / 16;
+    padding: clamp(0.65rem, 4cqw, 1rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__frame {
+    inset: clamp(0.55rem, 3.4cqw, 0.95rem);
+    border-radius: clamp(1.35rem, 9cqw, 2.4rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__corner {
+    width: clamp(3.8rem, 22cqw, 5.5rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__inner {
+    width: min(100%, 82cqw);
+    min-height: auto;
+    gap: clamp(0.34rem, 1.7cqw, 0.58rem);
+    padding: clamp(1.4rem, 8cqw, 2.5rem) clamp(0.7rem, 4cqw, 1rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__monogram-wrap {
+    width: clamp(4.8rem, 27cqw, 6.1rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__monogram {
+    font-size: clamp(1.3rem, 7.4cqw, 1.8rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__title h1 {
+    font-size: clamp(1.1rem, 5.8cqw, 1.45rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__couple {
+    font-size: clamp(0.82rem, 4.4cqw, 1.05rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__invite,
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__open-button {
+    font-size: clamp(0.78rem, 3.9cqw, 0.98rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame {
+    width: min(100%, 78cqw);
+    padding: clamp(0.62rem, 3.8cqw, 0.82rem) clamp(0.7rem, 4cqw, 0.95rem);
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__guest-name {
+    font-size: clamp(0.72rem, 3.5cqw, 0.9rem);
+    line-height: 1.65;
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__open-frame {
+    width: min(100%, 70cqw);
+    padding: 0.32rem;
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__open-button {
+    min-height: clamp(2.45rem, 12cqw, 2.8rem);
+    padding: 0.52rem 0.8rem;
+}
+
+.tx-root--preview.template-experience--cover-khmer-golden-wedding .ck-cover__date {
+    font-size: clamp(0.68rem, 3.2cqw, 0.82rem);
+}
+
+@media (max-width: 390px) {
+    .template-experience--cover-khmer-golden-wedding .ck-cover {
+        padding: 0.72rem;
+    }
+
+    .template-experience--cover-khmer-golden-wedding .ck-cover__inner {
+        width: min(100%, 21rem);
+        gap: 0.48rem;
+        padding-inline: 0.95rem;
+    }
+
+    .template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame {
+        padding: 0.8rem 0.85rem;
+    }
+}
+
+@media (min-width: 760px) {
+    .template-experience--cover-khmer-golden-wedding .ck-cover__inner {
+        width: min(100%, 26rem);
+    }
+
+    .template-experience--cover-khmer-golden-wedding .ck-cover__guest-frame {
+        width: min(100%, 23rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .template-experience--cover-khmer-golden-wedding .ck-cover *,
+    .template-experience--cover-khmer-golden-wedding .ck-cover *::before,
+    .template-experience--cover-khmer-golden-wedding .ck-cover *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
