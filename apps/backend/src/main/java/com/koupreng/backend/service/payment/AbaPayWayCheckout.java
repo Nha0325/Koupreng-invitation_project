@@ -27,7 +27,7 @@ public final class AbaPayWayCheckout {
         this.abaPayDeeplink = abaPayDeeplink;
         this.requestJson = requestJson;
         this.responseJson = responseJson;
-        this.requestFields = requestFields;
+        this.requestFields = Map.copyOf(requestFields);
     }
 
     public String checkoutUrl() {

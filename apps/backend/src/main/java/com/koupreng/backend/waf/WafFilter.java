@@ -313,9 +313,10 @@ public class WafFilter extends OncePerRequestFilter {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write("""
-                {"status":%d,"error":"%s","message":"Request blocked by application firewall"}
-                """.formatted(status.value(), status.getReasonPhrase()));
+        response.getWriter().write(
+                "{\"status\":%d,\"error\":\"%s\",\"message\":\"Request blocked by application firewall\"}"
+                        .formatted(status.value(), status.getReasonPhrase())
+        );
     }
 
     private String applicationPath(HttpServletRequest request) {

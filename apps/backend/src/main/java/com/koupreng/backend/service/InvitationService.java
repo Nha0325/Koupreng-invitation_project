@@ -753,7 +753,7 @@ public class InvitationService {
         String rsvpStatus = rsvp != null && rsvp.getResponseStatus() != null ? rsvp.getResponseStatus().name() : "PENDING";
 
         List<WishResponse> wishes = rsvpRepository == null
-                ? new java.util.ArrayList<>()
+                ? new ArrayList<>()
                 : rsvpRepository.findByInvitationIdAndMessageIsNotNullOrderByRespondedAtDesc(invitation.getId()).stream()
                 .map(WishResponse::from)
                 .toList();
