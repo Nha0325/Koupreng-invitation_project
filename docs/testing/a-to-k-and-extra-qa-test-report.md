@@ -1,5 +1,7 @@
 # A-K and Extra QA Test Report
 
+> Historical snapshot: this report records the 2026-06-16 branch state. It is not the current release verdict. See `docs/qa/verification-results.md` and `docs/qa/known-limitations.md` for the 2026-07-21 evidence.
+
 Date: 2026-06-16 Asia/Phnom Penh  
 Branch: `test/a-to-k-full-qa`  
 Source docs inspected: `docs/qa_a_to_k_checklist.md`, `docs/qa_a_to_n_checklist.md`, `docs/manual_browser_smoke_checklist.md`, `docs/features/feature-map.md`, `packages/api-contracts/openapi.yaml`
@@ -28,7 +30,7 @@ Live API curl commands are prepared in `docs/testing/a-to-k-api-smoke-commands.m
 | Admin lint | `npm run lint` in `apps/frontend-admin` | PASS |
 | User build | `npm run build` in `apps/frontend-user` | PASS, Vite chunk-size warning only |
 | Admin build | `npm run build` in `apps/frontend-admin` | PASS |
-| Browser smoke | `node scripts/browser-smoke.mjs` | PASS, 22/22 routes rendered |
+| Browser smoke | `node scripts/ci/browser-smoke.mjs` | PASS, 22/22 routes rendered |
 
 ## A-K Coverage Map
 
@@ -59,7 +61,7 @@ Live API curl commands are prepared in `docs/testing/a-to-k-api-smoke-commands.m
 All smoke routes returned a rendered React root:
 
 - User: `/`, `/templates`, `/templates/royal/preview`, `/templates/royal/checkout`, `/dashboard/events`, `/dashboard/profile`, `/dashboard/change-password`, `/dashboard/notifications`, `/dashboard/packages`, `/dashboard/payments`, `/dashboard/invitations/1/budget`, `/dashboard/invitations/1/check-in`, `/dashboard/invitations/1/seating`, `/i/demo-invitation`, `/i/demo-invitation?token=demo-token`
-- Admin: `/admin/login`, `/admin/dashboard`, `/admin/users`, `/admin/templates`, `/admin/invitations`, `/admin/reports`, `/admin/system-logs`
+- Admin route correction after this snapshot: `/login`, `/dashboard`, `/users`, `/templates`, `/invitations`, `/reports`, `/system-logs`
 
 ## Notes and Residual Risk
 

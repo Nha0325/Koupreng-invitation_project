@@ -1,37 +1,36 @@
 # Koupreng
 
-Koupreng is a Khmer invitation platform with a user frontend, admin frontend, Spring Boot backend, and Telegram bot.
+Koupreng is a Khmer invitation platform composed of a public/host React application, a separate React admin application, a Spring Boot API, and a Python Telegram payment-detection service.
 
-## Folder Structure
+## Repository layout
 
 ```text
-Koupreng-invitation_project/
-├── apps/
-│   ├── frontend-user/
-│   ├── frontend-admin/
-│   ├── backend/
-│   └── telegram-bot/
-├── packages/
-│   ├── shared-types/
-│   ├── shared-ui/
-│   ├── shared-utils/
-│   └── api-contracts/
-├── docs/
-├── infra/
-├── scripts/
-├── tools/
-├── .github/
-├── .env.example
-├── README.md
-└── CHANGELOG.md
+apps/
+├── backend/           Spring Boot API, Flyway migrations, and tests
+├── frontend-admin/    administrator React/Vite application
+├── frontend-user/     public invitation and host React/Vite application
+└── telegram-bot/      FastAPI/Telegram integration and tests
+packages/
+└── api-contracts/     OpenAPI and Postman contracts
+docs/                  architecture, API, operations, and QA evidence
+infra/                 proxy, monitoring, database, backup, and firewall assets
+scripts/
+├── ci/                CI-only smoke automation
+├── dev/               local setup and stack launchers
+└── maintenance/       explicit Git maintenance helpers
+tools/                 Postman collection and sample seed data
 ```
 
-## Tech Stack
+The detailed ownership rules are in `docs/architecture/folder-structure.md`. Cleanup evidence is under `docs/qa/`.
 
-- `apps/frontend-user`: React, Vite, Axios.
-- `apps/frontend-admin`: React, Vite, Axios.
-- `apps/backend`: Spring Boot, Spring Security, JWT, Spring Data JPA, MySQL.
-- `apps/telegram-bot`: Python bot service.
+## Prerequisites
+
+- JDK 25
+- Node.js 22 and npm
+- Python 3.13
+- MySQL 8
+
+Copy `.env.example` to an untracked root `.env` and replace every placeholder. Never commit `.env`, tokens, private keys, database dumps, generated logs, build output, or dependency caches.
 
 ## Setup
 
@@ -48,69 +47,47 @@ Windows PowerShell:
 powershell -ExecutionPolicy Bypass -File .\scripts\dev\setup.ps1
 ```
 
-## Run Locally
+## Run locally
 
-Backend:
+The repository-specific all-service launcher is:
 
-```bash
-cd apps/backend
-./mvnw spring-boot:run
+```powershell
+.\run-local-stack.ps1
 ```
 
-Frontend user:
+Individual services:
 
 ```bash
-cd apps/frontend-user
-npm install
-npm run dev
-```
-
-Frontend admin:
-
-```bash
-cd apps/frontend-admin
-npm install
-npm run dev
-```
-
-All local services:
-
-```bash
-./scripts/dev/dev.sh
+cd apps/backend && ./mvnw spring-boot:run
+cd apps/frontend-user && npm ci && npm run dev
+cd apps/frontend-admin && npm ci && npm run dev
+cd apps/telegram-bot && python -m pip install -r requirements.txt && python start.py
 ```
 
 Default local URLs:
 
-- Backend: `http://localhost:8080`
-- Frontend user: `http://localhost:5173`
-- Frontend admin: `http://localhost:5174`
-- Telegram bot: `http://localhost:8000`
+- API: `http://localhost:8080`
+- User frontend: `http://localhost:5173`
+- Admin frontend: `http://localhost:5174`
+- Telegram service: `http://localhost:8000`
 
-## Environment
-
-Do not commit `.env`. Backend, frontend user, and frontend admin all read configuration from the root `.env` file.
+## Verification
 
 ```bash
-cp .env.example .env
+cd apps/backend && ./mvnw clean verify
+cd apps/frontend-user && npm run lint && npm test && npm run analyze:knip && npm run analyze:deps && npm run build
+cd apps/frontend-admin && npm run lint && npm test && npm run analyze:knip && npm run analyze:deps && npm run build
+cd apps/telegram-bot && python -m pytest -q && python -m ruff check .
 ```
 
-Use `VITE_*` keys in the root `.env` for browser-exposed frontend settings. Keep secrets such as `DB_PASSWORD`, `JWT_SECRET`, and `TELEGRAM_BOT_TOKEN` in root `.env` only.
+Browser journeys run from `apps/frontend-user` with `npm run test:e2e`. The repository-wide CI workflow also runs secret scanning, dependency audits, fresh-MySQL Flyway migration, static analysis, build artifacts, and route smoke tests.
 
-## API Clients
+See `docs/qa/verification-results.md` for the last evidenced run and `docs/qa/known-limitations.md` before release. The repository is not represented as Railway-ready until a Railway project binding, service topology, and deployment logs are supplied and verified.
 
-- User frontend API client: `apps/frontend-user/src/shared/api/client.js`
-- Admin frontend API client: `apps/frontend-admin/src/shared/api/adminHttpClient.js`
+## Security
 
-Local Vite requests use `/api` and proxy to the backend.
+Read `SECURITY.md` before reporting a vulnerability. The credential incident discovered during the 2026-07-21 audit also requires external token rotation and a coordinated history rewrite; removing a value from the current tree does not revoke it or erase it from Git history.
 
-## Invitation Ownership Rule
+## Invitation ownership rule
 
-Invitation child data is scoped by `invitationId`. Guests, budget items, wedding gifts, RSVPs, media files, delivery events, and invitation notifications must not be queried or deleted across invitations.
-
-Safe delete endpoint:
-
-```text
-DELETE /api/v1/invitations/{invitationId}
-```
-
-The backend verifies the authenticated owner or `ADMIN`, deletes invitation-scoped child rows, then deletes that invitation.
+Invitation child data is scoped by `invitationId`. Guests, budget items, gifts, RSVPs, media, delivery events, seating, and invitation notifications must never be queried or deleted across invitations. The backend verifies the authenticated owner or `ADMIN` for `DELETE /api/v1/invitations/{invitationId}`.

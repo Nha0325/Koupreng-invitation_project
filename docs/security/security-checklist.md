@@ -1,25 +1,26 @@
 # Security Checklist
 
-Verified:
-- `/api/v1/admin/**` and `/api/admin/**` require `ADMIN`.
-- Auth public endpoints are explicitly permitted.
-- Public invitation routes are explicitly permitted.
-- Backend tests include security and WAF tests.
-- `.gitignore` ignores `.env` and app-local env files.
+## Verified in repository tests/source
 
-Changed:
-- Admin frontend routes now use `RequireAdmin`.
-- Admin API client lives in `apps/frontend-admin/src/shared/api/adminHttpClient.js`.
-- Invitation delete verifies owner or `ADMIN`.
+- [x] Admin route families require `ADMIN`; frontend admin routes also use `RequireAdmin`.
+- [x] Invitation deletion and child-resource behavior have ownership/security tests.
+- [x] Internal payment endpoints enforce the admin payment secret before service logic.
+- [x] CSV export hardening and trusted-forwarded-header behavior have regression tests.
+- [x] `.env`, runtime logs, build output, local databases, and dependency caches are ignored.
+- [x] Executable Telegram source does not print token-bearing URLs and validates callbacks/amounts.
+- [x] Current tracked tree passes Gitleaks.
 
-Remaining TODOs:
-- Prefer HttpOnly Secure SameSite cookies for production auth.
-- Reduce or eliminate long-lived JWT storage in browser storage.
-- Review every `dangerouslySetInnerHTML` usage and sanitize user-generated invitation content.
-- Verify production CORS exact domains.
-- Verify upload type and size limits for every upload endpoint.
+## Release blockers
 
-Insufficient data to verify:
-- Production CSP.
-- Production CORS domain list.
-- Runtime secret redaction in every deployment log sink.
+- [ ] Rotate the historically exposed Telegram token and verify revocation.
+- [ ] Triage the 29 historical Gitleaks findings and coordinate the documented history rewrite.
+- [ ] Obtain a successful Java dependency vulnerability report.
+- [ ] Verify production CORS/CSP, cookies, TLS/HSTS, WAF, proxy headers, rate-limit storage, and log sinks.
+- [ ] Complete staging/provider tests for OAuth, payment, Telegram, email, storage, uploads, backup, restore, and monitoring.
+
+## Continuing review
+
+- Sanitize any user-generated content passed to `dangerouslySetInnerHTML`.
+- Keep upload signature/type/size limits covered for each provider path.
+- Prefer HttpOnly Secure SameSite cookies and minimize long-lived browser token storage.
+- Do not log secrets, complete bodies, personal data, or reset links at any level.

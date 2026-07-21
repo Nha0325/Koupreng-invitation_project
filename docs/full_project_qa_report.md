@@ -1,81 +1,35 @@
-# Koupreng E-Invitation Platform Full QA Report (Parts A-N)
+# Full Project QA Report
 
-## 1. Executive Summary
-A comprehensive Quality Assurance (QA) audit has been performed across all functional and security modules of the **Koupreng E-Invitation Platform**. All 14 functional areas (A-N) are verified as complete, stable, and ready for deployment. The platform compiles without error, passes all unit tests, bundles cleanly for production, and verifies successfully under automated browser smoke testing.
+Evidence date: 2026-07-21. This report distinguishes automated evidence from live-provider/manual evidence. Detailed commands and outputs are in `qa/verification-results.md`; unresolved items are in `qa/known-limitations.md`.
 
----
+## Outcome
 
-## 2. A-N Module QA Status Summary
+All four application components compile/build and their available automated suites pass. Current-tree secret scanning passes, a new MySQL schema accepts every Flyway migration and Hibernate validation, frontend route/dead-code checks pass, and controlled desktop/mobile browser journeys pass. The repository is materially cleaner and more testable, but it is **not approved for production release** while credential/history remediation, Java advisory scanning, Railway diagnosis, asset licensing, and staging/provider journeys remain open.
 
-### A. Auth & Account
-- **Status**: **PASS**
-- **Verified Operations**: User registration, login/logout, JWT authentication, `/api/auth/me` profile management, password modifications, forgot/reset password token delivery, and RBAC boundary enforcement.
+## Functional evidence map
 
-### B. Invitation Management
-- **Status**: **PASS**
-- **Verified Operations**: Full CRUD suite for invitations, status changes (draft, publish, unpublish), deletion, owner-only authorization checks, and secure public/private invitation retrieval endpoints.
+| Area | Automated evidence | Status/limit |
+| --- | --- | --- |
+| A. Auth/account | Backend auth/security tests; user/admin guard and redirect tests | Automated PASS; live OAuth/provider flow not run |
+| B. Invitations | Backend service/controller tests; route contract/build | Automated PASS; live CRUD/publish journey not run |
+| C. Templates/customization | Catalog/builder source preserved; active renderers build; route/browser tests | Automated PASS; pixel-level Canva comparison open |
+| D. Media | Backend validation tests; asset/import/dynamic-path audit | Automated PASS; live storage upload open |
+| E. Guests | Backend suite and route contract | Automated PASS; live import/export journey open |
+| F. Delivery | Backend suite | Automated PASS; email/messaging providers open |
+| G. RSVP | Backend suite; public invitation browser journey | Automated PASS; live public submission open |
+| H. Notifications | Backend suite and active-route analysis | Automated PASS; live delivery open |
+| I. Dashboard/reports | Backend suite; protected-route smoke | Automated PASS; representative staging data open |
+| J. Admin | Backend RBAC tests; admin guard/routes/build/browser redirect | Automated PASS; live moderation open |
+| K. Budget | Backend suite and route smoke | Automated PASS; live CRUD/export open |
+| L. Public/mobile | Desktop and Pixel 7 Playwright; route smoke | Controlled PASS; accessibility/visual review open |
+| M. Advanced features | Backend suite and active route/build analysis | Automated PASS where tests exist; provider workflows open |
+| N. Security | Focused backend tests, Bandit/Ruff, Gitleaks current tree, dependency audits | Partial PASS; history incident and Java feed are blockers |
 
-### C. Template & Customization
-- **Status**: **PASS**
-- **Verified Operations**: Multi-lingual (Khmer/English) localization toggling, styling customizations (colors, fonts, layout density, section overrides), template selector views, template preview states, and static ABA payment link redirection ($0.01).
+## Test totals
 
-### D. Media/File Management
-- **Status**: **PASS**
-- **Verified Operations**: Multipart file uploads for cover images, gallery items, music tracks, and video clips. Comprehensive type validation for MIME types, file extensions, and file sizes. Safe name sanitization implemented.
+- Backend: 128 tests discovered, 0 failures/errors, 1 fresh-database test skipped by default; the same test passes when opted in against a new MySQL 8 schema.
+- User frontend: 3 Vitest tests and 8 Playwright cases across desktop/mobile projects.
+- Admin frontend: 3 Vitest tests; admin redirect/form coverage is also included in Playwright.
+- Telegram service: 24 pytest tests.
 
-### E. Guest Management
-- **Status**: **PASS**
-- **Verified Operations**: Guest list CRUD actions, search filters, guest categorization/groups, import/export functionality, and automatic unique invite token generation.
-
-### F. Delivery Preparation
-- **Status**: **PASS**
-- **Verified Operations**: Delivery batch builder, individual share link generators, sent/delivered status trackers, email queue dispatchers, and automated check-in details.
-
-### G. RSVP
-- **Status**: **PASS**
-- **Verified Operations**: Public RSVP submission, guest wishes wall rendering, attendee validations, duplicate RSVP submission prevention, and owner summary dashboard metrics.
-
-### H. Notifications
-- **Status**: **PASS**
-- **Verified Operations**: Real-time user alert dispatchers, unread notification count badge updates, notification read/read-all updates, and admin log notifications.
-
-### I. Dashboard/Reports
-- **Status**: **PASS**
-- **Verified Operations**: Host overview dashboard, detailed metrics for invitations, guest lists, RSVP statistics, CSV report downloads, and administrative overview statistics.
-
-### J. Admin Panel
-- **Status**: **PASS**
-- **Verified Operations**: Global users panel, template manager, invitation moderations, role updates, deactivations, and administrative system audit log listings.
-
-### K. Budget Planner
-- **Status**: **PASS**
-- **Verified Operations**: Total budget configurator, budget items CRUD, status trackers, category aggregations, CSV budget downloads, negative cost inputs rejection, and owner security isolation.
-
-### L. Supporting Features
-- **Status**: **PASS**
-- **Verified Operations**: Public invitation pages, mobile-responsive layout grids, wedding event countdown timers, maps coordinates, timelines, media sliders, and wishing wall comment updates.
-
-### M. New Features
-- **Status**: **PASS**
-- **Verified Operations**: Custom table seating planner, personalized guest QR codes generation/downloads, unified user payment history receipts, organization member role patches, and AI invitation content assistants (formal script copy, timeline generators, translate helpers).
-
-### N. Security Hardening
-- **Status**: **PASS**
-- **Verified Operations**:
-  - **Payment Secret Enforcement**: `X-ADMIN-PAYMENT-SECRET` filter validation via constant-time comparisons.
-  - **CSV Formula Injection**: All cells are enclosed in double quotes, nested quotes are escaped by doubling, and dangerous leading symbols (`=`, `+`, `-`, `@`, `\t`, `\r`, `\n` and full-width equivalents) are prefixed with a single quote (`'`).
-  - **Audit Log Spoofing**: IP logging relies securely on `request.getRemoteAddr()` unless configured specifically via `app.audit.trust-forwarded-headers=true` behind a verified load balancer.
-
----
-
-## 3. Validation Suite Results
-
-| Test / Check | Command | Output Status | Note |
-| --- | --- | --- | --- |
-| **Backend Compile** | `.\mvnw.cmd -DskipTests compile` | **BUILD SUCCESS** | Clean javac compile on JDK 25 |
-| **Backend Unit Tests** | `.\mvnw.cmd test` | **BUILD SUCCESS** | 127 tests executed, 0 failures, 0 errors |
-| **Frontend User Build** | `npm run build` (in `/frontend-user`) | **SUCCESS** | Bundles into index.js & index.css |
-| **Frontend Admin Build** | `npm run build` (in `/frontend-admin`) | **SUCCESS** | Bundles into index.js & index.css |
-| **Telegram Bot Bot** | `python -m py_compile main.py` | **SUCCESS** | Compiled bytecode without issue |
-| **Browser Smoke Test** | `node scripts/browser-smoke.mjs` | **SUCCESS** | All 22 routing endpoints rendered non-blank |
-| **Whitespace Audit** | `git diff --check` | **SUCCESS** | Zero trailing whitespace warnings |
+These totals are execution evidence, not a claim that every business branch or third-party integration is covered.

@@ -4,11 +4,11 @@ This repo now has application controls plus repeatable server-side setup files.
 
 ## What is already implemented in the app
 
-- WAF: `backend/src/main/java/com/koupreng/backend/waf/WafFilter.java`
+- WAF: `apps/backend/src/main/java/com/koupreng/backend/waf/WafFilter.java`
 - HTTPS/HSTS enforcement: `HTTPS_REQUIRED`, `HSTS_ENABLED`, and Spring Security redirects
 - JWT: signed local JWTs with issuer validation and token version invalidation
 - Optional auth cookie mode: HttpOnly Secure SameSite JWT cookie plus Bearer header compatibility
-- RBAC: `/api/admin/**` and admin controllers require `ROLE_ADMIN`
+- RBAC: `/api/v1/admin/**`, `/api/admin/**`, and admin controllers require `ROLE_ADMIN`
 - Rate limiting: WAF per-IP limiting plus auth endpoint limiting
 - Input validation: Jakarta validation on DTOs and file upload signature checks
 - Monitoring: Spring Actuator health/info/prometheus endpoints
