@@ -8,7 +8,7 @@ Assessment date: 2026-07-21. Current decision: **NOT READY FOR RELEASE**.
 - The backend has unit/integration tests, coverage, High-threshold SpotBugs, PMD, and a fresh MySQL migration test.
 - Both frontends have lint, unit, unused-code/dependency analysis, production builds, and controlled desktop/mobile browser tests.
 - The Telegram service has pinned dependencies, unit tests, lint, static security analysis, compile checks, and Python vulnerability audit.
-- CI defines nine jobs covering secrets, components, migration, browser, vulnerabilities, and configuration.
+- CI defines ten jobs covering secrets, component builds/tests, backend static analysis, migration, browser, vulnerabilities, and configuration.
 - Environment examples contain placeholders; local secrets/build products are ignored.
 
 ## Blocking conditions

@@ -37,7 +37,7 @@ The code/asset cleanup removed a net 162 tracked files and 100,891,659 bytes (ab
 | `infra` | 8 | 12,244 | NEEDS HUMAN REVIEW | Reusable ops assets exist, but no verified provider binding or Railway topology |
 | `scripts` | 10 | 114,116 | KEEP | Reusable scripts organized by CI, development, and maintenance purpose |
 | `tools` | 2 | 39,894 | KEEP | Postman collection and reusable sample data |
-| `.github` | 1 | 10,831 | KEEP | Nine-job repository CI workflow |
+| `.github` | 1 | 10,831 | KEEP | Cleanup snapshot; the final workflow expands this to ten required jobs |
 
 ## Important ignored/local artifacts
 

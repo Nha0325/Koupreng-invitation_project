@@ -72,6 +72,26 @@ jobs:
           path: apps/backend/target/site/jacoco/
           if-no-files-found: error
 
+  backend-static:
+    name: Backend Static & Dependency Usage Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: temurin
+          cache: maven
+
+      - name: Run SpotBugs, PMD, and dependency analysis
+        working-directory: apps/backend
+        run: |
+          chmod +x mvnw
+          ./mvnw --batch-mode -DskipTests compile spotbugs:check pmd:check dependency:analyze
+
   frontend-user:
     name: User Frontend Lint, Test, Analysis & Build
     runs-on: ubuntu-latest

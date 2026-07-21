@@ -20,7 +20,7 @@ Evidence date: 2026-07-21. These results describe local execution on Windows unl
 | Node vulnerability audits | both `npm audit --audit-level=high` | PASS: 0 vulnerabilities |
 | Secret scan, current tree | Gitleaks 8.30.1 on a clean exported tree | PASS: 0 findings |
 | Secret scan, Git history | Gitleaks full-history diagnostic | FAIL/INCIDENT: 29 findings across 12 path/rule groups; remediation required |
-| Workflow syntax | PyYAML parse plus actionlint 1.7.12 | PASS: 9 jobs, no actionlint finding |
+| Workflow syntax | PyYAML parse plus actionlint 1.7.12 | PASS: 10 jobs, no actionlint finding |
 | Script syntax | Bash `-n`, PowerShell parser, Node `--check` | PASS |
 
 ## Coverage by critical flow
