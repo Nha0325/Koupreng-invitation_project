@@ -5,6 +5,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { AuthProvider } from "../providers/AdminAuthProvider";
 import RequireAdmin from "./RequireAdmin";
 
+function futureTestToken() {
+  const payload = btoa(JSON.stringify({ exp: 4102444800 }))
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+  return ["test-header", payload, "test-signature"].join(".");
+}
+
 function LoginProbe() {
   const location = useLocation();
   return <p>login{location.search}</p>;
@@ -33,7 +41,7 @@ describe("RequireAdmin", () => {
 
   it("allows a valid ADMIN session", () => {
     window.sessionStorage.setItem("koupreng.admin.auth", JSON.stringify({
-      accessToken: "header.eyJleHAiOjQxMDI0NDQ4MDB9.signature",
+      accessToken: futureTestToken(),
       user: { role: "ADMIN" },
     }));
     renderProtected();
