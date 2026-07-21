@@ -112,7 +112,7 @@ public class AccountService {
         resetTokenRepository.save(resetToken);
 
         if (isMailConfigured()) {
-            sendResetEmail(email, rawToken);
+            sendResetEmail(email, rawToken, user.getId());
             return;
         }
 
@@ -120,11 +120,11 @@ public class AccountService {
             log.warn("Password reset requested for user {} but mail is not configured", user.getId());
             return;
         }
-        log.info("Dev password reset token for user {} expires in {} minutes: {}",
-                user.getId(), RESET_TOKEN_MINUTES, rawToken);
+        log.info("Password reset token created for user {} but mail is not configured; token was not logged",
+                user.getId());
     }
 
-    private void sendResetEmail(String email, String rawToken) {
+    private void sendResetEmail(String email, String rawToken, Long userId) {
         JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
         if (mailSender == null) {
             return;
@@ -144,7 +144,7 @@ public class AccountService {
         try {
             mailSender.send(message);
         } catch (RuntimeException exception) {
-            log.warn("Password reset email could not be sent to {}", email, exception);
+            log.warn("Password reset email could not be sent for user {}", userId, exception);
         }
     }
 
