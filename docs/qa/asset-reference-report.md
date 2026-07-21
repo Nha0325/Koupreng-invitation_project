@@ -1,4 +1,4 @@
-# Asset Audit
+# Asset Reference Report
 
 ## Result
 
@@ -49,3 +49,4 @@ The path-level reason and validation for every deletion is in `deletion-manifest
 ## Licensing and optimization blockers
 
 Repository evidence does not establish redistribution rights for the retained music or Facebook photo galleries. Those assets must not be promoted to production until ownership/license records are supplied. The 3.9 MiB Canva SVG, 2.5 MiB background, four MP4 files, gallery JPG set, and two bundled tracks also remain performance candidates; optimization requires visual/audio acceptance criteria and is not safe as a blind cleanup.
+
