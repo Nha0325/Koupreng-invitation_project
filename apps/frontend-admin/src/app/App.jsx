@@ -20,6 +20,7 @@ import ReportsPage from "../pages/reports/AdminReportsPage";
 
 // Legacy fallback page kept for events reference
 import EventsPage from "../pages/EventsPage";
+import { ADMIN_ROUTE_PATHS } from "./routes";
 
 import "../styles/App.css";
 
@@ -29,7 +30,7 @@ export default function App() {
       <QueryProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
+            <Route path={ADMIN_ROUTE_PATHS.login} element={<LoginPage />} />
             <Route
               element={
                 <RequireAdmin>
@@ -38,19 +39,19 @@ export default function App() {
               }
             >
               <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/users" element={<UsersPage />} />
-              <Route path="/users/:userId" element={<UserDetailPage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/invitations" element={<InvitationsPage />} />
-              <Route path="/invitations/:invitationId" element={<InvitationDetailPage />} />
-              <Route path="/templates" element={<TemplatesPage />} />
-              <Route path="/templates/new" element={<TemplateEditPage />} />
-              <Route path="/templates/:templateId" element={<TemplateEditPage />} />
-              <Route path="/payments" element={<PaymentsPage />} />
-              <Route path="/packages" element={<PackagesPage />} />
-              <Route path="/system-logs" element={<SystemLogsPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.dashboard} element={<DashboardPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.users} element={<UsersPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.userDetail} element={<UserDetailPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.events} element={<EventsPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.invitations} element={<InvitationsPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.invitationDetail} element={<InvitationDetailPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.templates} element={<TemplatesPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.templateNew} element={<TemplateEditPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.templateEdit} element={<TemplateEditPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.payments} element={<PaymentsPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.packages} element={<PackagesPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.systemLogs} element={<SystemLogsPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.reports} element={<ReportsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>

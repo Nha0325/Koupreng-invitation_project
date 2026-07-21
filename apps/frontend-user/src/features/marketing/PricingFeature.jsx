@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 // Import Background
-import heroBg from "../../assets/images/background.png";
+import heroBg from "../../assets/icons/background.png";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 
 const getPlans = (t) => [
