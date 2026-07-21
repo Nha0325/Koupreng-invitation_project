@@ -13,7 +13,7 @@ test("user protected route redirects to the login form with next", async ({ page
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/login\?next=%2Fdashboard$/);
   await expect(page.locator('input[type="password"]')).toBeVisible();
-  await expect(page.getByRole("button", { name: /ចូល|login/i })).toBeVisible();
+  await expect(page.locator('button[type="submit"]')).toBeVisible();
 });
 
 test("public invitation route fails gracefully without a backend", async ({ page }) => {

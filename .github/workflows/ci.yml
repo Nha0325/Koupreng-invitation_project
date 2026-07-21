@@ -244,12 +244,11 @@ jobs:
 
       - name: Run controlled browser journeys
         working-directory: apps/frontend-user
-        run: npm run test:e2e
+        run: npx playwright test tests/e2e/critical-routes.spec.js
 
       - name: Run all-route browser smoke
-        env:
-          CHROME_PATH: /usr/bin/google-chrome
-        run: node scripts/ci/browser-smoke.mjs
+        working-directory: apps/frontend-user
+        run: npx playwright test tests/e2e/route-smoke.spec.js
 
       - name: Upload Playwright diagnostics
         if: failure()

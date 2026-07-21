@@ -16,12 +16,12 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "npm run preview -- --host 127.0.0.1 --port 4173 --strictPort",
+      command: "node ./node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4173 --strictPort",
       url: "http://127.0.0.1:4173",
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: "npm --prefix ../frontend-admin run preview -- --host 127.0.0.1 --port 4174 --strictPort",
+      command: "node ../frontend-admin/node_modules/vite/bin/vite.js preview ../frontend-admin --host 127.0.0.1 --port 4174 --strictPort",
       url: "http://127.0.0.1:4174",
       reuseExistingServer: !process.env.CI,
     },
