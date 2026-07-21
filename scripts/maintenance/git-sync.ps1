@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $PSCommandPath
-$ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..")).Path
+$ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..\..")).Path
 Set-Location $ProjectRoot
 
 if ([string]::IsNullOrWhiteSpace($Message)) {
@@ -16,7 +16,7 @@ if ([string]::IsNullOrWhiteSpace($Message)) {
 
 if ([string]::IsNullOrWhiteSpace($Message)) {
     Write-Host ""
-    Write-Host "Commit message cannot be empty. Usage: .\scripts\git-sync.ps1 ""update invitation flow""" -ForegroundColor Red
+    Write-Host "Commit message cannot be empty. Usage: .\scripts\maintenance\git-sync.ps1 ""update invitation flow""" -ForegroundColor Red
     exit 1
 }
 

@@ -15,7 +15,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 $ScriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-$ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..")).Path
+$ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..\..")).Path
 Set-Location $ProjectRoot
 
 $ApacheMavenVersion = "3.9.15"
@@ -1083,7 +1083,7 @@ if ($script:Issues.Count -gt 0) {
 
     Write-Host ""
     Write-Host "After fixing the issue, rerun:"
-    Write-Host "powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1"
+    Write-Host "powershell -ExecutionPolicy Bypass -File .\scripts\dev\setup.ps1"
 }
 
 Write-Host ""

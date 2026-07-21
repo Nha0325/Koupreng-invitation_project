@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 cd "$PROJECT_ROOT"
 
 MESSAGE="${1:-}"
@@ -13,7 +13,7 @@ if [ -z "$MESSAGE" ]; then
 fi
 
 if [ -z "$MESSAGE" ]; then
-    printf '\nCommit message cannot be empty. Usage: ./scripts/git-sync.sh "update invitation flow"\n' >&2
+    printf '\nCommit message cannot be empty. Usage: ./scripts/maintenance/git-sync.sh "update invitation flow"\n' >&2
     exit 1
 fi
 

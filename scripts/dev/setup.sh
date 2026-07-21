@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 cd "$PROJECT_ROOT"
 
 SKIP_BACKEND=0
@@ -28,7 +28,7 @@ SUMMARY_BACKEND="Skipped"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/setup.sh [options]
+Usage: ./scripts/dev/setup.sh [options]
 
 Options:
   --skip-backend          Skip Java, backend, and MySQL checks.
@@ -433,7 +433,7 @@ else
     db_password="$(get_env_value "$root_env" "DB_PASSWORD")"
 
     if [ -z "$db_url" ]; then
-        add_issue "MySQL database setup" "DB_URL is missing from .env." "Edit .env, then rerun ./scripts/setup.sh."
+        add_issue "MySQL database setup" "DB_URL is missing from .env." "Edit .env, then rerun ./scripts/dev/setup.sh."
     elif ! parse_mysql_url "$db_url"; then
         add_issue "MySQL database setup" "Could not parse DB_URL '$db_url'." "Use a MySQL JDBC URL like jdbc:mysql://localhost:3306/koupreng_db?..."
     else

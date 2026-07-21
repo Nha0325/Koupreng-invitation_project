@@ -3,10 +3,10 @@
 # dev.sh — Start everything for Koupreng local development
 #
 # Usage:
-#   ./scripts/dev.sh                # start all services with ngrok (40 req/min limit)
-#   ./scripts/dev.sh --cloudflare   # use Cloudflare Tunnel (unlimited, recommended)
-#   ./scripts/dev.sh --no-ngrok     # skip public tunnel, localhost only
-#   ./scripts/dev.sh --no-bot       # skip telegram bot
+#   ./scripts/dev/dev.sh                # start all services with ngrok (40 req/min limit)
+#   ./scripts/dev/dev.sh --cloudflare   # use Cloudflare Tunnel (unlimited, recommended)
+#   ./scripts/dev/dev.sh --no-ngrok     # skip public tunnel, localhost only
+#   ./scripts/dev/dev.sh --no-bot       # skip telegram bot
 #
 # Services started:
 #   1. Spring Boot backend      → http://localhost:8080
@@ -72,7 +72,7 @@ done
 
 if [ "$USE_BOT" = true ] && [ "$TELEGRAM_BOT_PORT" = "$BACKEND_PORT" ]; then
   echo "[DEV] telegram-bot port ($TELEGRAM_BOT_PORT) must be different from backend port ($BACKEND_PORT)." >&2
-  echo "[DEV] Run with TELEGRAM_BOT_PORT=8000 ./scripts/dev.sh or choose another free bot port." >&2
+  echo "[DEV] Run with TELEGRAM_BOT_PORT=8000 ./scripts/dev/dev.sh or choose another free bot port." >&2
   exit 1
 fi
 

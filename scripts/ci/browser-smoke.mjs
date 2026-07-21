@@ -27,13 +27,13 @@ const userRoutes = [
 ];
 
 const adminRoutes = [
-  "/admin/login",
-  "/admin/dashboard",
-  "/admin/users",
-  "/admin/templates",
-  "/admin/invitations",
-  "/admin/reports",
-  "/admin/system-logs",
+  "/login",
+  "/dashboard",
+  "/users",
+  "/templates",
+  "/invitations",
+  "/reports",
+  "/system-logs",
 ];
 
 function npmCommand() {

@@ -38,14 +38,14 @@ Koupreng-invitation_project/
 Linux/macOS:
 
 ```bash
-chmod +x scripts/setup.sh scripts/dev.sh scripts/git-pull.sh scripts/git-push.sh scripts/git-sync.sh
-./scripts/setup.sh
+chmod +x scripts/dev/*.sh scripts/maintenance/*.sh
+./scripts/dev/setup.sh
 ```
 
 Windows PowerShell:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\dev\setup.ps1
 ```
 
 ## Run Locally
@@ -76,7 +76,7 @@ npm run dev
 All local services:
 
 ```bash
-./scripts/dev.sh
+./scripts/dev/dev.sh
 ```
 
 Default local URLs:

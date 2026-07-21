@@ -10,7 +10,7 @@ $TargetRemote = "origin"
 $TargetBranch = "main"
 
 $ScriptDir = Split-Path -Parent $PSCommandPath
-$ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..")).Path
+$ProjectRoot = (Resolve-Path (Join-Path $ScriptDir "..\..")).Path
 Set-Location $ProjectRoot
 
 function Stop-Script {

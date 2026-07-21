@@ -1,6 +1,6 @@
 # Manual Browser Smoke Checklist
 
-Use this checklist when `node scripts/browser-smoke.mjs` cannot run because Chrome or Edge is unavailable.
+Use this checklist when `node scripts/ci/browser-smoke.mjs` cannot run because Chrome or Edge is unavailable.
 
 Expected result for every route:
 
