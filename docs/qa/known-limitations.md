@@ -34,3 +34,5 @@ Also identify which repository component maps to each Railway service, its root 
 ## Environment constraints during this audit
 
 Docker CLI was unavailable and Docker Desktop was stopped, so Docker/Testcontainers validation was not applicable locally. The repository contains no Dockerfile; CI explicitly reports Docker build validation as not applicable unless a Dockerfile is later tracked. Local MySQL 8 was available and was used for the fresh-database test.
+
+The legacy standalone `scripts/ci/browser-smoke.mjs` uses serial Chrome `--dump-dom` processes and did not return within six minutes on this Windows Chrome installation. Its complete 22-route matrix is now enforced by `tests/e2e/route-smoke.spec.js`, which passed 44 desktop/mobile cases. Playwright's first Windows web-server readiness process also required reuse of already healthy preview servers; Ubuntu CI retains the standard self-managed server flow.

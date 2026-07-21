@@ -28,7 +28,7 @@ All four application components compile/build and their available automated suit
 ## Test totals
 
 - Backend: 128 tests discovered, 0 failures/errors, 1 fresh-database test skipped by default; the same test passes when opted in against a new MySQL 8 schema.
-- User frontend: 3 Vitest tests and 8 Playwright cases across desktop/mobile projects.
+- User frontend: 3 Vitest tests and 52 Playwright cases across desktop/mobile projects (8 critical journeys and 44 route-smoke cases).
 - Admin frontend: 3 Vitest tests; admin redirect/form coverage is also included in Playwright.
 - Telegram service: 24 pytest tests.
 

@@ -221,4 +221,3 @@ This manifest accounts for all 188 paths recorded by Git as deletions between th
 ## Historical one-time script
 
 `scripts/fix_public_invitation_conflict.py` was already deleted by commit `585e8ba` on 2026-07-03 after its one-time repair had been incorporated. It was therefore reviewed but is not a deletion introduced by this cleanup branch.
-

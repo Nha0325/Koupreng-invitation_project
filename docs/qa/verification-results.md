@@ -13,8 +13,8 @@ Evidence date: 2026-07-21. These results describe local execution on Windows unl
 | Backend Java advisory feed | `mvnw.cmd -Pdependency-security -DskipTests verify` | INCOMPLETE: no report before 10-minute timeout; release blocker |
 | User frontend | lint, 3 Vitest tests, Knip, depcheck, Vite build | PASS; 724 modules; JS 988.81 kB/275.73 kB gzip; CSS 404.99 kB/73.13 kB gzip |
 | Admin frontend | lint, 3 Vitest tests, Knip, depcheck, Vite build | PASS; 125 modules; JS 335.49 kB/103.44 kB gzip; CSS 9.04 kB/2.55 kB gzip |
-| Browser E2E | Playwright desktop Chromium and Pixel 7 projects | PASS: 8 tests |
-| Browser route smoke | `node scripts/ci/browser-smoke.mjs` | PASS on public/user/admin route inventory |
+| Browser E2E | Playwright desktop Chromium and Pixel 7 projects | PASS: 52 tests in 30.1s (8 critical journeys plus 44 route-smoke cases) |
+| Browser route smoke | `tests/e2e/route-smoke.spec.js` | PASS: all 22 user/admin route shells on desktop and mobile with controlled API/Telegram responses |
 | Telegram service | pytest, Ruff, Bandit, compileall | PASS: 24 tests and all static/compile gates |
 | Python vulnerability audit | `pip-audit -r requirements.txt` | PASS: no known vulnerabilities |
 | Node vulnerability audits | both `npm audit --audit-level=high` | PASS: 0 vulnerabilities |
