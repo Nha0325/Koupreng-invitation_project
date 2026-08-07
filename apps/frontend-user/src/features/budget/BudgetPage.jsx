@@ -4,6 +4,9 @@ import budgetService from "./api/budgetApi";
 import BudgetItemForm from "./BudgetItemForm";
 import BudgetItemTable from "./BudgetItemTable";
 import BudgetSummaryCards from "./BudgetSummaryCards";
+import CategoryBreakdown from "./components/CategoryBreakdown";
+import BudgetProgress from "./components/BudgetProgress";
+import { EmptyState, ErrorState, SkeletonCard, toast } from "@/shared/ui";
 import "./BudgetPages.css";
 import "../dashboard/DashboardPages.css";
 
@@ -14,7 +17,6 @@ export default function BudgetPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -35,6 +37,11 @@ export default function BudgetPage() {
 
   useEffect(() => {
     let active = true;
+    if (!invitationId) {
+      setLoading(false);
+      return;
+    }
+
     budgetService
       .getBudget(invitationId)
       .then((data) => {
@@ -66,16 +73,16 @@ export default function BudgetPage() {
     event.preventDefault();
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       const data = await budgetService.updateBudget(invitationId, {
         totalBudget: budgetForm.totalBudget === "" ? 0 : Number(budgetForm.totalBudget),
         notes: budgetForm.notes,
       });
       setBudget(data);
-      setNotice("Budget saved.");
+      toast.success("បានរក្សាទុកថវិកាសរុប / Budget updated successfully");
     } catch (err) {
       setError(err?.message || "Could not save budget");
+      toast.error("មិនអាចរក្សាទុកថវិកាបានទេ");
     } finally {
       setSaving(false);
     }
@@ -84,12 +91,13 @@ export default function BudgetPage() {
   const addItem = async (payload) => {
     setSaving(true);
     setError("");
-    setNotice("");
     try {
-      setBudget(await budgetService.addItem(invitationId, payload));
-      setNotice("Budget item added.");
+      const updated = await budgetService.addItem(invitationId, payload);
+      setBudget(updated);
+      toast.success("បានបន្ថែមចំណាយថ្មី / Budget item added");
     } catch (err) {
       setError(err?.message || "Could not add budget item");
+      toast.error("មិនអាចបន្ថែមចំណាយបានទេ");
     } finally {
       setSaving(false);
     }
@@ -98,30 +106,31 @@ export default function BudgetPage() {
   const updateItem = async (itemId, payload) => {
     setSaving(true);
     setError("");
-    setNotice("");
     try {
-      setBudget(await budgetService.updateItem(invitationId, itemId, payload));
-      setNotice("Budget item updated.");
+      const updated = await budgetService.updateItem(invitationId, itemId, payload);
+      setBudget(updated);
+      toast.success("បានកែសម្រួលចំណាយ / Budget item updated");
     } catch (err) {
       setError(err?.message || "Could not update budget item");
+      toast.error("មិនអាចកែសម្រួលចំណាយបានទេ");
     } finally {
       setSaving(false);
     }
   };
 
   const deleteItem = async (itemId) => {
-    if (!window.confirm("Delete this budget item?")) {
+    if (!window.confirm("តើអ្នកប្រាកដជាចង់លុបចំណាយនេះទេ? / Delete this budget item?")) {
       return;
     }
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       await budgetService.deleteItem(invitationId, itemId);
       await load();
-      setNotice("Budget item deleted.");
+      toast.success("បានលុបចំណាយរួចរាល់ / Budget item deleted");
     } catch (err) {
       setError(err?.message || "Could not delete budget item");
+      toast.error("មិនអាចលុបចំណាយបានទេ");
     } finally {
       setSaving(false);
     }
@@ -132,96 +141,117 @@ export default function BudgetPage() {
     setError("");
     try {
       await budgetService.exportBudget(invitationId);
+      toast.success("បានទាញយកទិន្នន័យ CSV / Exported budget CSV");
     } catch (err) {
       setError(err?.message || "Could not export budget");
+      toast.error("មិនអាចទាញយក CSV បានទេ");
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <main className="dash-main report-page"><div className="report-state">កំពុងផ្ទុក...</div></main>;
+    return (
+      <main className="dash-main report-page budget-page" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <SkeletonCard height="180px" />
+        <SkeletonCard height="240px" />
+      </main>
+    );
   }
 
   if (error && !budget) {
     return (
-      <main className="dash-main report-page">
-        <div className="report-state is-error">
-          <p>{error}</p>
-          <button type="button" className="dash-btn" onClick={load}>Retry</button>
-        </div>
+      <main className="dash-main report-page budget-page">
+        <ErrorState message={error} onRetry={load} />
       </main>
     );
   }
 
   return (
-    <main className="dash-main report-page budget-page">
+    <main className="dash-main report-page budget-page" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <header className="dash-page-header report-header">
         <div>
-          <span className="dash-kicker">Budget</span>
-          <h1>ថវិកាកម្មវិធី</h1>
-          <p>Track estimated and actual wedding costs by category.</p>
+          <span className="dash-kicker">Budget Management</span>
+          <h1>គ្រប់គ្រងថវិកាកម្មវិធី</h1>
+          <p>តាមដានការចំណាយ ប៉ាន់ប្រមាណ និងចំណាយពិតប្រាកដតាមប្រភពនីមួយៗ។</p>
         </div>
-        <div className="report-actions">
-          <Link to={`/dashboard/invitations/${invitationId}`} className="dash-btn">Back to invitation</Link>
+        <div className="report-actions" style={{ display: "flex", gap: "0.75rem" }}>
+          {invitationId && (
+            <Link to={`/dashboard/invitations/${invitationId}`} className="dash-btn">
+              ត្រឡប់ទៅធៀប / Back to Invitation
+            </Link>
+          )}
           <button type="button" className="dash-btn dash-btn-primary" onClick={exportCsv} disabled={saving}>
-            Export CSV
+            ទាញយក CSV / Export CSV
           </button>
         </div>
       </header>
 
-      {error && <div className="budget-alert is-error">{error}</div>}
-      {notice && <div className="budget-alert">{notice}</div>}
+      {error && <ErrorState message={error} />}
 
       <BudgetSummaryCards budget={budget} />
+      <BudgetProgress budget={budget} />
 
       <section className="budget-panel">
         <div className="report-panel-head">
-          <h2>Total budget</h2>
+          <h2>កំណត់ថវិកាសរុប (Total Budget Goal)</h2>
         </div>
         <form className="budget-total-form" onSubmit={saveBudget}>
           <label>
-            Total budget
+            ថវិកាសរុប (Total Budget $)
             <input
               type="number"
               min="0"
               step="0.01"
               value={budgetForm.totalBudget}
               onChange={(event) => setBudgetForm((current) => ({ ...current, totalBudget: event.target.value }))}
+              placeholder="5000"
             />
           </label>
           <label>
-            Notes
+            កំណត់សម្គាល់បន្ថែម (Notes)
             <input
               value={budgetForm.notes}
               onChange={(event) => setBudgetForm((current) => ({ ...current, notes: event.target.value }))}
-              placeholder="Family contribution, deposit notes..."
+              placeholder="ជំនួយពីគ្រួសារ ព័ត៌មានកក់ប្រាក់..."
             />
           </label>
           <button type="submit" className="dash-btn dash-btn-primary" disabled={saving}>
-            {saving ? "Saving..." : "Save budget"}
+            {saving ? "កំពុងរក្សាទុក..." : "រក្សាទុកថវិកា / Save Budget"}
           </button>
         </form>
       </section>
 
+      <CategoryBreakdown items={budget?.items || []} />
+
       <section className="budget-panel">
         <div className="report-panel-head">
-          <h2>Add budget item</h2>
+          <h2>បន្ថែមមុខទំនិញចំណាយ (Add Budget Item)</h2>
         </div>
         <BudgetItemForm onSubmit={addItem} saving={saving} />
       </section>
 
       <section className="budget-panel">
-        <div className="report-panel-head">
-          <h2>Budget items</h2>
-          <span>{budget?.items?.length || 0} items</span>
+        <div className="report-panel-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2>បញ្ជីចំណាយ (Budget Items)</h2>
+          <span style={{ fontSize: "0.875rem", color: "var(--brand-text-muted)" }}>
+            សរុប {budget?.items?.length || 0} មុខ
+          </span>
         </div>
-        <BudgetItemTable
-          items={budget?.items || []}
-          onUpdate={updateItem}
-          onDelete={deleteItem}
-          saving={saving}
-        />
+
+        {!budget?.items?.length ? (
+          <EmptyState
+            title="មិនទាន់មានទិន្នន័យចំណាយ"
+            description="សូមបន្ថែមមុខទំនិញចំណាយដំបូងរបស់អ្នកខាងលើ។"
+          />
+        ) : (
+          <BudgetItemTable
+            items={budget?.items || []}
+            onUpdate={updateItem}
+            onDelete={deleteItem}
+            saving={saving}
+          />
+        )}
       </section>
     </main>
   );
