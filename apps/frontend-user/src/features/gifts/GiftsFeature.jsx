@@ -56,7 +56,7 @@ function toGiftPayload(form) {
 function normalizeGift(gift) {
     return {
         id: gift.id || createHostRecordId("gift"),
-        name: gift.name || "",
+        name: gift.name || gift.giverName || gift.payerName || "",
         amount: Number(gift.amount) || 0,
         method: gift.method || "Bakong QR",
         date: gift.date || "",
@@ -251,12 +251,12 @@ function GuestSelectField({ value, onChange, options, placeholder, existingGifts
 
 function GiftsFeature() {
     const { text: t } = useBackendMessages("gifts");
+    const [backendInvitation, setBackendInvitation] = useState(null);
     const activeEventId = getActiveEventId();
     const drafts = listDrafts();
     const currentDraft = drafts.find((draft) => draft.id === activeEventId) || drafts[0] || null;
-    const eventId = currentDraft?.id || activeEventId || "";
     const backendInvitationId = currentDraft?.backendInvitationId || currentDraft?.id || "";
-
+    const eventId = currentDraft?.id || activeEventId || backendInvitation?.id || "";
     const [gifts, setGifts] = useState(() => listWeddingGifts([], eventId).map(normalizeGift));
     const [guestOptions, setGuestOptions] = useState(() => listManualGuests(eventId));
     const [showForm, setShowForm] = useState(false);
@@ -264,7 +264,6 @@ function GiftsFeature() {
     const [form, setForm] = useState({ name: "", amount: "", method: "Bakong QR", date: "", note: "" });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
-    const [backendInvitation, setBackendInvitation] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -275,9 +274,10 @@ function GiftsFeature() {
         invitationService.listMine()
             .then(async (items) => {
                 if (!active) return;
-                const selected = items?.find(inv => String(inv.id) === String(backendInvitationId))
-                    || items?.find(inv => inv.status === "PUBLISHED")
-                    || items?.[0]
+                const list = Array.isArray(items) ? items : items?.data || [];
+                const selected = list.find(inv => String(inv.id) === String(backendInvitationId))
+                    || list.find(inv => inv.status === "PUBLISHED")
+                    || list[0]
                     || null;
 
                 setBackendInvitation(selected);
@@ -288,8 +288,10 @@ function GiftsFeature() {
                         guestService.listByInvitation(selected.id),
                     ]);
                     if (active) {
-                        setGifts((backendGifts || []).map(normalizeGift));
-                        setGuestOptions((backendGuests || []).map(normalizeGuestOption));
+                        const giftsList = Array.isArray(backendGifts) ? backendGifts : backendGifts?.data || [];
+                        const guestsList = Array.isArray(backendGuests) ? backendGuests : backendGuests?.data || [];
+                        setGifts(giftsList.map(normalizeGift));
+                        setGuestOptions(guestsList.map(normalizeGuestOption));
                     }
                 } else {
                     if (active) {
@@ -311,7 +313,8 @@ function GiftsFeature() {
         return () => {
             active = false;
         };
-    }, [backendInvitationId, eventId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [backendInvitationId]);
 
     if (loading) {
         return <div className="gifts-page"><div className="gifts-empty">Loading gifts...</div></div>;
@@ -409,7 +412,7 @@ function GiftsFeature() {
             </div>
             {error && <div className="wg-empty">{error}</div>}
 
-            {!drafts.length && (
+            {!backendInvitation?.id && !drafts.length && (
                 <div className="wg-empty">
                     <div className="wg-empty-icon"><IoGiftOutline aria-hidden="true" /></div>
                     <h3>{t("noInvitationsTitle")}</h3>
