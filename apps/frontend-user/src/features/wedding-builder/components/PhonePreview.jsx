@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import TemplateExperience from "../../templates/template-experience/TemplateExperience";
 import { draftToTemplate } from "../utils/draftToTemplate";
 import { loadGallery } from "../../../shared/storage/galleryStorage";
+import { loadDraftMediaFiles } from "../../../shared/storage/draftMediaStorage";
 import "../../templates/template-experience/template-experience.css";
 
 /**
@@ -19,6 +20,7 @@ import "../../templates/template-experience/template-experience.css";
  */
 export default function PhonePreview({ draft }) {
     const [gallery, setGallery] = useState(null);
+    const [draftMedia, setDraftMedia] = useState(null);
 
     useEffect(() => {
         if (!draft?.id) {
@@ -49,7 +51,44 @@ export default function PhonePreview({ draft }) {
         };
     }, [draft?.id, draft?.galleryUpdatedAt]);
 
-    if (!draft?.id || gallery === null) {
+    useEffect(() => {
+        if (!draft?.id) return undefined;
+        let cancelled = false;
+        let objectUrls = [];
+
+        const loadMedia = () => {
+            objectUrls.forEach((url) => URL.revokeObjectURL(url));
+            objectUrls = [];
+            loadDraftMediaFiles(draft.id)
+                .then((records) => {
+                    if (cancelled) return;
+                    const previews = {};
+                    Object.entries(records).forEach(([kind, record]) => {
+                        if (!record?.file) return;
+                        const url = URL.createObjectURL(record.file);
+                        objectUrls.push(url);
+                        previews[kind] = { ...record, url };
+                    });
+                    setDraftMedia(previews);
+                })
+                .catch(() => {
+                    if (!cancelled) setDraftMedia({});
+                });
+        };
+
+        loadMedia();
+        const handler = (event) => {
+            if (event.detail?.draftId === draft.id) loadMedia();
+        };
+        window.addEventListener("draft-media-updated", handler);
+        return () => {
+            cancelled = true;
+            window.removeEventListener("draft-media-updated", handler);
+            objectUrls.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [draft?.id]);
+
+    if (!draft?.id || gallery === null || draftMedia === null) {
         return (
             <div className="wb-phone-preview">
                 <div className="wb-phone-frame">
@@ -63,7 +102,17 @@ export default function PhonePreview({ draft }) {
         );
     }
 
-    const merged = draftToTemplate(draft, gallery);
+    const previewDraft = {
+        ...draft,
+        coverImage: draftMedia.cover?.url || draft.coverImage,
+        openingVideo: draftMedia.openingVideo
+            ? { id: "pending-opening-video", name: draftMedia.openingVideo.name, url: draftMedia.openingVideo.url }
+            : draft.openingVideo,
+        music: draftMedia.music
+            ? { id: "pending-music", name: draftMedia.music.name, url: draftMedia.music.url }
+            : draft.music,
+    };
+    const merged = draftToTemplate(previewDraft, gallery);
 
     if (!merged) {
         return (

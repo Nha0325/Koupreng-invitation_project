@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
@@ -6,6 +5,7 @@ import TemplateExperience from "../templates/template-experience/TemplateExperie
 import { draftToTemplate } from "../wedding-builder/utils/draftToTemplate";
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { loadGallery } from "../../shared/storage/galleryStorage";
+import { loadDraftMediaFiles } from "../../shared/storage/draftMediaStorage";
 import "../templates/template-experience/template-experience.css";
 
 /**
@@ -25,6 +25,7 @@ export default function WeddingPreviewPage() {
     const error = useWeddingStore((state) => state.error);
 
     const [gallery, setGallery] = useState(null); // null = loading, [] = loaded but empty
+    const [draftMedia, setDraftMedia] = useState(null);
     const activeDraft = draft?.id === draftId ? draft : null;
 
     useEffect(() => {
@@ -50,12 +51,49 @@ export default function WeddingPreviewPage() {
             });
     }, [draftId, loadDraft]);
 
-    const merged = useMemo(() => {
-        if (!activeDraft || gallery === null) return null;
-        return draftToTemplate(activeDraft, gallery);
-    }, [activeDraft, gallery]);
+    useEffect(() => {
+        if (!draftId) {
+            setDraftMedia({});
+            return undefined;
+        }
+        let active = true;
+        const objectUrls = [];
+        loadDraftMediaFiles(draftId)
+            .then((records) => {
+                if (!active) return;
+                const previews = {};
+                Object.entries(records).forEach(([kind, record]) => {
+                    if (!record?.file) return;
+                    const url = URL.createObjectURL(record.file);
+                    objectUrls.push(url);
+                    previews[kind] = { ...record, url };
+                });
+                setDraftMedia(previews);
+            })
+            .catch(() => {
+                if (active) setDraftMedia({});
+            });
+        return () => {
+            active = false;
+            objectUrls.forEach((url) => URL.revokeObjectURL(url));
+        };
+    }, [draftId]);
 
-    if (gallery === null) {
+    const merged = useMemo(() => {
+        if (!activeDraft || gallery === null || draftMedia === null) return null;
+        return draftToTemplate({
+            ...activeDraft,
+            coverImage: draftMedia.cover?.url || activeDraft.coverImage,
+            openingVideo: draftMedia.openingVideo
+                ? { name: draftMedia.openingVideo.name, url: draftMedia.openingVideo.url }
+                : activeDraft.openingVideo,
+            music: draftMedia.music
+                ? { name: draftMedia.music.name, url: draftMedia.music.url }
+                : activeDraft.music,
+        }, gallery);
+    }, [activeDraft, draftMedia, gallery]);
+
+    if (gallery === null || draftMedia === null) {
         return (
             <div style={{ padding: 80, textAlign: "center", color: "#7d6443" }}>
                 កំពុងផ្ទុក...

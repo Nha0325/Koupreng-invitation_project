@@ -1,6 +1,8 @@
 import logging
 import os
 import re
+from collections import OrderedDict
+from contextlib import asynccontextmanager
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -44,6 +46,9 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger("koupreng.telegram_bot")
 
+MAX_PROCESSED_UPDATES = 4096
+PROCESSED_UPDATE_IDS: OrderedDict[str, None] = OrderedDict()
+
 ORDER_CODE_RE = re.compile(r"\bEVT[0-9]{9,10}\b", re.IGNORECASE)
 PAYWAY_TRX_RE = re.compile(
     r"\b(?:Transaction|Txn|Trx)\.?\s*(?:ID|No\.?|Number)?\s*[:#=]?\s*([A-Za-z0-9_-]+)\b",
@@ -55,15 +60,23 @@ PAYWAY_APV_RE = re.compile(
 )
 PAYER_RE = re.compile(r"\bpaid by\s+(.+?)(?:\s+via\b|\s+on\b|[.,]|$)", re.IGNORECASE)
 AMOUNT_PATTERNS = [
-    re.compile(r"\b(?P<currency>USD|KHR)\s*(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)\b", re.IGNORECASE),
-    re.compile(r"\b(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)\s*(?P<currency>USD|KHR)\b", re.IGNORECASE),
-    re.compile(r"(?P<currency>\$)\s*(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)\b"),
     re.compile(
-        r"\b(?:Amount|Paid|Total|Received)\s*[:=]?\s*(?P<currency>USD|KHR|US\$|\$)\s*(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)\b",
+        r"\b(?P<currency>USD|KHR)\s*(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)(?![0-9.])\b",
         re.IGNORECASE,
     ),
     re.compile(
-        r"\b(?:Amount|Paid|Total|Received)\s*[:=]?\s*(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)\s*(?P<currency>USD|KHR)\b",
+        r"\b(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)(?![0-9.])\s*(?P<currency>USD|KHR)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(r"(?P<currency>\$)\s*(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)(?![0-9.])\b"),
+    re.compile(
+        r"\b(?:Amount|Paid|Total|Received)\s*[:=]?\s*(?P<currency>USD|KHR|US\$|\$)\s*"
+        r"(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)(?![0-9.])\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\b(?:Amount|Paid|Total|Received)\s*[:=]?\s*"
+        r"(?P<amount>[0-9]+(?:\.[0-9]{1,2})?)(?![0-9.])\s*(?P<currency>USD|KHR)\b",
         re.IGNORECASE,
     ),
 ]
@@ -131,12 +144,13 @@ MAIN_MENU_REPLY_KEYBOARD = {
     "is_persistent": False,
 }
 
-app = FastAPI(title="Koupreng payment Telegram webhook")
-
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
     await set_bot_commands()
+    yield
+
+
+app = FastAPI(title="Koupreng payment Telegram webhook", lifespan=lifespan)
 
 
 async def set_bot_commands():
@@ -154,13 +168,13 @@ async def set_bot_commands():
             resp = await client.post(url, json={"commands": commands})
             result = resp.json()
     except (httpx.HTTPError, ValueError) as exc:
-        logger.warning("Failed to set bot commands: %s", exc)
+        logger.warning("Failed to set bot commands: %s", type(exc).__name__)
         return
 
     if result.get("ok"):
         logger.info("Bot commands registered: /start, /menu, /help")
     else:
-        logger.warning("Failed to set bot commands: %s", result)
+        logger.warning("Failed to set bot commands: %s", result.get("description") or "rejected")
 
 
 @app.get("/health")
@@ -171,7 +185,25 @@ async def health():
 @app.post("/telegram/webhook")
 async def telegram_webhook(request: Request):
     update = await request.json()
-    callback_query = update.get("callback_query") or {}
+    if not isinstance(update, dict):
+        logger.info("Ignoring Telegram update with a non-object payload")
+        return {"ok": True}
+
+    update_id = str(update.get("update_id") or "")
+    if update_id and not claim_update(update_id):
+        logger.info("Ignoring duplicate Telegram update")
+        return {"ok": True}
+
+    callback_value = update.get("callback_query")
+    callback_query = callback_value if isinstance(callback_value, dict) else {}
+    if callback_value is not None and (
+        not callback_query.get("id")
+        or not isinstance(callback_query.get("data"), str)
+        or not isinstance(callback_query.get("message"), dict)
+    ):
+        logger.info("Ignoring invalid Telegram callback query")
+        return {"ok": True}
+
     callback_query_id = str(callback_query.get("id") or "")
     message = (
         update.get("message")
@@ -188,25 +220,23 @@ async def telegram_webhook(request: Request):
     username = str(sender.get("username") or "").lstrip("@")
     sender_display = username or str(sender.get("first_name") or "").strip() or sender_id or "telegram"
     message_id = str(message.get("message_id") or "")
-    text = (callback_query.get("data") or message.get("text") or message.get("caption") or "").strip()
+    raw_text = callback_query.get("data") or message.get("text") or message.get("caption") or ""
+    text = raw_text.strip() if isinstance(raw_text, str) else ""
     trusted_payment_sender = payment_sender_allowed(sender)
 
     if not chat_id or not text:
-        logger.info("Ignoring update without chat/text: keys=%s", list(update.keys()))
+        logger.info("Ignoring Telegram update without a chat and text payload")
         return {"ok": True}
 
     if not group_allowed(chat_id):
-        logger.info("Ignoring message from disallowed chat_id=%s sender=%s text=%s", chat_id, sender_id, short_text(text))
+        logger.info("Ignoring Telegram update from a disallowed group")
         return {"ok": True}
 
     logger.info(
-        "Received Telegram message chat_id=%s sender_id=%s username=%s is_bot=%s trusted_payment_bot=%s text=%s",
-        chat_id,
-        sender_id,
-        sender_display,
+        "Received Telegram update is_bot=%s trusted_payment_bot=%s callback=%s",
         sender.get("is_bot"),
         trusted_payment_sender,
-        short_text(text),
+        bool(callback_query_id),
     )
 
     if command_name(text) == "/start":
@@ -317,7 +347,11 @@ async def telegram_webhook(request: Request):
             return {"ok": True}
         detect_text = command_payload(text, "/detect")
         if not detect_text:
-            await send_message(chat_id, "Usage: /detect ABA alert text with amount and optional EVT order code", message_id)
+            await send_message(
+                chat_id,
+                "Usage: /detect ABA alert text with amount and optional EVT order code",
+                message_id,
+            )
             return {"ok": True}
         if not looks_like_payment_alert(detect_text):
             await send_message(chat_id, "Could not find a payment amount in that message.", message_id)
@@ -327,13 +361,7 @@ async def telegram_webhook(request: Request):
             await send_message(chat_id, "Could not find a payment amount in that message.", message_id)
             return {"ok": True}
         if not payment.get("orderCode"):
-            logger.info(
-                "Payment detected by admin debug but no order code found chat_id=%s sender_id=%s amount=%s %s",
-                chat_id,
-                sender_id,
-                payment.get("amount"),
-                payment.get("currency"),
-            )
+            logger.info("Admin payment detection omitted because the order code was missing")
             await send_message(chat_id, "Payment detected but no order code found. Please check manually.", message_id)
             return {"ok": True}
         await handle_detect_message(
@@ -348,42 +376,27 @@ async def telegram_webhook(request: Request):
         return {"ok": True}
 
     if not looks_like_payment_alert(text):
-        logger.info("Message did not look like payment alert: %s", short_text(text))
+        logger.info("Telegram update did not match a payment alert")
         return {"ok": True}
 
     if not trusted_payment_sender:
         logger.warning(
-            "Ignoring payment-like message from untrusted sender_id=%s username=%s is_bot=%s text=%s",
-            sender_id,
-            sender_display,
+            "Ignoring payment-like Telegram update from an untrusted sender is_bot=%s",
             sender.get("is_bot"),
-            short_text(text),
         )
         return {"ok": True}
 
     payment = parse_payment_alert(text)
     logger.info(
-        "Trusted payment alert candidate chat_id=%s sender_id=%s username=%s trusted=%s order_code=%s amount=%s %s",
-        chat_id,
-        sender_id,
-        username or "(none)",
-        True,
-        payment.get("orderCode") if payment else None,
-        payment.get("amount") if payment else None,
+        "Trusted payment alert parsed=%s currency=%s",
+        bool(payment),
         payment.get("currency") if payment else None,
     )
     if not payment:
         await send_message(chat_id, "Could not find a payment amount in that message.", message_id)
         return {"ok": True}
     if not payment.get("orderCode"):
-        logger.info(
-            "Trusted payment alert missing order code chat_id=%s sender_id=%s username=%s amount=%s %s",
-            chat_id,
-            sender_id,
-            username or "(none)",
-            payment.get("amount"),
-            payment.get("currency"),
-        )
+        logger.info("Trusted payment alert omitted because the order code was missing")
         await send_message(chat_id, "Payment detected but no order code found. Please check manually.", message_id)
         return {"ok": True}
 
@@ -401,6 +414,16 @@ async def telegram_webhook(request: Request):
 
 def group_allowed(chat_id: str) -> bool:
     return not TELEGRAM_ALLOWED_GROUP_IDS or chat_id in TELEGRAM_ALLOWED_GROUP_IDS
+
+
+def claim_update(update_id: str) -> bool:
+    """Return False for a recently processed Telegram update ID."""
+    if update_id in PROCESSED_UPDATE_IDS:
+        return False
+    PROCESSED_UPDATE_IDS[update_id] = None
+    if len(PROCESSED_UPDATE_IDS) > MAX_PROCESSED_UPDATES:
+        PROCESSED_UPDATE_IDS.popitem(last=False)
+    return True
 
 
 def looks_like_payment_alert(text: str) -> bool:
@@ -478,11 +501,6 @@ def command_name(text: str) -> str:
     return text.split(maxsplit=1)[0].split("@", 1)[0]
 
 
-def short_text(text: str, limit: int = 180) -> str:
-    normalized = " ".join(text.split())
-    return normalized[:limit] + ("..." if len(normalized) > limit else "")
-
-
 async def handle_paid_command(chat_id: str, message_id: str, text: str, username: str):
     parts = text.split()
     if len(parts) < 3:
@@ -540,13 +558,10 @@ async def handle_detect_message(
     data = result.get("data") or {}
     order_code = data.get("orderCode") or payment.get("orderCode")
     logger.info(
-        "Backend telegram-detect response ok=%s status=%s order_code=%s amount=%s %s message=%s",
+        "Backend telegram-detect response ok=%s status=%s currency=%s",
         result.get("ok"),
         data.get("status"),
-        order_code,
-        payment.get("amount"),
         payment.get("currency"),
-        result.get("message") or data.get("message"),
     )
 
     if result.get("ok") and data.get("status") == "PAID":
@@ -555,9 +570,10 @@ async def handle_detect_message(
     if result.get("ok") and data.get("status") == "PAID_PENDING_REVIEW":
         await send_message(chat_id, payment_pending_review_reply(order_code, payment), message_id)
         return
+    reason = result.get("message") or data.get("message") or "Unknown backend response"
     await send_message(
         chat_id,
-        f"❌ Payment verification failed\nReason: {result.get('message') or data.get('message') or 'Unknown backend response'}",
+        f"❌ Payment verification failed\nReason: {reason}",
         message_id,
     )
 
@@ -597,7 +613,7 @@ async def post_to_backend(path: str, payload: dict):
             response = await client.post(f"{SPRING_API_BASE_URL}{path}", json=payload, headers=headers)
             body = response.json()
         except httpx.HTTPError as exc:
-            return {"ok": False, "message": str(exc)}
+            return {"ok": False, "message": f"Backend request failed ({type(exc).__name__})"}
         except ValueError:
             return {"ok": False, "message": "Backend returned a non-JSON response"}
 
@@ -629,12 +645,12 @@ async def send_message(chat_id: str, text: str, reply_to_message_id: str | None 
             resp = await client.post(url, json=payload)
             result = resp.json()
     except (httpx.HTTPError, ValueError) as exc:
-        logger.warning("sendMessage failed for chat_id=%s: %s", chat_id, exc)
+        logger.warning("sendMessage failed: %s", type(exc).__name__)
         return False
     if not result.get("ok"):
         logger.warning("sendMessage rejected for chat_id=%s: %s", chat_id, result.get("description"))
         return False
-    logger.info("sendMessage delivered chat_id=%s message_id=%s", chat_id, result.get("result", {}).get("message_id"))
+    logger.info("sendMessage delivered")
     return True
 
 
@@ -784,7 +800,7 @@ async def answer_callback_query(callback_query_id: str):
         async with httpx.AsyncClient(timeout=10) as client:
             await client.post(url, json=payload)
     except httpx.HTTPError as exc:
-        logger.warning("answerCallbackQuery failed: %s", exc)
+        logger.warning("answerCallbackQuery failed: %s", type(exc).__name__)
 
 
 async def send_photo(chat_id: str, photo: str, caption: str, reply_markup: dict | None = None) -> bool:
@@ -800,7 +816,7 @@ async def send_photo(chat_id: str, photo: str, caption: str, reply_markup: dict 
             resp = await client.post(url, json=payload)
             result = resp.json()
     except (httpx.HTTPError, ValueError) as exc:
-        logger.warning("sendPhoto failed: %s; falling back to text", exc)
+        logger.warning("sendPhoto failed (%s); falling back to text", type(exc).__name__)
         return False
     if not result.get("ok"):
         logger.warning("sendPhoto failed: %s; falling back to text", result.get("description"))
@@ -829,10 +845,10 @@ async def send_message_with_keyboard(
             resp = await client.post(url, json=payload)
             result = resp.json()
     except (httpx.HTTPError, ValueError) as exc:
-        logger.warning("sendMessage with keyboard failed for chat_id=%s: %s", chat_id, exc)
+        logger.warning("sendMessage with keyboard failed (%s)", type(exc).__name__)
         return await send_message(chat_id, text, reply_to_message_id)
     if not result.get("ok"):
         logger.warning("sendMessage with keyboard rejected for chat_id=%s: %s", chat_id, result.get("description"))
         return await send_message(chat_id, text, reply_to_message_id)
-    logger.info("sendMessage with keyboard delivered chat_id=%s message_id=%s", chat_id, result.get("result", {}).get("message_id"))
+    logger.info("sendMessage with keyboard delivered")
     return True

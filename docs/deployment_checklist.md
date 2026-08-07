@@ -1,79 +1,39 @@
 # Production Deployment Checklist
 
-This document guides the release manager through the steps required to deploy the **Koupreng E-Invitation Platform** securely and successfully.
+Do not deploy until `production_readiness_report.md` has no release blockers.
 
----
+## Repository and CI
 
-## 1. Pre-Deployment Validation Checklist
+- [ ] Intended release commit is reviewed and `git status --short` is clean.
+- [ ] All ten CI jobs pass on that exact commit.
+- [ ] Gitleaks current-tree scan passes and historical credential remediation is complete.
+- [ ] Java, Node, and Python vulnerability audits have successful reports.
+- [ ] Backend coverage/static analysis and fresh-MySQL migration jobs pass.
+- [ ] User/admin lint, tests, analysis, builds, Playwright, and route smoke pass.
 
-Verify the following on the release branch before initiating deployment:
-- [ ] CI pipeline is green (all tests pass, frontend builds succeed).
-- [ ] No local modifications remain in the code repository.
-- [ ] All database migration files have unique, incremental version prefixes.
-- [ ] No static credentials or plaintext secrets exist in resource files.
+## Provider definition
 
----
+- [ ] Each service has an explicit provider project/service ID, root directory, build command, start command, health path, and domain.
+- [ ] Database engine/version, connection policy, migration owner, backup, restore drill, and rollback owner are documented.
+- [ ] Runtime versions match JDK 25, Node 22, Python 3.13, and MySQL 8 expectations.
+- [ ] No guessed Railway manifest or Docker configuration is introduced without confirming the actual topology.
 
-## 2. Environment Variables Checklist
+## Secrets and external services
 
-Configure the following environment variables on the target production servers or orchestration platform:
+- [ ] Telegram token is newly rotated; the old token is verified invalid.
+- [ ] Database, JWT, admin-payment, OAuth, Telegram, email, storage, and provider credentials live only in the provider secret store.
+- [ ] Production CORS origins, TLS/HSTS, CSP, cookies, trusted proxy headers, WAF, and rate-limit backend are verified.
+- [ ] ABA callback source/secret behavior, Telegram delivery, SMTP, and storage uploads pass in staging.
 
-### Database Settings
-- `DB_URL`: JDBC connector string. E.g., `jdbc:mysql://prod-db:3306/koupreng_db?useSSL=true`
-- `DB_USERNAME`: Database username.
-- `DB_PASSWORD`: Strong password.
+## Assets and user experience
 
-### JWT Cryptography Settings
-- `JWT_SECRET`: Minimum 256-bit random alphanumeric sequence.
-- `AUTH_COOKIE_SECURE`: Enforce secure flag `true` for cookies.
-- `AUTH_COOKIE_HTTP_ONLY`: Must be set to `true`.
+- [ ] Music/photo redistribution rights are recorded.
+- [ ] Mobile/desktop visual acceptance, accessibility, and performance budgets pass.
+- [ ] Public invitation, RSVP, user create/edit/publish, admin moderation, and failure recovery journeys pass against staging.
 
-### PayWay Payment Integration
-- `ADMIN_PAYMENT_SECRET`: Shared secret used for callback verification.
-- `PAYMENT_PROVIDER_MODE`: `static` (in current static setup).
-- `ABA_PAYWAY_STATIC_LINK`: ABA Merchant URL link.
+## Release and rollback
 
-### Telegram Confirmations
-- `TELEGRAM_BOT_TOKEN`: Token obtained from BotFather.
-- `TELEGRAM_ALLOWED_GROUP_IDS`: Array/list of trusted chat IDs.
-
-### Host Services
-- `SPRING_MAIL_HOST` / `PORT` / `USERNAME` / `PASSWORD` for notification delivery.
-
----
-
-## 3. Step-by-Step Deployment Execution
-
-### Step 1: Database Migration
-- Trigger the backend application startup with the production environment active.
-- Verify Flyway runs all pending migrations and records successful entries in `flyway_schema_history`.
-
-### Step 2: Backend Deployment
-- Startup the Java JAR service:
-  ```bash
-  java -jar target/backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
-  ```
-- Verify the logs output: `Started BackendApplication in X seconds`.
-
-### Step 3: Frontend Deployment
-- Build user and admin bundles:
-  ```bash
-  npm run build
-  ```
-- Deploy the resulting `/dist` folders to static host storage (e.g., Nginx static directory, AWS S3, Cloudflare Pages).
-- Set up route redirects so that all unmatched requests serve `index.html` (supporting SPA router history modes).
-
-### Step 4: Reverse Proxy Configuration (Nginx / Cloudflare)
-- Configure path rewrites: `/api/**` targets the backend port (`8080`).
-- Force HTTPS on all incoming traffic.
-- Strip incoming client-provided `X-Forwarded-For` headers at the edge to prevent spoofing.
-
----
-
-## 4. Post-Deployment Smoke Testing
-
-Verify the following endpoints immediately after startup:
-- [ ] `GET /actuator/health` returns `{"status":"UP"}`.
-- [ ] `POST /api/auth/login` works with test account credentials.
-- [ ] `GET /api/v1/admin/users` triggers `403 Forbidden` for non-admin accounts.
-- [ ] `GET /i/demo-invitation` renders the template successfully.
+- [ ] Capture provider build/deploy logs, health output, smoke results, deployed commit SHA, and release timestamp.
+- [ ] Keep the previous immutable artifact available.
+- [ ] Take and verify a database backup before migration.
+- [ ] Use the forward-recovery/rollback process in `rollback_plan.md`; never delete Flyway history rows as an improvised rollback.

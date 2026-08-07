@@ -1,6 +1,27 @@
 import { getTemplateById } from "../../templates/data/templatesData";
 import { resolveVariant } from "../../templates/template-experience/templateExperienceThemes";
 
+function displayDate(date) {
+    if (!date) return "";
+    try {
+        return new Intl.DateTimeFormat("km-KH", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        }).format(new Date(`${date}T00:00:00`));
+    } catch {
+        return date;
+    }
+}
+
+function initials(couple = {}) {
+    const groom = couple.groomNickname || couple.groom || "";
+    const bride = couple.brideNickname || couple.bride || "";
+    if (!groom && !bride) return "";
+    return [groom.trim().charAt(0), bride.trim().charAt(0)].filter(Boolean).join(" & ");
+}
+
 /**
  * draftToTemplate — merge a host's wedding draft (+ uploaded gallery) onto the
  * chosen base template, producing the `tpl` object the shared
@@ -27,31 +48,37 @@ export function draftToTemplate(draft, gallery = []) {
 
     const targetDate = draft.event?.date
         ? new Date(`${draft.event.date}T${draft.event.ceremonyTime || "17:00"}:00`).toISOString()
-        : baseTpl.targetDate;
+        : undefined;
 
     const tpl = {
         ...baseTpl,
-        groom: draft.couple?.groom || baseTpl.groom,
-        bride: draft.couple?.bride || baseTpl.bride,
-        monogramText: draft.design?.monogramText || draft.monogramText || baseTpl.monogramText,
-        dateText: draft.event?.date || baseTpl.dateText,
+        groom: draft.couple?.groom || "",
+        bride: draft.couple?.bride || "",
+        monogramText: draft.design?.monogramText || draft.monogramText || initials(draft.couple) || "❦",
+        dateText: displayDate(draft.event?.date),
         targetDate,
-        ceremonyTime: draft.event?.ceremonyTime || baseTpl.ceremonyTime,
-        receptionTime: draft.event?.receptionTime || baseTpl.receptionTime,
-        venueName: draft.event?.venueName || baseTpl.venueName,
-        venueAddress: draft.event?.venueAddress || baseTpl.venueAddress,
-        mapQuery: draft.event?.mapLink || baseTpl.mapQuery,
-        customMainImage: draft.coverImage || baseTpl.customMainImage,
+        ceremonyTime: draft.event?.ceremonyTime || "",
+        receptionTime: draft.event?.receptionTime || "",
+        venueName: draft.event?.venueName || "",
+        venueAddress: draft.event?.venueAddress || "",
+        mapQuery: draft.event?.mapLink || "",
+        customMainImage: draft.coverImage || "",
         message: draft.message || draft.story || baseTpl.message,
         storyText: draft.story || "",
         dressCode: draft.dressCode || baseTpl.dressCode,
+        design: {
+            ...(draft.design || {}),
+            openingVideoEnabled:
+                draft.openingVideoEnabled !== false && Boolean(draft.openingVideo || draft.design?.openingVideoUrl),
+        },
         music: draft.music || baseTpl.music,
+        openingVideo: draft.openingVideoEnabled === false ? null : draft.openingVideo,
+        opening: draft.opening || {},
         // Host-authored rich sections. Passed straight through so the content
         // builder can prefer them over its demo fallbacks (see hostContent).
         hostContent: {
             couple: draft.couple || {},
             contact: draft.contact || {},
-            enabledSections: draft.enabledSections || {},
             storyText: draft.story || "",
             storyTextEn: draft.extras?.storyTextEn || "",
             languageMode: draft.extras?.languageMode || "both",
@@ -59,12 +86,17 @@ export function draftToTemplate(draft, gallery = []) {
             schedule: draft.schedule || [],
             party: draft.party || [],
             gift: draft.gift || [],
+            gallery: uploadedImages,
+            wishMessage: draft.extras?.guestNote || "",
             faq: draft.faq || [],
             enabledSections: {
                 ...(draft.enabledSections || {}),
                 rsvp: draft.rsvp?.enabled !== false && draft.enabledSections?.rsvp !== false,
             },
             eventTitle: draft.event?.title || "",
+            rsvp: draft.rsvp || {},
+            opening: draft.opening || {},
+            guest: draft.guest || null,
         },
         // When the host has uploaded photos, drive gallery + story from them.
         storyImages: uploadedImages.length ? uploadedImages : baseTpl.storyImages,

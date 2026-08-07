@@ -255,6 +255,7 @@ function GiftsFeature() {
     const drafts = listDrafts();
     const currentDraft = drafts.find((draft) => draft.id === activeEventId) || drafts[0] || null;
     const eventId = currentDraft?.id || activeEventId || "";
+    const backendInvitationId = currentDraft?.backendInvitationId || currentDraft?.id || "";
 
     const [gifts, setGifts] = useState(() => listWeddingGifts([], eventId).map(normalizeGift));
     const [guestOptions, setGuestOptions] = useState(() => listManualGuests(eventId));
@@ -274,7 +275,7 @@ function GiftsFeature() {
         invitationService.listMine()
             .then(async (items) => {
                 if (!active) return;
-                const selected = items?.find(inv => String(inv.id) === String(currentDraft?.backendInvitationId || currentDraft?.id))
+                const selected = items?.find(inv => String(inv.id) === String(backendInvitationId))
                     || items?.find(inv => inv.status === "PUBLISHED")
                     || items?.[0]
                     || null;
@@ -311,7 +312,11 @@ function GiftsFeature() {
         return () => {
             active = false;
         };
-    }, [eventId, currentDraft]);
+    }, [backendInvitationId, eventId]);
+
+    if (loading) {
+        return <div className="gifts-page"><div className="gifts-empty">Loading gifts...</div></div>;
+    }
 
     const total = gifts.reduce((sum, gift) => sum + (Number(gift.amount) || 0), 0);
     const average = gifts.length ? Math.round(total / gifts.length) : 0;

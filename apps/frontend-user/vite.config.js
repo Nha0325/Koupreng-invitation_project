@@ -23,8 +23,10 @@ export default defineConfig(({ mode }) => {
   const frontendUserPort = process.env.FRONTEND_USER_PORT || env.FRONTEND_USER_PORT || '5173'
   const telegramBotPort = process.env.TELEGRAM_BOT_PORT || env.TELEGRAM_BOT_PORT || '8000'
   const publicAppUrl = (process.env.VITE_PUBLIC_APP_URL || env.VITE_PUBLIC_APP_URL || '').trim()
-  const hmrHost = hostnameFromUrl(process.env.VITE_HMR_HOST || env.VITE_HMR_HOST || publicAppUrl)
+  const publicAppHost = hostnameFromUrl(publicAppUrl)
+  const hmrHost = hostnameFromUrl(process.env.VITE_HMR_HOST || env.VITE_HMR_HOST)
   const shouldUseSecureHmr = hmrHost && hmrHost !== 'localhost' && hmrHost !== '127.0.0.1'
+  const shouldDisableTunnelHmr = !hmrHost && /\.ngrok-free\.(app|dev)$/.test(publicAppHost)
 
   return {
     plugins: [react(), tailwindcss()],
@@ -43,7 +45,9 @@ export default defineConfig(({ mode }) => {
             protocol: "wss",
             clientPort: 443,
           }
-        : undefined,
+        : shouldDisableTunnelHmr
+          ? false
+          : undefined,
       proxy: {
         "/api": {
           target: `http://127.0.0.1:${backendPort}`,

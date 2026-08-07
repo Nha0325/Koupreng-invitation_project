@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams, useSearchParams } from "react-router-dom";
 
@@ -9,104 +8,36 @@ import TemplateExperience from "../templates/template-experience/TemplateExperie
 import WeddingSite from "../wedding-site/WeddingSite";
 import { getTemplateById } from "../templates/data/templatesData";
 import { draftToTemplate } from "../wedding-builder/utils/draftToTemplate";
+import { publicInvitationToDraft } from "../wedding-builder/utils/invitationDraftAdapter";
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { loadGallery } from "../../shared/storage/galleryStorage";
 import { invitationService } from "@/features/invitations/api/invitationApi";
 import { mediaService } from "@/features/invitations/api/mediaApi";
+import { resolveInviteToken } from "./publicInvitationQuery";
 
-const GARDEN_TEMPLATE_ID = "garden-royal-khmer-wedding";
-
-function isGardenRoyalTemplate(invitation) {
-    return invitation?.templateName === "Garden Royal Khmer Wedding";
-}
-
-function timeValue(value) {
-    return value ? String(value).slice(0, 5) : "";
-}
-
-function safeJson(value, fallback = {}) {
-    if (!value) return fallback;
-    if (typeof value === "object") return value;
-    try {
-        return JSON.parse(value);
-    } catch {
-        return fallback;
+function publicStateCopy(languageMode) {
+    const mode = String(languageMode || "").toUpperCase();
+    if (mode === "EN") {
+        return {
+            loading: "Loading invitation…",
+            unavailable: "Invitation unavailable",
+            unavailableDetail: "This invitation may be unpublished or unavailable.",
+        };
     }
-}
-
-function publicInvitationToTemplate(invitation, media) {
-    const baseTpl = getTemplateById(GARDEN_TEMPLATE_ID);
-    const content = safeJson(invitation.contentJson);
-    const enabled = safeJson(invitation.enabledSections);
-    const contentCouple = content.couple || {};
-    const contentEvent = content.event || {};
-    const storyChapters = Array.isArray(content.storyChapters) ? content.storyChapters : [];
-    const schedule = Array.isArray(content.schedule) ? content.schedule : [];
-    const gift = Array.isArray(content.gift) ? content.gift : [];
-    const faq = Array.isArray(content.faq) ? content.faq : [];
-    const party = Array.isArray(content.party) ? content.party : [];
-    const storyText = content.story || invitation.storyText || "";
-    const gallery = (media?.galleryImages || [])
-        .filter((item) => item?.fileUrl)
-        .map((item) => ({
-            id: item.id,
-            name: item.originalFilename,
-            type: item.mimeType?.startsWith("video/") ? "video" : "image",
-            preview: item.fileUrl,
-        }));
-    const eventTime = timeValue(invitation.eventTime);
-    const draft = {
-        id: invitation.slug,
-        slug: invitation.slug,
-        templateId: baseTpl.id,
-        coverImage: media?.coverImage?.fileUrl || "",
-        couple: {
-            ...contentCouple,
-            groom: contentCouple.groom || invitation.groomName || invitation.hostName || "",
-            bride: contentCouple.bride || invitation.brideName || invitation.partnerName || "",
-        },
-        event: {
-            ...contentEvent,
-            title: contentEvent.title || invitation.title || "",
-            date: contentEvent.date || invitation.eventDate || "",
-            ceremonyTime: contentEvent.ceremonyTime || eventTime,
-            receptionTime: contentEvent.receptionTime || eventTime,
-            venueName: contentEvent.venueName || invitation.venueName || "",
-            venueAddress: contentEvent.venueAddress || invitation.venueAddress || "",
-            mapLink: contentEvent.mapLink || invitation.googleMapUrl || "",
-        },
-        contact: content.contact || {},
-        message: content.message || invitation.title || "",
-        story: storyText,
-        storyChapters,
-        schedule,
-        party,
-        gift,
-        faq,
-        gallery: gallery.length ? gallery : content.gallery || [],
-        music: media?.backgroundMusic?.fileUrl ? { url: media.backgroundMusic.fileUrl } : baseTpl.music,
-        rsvp: { ...(content.rsvp || {}), enabled: enabled.rsvp !== false, deadline: content.rsvp?.deadline || invitation.rsvpDeadline || "" },
-        extras: content.extras || {},
-        enabledSections: {
-            ...enabled,
-            story: enabled.story !== false && Boolean(storyText || storyChapters.length),
-            gallery: enabled.gallery !== false && Boolean(gallery.length || content.gallery?.length),
-            schedule: enabled.schedule !== false && schedule.length > 0,
-            party: enabled.party !== false && party.length > 0,
-            gift: enabled.gift !== false && gift.length > 0,
-            faq: enabled.faq !== false && faq.length > 0,
-            rsvp: enabled.rsvp !== false,
-        },
+    return {
+        loading: mode === "KH" ? "កំពុងផ្ទុកសន្លឹកការ..." : "កំពុងផ្ទុកសន្លឹកការ... / Loading invitation…",
+        unavailable: mode === "KH" ? "មិនអាចបើកសន្លឹកការបាន" : "មិនអាចបើកសន្លឹកការបាន / Invitation unavailable",
+        unavailableDetail: mode === "KH"
+            ? "សន្លឹកការនេះមិនទាន់បានបោះផ្សាយ ឬមិនអាចប្រើបាន។"
+            : "សន្លឹកការនេះមិនទាន់បានបោះផ្សាយ ឬមិនអាចប្រើបាន។ Please check the invitation link.",
     };
-
-    return draftToTemplate(draft, gallery);
 }
 
 export default function PublicInvitationPage() {
     const { slug } = useParams();
     const [searchParams] = useSearchParams();
     const location = useLocation();
-    const inviteToken = searchParams.get("token") || searchParams.get("i");
+    const inviteToken = resolveInviteToken(searchParams);
     const [invitation, setInvitation] = useState(null);
     const [media, setMedia] = useState(null);
     const [remoteLoading, setRemoteLoading] = useState(true);
@@ -137,7 +68,7 @@ export default function PublicInvitationPage() {
         if (!slug) {
             setInvitation(null);
             setMedia(null);
-            setRemoteError("Invitation not available.");
+            setRemoteError(publicStateCopy().unavailableDetail);
             setRemoteLoading(false);
             return;
         }
@@ -169,7 +100,7 @@ export default function PublicInvitationPage() {
                 if (active) {
                     const protectedError = err?.status === 403;
                     setProtectedMode(protectedError);
-                    setRemoteError(protectedError ? (err?.message || "This invitation requires access.") : "Invitation not available.");
+                    setRemoteError(protectedError ? (err?.message || "សន្លឹកការនេះត្រូវការពាក្យសម្ងាត់។") : publicStateCopy().unavailableDetail);
                 }
             })
             .finally(() => {
@@ -215,7 +146,7 @@ export default function PublicInvitationPage() {
 
 
     if (remoteLoading) {
-        return <div className="public-state">Loading invitation...</div>;
+        return <div className="public-state" role="status">{publicStateCopy().loading}</div>;
     }
 
     const verifyAccess = async (password) => {
@@ -239,19 +170,19 @@ export default function PublicInvitationPage() {
         }
     };
 
-    if (invitation && isGardenRoyalTemplate(invitation)) {
-        const mergedPublicGarden = publicInvitationToTemplate(invitation, media);
-        const enabledSections = safeJson(invitation.enabledSections);
-        const showRsvp = enabledSections.rsvp !== false;
+    if (invitation) {
+        const publicDraft = publicInvitationToDraft(invitation, media);
+        const mergedPublicGarden = draftToTemplate(publicDraft, publicDraft.gallery);
+        const showRsvp = publicDraft.enabledSections?.rsvp !== false;
 
         if (mergedPublicGarden) {
             return (
                 <TemplateExperience
                     tpl={mergedPublicGarden.tpl}
-                    variant={GARDEN_TEMPLATE_ID}
+                    variant={mergedPublicGarden.variant}
                     showActions={false}
                     showBreadcrumb={false}
-                    showStickyCta={false}
+                    showStickyCta={true}
                 >
                     {showRsvp && (
                         <PublicRsvpForm
@@ -263,103 +194,6 @@ export default function PublicInvitationPage() {
                     )}
                 </TemplateExperience>
             );
-        }
-    }
-
-    if (invitation) {
-        const enabledSections = safeJson(invitation.enabledSections);
-        const showRsvp = enabledSections.rsvp !== false;
-        let templateSlug = null;
-        if (invitation.designJson) {
-            try {
-                const design = JSON.parse(invitation.designJson);
-                templateSlug = design.templateId;
-            } catch {
-                // Ignore
-            }
-        }
-        if (!templateSlug && invitation.contentJson) {
-            try {
-                const content = JSON.parse(invitation.contentJson);
-                templateSlug = content.templateId;
-            } catch {
-                // Ignore
-            }
-        }
-
-        if (templateSlug) {
-            let content = {};
-            try {
-                content = invitation.contentJson ? JSON.parse(invitation.contentJson) : {};
-            } catch {
-                // Ignore
-            }
-
-            const reconstructedDraft = {
-                id: invitation.id,
-                templateId: templateSlug,
-                couple: content.couple || {
-                    groom: invitation.groomName,
-                    bride: invitation.brideName,
-                },
-                event: content.event || {
-                    title: invitation.title,
-                    date: invitation.eventDate,
-                    ceremonyTime: invitation.eventTime,
-                    receptionTime: invitation.eventTime,
-                    venueName: invitation.venueName,
-                    venueAddress: invitation.venueAddress,
-                    mapLink: invitation.googleMapUrl,
-                },
-                contact: content.contact || {},
-                message: content.message || invitation.storyText || "",
-                story: content.story || invitation.storyText || "",
-                storyChapters: content.storyChapters || [],
-                schedule: content.schedule || [],
-                party: content.party || [],
-                gift: content.gift || [],
-                faq: content.faq || [],
-                extras: content.extras || {},
-                rsvp: content.rsvp || {
-                    deadline: invitation.rsvpDeadline,
-                },
-            };
-
-            const galleryFromMedia = (media?.galleryImages || [])
-                .filter((item) => item?.fileUrl)
-                .map((item) => ({
-                    preview: item.fileUrl,
-                    type: "image",
-                }));
-
-            const mergedForPublished = draftToTemplate(reconstructedDraft, galleryFromMedia);
-            if (mergedForPublished) {
-                if (media?.coverImage?.fileUrl) {
-                    mergedForPublished.tpl.customMainImage = media.coverImage.fileUrl;
-                }
-                if (media?.backgroundMusic?.fileUrl) {
-                    mergedForPublished.tpl.music = { url: media.backgroundMusic.fileUrl };
-                }
-
-                return (
-                    <TemplateExperience
-                        tpl={mergedForPublished.tpl}
-                        variant={mergedForPublished.variant}
-                        showBreadcrumb={false}
-                        showActions={false}
-                        showStickyCta={true}
-                    >
-                        {showRsvp && (
-                            <PublicRsvpForm
-                                slug={slug}
-                                inviteToken={inviteToken}
-                                accessToken={effectiveAccessToken}
-                                languageMode={invitation.languageMode}
-                            />
-                        )}
-                    </TemplateExperience>
-                );
-            }
         }
 
         return (
@@ -426,8 +260,8 @@ export default function PublicInvitationPage() {
 
     return (
         <main className="public-state">
-            <h1>Invitation not available</h1>
-            <p>{remoteError || "This invitation may be unpublished or unavailable."}</p>
+            <h1>{publicStateCopy(invitation?.languageMode).unavailable}</h1>
+            <p>{remoteError || publicStateCopy(invitation?.languageMode).unavailableDetail}</p>
         </main>
     );
 }
@@ -444,11 +278,11 @@ function ProtectedInvitationGate({ error, loading, onSubmit }) {
                     onSubmit(password);
                 }}
             >
-                <p className="pub-kicker">Private invitation</p>
-                <h1>Enter invitation password</h1>
-                <p>This invitation is protected. Use the password or open a guest-specific invitation link.</p>
+                <p className="pub-kicker">សន្លឹកការឯកជន / Private invitation</p>
+                <h1>បញ្ចូលពាក្យសម្ងាត់</h1>
+                <p>សូមប្រើពាក្យសម្ងាត់ ឬតំណភ្ជាប់ភ្ញៀវដែលមានសុវត្ថិភាពដើម្បីបើកសន្លឹកការ។</p>
                 <label>
-                    Password
+                    ពាក្យសម្ងាត់ / Password
                     <input
                         type="password"
                         value={password}
@@ -459,7 +293,7 @@ function ProtectedInvitationGate({ error, loading, onSubmit }) {
                 </label>
                 {error && <div className="inv-error">{error}</div>}
                 <button className="inv-primary-btn" type="submit" disabled={loading}>
-                    {loading ? "Checking..." : "Open invitation"}
+                    {loading ? "កំពុងពិនិត្យ..." : "បើកសន្លឹកការ"}
                 </button>
             </form>
         </main>

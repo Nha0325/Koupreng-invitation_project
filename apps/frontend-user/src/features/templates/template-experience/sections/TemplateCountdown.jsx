@@ -1,5 +1,7 @@
 import useCountdown from "../../../wedding-site/hooks/useCountdown";
 import TemplateReveal from "../TemplateReveal";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateCountdown — anticipation builder.
@@ -23,12 +25,13 @@ export default function TemplateCountdown({ content }) {
     return (
         <section className="tx-section tx-countdown" data-tx-section="countdown" aria-labelledby="tx-countdown-title">
             <div className="tx-shell tx-shell--narrow">
-                <header className="tx-section__head">
-                    <TemplateReveal>
-                        <p className="tx-kicker">រាប់ថយក្រោយ</p>
-                        <h2 id="tx-countdown-title" className="tx-section__title">រង់ចាំថ្ងៃពិសេស</h2>
-                    </TemplateReveal>
-                </header>
+                <TemplateSectionHeader
+                    id="tx-countdown-title"
+                    icon={templateIcons.countdown}
+                    kicker="រាប់ថយក្រោយ"
+                    title="រង់ចាំថ្ងៃពិសេស"
+                    subtitle="COUNTING DOWN TO FOREVER"
+                />
 
                 {hasValidDate ? (
                     <TemplateReveal className="tx-countdown__grid" aria-label="រាប់ថយក្រោយ">

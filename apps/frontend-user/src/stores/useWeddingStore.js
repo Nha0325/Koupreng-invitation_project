@@ -5,7 +5,6 @@ import {
   getDraftBySlug,
   saveDraft,
 } from "../shared/storage/weddingStorage";
-import { slugify } from "../shared/utils/slugify";
 
 export const useWeddingStore = create((set, get) => ({
   draft: null,
@@ -80,25 +79,6 @@ export const useWeddingStore = create((set, get) => ({
         ...patch,
       },
     });
-    set({ draft: saved });
-    return saved;
-  },
-
-  publishDraft: () => {
-    const current = get().draft;
-
-    if (!current) return null;
-
-    const groom = current?.couple?.groom || "groom";
-    const bride = current?.couple?.bride || "bride";
-    const slug = current.slug || slugify(`${groom}-${bride}-${current.id}`);
-
-    const saved = saveDraft({
-      ...current,
-      slug,
-      publishedAt: Date.now(),
-    });
-
     set({ draft: saved });
     return saved;
   },

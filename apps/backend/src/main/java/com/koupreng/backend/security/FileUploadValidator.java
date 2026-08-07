@@ -16,18 +16,52 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class FileUploadValidator {
 
+    private static final long MB = 1024L * 1024L;
+    private static final Set<String> IMAGE_CONTENT_TYPES = Set.of(
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+    );
+    private static final Set<String> IMAGE_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".webp");
     private static final Pattern SAFE_FILENAME = Pattern.compile("[\\p{Alnum}][\\p{Alnum} ._-]{0,180}");
     private static final Map<String, byte[][]> SIGNATURES = Map.of(
             "image/jpeg", new byte[][]{{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}},
             "image/png", new byte[][]{{(byte) 0x89, 0x50, 0x4E, 0x47}},
             "application/pdf", new byte[][]{{0x25, 0x50, 0x44, 0x46}}
     );
-    private static final Map<String, Set<String>> EXTENSION_CONTENT_TYPES = Map.of(
-            ".jpg", Set.of("image/jpeg"),
-            ".jpeg", Set.of("image/jpeg"),
-            ".png", Set.of("image/png"),
-            ".webp", Set.of("image/webp"),
-            ".pdf", Set.of("application/pdf")
+    private static final Map<String, Set<String>> EXTENSION_CONTENT_TYPES = Map.ofEntries(
+            Map.entry(".jpg", Set.of("image/jpeg")),
+            Map.entry(".jpeg", Set.of("image/jpeg")),
+            Map.entry(".png", Set.of("image/png")),
+            Map.entry(".webp", Set.of("image/webp")),
+            Map.entry(".pdf", Set.of("application/pdf")),
+            Map.entry(".mp4", Set.of("video/mp4")),
+            Map.entry(".webm", Set.of("video/webm")),
+            Map.entry(".mp3", Set.of("audio/mpeg", "audio/mp3")),
+            Map.entry(".wav", Set.of("audio/wav")),
+            Map.entry(".ogg", Set.of("audio/ogg")),
+            Map.entry(".csv", Set.of("text/csv", "application/csv", "application/vnd.ms-excel")),
+            Map.entry(".xlsx", Set.of(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/octet-stream"
+            ))
+    );
+    private static final Map<String, Long> CONTENT_TYPE_MAX_SIZES = Map.ofEntries(
+            Map.entry("image/jpeg", 5L * MB),
+            Map.entry("image/png", 5L * MB),
+            Map.entry("image/webp", 5L * MB),
+            Map.entry("application/pdf", 5L * MB),
+            Map.entry("video/mp4", 50L * MB),
+            Map.entry("video/webm", 50L * MB),
+            Map.entry("audio/mpeg", 15L * MB),
+            Map.entry("audio/mp3", 15L * MB),
+            Map.entry("audio/wav", 15L * MB),
+            Map.entry("audio/ogg", 15L * MB),
+            Map.entry("text/csv", 5L * MB),
+            Map.entry("application/csv", 5L * MB),
+            Map.entry("application/vnd.ms-excel", 5L * MB),
+            Map.entry("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 5L * MB),
+            Map.entry("application/octet-stream", 5L * MB)
     );
 
     private final ApiSecurityProperties.Upload properties;
@@ -45,10 +79,6 @@ public class FileUploadValidator {
             throw badRequest("Uploaded file is empty");
         }
 
-        if (file.getSize() > properties.getMaxFileSizeBytes()) {
-            throw new ApiException(HttpStatus.CONTENT_TOO_LARGE, "Uploaded file is too large");
-        }
-
         String filename = safeFilename(file.getOriginalFilename());
         String extension = extension(filename);
         if (!properties.getAllowedExtensions().contains(extension)) {
@@ -60,12 +90,29 @@ public class FileUploadValidator {
             throw badRequest("Uploaded file type is not allowed");
         }
 
+        long contentTypeLimit = CONTENT_TYPE_MAX_SIZES.getOrDefault(
+                contentType,
+                properties.getMaxFileSizeBytes()
+        );
+        long effectiveLimit = Math.min(properties.getMaxFileSizeBytes(), contentTypeLimit);
+        if (file.getSize() > effectiveLimit) {
+            throw new ApiException(HttpStatus.CONTENT_TOO_LARGE, "Uploaded file is too large");
+        }
+
         if (!contentTypeMatchesExtension(extension, contentType)) {
             throw badRequest("Uploaded file extension does not match its content type");
         }
 
         if (properties.isVerifySignatures() && !hasExpectedSignature(file, contentType)) {
             throw badRequest("Uploaded file content does not match its declared type");
+        }
+    }
+
+    public void requireImage(MultipartFile file) {
+        String filename = safeFilename(file == null ? null : file.getOriginalFilename());
+        String contentType = normalizedContentType(file == null ? null : file.getContentType());
+        if (!IMAGE_EXTENSIONS.contains(extension(filename)) || !IMAGE_CONTENT_TYPES.contains(contentType)) {
+            throw badRequest("Profile image must be a JPEG, PNG, or WebP image");
         }
     }
 
@@ -107,6 +154,32 @@ public class FileUploadValidator {
             return isWebp(header);
         }
 
+        if ("video/mp4".equals(contentType)) {
+            return hasAsciiAt(header, 4, "ftyp");
+        }
+        if ("video/webm".equals(contentType)) {
+            return startsWith(header, new byte[]{0x1A, 0x45, (byte) 0xDF, (byte) 0xA3});
+        }
+        if ("audio/mpeg".equals(contentType) || "audio/mp3".equals(contentType)) {
+            return hasAsciiAt(header, 0, "ID3")
+                    || (header.length >= 2 && (header[0] & 0xFF) == 0xFF && (header[1] & 0xE0) == 0xE0);
+        }
+        if ("audio/wav".equals(contentType)) {
+            return hasAsciiAt(header, 0, "RIFF") && hasAsciiAt(header, 8, "WAVE");
+        }
+        if ("audio/ogg".equals(contentType)) {
+            return hasAsciiAt(header, 0, "OggS");
+        }
+        if ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".equals(contentType)
+                || "application/octet-stream".equals(contentType)) {
+            return startsWith(header, new byte[]{0x50, 0x4B});
+        }
+        if ("text/csv".equals(contentType)
+                || "application/csv".equals(contentType)
+                || "application/vnd.ms-excel".equals(contentType)) {
+            return looksLikeText(header);
+        }
+
         byte[][] allowedSignatures = SIGNATURES.get(contentType);
         if (allowedSignatures == null) {
             return false;
@@ -140,6 +213,34 @@ public class FileUploadValidator {
 
         for (int index = 0; index < prefix.length; index++) {
             if (value[index] != prefix[index]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasAsciiAt(byte[] value, int offset, String expected) {
+        if (value.length < offset + expected.length()) {
+            return false;
+        }
+        for (int index = 0; index < expected.length(); index++) {
+            if (value[offset + index] != (byte) expected.charAt(index)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean looksLikeText(byte[] value) {
+        if (value.length == 0) {
+            return false;
+        }
+        for (byte current : value) {
+            int character = current & 0xFF;
+            if (character == 0) {
+                return false;
+            }
+            if (character < 0x20 && character != '\n' && character != '\r' && character != '\t') {
                 return false;
             }
         }

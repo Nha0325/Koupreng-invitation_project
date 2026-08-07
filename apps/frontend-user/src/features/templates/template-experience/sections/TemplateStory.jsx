@@ -1,4 +1,7 @@
 import TemplateReveal from "../TemplateReveal";
+import TemplateImage from "../TemplateImage";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateStory — love story timeline.
@@ -12,12 +15,13 @@ export default function TemplateStory({ content }) {
     return (
         <section className="tx-section tx-story" data-tx-section="story" aria-labelledby="tx-story-title">
             <div className="tx-shell">
-                <header className="tx-section__head">
-                    <TemplateReveal>
-                        <p className="tx-kicker">រឿងរ៉ាវស្នេហា</p>
-                        <h2 id="tx-story-title" className="tx-section__title">ដំណើរនៃក្ដីស្រឡាញ់</h2>
-                    </TemplateReveal>
-                </header>
+                <TemplateSectionHeader
+                    id="tx-story-title"
+                    icon={templateIcons.story}
+                    kicker="រឿងរ៉ាវស្នេហា"
+                    title="ដំណើរនៃក្ដីស្រឡាញ់"
+                    subtitle="OUR LOVE STORY"
+                />
 
                 <ol className="tx-story__line">
                     {items.map((item, index) => (
@@ -30,7 +34,7 @@ export default function TemplateStory({ content }) {
                             <article className="tx-story__card">
                                 {item.image && (
                                     <div className="tx-story__media">
-                                        <img src={item.image} alt={item.title} loading="lazy" />
+                                        <TemplateImage src={item.image} alt={item.title} />
                                     </div>
                                 )}
                                 <div className="tx-story__content">

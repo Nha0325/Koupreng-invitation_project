@@ -79,7 +79,7 @@ curl -X POST ${BASE_URL}/api/auth/register -H "Content-Type: application/json" \
 ```
 ```json
 {
-  "accessToken": "eyJ0eXAiOiJKV1Q...",
+  "accessToken": "<ACCESS_TOKEN>",
   "tokenType": "Bearer",
   "expiresAt": "2026-05-31T03:25:10Z",
   "user": {"id":2,"email":"tester@example.com","phone":"012345678","fullName":"Tester","role":"USER","status":"ACTIVE"}

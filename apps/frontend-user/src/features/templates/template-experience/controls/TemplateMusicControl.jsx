@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import { IoMusicalNotes, IoPause } from "react-icons/io5";
 
 /**
@@ -9,47 +8,20 @@ import { IoMusicalNotes, IoPause } from "react-icons/io5";
  *  - Respects browser autoplay restrictions (play() is awaited + caught).
  *  - Hidden entirely when no track is provided.
  */
-export default function TemplateMusicControl({ src }) {
-    const audioRef = useRef(null);
-    const [playing, setPlaying] = useState(false);
+export default function TemplateMusicControl({ controller }) {
+    if (!controller?.hasMusic) return null;
 
-    useEffect(() => {
-        const audio = audioRef.current;
-        return () => {
-            if (audio) audio.pause();
-        };
-    }, [src]);
-
-    if (!src) return null;
-
-    const toggle = async () => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        if (!audio.paused) {
-            audio.pause();
-            setPlaying(false);
-            return;
-        }
-
-        audio.volume = 0.5;
-        try {
-            await audio.play();
-            setPlaying(true);
-        } catch {
-            setPlaying(false);
-        }
-    };
+    const { playing, status, toggle } = controller;
 
     return (
         <>
-            <audio ref={audioRef} src={src} loop preload="none" />
             <button
                 type="button"
                 className={`tx-music${playing ? " is-playing" : ""}`}
                 onClick={toggle}
                 aria-pressed={playing}
                 aria-label={playing ? "បិទតន្ត្រី" : "បើកតន្ត្រី"}
+                data-music-status={status}
             >
                 <span className="tx-music__icon" aria-hidden="true">
                     {playing ? <IoPause /> : <IoMusicalNotes />}

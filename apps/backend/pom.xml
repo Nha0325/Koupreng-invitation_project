@@ -156,6 +156,61 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.15</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.10.3.0</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>High</threshold>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotbugs-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.28.0</version>
+				<configuration>
+					<linkXRef>false</linkXRef>
+					<printFailingErrors>true</printFailingErrors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>pmd-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-toolchains-plugin</artifactId>
 				<version>3.2.0</version>
@@ -228,5 +283,31 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>dependency-security</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.owasp</groupId>
+						<artifactId>dependency-check-maven</artifactId>
+						<version>12.2.2</version>
+						<configuration>
+							<failBuildOnCVSS>8</failBuildOnCVSS>
+							<skipTestScope>true</skipTestScope>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>check</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

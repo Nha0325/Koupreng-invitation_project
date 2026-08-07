@@ -1,10 +1,17 @@
 import instrumentalWedding from "../../assets/music/Instrumental Wedding Music (VioSounds Cover).m4a";
+import waitingDay from "../../assets/music/ថ្ងៃដែលរង់ចាំ.mp3";
 
 /**
  * Wedding background music tracks.
  * Each track has an id, name, and url (imported asset or remote URL).
  */
 export const MUSIC_TRACKS = [
+    {
+        id: "waiting-day",
+        name: "ថ្ងៃដែលរង់ចាំ",
+        description: "បទភ្លេងគំរូសម្រាប់សន្លឹកការខ្មែរ",
+        url: waitingDay,
+    },
     {
         id: "instrumental-wedding",
         name: "Instrumental Wedding (VioSounds)",

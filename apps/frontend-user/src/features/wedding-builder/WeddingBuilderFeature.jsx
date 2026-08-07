@@ -9,6 +9,7 @@ import { Breadcrumb } from "../../shared/ui/Breadcrumb";
 
 import { BUILDER_STEPS } from "./config/builderSteps";
 import { useWeddingStore } from "../../stores/useWeddingStore";
+import { isBackendUnavailable, persistWeddingDraft } from "./utils/draftPublishApi";
 
 export default function CreateWedding() {
     const { draftId } = useParams();
@@ -18,6 +19,7 @@ export default function CreateWedding() {
     const initialTemplateId = searchParams.get("template") || "garden-royal-khmer-wedding";
     const initialized = useRef(false);
     const [publishedDraft, setPublishedDraft] = useState(null);
+    const [publishState, setPublishState] = useState({ action: "", error: "", warning: "" });
     const [stepMenuOpen, setStepMenuOpen] = useState(false);
 
     const draft = useWeddingStore((state) => state.draft);
@@ -29,7 +31,6 @@ export default function CreateWedding() {
     const loadDraft = useWeddingStore((state) => state.loadDraft);
     const update = useWeddingStore((state) => state.update);
     const updateField = useWeddingStore((state) => state.updateField);
-    const publishDraft = useWeddingStore((state) => state.publishDraft);
 
     useEffect(() => {
         if (initialized.current) return;
@@ -70,11 +71,52 @@ export default function CreateWedding() {
         setStepMenuOpen(false);
     }, [setStep]);
 
-    const handlePublish = useCallback(() => {
-        const saved = publishDraft();
-        setPublishedDraft(saved);
-        return saved;
-    }, [publishDraft]);
+    const handleSaveDraft = useCallback(async () => {
+        if (!draft) return null;
+        setPublishState({ action: "draft", error: "", warning: "" });
+        try {
+            const result = await persistWeddingDraft(draft, { publish: false });
+            const saved = update(result.patch);
+            setPublishedDraft(null);
+            setPublishState({ action: "", error: "", warning: "Draft saved to the backend." });
+            return saved;
+        } catch (err) {
+            const recoveredDraft = err?.partialPatch ? update(err.partialPatch) : draft;
+            if (isBackendUnavailable(err)) {
+                setPublishState({
+                    action: "",
+                    error: "",
+                    warning: "Backend is unavailable, so the draft remains saved locally in this browser.",
+                });
+                return recoveredDraft;
+            }
+            setPublishState({ action: "", error: err.message || "Could not save draft.", warning: "" });
+            throw err;
+        }
+    }, [draft, update]);
+
+    const handlePublish = useCallback(async () => {
+        if (!draft) return null;
+        setPublishState({ action: "publish", error: "", warning: "" });
+        try {
+            const result = await persistWeddingDraft(draft, { publish: true });
+            const saved = update({
+                ...result.patch,
+                publishedAt: result.patch.publishedAt || Date.now(),
+            });
+            setPublishedDraft(saved);
+            setPublishState({ action: "", error: "", warning: "" });
+            return saved;
+        } catch (err) {
+            if (err?.partialPatch) update(err.partialPatch);
+            const message = isBackendUnavailable(err)
+                ? "មិនអាចភ្ជាប់ទៅ backend បានទេ។ សន្លឹកការមិនត្រូវបានបោះផ្សាយ ហើយអ្នកអាចព្យាយាមម្តងទៀត។"
+                : (err.message || "មិនអាចបោះផ្សាយសន្លឹកការបានទេ។");
+            setPublishedDraft(null);
+            setPublishState({ action: "", error: message, warning: "" });
+            throw err;
+        }
+    }, [draft, update]);
 
     const stepEl = useMemo(() => {
         if (!CurrentStep || !draft) return null;
@@ -85,12 +127,14 @@ export default function CreateWedding() {
                 update={update}
                 updateField={updateField}
                 onNext={next}
+                onSaveDraft={handleSaveDraft}
                 onPublish={handlePublish}
                 publishedDraft={publishedDraft}
+                publishState={publishState}
                 goToStep={setStep}
             />
         );
-    }, [CurrentStep, draft, handlePublish, next, publishedDraft, setStep, update, updateField]);
+    }, [CurrentStep, draft, handlePublish, handleSaveDraft, next, publishState, publishedDraft, setStep, update, updateField]);
 
     if (!draft) {
         return (

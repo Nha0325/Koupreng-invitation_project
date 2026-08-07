@@ -607,6 +607,74 @@
     line-height: 1.6;
 }
 
+.wb-share-panel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid #cfe9d4;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.wb-share-qr {
+    display: grid;
+    place-items: center;
+    width: 192px;
+    aspect-ratio: 1;
+    padding: 12px;
+    border: 1px solid #e2eadf;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.wb-share-copy {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.wb-share-copy label {
+    color: #2f6b45;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.wb-share-copy input {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 14px;
+    border: 1px solid #cfe9d4;
+    border-radius: 12px;
+    color: var(--wb-flower-ink);
+    background: #f8fff8;
+    font: inherit;
+}
+
+.wb-publish-message {
+    margin: 18px 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.wb-publish-message.is-error {
+    border: 1px solid #efc6c6;
+    color: #8d2f2f;
+    background: #fff4f4;
+}
+
+.wb-publish-message.is-warning {
+    border: 1px solid #ead6a6;
+    color: #7a5b16;
+    background: #fff8e6;
+}
+
 .wb-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -957,6 +1025,15 @@
     .wb-publish-actions .wb-btn,
     .wb-success-actions .wb-btn {
         flex: 1 1 auto;
+    }
+
+    .wb-share-panel {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .wb-share-copy {
+        width: 100%;
     }
 }
 
@@ -1391,4 +1468,153 @@
     .wb-li-fields {
         grid-template-columns: 1fr;
     }
+}
+
+/* Garden Royal design controls */
+.wb-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.wb-choice {
+    display: grid;
+    justify-items: start;
+    gap: 5px;
+    min-height: 118px;
+    padding: 14px;
+    border: 1px solid #dfd1b8;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--wb-flower-ink);
+    font-family: var(--font-ui, "Kantumruy Pro", sans-serif);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.wb-choice:hover {
+    border-color: var(--wb-flower-gold);
+    background: #fffaf0;
+}
+
+.wb-choice.is-active {
+    border-color: #a77c36;
+    background: #fff8e9;
+    box-shadow: inset 0 0 0 2px rgba(184, 149, 95, 0.22);
+}
+
+.wb-choice svg {
+    font-size: 21px;
+    color: #9a6f2e;
+}
+
+.wb-choice strong {
+    font-size: 13px;
+}
+
+.wb-choice small {
+    color: var(--wb-flower-muted);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.wb-font-preview {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid #e5d5b7;
+    border-radius: 8px;
+    color: #3b2614;
+    background:
+        linear-gradient(rgba(255, 250, 240, 0.94), rgba(255, 250, 240, 0.94)),
+        url("../../assets/invitations/garden-royal/paper-texture.svg");
+    text-align: center;
+}
+
+.wb-font-preview span {
+    font-family: var(--font-khmer-title, "Moul", serif);
+    font-size: 18px;
+    line-height: 1.7;
+}
+
+.wb-font-preview strong {
+    font-family: var(--font-khmer-section, "Koulen", sans-serif);
+    color: #8a6324;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+.wb-font-preview p {
+    margin: 0;
+    font-family: var(--font-khmer-body, "Battambang", sans-serif);
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.wb-font-preview small {
+    font-family: var(--font-english-romantic, Georgia, serif);
+    color: #6f7d55;
+    font-size: 15px;
+    font-style: italic;
+}
+
+.wb-btn svg {
+    flex-shrink: 0;
+    font-size: 17px;
+}
+
+.wb-dropzone-icon {
+    display: grid;
+    place-items: center;
+    color: #9a6f2e;
+}
+
+@media (max-width: 760px) {
+    .wb-choice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wb-choice {
+        min-height: 0;
+    }
+}
+
+.wb-media-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.wb-opening-media-preview {
+    width: min(100%, 420px);
+    margin: 10px 0 20px;
+    overflow: hidden;
+    border: 1px solid #e5d5b7;
+    border-radius: 10px;
+    background: #24180f;
+}
+
+.wb-opening-media-preview :where(img, video) {
+    display: block;
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+}
+
+.wb-media-status {
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border: 1px solid #b8c89f;
+    border-radius: 7px;
+    color: #3f5d31;
+    background: #f2f7ea;
+    font-size: 13px;
+}
+
+.wb-media-status.is-error {
+    border-color: #dca3a3;
+    color: #8c2828;
+    background: #fff1f1;
 }

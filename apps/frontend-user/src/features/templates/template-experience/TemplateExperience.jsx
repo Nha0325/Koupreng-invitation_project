@@ -1,9 +1,17 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 import { Breadcrumb } from "../../../shared/ui/Breadcrumb";
 import { buildTemplateContent } from "./templateExperienceContent";
-import { getVariantTheme, resolveVariant } from "./templateExperienceThemes";
+import {
+    COVER_KHMER_GOLDEN_CODE,
+    getVariantTheme,
+    KHMER_GOLDEN_CANVA_INSPIRED_CODE,
+    resolveVariant,
+} from "./templateExperienceThemes";
+import CanvaKhmerWeddingTemplate from "./canva-khmer/CanvaKhmerWeddingTemplate";
+import TemplateOpeningGate from "./sections/TemplateOpeningGate";
 import TemplateHero from "./sections/TemplateHero";
 import TemplateMessage from "./sections/TemplateMessage";
 import TemplateCouple from "./sections/TemplateCouple";
@@ -12,11 +20,21 @@ import TemplateStory from "./sections/TemplateStory";
 import TemplateSchedule from "./sections/TemplateSchedule";
 import TemplateVenue from "./sections/TemplateVenue";
 import TemplateGallery from "./sections/TemplateGallery";
+import TemplateParty from "./sections/TemplateParty";
+import TemplateDressCode from "./sections/TemplateDressCode";
 import TemplateGift from "./sections/TemplateGift";
+import TemplateRsvp from "./sections/TemplateRsvp";
+import TemplateWish from "./sections/TemplateWish";
+import TemplateFaq from "./sections/TemplateFaq";
 import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
-import TemplateStickyCta from "./controls/TemplateStickyCta";
+import { useTemplateMusicController } from "./controls/useTemplateMusicController";
+import TemplateQuickNav from "./controls/TemplateQuickNav";
+import TemplateSectionHeader from "./TemplateSectionHeader";
+import { templateIcons } from "./templateIcons";
+import { usePrefersReducedMotion } from "../../../shared/hooks/usePrefersReducedMotion";
 import "./template-experience.css";
+import "./canva-khmer/canva-khmer-wedding.css";
 
 /**
  * TemplateExperience — shared, themeable full-page wedding experience.
@@ -66,6 +84,17 @@ export default function TemplateExperience({
         () => contentProp || buildTemplateContent(tpl, resolvedVariant),
         [contentProp, tpl, resolvedVariant]
     );
+    const reducedMotion = usePrefersReducedMotion();
+    const [musicAudioRef, musicController] = useTemplateMusicController(content.music);
+    const isCanvaKhmerTemplate =
+        variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.templateId === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.id === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.slug === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.code === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        tpl?.templateCode === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
+        content?.variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE;
 
     const crumbs = useMemo(
         () =>
@@ -78,6 +107,21 @@ export default function TemplateExperience({
     );
 
     const rootRef = useRef(null);
+    const contentRef = useRef(null);
+    const openingTimerRef = useRef(null);
+    const openingInFlightRef = useRef(false);
+    const usesHeroAsOpening = resolvedVariant === COVER_KHMER_GOLDEN_CODE;
+    const [gateState, setGateState] = useState(usesHeroAsOpening ? "opened" : "closed");
+    const [heroOpened, setHeroOpened] = useState(!usesHeroAsOpening);
+    const gateOpen = gateState === "opened";
+
+    const setContentNode = useCallback((node) => {
+        contentRef.current = node;
+        if (!node) return;
+        window.requestAnimationFrame(() => {
+            if (node.isConnected) node.focus({ preventScroll: true });
+        });
+    }, []);
 
     const scrollToTarget = useCallback((node) => {
         if (!node) return;
@@ -85,6 +129,39 @@ export default function TemplateExperience({
     }, []);
 
     const handleOpen = useCallback(() => {
+        if (openingInFlightRef.current || gateState !== "closed") return;
+        openingInFlightRef.current = true;
+        setGateState("opening");
+        if (!preview) void musicController.play();
+        openingTimerRef.current = window.setTimeout(() => {
+            setGateState("opened");
+        }, reducedMotion ? 0 : 460);
+    }, [gateState, musicController, preview, reducedMotion]);
+
+    useEffect(() => () => {
+        if (openingTimerRef.current !== null) {
+            window.clearTimeout(openingTimerRef.current);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (gateOpen) openingInFlightRef.current = false;
+    }, [gateOpen]);
+
+    const handleReplay = useCallback(() => {
+        if (!preview) return;
+        if (openingTimerRef.current !== null) {
+            window.clearTimeout(openingTimerRef.current);
+            openingTimerRef.current = null;
+        }
+        openingInFlightRef.current = false;
+        musicController.pause();
+        setGateState("closed");
+        rootRef.current?.closest(".wb-phone-scroll")?.scrollTo?.({ top: 0, behavior: "smooth" });
+    }, [musicController, preview]);
+
+    const handleHeroOpen = useCallback(() => {
+        setHeroOpened(true);
         const next = rootRef.current?.querySelector('[data-tx-section="message"]');
         scrollToTarget(next);
     }, [scrollToTarget]);
@@ -92,64 +169,136 @@ export default function TemplateExperience({
     const handleScrollTop = useCallback(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, []);
+    const handleNavigate = useCallback(
+        (section) => {
+            if (section === "hero") {
+                handleScrollTop();
+                return;
+            }
+            scrollToTarget(rootRef.current?.querySelector(`[data-tx-section="${section}"]`));
+        },
+        [handleScrollTop, scrollToTarget]
+    );
     const sectionEnabled = useCallback(
         (key) => content.enabledSections?.[key] !== false,
         [content.enabledSections]
     );
+    const ornamentTheme = content.design?.ornamentTheme || "royal-floral";
+
+    if (isCanvaKhmerTemplate) {
+        return (
+            <CanvaKhmerWeddingTemplate
+                content={content}
+                useTemplateLink={useTemplateLink}
+                backLink={backLink}
+                backLabel={backLabel}
+                primaryCtaLabel={primaryCtaLabel}
+                preview={preview}
+                showActions={showActions}
+                showStickyCta={showStickyCta}
+                isHostedInvitation={Boolean(tpl.hostContent)}
+            >
+                {children}
+            </CanvaKhmerWeddingTemplate>
+        );
+    }
 
     return (
-        <div
-            className={`tx-root ${theme.className}${preview ? " tx-root--preview" : ""}`}
-            data-theme="wed"
-            data-variant={resolvedVariant}
-            ref={rootRef}
-        >
+        <div className={`tx-stage tx-stage--${resolvedVariant}${preview ? " tx-stage--preview" : ""}`}>
+            <div
+                className={`tx-root ${theme.className} tx-ornament--${ornamentTheme}${preview ? " tx-root--preview" : ""}`}
+                data-theme="wed"
+                data-variant={resolvedVariant}
+                ref={rootRef}
+            >
             {!preview && showBreadcrumb && (
                 <div className="tx-breadcrumb">
                     <Breadcrumb items={crumbs} />
                 </div>
             )}
 
-            <TemplateHero content={content} onOpen={handleOpen} />
-            <TemplateMessage content={content} />
-            <TemplateCouple content={content} />
-            {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
-            {sectionEnabled("story") && <TemplateStory content={content} />}
-            {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
-            {sectionEnabled("map") && <TemplateVenue content={content} />}
-            {sectionEnabled("gallery") && <TemplateGallery content={content} />}
-            {sectionEnabled("gift") && <TemplateGift content={content} />}
+            <AnimatePresence mode="wait">
+                {gateState !== "opened" ? (
+                    <TemplateOpeningGate
+                        key="opening-gate"
+                        content={content}
+                        lockDocumentScroll={!preview}
+                        onOpen={handleOpen}
+                        state={gateState}
+                    />
+                ) : (
+                    <motion.div
+                        key="invitation-content"
+                        className="tx-experience"
+                        ref={setContentNode}
+                        tabIndex={-1}
+                        initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: reducedMotion ? 0 : 0.65, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                        <TemplateHero content={content} onOpen={handleHeroOpen} />
+                        <TemplateMessage content={content} />
+                        <TemplateCouple content={content} />
+                        {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
+                        {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
+                        {sectionEnabled("story") && <TemplateStory content={content} />}
+                        {sectionEnabled("party") && <TemplateParty content={content} />}
+                        {sectionEnabled("gallery") && <TemplateGallery content={content} />}
+                        {sectionEnabled("dressCode") && <TemplateDressCode content={content} />}
+                        {sectionEnabled("gift") && <TemplateGift content={content} />}
+                        {sectionEnabled("map") && <TemplateVenue content={content} />}
+                        {sectionEnabled("faq") && <TemplateFaq content={content} />}
 
-            {children && sectionEnabled("rsvp") && (
-                <div className="tx-children">
-                    {children}
-                </div>
-            )}
+                        {sectionEnabled("rsvp") && (
+                            children ? (
+                                <div className="tx-children" data-tx-section="rsvp">
+                                    <TemplateSectionHeader
+                                        id="tx-rsvp-title"
+                                        icon={templateIcons.invitation}
+                                        kicker="ការឆ្លើយតប"
+                                        title="សូមបញ្ជាក់ការចូលរួម"
+                                        subtitle="RSVP"
+                                    />
+                                    {children}
+                                </div>
+                            ) : (
+                                <TemplateRsvp useTemplateLink={useTemplateLink} />
+                            )
+                        )}
 
-            <TemplateFooter content={content} />
+                        {sectionEnabled("wish") && (
+                            <TemplateWish
+                                content={content}
+                                onRsvp={() => handleNavigate("rsvp")}
+                                showRsvp={sectionEnabled("rsvp")}
+                            />
+                        )}
+                        <TemplateFooter content={content} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            {children && (
-                <div className="tx-children">
-                    {children}
-                </div>
-            )}
-
-            {!preview && showActions && useTemplateLink && (
+            {gateOpen && !preview && showActions && useTemplateLink && (
                 <div className="tx-template-actions">
                     <Link to={useTemplateLink} className="tx-btn tx-btn--solid">{primaryCtaLabel}</Link>
                     <Link to={backLink} className="tx-btn tx-btn--ghost">{backLabel}</Link>
                 </div>
             )}
 
-            <TemplateMusicControl src={content.music} />
-            {!preview && showStickyCta && (
-                <TemplateStickyCta
-                    onTop={handleScrollTop}
-                    mapLink={content.venue.mapLink}
-                    useTemplateLink={useTemplateLink}
-                    primaryCtaLabel={primaryCtaLabel}
+            {content.music && <audio ref={musicAudioRef} src={content.music} loop preload="none" />}
+            {gateOpen && <TemplateMusicControl controller={musicController} />}
+            {gateOpen && preview && (
+                <button type="button" className="tx-preview-replay" onClick={handleReplay}>
+                    បើកគម្របម្តងទៀត
+                </button>
+            )}
+            {gateOpen && showStickyCta && heroOpened && (
+                <TemplateQuickNav
+                    enabledSections={content.enabledSections}
+                    onNavigate={handleNavigate}
                 />
             )}
+            </div>
         </div>
     );
 }

@@ -207,7 +207,7 @@ public class ApiSecurityProperties {
         private boolean enabled = true;
 
         @Min(1)
-        private long maxFileSizeBytes = 5 * 1024 * 1024;
+        private long maxFileSizeBytes = 50L * 1024 * 1024;
 
         @Min(1)
         private int maxFiles = 5;
@@ -217,7 +217,18 @@ public class ApiSecurityProperties {
                 "image/jpeg",
                 "image/png",
                 "image/webp",
-                "application/pdf"
+                "application/pdf",
+                "video/mp4",
+                "video/webm",
+                "audio/mpeg",
+                "audio/mp3",
+                "audio/wav",
+                "audio/ogg",
+                "text/csv",
+                "application/csv",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/octet-stream"
         ));
 
         @NotEmpty
@@ -226,7 +237,14 @@ public class ApiSecurityProperties {
                 ".jpeg",
                 ".png",
                 ".webp",
-                ".pdf"
+                ".pdf",
+                ".mp4",
+                ".webm",
+                ".mp3",
+                ".wav",
+                ".ogg",
+                ".csv",
+                ".xlsx"
         ));
 
         private boolean verifySignatures = true;

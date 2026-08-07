@@ -1,8 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Kantumruy+Pro:wght@400;500;700&family=Montserrat:wght@400;500;700&family=Moul&family=Noto+Sans+Khmer:wght@400;500;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Moul&family=Koulen&family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Montserrat:wght@400;500;700&family=Noto+Sans+Khmer:wght@400;500;700&display=swap");
 
 :root {
   font-family: 'Noto Sans Khmer', 'DM Sans', sans-serif;
   --font-dm-sans: 'DM Sans', sans-serif;
   --font-montserrat: 'Montserrat', sans-serif;
   --font-noto-sans-khmer: 'Noto Sans Khmer', sans-serif;
+  --font-khmer-title: 'Moul', 'Noto Sans Khmer', serif;
+  --font-khmer-section: 'Koulen', 'Moul', 'Noto Sans Khmer', sans-serif;
+  --font-khmer-heading: var(--font-khmer-section);
+  --font-khmer-body: 'Battambang', 'Noto Sans Khmer', sans-serif;
+  --font-ui: 'Kantumruy Pro', 'Noto Sans Khmer', sans-serif;
+  --font-english-romantic: 'Cormorant Garamond', Georgia, serif;
+  --font-romantic-en: var(--font-english-romantic);
+  --font-kh-title: 'Moul', 'Noto Sans Khmer', serif;
+  --font-kh-heading: 'Koulen', 'Noto Sans Khmer', sans-serif;
+  --font-kh-body: 'Battambang', 'Noto Sans Khmer', serif;
+  --font-en-romantic: 'Cormorant Garamond', Georgia, serif;
 }

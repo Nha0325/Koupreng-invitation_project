@@ -532,7 +532,7 @@ public class TemplatePaymentService {
                     "PAYMENT",
                     order.getId(),
                     "Payment confirmed via " + confirmSource + " by " + confirmedBy + " for amount: " + paidAmount + " " + order.getCurrency(),
-                    java.util.Map.of("orderCode", order.getOrderCode(), "confirmSource", confirmSource, "confirmedBy", confirmedBy)
+                    Map.of("orderCode", order.getOrderCode(), "confirmSource", confirmSource, "confirmedBy", confirmedBy)
             );
         }
     }

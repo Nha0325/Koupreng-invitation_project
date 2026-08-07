@@ -175,7 +175,7 @@
       "name": "app.security.upload.max-file-size-bytes",
       "type": "java.lang.Long",
       "description": "Maximum allowed file size in bytes.",
-      "defaultValue": 5242880
+      "defaultValue": 52428800
     },
     {
       "name": "app.security.upload.max-files",
@@ -187,13 +187,13 @@
       "name": "app.security.upload.allowed-content-types",
       "type": "java.lang.String",
       "description": "Comma-separated list of allowed MIME types.",
-      "defaultValue": "image/jpeg,image/png,image/webp,application/pdf"
+      "defaultValue": "image/jpeg,image/png,image/webp,application/pdf,video/mp4,video/webm,audio/mpeg,audio/mp3,audio/wav,audio/ogg,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream"
     },
     {
       "name": "app.security.upload.allowed-extensions",
       "type": "java.lang.String",
       "description": "Comma-separated list of allowed file extensions.",
-      "defaultValue": ".jpg,.jpeg,.png,.webp,.pdf"
+      "defaultValue": ".jpg,.jpeg,.png,.webp,.pdf,.mp4,.webm,.mp3,.wav,.ogg,.csv,.xlsx"
     },
     {
       "name": "app.security.upload.verify-signatures",

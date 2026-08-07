@@ -1,15 +1,18 @@
 import { create } from "zustand";
 import authService from "../features/auth/api/authApi";
+import {
+  clearStoredAuth,
+  readStoredAuth,
+  writeStoredAuth,
+} from "../shared/storage/authStorage";
 
 /**
  * useAuthStore — Zustand store for authentication state.
  * Pattern: create((set, get) => ({...})) per pmndrs/zustand docs.
  *
- * Reads initial state from sessionStorage by default (koupreng.auth).
+ * Reads initial state from the configured auth storage (koupreng.auth).
  * Components use this via the useAuth() hook for backward compatibility.
  */
-
-const STORAGE_KEY = "koupreng.auth";
 
 export function isTokenExpired(token) {
   if (!token) return true;
@@ -30,39 +33,19 @@ export function isTokenExpired(token) {
   }
 }
 
-function readStoredAuth() {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && parsed.accessToken && isTokenExpired(parsed.accessToken)) {
-      sessionStorage.removeItem(STORAGE_KEY);
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredAuth(data) {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    // ignore
-  }
-}
-
-function clearStoredAuth() {
-  sessionStorage.removeItem(STORAGE_KEY);
-}
-
 const initialAuth = readStoredAuth();
+if (initialAuth?.accessToken && isTokenExpired(initialAuth.accessToken)) {
+  clearStoredAuth();
+}
+
+const validInitialAuth = initialAuth?.accessToken && !isTokenExpired(initialAuth.accessToken)
+  ? initialAuth
+  : null;
 
 export const useAuthStore = create((set) => ({
-  user: initialAuth?.user || null,
-  accessToken: initialAuth?.accessToken || null,
-  isAuthenticated: Boolean(initialAuth?.accessToken && initialAuth?.user && !isTokenExpired(initialAuth?.accessToken)),
+  user: validInitialAuth?.user || null,
+  accessToken: validInitialAuth?.accessToken || null,
+  isAuthenticated: Boolean(validInitialAuth?.accessToken && validInitialAuth?.user),
 
   login: (authData) => {
     const nextState = {

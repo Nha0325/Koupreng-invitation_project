@@ -1,57 +1,39 @@
-# Production Rollback Plan
+# Production Rollback and Forward-Recovery Plan
 
-This document provides step-by-step procedures to revert the application stack to a known stable version in the event of a deployment failure.
+This plan requires provider-specific commands and ownership to be completed before release. Do not improvise destructive database changes during an incident.
 
----
+## Trigger conditions
 
-## 1. Rollback Criteria
+- Health checks fail or error/latency rates breach the approved release threshold.
+- Authentication, invitation rendering, payment reconciliation, or RSVP becomes unavailable.
+- A migration fails or the new application is incompatible with the migrated schema.
+- A confirmed security incident requires immediate traffic isolation.
 
-A rollback must be initiated if any of the following symptoms occur post-deployment:
-- Actuator health endpoints report `DOWN` or do not respond within 3 minutes.
-- User authentication logs report high error rates (above 5%) for standard login requests.
-- Frontends return loading failures or console JS script crashes.
-- Database locking errors occur during database migration sequences.
+## Application rollback
 
----
+1. Stop new deploys and preserve provider/build/application logs.
+2. Route traffic to the previous healthy immutable frontend/backend artifacts using the deployment provider's supported rollback feature.
+3. Keep the database at its current schema unless the reviewed migration plan explicitly proves backward incompatibility.
+4. Verify health, login, one public invitation, RSVP read path, owner authorization, and admin authorization on the restored version.
+5. Record the deployed commit SHA, artifact IDs, database migration version, timestamps, and incident owner.
 
-## 2. Reversion Steps
+Do not use broad process-name kills or mutable `target/archive` files as a production rollback mechanism. The provider must identify and stop the exact service/release.
 
-Follow these recovery steps in order:
+## Database recovery
 
-### Phase A: Reverse Proxy Re-routing (Edge)
-- If the deployment fails completely, immediately modify the reverse proxy (Nginx or Load Balancer configuration) to target the previous server instance hosting the last stable version.
-- This restores client operations instantly while debugging occurs.
+Flyway migrations are forward-only in this repository. Never delete rows from `flyway_schema_history`, edit an already-shared migration, or drop production columns/tables without a reviewed recovery plan and verified backup.
 
-### Phase B: Frontend Rollback
-- Re-tag or redeploy the static asset folder from the previous build version:
-  - Copy the backup `/dist` folder to Nginx's HTML folder.
-  - Or trigger a version fallback in Cloudflare Pages / Vercel history logs.
+Preferred order:
 
-### Phase C: Backend Application Rollback
-- Stop the active JAR:
-  ```bash
-  kill $(pgrep -f "backend-0.0.1-SNAPSHOT.jar")
-  ```
-- Startup the previous stable JAR package from target archives:
-  ```bash
-  nohup java -jar target/archive/backend-0.0.0-STABLE.jar --spring.profiles.active=prod > backend.log 2>&1 &
-  ```
-- Monitor backend startup logs.
+1. Add and test a compensating forward migration.
+2. If data recovery is required, take the application offline/read-only and restore a verified backup to a separate database.
+3. Validate schema, row counts, ownership boundaries, and application smoke tests before traffic cutover.
+4. Retain the failed database and logs until incident review permits disposal.
 
-### Phase D: Database Schema Rollback
-- **Caution**: Only rollback database schemas if migrations altered table structures incompatibly.
-- Since Flyway works forward-only, database schema rollbacks require manual scripts:
-  - Execute the corresponding `rollback_V{version}.sql` script manually in the MySQL shell to drop fields/tables safely.
-  - Delete the corresponding version entry in the `flyway_schema_history` table to allow subsequent schema migrations.
-  ```sql
-  DELETE FROM flyway_schema_history WHERE version = '13';
-  ```
+## Post-recovery verification
 
----
-
-## 3. Post-Rollback Verification
-
-Confirm system stabilization:
-- Verify Actuator reporting: `GET /actuator/health`.
-- Test user logins, invitation custom properties saving, and budget exports.
-- Inspect system logs for any exceptions or connection errors.
+- Provider health check and `/actuator/health` are healthy.
+- User/admin authentication and authorization boundaries pass.
+- Public invitation rendering, RSVP read/write, and representative owner workflows pass.
+- Payment/Telegram/email/storage integrations are reconciled before re-enabling writes.
+- Monitoring, alerting, backup schedule, and deployment commit metadata are confirmed.

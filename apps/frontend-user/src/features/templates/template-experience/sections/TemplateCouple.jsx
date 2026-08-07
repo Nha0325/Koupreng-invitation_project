@@ -1,4 +1,7 @@
 import TemplateReveal from "../TemplateReveal";
+import TemplateImage from "../TemplateImage";
+import TemplateSectionHeader from "../TemplateSectionHeader";
+import { templateIcons } from "../templateIcons";
 
 /**
  * TemplateCouple — introduce groom & bride with alternating editorial layout.
@@ -8,7 +11,7 @@ function CoupleRow({ name, intro, parents, image, flip, label }) {
     return (
         <TemplateReveal className={`tx-couple__row${flip ? " is-flip" : ""}`}>
             <div className="tx-couple__media">
-                <img src={image} alt={name} loading="lazy" />
+                <TemplateImage src={image} alt={name} />
                 <span className="tx-couple__frame" aria-hidden="true" />
             </div>
             <div className="tx-couple__body">
@@ -25,12 +28,13 @@ export default function TemplateCouple({ content }) {
     return (
         <section className="tx-section tx-couple" data-tx-section="couple" aria-labelledby="tx-couple-title">
             <div className="tx-shell">
-                <header className="tx-section__head">
-                    <TemplateReveal>
-                        <p className="tx-kicker">គូស្នេហ៍</p>
-                        <h2 id="tx-couple-title" className="tx-section__title">កូនកំលោះ និង កូនក្រមុំ</h2>
-                    </TemplateReveal>
-                </header>
+                <TemplateSectionHeader
+                    id="tx-couple-title"
+                    icon={templateIcons.couple}
+                    kicker="គូស្នេហ៍"
+                    title="កូនកំលោះ និង កូនក្រមុំ"
+                    subtitle="THE BRIDE & GROOM"
+                />
 
                 <div className="tx-couple__list">
                     <CoupleRow

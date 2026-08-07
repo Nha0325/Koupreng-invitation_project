@@ -1,4 +1,6 @@
 # 
+/Wedding invitation by me/
+
 .agents
 .continue
 # IDE
@@ -35,6 +37,8 @@ target/
 **/target/
 dist/
 **/dist/
+.vite/
+**/.vite/
 
 # Logs
 *.log
@@ -49,7 +53,14 @@ __pycache__/
 *.py[cod]
 .venv/
 apps/telegram-bot/.venv/
-apps/telegram-bot/main.py
-apps/telegram-bot/start.py
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local test and runtime artifacts
+*.db
+playwright-report/
+test-results/
 
 database.txt
