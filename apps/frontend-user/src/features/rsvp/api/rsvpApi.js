@@ -54,7 +54,16 @@ export function addRsvp(targetId, payload) {
   return response;
 }
 
-export function submitRsvp(payload) {
+export async function submitRsvp(payload) {
+  const slug = payload.slug;
+  if (slug) {
+    try {
+      const response = await rsvpService.submitPublic(slug, payload);
+      return response;
+    } catch {
+      // Fallback to local draft caching if offline
+    }
+  }
   const targetId = payload.invitationId || payload.draftId || payload.slug;
   return addRsvp(targetId, payload);
 }

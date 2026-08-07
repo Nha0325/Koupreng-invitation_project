@@ -220,7 +220,6 @@ function ExpensesList() {
                     setBackendInvitation(null);
                     setInvitationId(null);
                     setError(err.message || "Could not load budget data from backend");
-                    setExpenses(listBudgetExpenses([], eventId).map(normalizeExpense));
                 }
             } finally {
                 if (active) setLoading(false);

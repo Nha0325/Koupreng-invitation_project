@@ -301,8 +301,7 @@ function GiftsFeature() {
             .catch((err) => {
                 if (active) {
                     setError(err.message || "Could not load gifts from backend");
-                    setGifts(listWeddingGifts([], eventId).map(normalizeGift));
-                    setGuestOptions(listManualGuests(eventId));
+                    setGifts([]);
                 }
             })
             .finally(() => {
