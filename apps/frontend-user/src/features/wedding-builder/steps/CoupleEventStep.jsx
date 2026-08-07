@@ -79,7 +79,17 @@ export default function CoupleEventStep({ draft, update, updateField }) {
                 </div>
 
                 <div className="wb-field">
-                    <label htmlFor="event-message">សារអញ្ជើញ (ស្រេចចិត្ត)</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.375rem" }}>
+                        <label htmlFor="event-message" style={{ margin: 0 }}>សារអញ្ជើញ (ស្រេចចិត្ត)</label>
+                        <a
+                            href={`/dashboard/invitations/${draft?.backendInvitationId || draft?.id}/assistant`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: "0.8125rem", color: "var(--brand-primary, #6b6bc4)", textDecoration: "none", fontWeight: "600" }}
+                        >
+                            ✨ ជំនួយការសរសេរ / AI Helper
+                        </a>
+                    </div>
                     <textarea
                         id="event-message"
                         rows={3}

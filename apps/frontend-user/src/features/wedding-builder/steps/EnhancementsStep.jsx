@@ -633,7 +633,17 @@ export default function EnhancementsStep({ draft, update }) {
                 </div>
                 <p className="wb-help">សារនេះបង្ហាញក្នុងផ្នែក «ជូនពរ» មុនសេចក្ដីអរគុណនៅចុងសន្លឹកការ។</p>
                 <div className="wb-field">
-                    <label htmlFor="wish-message">សារអញ្ជើញឱ្យភ្ញៀវជូនពរ</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.375rem" }}>
+                        <label htmlFor="wish-message" style={{ margin: 0 }}>សារអញ្ជើញឱ្យភ្ញៀវជូនពរ</label>
+                        <a
+                            href={`/dashboard/invitations/${draft?.backendInvitationId || draft?.id}/assistant`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: "0.8125rem", color: "var(--brand-primary, #6b6bc4)", textDecoration: "none", fontWeight: "600" }}
+                        >
+                            ✨ ជំនួយការសរសេរ / AI Helper
+                        </a>
+                    </div>
                     <textarea
                         id="wish-message"
                         rows={4}
