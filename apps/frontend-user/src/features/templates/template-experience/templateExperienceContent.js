@@ -13,8 +13,11 @@
  */
 
 import { COVER_KHMER_GOLDEN_CODE, getVariantTheme, KHMER_GOLDEN_CANVA_INSPIRED_CODE } from "./templateExperienceThemes";
-
-const DEFAULT_GUEST_NAME = "លោកអ្នក និងក្រុមគ្រួសារ";
+import {
+    normalizeOpeningCopy,
+    normalizeOpeningDesign,
+    resolveOpeningVideo,
+} from "./openingConfig";
 
 const DEMO_GALLERY = [
     { src: "/facebook/all/01-card/01-01.jpg", span: "tall" },
@@ -339,16 +342,6 @@ function sanitizeDisplayText(value, maxLength = 80) {
         .slice(0, maxLength);
 }
 
-function readGuestNameFromQuery() {
-    if (typeof window === "undefined" || !window.location?.search) return "";
-
-    try {
-        return sanitizeDisplayText(new URLSearchParams(window.location.search).get("guest") || "");
-    } catch {
-        return "";
-    }
-}
-
 /**
  * Build the full content model for a template experience.
  * @param {object} tpl resolved template object (from getTemplateById)
@@ -495,17 +488,18 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             ? hostContact.facebook
             : `https://www.facebook.com/${hostContact.facebook.replace(/^@/, "")}`)
         : "";
-    const design = tpl.design || {};
-    const queryGuestName = readGuestNameFromQuery();
-    const guestName = sanitizeDisplayText(
+    const design = normalizeOpeningDesign(tpl.design || {});
+    const opening = normalizeOpeningCopy(tpl.opening || host.opening || {});
+    const personalizedGuestName = sanitizeDisplayText(
         tpl.guestName ||
         tpl.invitedGuestName ||
         host.guestName ||
         host.invitedGuestName ||
+        host.guest?.guestName ||
         host.guest?.name ||
-        queryGuestName ||
-        DEFAULT_GUEST_NAME
+        ""
     );
+    const guestName = personalizedGuestName || opening.genericGuestText;
     const monogramText = sanitizeDisplayText(
         tpl.shortName ||
         tpl.monogramText ||
@@ -522,6 +516,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         monogramText,
         shortName: sanitizeDisplayText(tpl.shortName || tpl.monogramText || monogramText, 24) || "V & P",
         guestName,
+        isPersonalizedGuest: Boolean(personalizedGuestName),
         groom: tpl.groom || "ប្រុស",
         bride: tpl.bride || "ស្រី",
         groomNickname: nonBlank(hostCouple.groomNickname),
@@ -567,12 +562,14 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         },
         footerThanks: copy.footerThanks,
         footerThanksEn: copy.footerThanksEn,
-        design: {
-            openingStyle: design.openingStyle || "cinematic",
-            ornamentTheme: design.ornamentTheme || "royal-floral",
-        },
+        design,
+        opening,
         music: typeof tpl.music === "string" ? tpl.music : tpl.music?.url,
-        openingVideo: tpl.openingVideo || null,
+        openingVideo: resolveOpeningVideo({
+            mediaVideo: tpl.openingVideo,
+            configuredVideo: design.openingVideoUrl,
+            enabled: design.openingVideoEnabled || Boolean(tpl.openingVideo),
+        }),
         rsvpDeadline: nonBlank(host.rsvp?.deadline),
     };
 }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -140,6 +141,29 @@ class MediaServiceTests {
         MediaListResponse response = fixture.service.listPublic("samnang-sreyneang", "token");
 
         assertEquals(1, response.getGalleryImages().size());
+    }
+
+    @Test
+    void listPublicReturnsCoverVideoGalleryAndMusicInTheirCanonicalFields() {
+        Fixture fixture = fixture();
+        when(fixture.invitationService.requirePublicInvitationForView("samnang-sreyneang", "token"))
+                .thenReturn(fixture.invitation);
+        when(fixture.mediaFileRepository.findByInvitationIdOrderBySortOrderAscCreatedAtAsc(10L))
+                .thenReturn(List.of(
+                        media(fixture.invitation, MediaType.COVER_IMAGE, "cover"),
+                        media(fixture.invitation, MediaType.VIDEO, "video"),
+                        media(fixture.invitation, MediaType.GALLERY_IMAGE, "gallery-one"),
+                        media(fixture.invitation, MediaType.GALLERY_IMAGE, "gallery-two"),
+                        media(fixture.invitation, MediaType.BACKGROUND_MUSIC, "music")
+                ));
+
+        MediaListResponse response = fixture.service.listPublic("samnang-sreyneang", "token");
+
+        assertNotNull(response.getCoverImage());
+        assertNotNull(response.getVideo());
+        assertNotNull(response.getBackgroundMusic());
+        assertEquals(2, response.getGalleryImages().size());
+        assertEquals(5, response.getAll().size());
     }
 
     private Fixture fixture() {

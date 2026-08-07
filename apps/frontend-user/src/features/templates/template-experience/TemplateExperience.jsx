@@ -25,11 +25,14 @@ import TemplateDressCode from "./sections/TemplateDressCode";
 import TemplateGift from "./sections/TemplateGift";
 import TemplateRsvp from "./sections/TemplateRsvp";
 import TemplateWish from "./sections/TemplateWish";
+import TemplateFaq from "./sections/TemplateFaq";
 import TemplateFooter from "./sections/TemplateFooter";
 import TemplateMusicControl from "./controls/TemplateMusicControl";
+import { useTemplateMusicController } from "./controls/useTemplateMusicController";
 import TemplateQuickNav from "./controls/TemplateQuickNav";
 import TemplateSectionHeader from "./TemplateSectionHeader";
 import { templateIcons } from "./templateIcons";
+import { usePrefersReducedMotion } from "../../../shared/hooks/usePrefersReducedMotion";
 import "./template-experience.css";
 import "./canva-khmer/canva-khmer-wedding.css";
 
@@ -81,6 +84,8 @@ export default function TemplateExperience({
         () => contentProp || buildTemplateContent(tpl, resolvedVariant),
         [contentProp, tpl, resolvedVariant]
     );
+    const reducedMotion = usePrefersReducedMotion();
+    const [musicAudioRef, musicController] = useTemplateMusicController(content.music);
     const isCanvaKhmerTemplate =
         variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
         tpl?.variant === KHMER_GOLDEN_CANVA_INSPIRED_CODE ||
@@ -102,9 +107,21 @@ export default function TemplateExperience({
     );
 
     const rootRef = useRef(null);
+    const contentRef = useRef(null);
+    const openingTimerRef = useRef(null);
+    const openingInFlightRef = useRef(false);
     const usesHeroAsOpening = resolvedVariant === COVER_KHMER_GOLDEN_CODE;
-    const [gateOpen, setGateOpen] = useState(preview || usesHeroAsOpening);
+    const [gateState, setGateState] = useState(usesHeroAsOpening ? "opened" : "closed");
     const [heroOpened, setHeroOpened] = useState(!usesHeroAsOpening);
+    const gateOpen = gateState === "opened";
+
+    const setContentNode = useCallback((node) => {
+        contentRef.current = node;
+        if (!node) return;
+        window.requestAnimationFrame(() => {
+            if (node.isConnected) node.focus({ preventScroll: true });
+        });
+    }, []);
 
     const scrollToTarget = useCallback((node) => {
         if (!node) return;
@@ -112,16 +129,36 @@ export default function TemplateExperience({
     }, []);
 
     const handleOpen = useCallback(() => {
-        setGateOpen(true);
+        if (openingInFlightRef.current || gateState !== "closed") return;
+        openingInFlightRef.current = true;
+        setGateState("opening");
+        if (!preview) void musicController.play();
+        openingTimerRef.current = window.setTimeout(() => {
+            setGateState("opened");
+        }, reducedMotion ? 0 : 460);
+    }, [gateState, musicController, preview, reducedMotion]);
+
+    useEffect(() => () => {
+        if (openingTimerRef.current !== null) {
+            window.clearTimeout(openingTimerRef.current);
+        }
     }, []);
 
     useEffect(() => {
-        if (!gateOpen || preview) return undefined;
-        const frame = window.requestAnimationFrame(() => {
-            scrollToTarget(rootRef.current?.querySelector('[data-tx-section="hero"]'));
-        });
-        return () => window.cancelAnimationFrame(frame);
-    }, [gateOpen, preview, scrollToTarget]);
+        if (gateOpen) openingInFlightRef.current = false;
+    }, [gateOpen]);
+
+    const handleReplay = useCallback(() => {
+        if (!preview) return;
+        if (openingTimerRef.current !== null) {
+            window.clearTimeout(openingTimerRef.current);
+            openingTimerRef.current = null;
+        }
+        openingInFlightRef.current = false;
+        musicController.pause();
+        setGateState("closed");
+        rootRef.current?.closest(".wb-phone-scroll")?.scrollTo?.({ top: 0, behavior: "smooth" });
+    }, [musicController, preview]);
 
     const handleHeroOpen = useCallback(() => {
         setHeroOpened(true);
@@ -181,15 +218,23 @@ export default function TemplateExperience({
             )}
 
             <AnimatePresence mode="wait">
-                {!gateOpen ? (
-                    <TemplateOpeningGate key="opening-gate" content={content} onOpen={handleOpen} />
+                {gateState !== "opened" ? (
+                    <TemplateOpeningGate
+                        key="opening-gate"
+                        content={content}
+                        lockDocumentScroll={!preview}
+                        onOpen={handleOpen}
+                        state={gateState}
+                    />
                 ) : (
                     <motion.div
                         key="invitation-content"
                         className="tx-experience"
-                        initial={{ opacity: 0, y: 18 }}
+                        ref={setContentNode}
+                        tabIndex={-1}
+                        initial={reducedMotion ? false : { opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: reducedMotion ? 0 : 0.65, ease: [0.22, 1, 0.36, 1] }}
                     >
                         <TemplateHero content={content} onOpen={handleHeroOpen} />
                         <TemplateMessage content={content} />
@@ -202,6 +247,7 @@ export default function TemplateExperience({
                         {sectionEnabled("dressCode") && <TemplateDressCode content={content} />}
                         {sectionEnabled("gift") && <TemplateGift content={content} />}
                         {sectionEnabled("map") && <TemplateVenue content={content} />}
+                        {sectionEnabled("faq") && <TemplateFaq content={content} />}
 
                         {sectionEnabled("rsvp") && (
                             children ? (
@@ -239,7 +285,13 @@ export default function TemplateExperience({
                 </div>
             )}
 
-            <TemplateMusicControl src={content.music} />
+            {content.music && <audio ref={musicAudioRef} src={content.music} loop preload="none" />}
+            {gateOpen && <TemplateMusicControl controller={musicController} />}
+            {gateOpen && preview && (
+                <button type="button" className="tx-preview-replay" onClick={handleReplay}>
+                    បើកគម្របម្តងទៀត
+                </button>
+            )}
             {gateOpen && showStickyCta && heroOpened && (
                 <TemplateQuickNav
                     enabledSections={content.enabledSections}

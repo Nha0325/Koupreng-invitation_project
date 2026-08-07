@@ -13,7 +13,11 @@ export default function ReviewPublishStep({ draft, onSaveDraft, onPublish, publi
     const storyChapters = draft?.storyChapters || [];
     const schedule = draft?.schedule || [];
     const activeDraft = publishedDraft || draft;
-    const isPublished = Boolean(activeDraft?.publishedAt || publishedDraft);
+    const isPublished = Boolean(
+        activeDraft?.backendStatus === "PUBLISHED"
+        && activeDraft?.slug
+        && publishedDraft
+    );
     const publicPath = activeDraft?.slug ? `/i/${activeDraft.slug}` : "";
     const publicUrl = publicPath ? `${window.location.origin}${publicPath}` : "";
     const isBusy = Boolean(publishState?.action);

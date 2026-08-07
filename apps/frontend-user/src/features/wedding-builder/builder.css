@@ -1580,3 +1580,41 @@
         min-height: 0;
     }
 }
+
+.wb-media-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.wb-opening-media-preview {
+    width: min(100%, 420px);
+    margin: 10px 0 20px;
+    overflow: hidden;
+    border: 1px solid #e5d5b7;
+    border-radius: 10px;
+    background: #24180f;
+}
+
+.wb-opening-media-preview :where(img, video) {
+    display: block;
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+}
+
+.wb-media-status {
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border: 1px solid #b8c89f;
+    border-radius: 7px;
+    color: #3f5d31;
+    background: #f2f7ea;
+    font-size: 13px;
+}
+
+.wb-media-status.is-error {
+    border-color: #dca3a3;
+    color: #8c2828;
+    background: #fff1f1;
+}

@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PublicGuestResponse {
 
-    private Long id;
     private String guestName;
     private String guestGroup;
     private String sideType;
@@ -22,7 +21,6 @@ public class PublicGuestResponse {
     private String tableLabel;
     private String seatLabel;
     private Integer seatCount;
-    private String note;
 
     public static PublicGuestResponse from(Guest guest) {
         return from(guest, null);
@@ -33,7 +31,6 @@ public class PublicGuestResponse {
             return null;
         }
         return PublicGuestResponse.builder()
-                .id(guest.getId())
                 .guestName(guest.getGuestName())
                 .guestGroup(guest.getGuestGroup())
                 .sideType(guest.getSideType())
@@ -46,7 +43,6 @@ public class PublicGuestResponse {
                         : assignment.getTable().getTableLabel())
                 .seatLabel(assignment == null ? null : assignment.getSeatLabel())
                 .seatCount(assignment == null ? guest.getSeatCount() : assignment.getSeatCount())
-                .note(guest.getNote())
                 .build();
     }
 }

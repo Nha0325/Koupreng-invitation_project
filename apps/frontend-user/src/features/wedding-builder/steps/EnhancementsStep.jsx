@@ -1,26 +1,67 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoCameraOutline, IoColorPaletteOutline, IoImagesOutline, IoMusicalNotesOutline, IoVideocamOutline } from "react-icons/io5";
 import { MusicPicker } from "../../../shared/ui/MusicPicker";
 import { OpeningVideoPicker } from "../../../shared/ui/OpeningVideoPicker";
 import { MUSIC_TRACKS } from "../../../shared/data/musicTracks";
-import { saveGallery } from "../../../shared/storage/galleryStorage";
+import { loadGallery, saveGallery } from "../../../shared/storage/galleryStorage";
+import {
+    deleteDraftMediaFile,
+    loadDraftMediaFiles,
+    saveDraftMediaFile,
+} from "../../../shared/storage/draftMediaStorage";
 import RepeatableList from "../components/RepeatableList";
+import { pendingMediaMetadata, validateMediaFile } from "../utils/mediaValidation";
 
 export default function EnhancementsStep({ draft, update }) {
     const fileInputRef = useRef(null);
     const coverInputRef = useRef(null);
     const musicInputRef = useRef(null);
     const openingVideoInputRef = useRef(null);
-    const gallery = draft?.gallery || [];
+    const [gallery, setGallery] = useState([]);
+    const [pendingPreviews, setPendingPreviews] = useState({});
+    const [mediaError, setMediaError] = useState("");
+    const [mediaStatus, setMediaStatus] = useState("");
+    const previewUrlsRef = useRef({});
     const music = draft?.music || MUSIC_TRACKS[0];
     const openingVideo = draft?.openingVideo || null;
     const design = draft?.design || {};
+    const opening = draft?.opening || {};
     const enabledSections = draft?.enabledSections || {};
     const extras = draft?.extras || {};
     const gift = draft?.gift || [];
     const faq = draft?.faq || [];
 
     const storyChapters = draft?.storyChapters || [];
+
+    useEffect(() => {
+        let active = true;
+        const releasePreviews = () => {
+            Object.values(previewUrlsRef.current).forEach((url) => URL.revokeObjectURL(url));
+            previewUrlsRef.current = {};
+        };
+        releasePreviews();
+
+        Promise.all([
+            draft?.id ? loadGallery(draft.id).catch(() => []) : Promise.resolve([]),
+            draft?.id ? loadDraftMediaFiles(draft.id).catch(() => ({})) : Promise.resolve({}),
+        ]).then(([storedGallery, storedMedia]) => {
+            if (!active) return;
+            setGallery(storedGallery.length ? storedGallery : (draft?.gallery || []));
+            const previews = {};
+            Object.entries(storedMedia).forEach(([kind, record]) => {
+                if (!record?.file) return;
+                const url = URL.createObjectURL(record.file);
+                previewUrlsRef.current[kind] = url;
+                previews[kind] = url;
+            });
+            setPendingPreviews(previews);
+        });
+
+        return () => {
+            active = false;
+            releasePreviews();
+        };
+    }, [draft?.gallery, draft?.id]);
 
     const fileToDataUrl = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -29,63 +70,137 @@ export default function EnhancementsStep({ draft, update }) {
         reader.readAsDataURL(file);
     });
 
-    const syncGallery = async (items) => {
-        update({ gallery: items, galleryUpdatedAt: Date.now() });
+    const syncGallery = async (items, removedMediaIds = draft?.removedGalleryMediaIds || []) => {
+        setGallery(items);
+        update({
+            gallery: items.map(({ id, name, type, preview }) => ({
+                id,
+                name,
+                type,
+                ...(typeof preview === "string" && !preview.startsWith("data:") ? { preview } : {}),
+                pending: typeof preview === "string" && preview.startsWith("data:"),
+            })),
+            removedGalleryMediaIds: removedMediaIds,
+            galleryUpdatedAt: Date.now(),
+        });
         if (draft?.id) {
             await saveGallery(draft.id, items);
             window.dispatchEvent(new CustomEvent("gallery-updated", { detail: { draftId: draft.id } }));
         }
     };
 
+    const setPendingPreview = (kind, file) => {
+        if (previewUrlsRef.current[kind]) URL.revokeObjectURL(previewUrlsRef.current[kind]);
+        const url = URL.createObjectURL(file);
+        previewUrlsRef.current[kind] = url;
+        setPendingPreviews((current) => ({ ...current, [kind]: url }));
+    };
+
+    const savePendingFile = async (kind, file) => {
+        const error = validateMediaFile(file, kind);
+        if (error) {
+            setMediaError(error);
+            setMediaStatus("");
+            return false;
+        }
+        setMediaError("");
+        setMediaStatus("កំពុងរៀបចំឯកសារ...");
+        await saveDraftMediaFile(draft.id, kind, file);
+        setPendingPreview(kind, file);
+        update({
+            pendingMedia: {
+                ...(draft.pendingMedia || {}),
+                [kind]: pendingMediaMetadata(file),
+            },
+            removedMedia: {
+                ...(draft.removedMedia || {}),
+                [kind]: false,
+            },
+        });
+        window.dispatchEvent(new CustomEvent("draft-media-updated", { detail: { draftId: draft.id } }));
+        setMediaStatus(`${file.name} រួចរាល់សម្រាប់ upload នៅពេលបោះផ្សាយ។`);
+        return true;
+    };
+
+    const removePendingFile = async (kind, patch = {}) => {
+        await deleteDraftMediaFile(draft.id, kind).catch(() => undefined);
+        if (previewUrlsRef.current[kind]) URL.revokeObjectURL(previewUrlsRef.current[kind]);
+        delete previewUrlsRef.current[kind];
+        setPendingPreviews((current) => {
+            const next = { ...current };
+            delete next[kind];
+            return next;
+        });
+        const nextPending = { ...(draft.pendingMedia || {}) };
+        delete nextPending[kind];
+        update({
+            pendingMedia: nextPending,
+            removedMedia: {
+                ...(draft.removedMedia || {}),
+                [kind]: true,
+            },
+            ...patch,
+        });
+        window.dispatchEvent(new CustomEvent("draft-media-updated", { detail: { draftId: draft.id } }));
+    };
+
     const handleCoverFile = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        const preview = await fileToDataUrl(file);
-        update({ coverImage: preview });
+        await savePendingFile("cover", file);
+        event.target.value = "";
     };
 
     const handleFiles = async (event) => {
         const files = Array.from(event.target.files || []);
+        const invalid = files.map((file) => validateMediaFile(file, "gallery")).find(Boolean);
+        if (invalid) {
+            setMediaError(invalid);
+            event.target.value = "";
+            return;
+        }
         const items = await Promise.all(files.map(async (file) => ({
             id: `${Date.now()}-${file.name}-${Math.random().toString(36).slice(2, 7)}`,
             name: file.name,
             type: file.type?.startsWith("video/") ? "video" : "image",
             preview: await fileToDataUrl(file),
         })));
-        syncGallery([...gallery, ...items]);
+        await syncGallery([...gallery, ...items]);
+        setMediaError("");
+        event.target.value = "";
     };
 
     const handleOpeningVideoFile = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        const preview = await fileToDataUrl(file);
-        update({
-            openingVideo: {
-                id: "custom-opening-video",
-                name: file.name,
-                description: "Custom opening video",
-                url: preview,
-            },
-            openingVideoEnabled: true,
-        });
+        if (await savePendingFile("openingVideo", file)) update({ openingVideoEnabled: true });
+        event.target.value = "";
     };
 
     const handleMusicFile = async (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-        const preview = await fileToDataUrl(file);
-        update({
-            music: {
-                id: "custom-music",
-                name: file.name,
-                description: "Custom background music",
-                url: preview,
-            },
+        await savePendingFile("music", file);
+        event.target.value = "";
+    };
+
+    const handleOpeningVideoChoice = async (video) => {
+        await removePendingFile("openingVideo", {
+            openingVideo: video,
+            openingVideoEnabled: Boolean(video),
         });
     };
 
+    const handleMusicChoice = async (track) => {
+        await removePendingFile("music", { music: track });
+    };
+
     const removeImage = (index) => {
-        syncGallery(gallery.filter((_, itemIndex) => itemIndex !== index));
+        const removed = gallery[index];
+        const removedIds = Number.isFinite(Number(removed?.id))
+            ? [...new Set([...(draft?.removedGalleryMediaIds || []), Number(removed.id)])]
+            : (draft?.removedGalleryMediaIds || []);
+        syncGallery(gallery.filter((_, itemIndex) => itemIndex !== index), removedIds);
     };
 
     const updateDesign = (patch) => {
@@ -94,6 +209,10 @@ export default function EnhancementsStep({ draft, update }) {
 
     const updateExtras = (patch) => {
         update({ extras: { ...extras, ...patch } });
+    };
+
+    const updateOpening = (patch) => {
+        update({ opening: { ...opening, ...patch } });
     };
 
     const toggleSection = (key, checked) => {
@@ -145,41 +264,6 @@ export default function EnhancementsStep({ draft, update }) {
                         placeholder="Write the English version of your story..."
                     />
                 </div>
-
-                <div className="wb-row">
-                    <div className="wb-field">
-                        <label>Monogram text</label>
-                        <input
-                            type="text"
-                            value={design.monogramText || ""}
-                            onChange={(e) => updateDesign({ monogramText: e.target.value })}
-                            placeholder="ឧ. V & P"
-                        />
-                    </div>
-
-                    <div className="wb-field">
-                        <label>Cover image</label>
-                        <button type="button" className="wb-btn wb-btn-secondary" onClick={() => coverInputRef.current?.click()}>
-                            <IoCameraOutline aria-hidden="true" />
-                            ជ្រើសរូប Cover
-                        </button>
-                        <input
-                            ref={coverInputRef}
-                            type="file"
-                            accept="image/*"
-                            hidden
-                            onChange={handleCoverFile}
-                        />
-                    </div>
-                </div>
-
-                {draft?.coverImage && (
-                    <div className="wb-gallery-grid">
-                        <div className="wb-gallery-item">
-                            <img src={draft.coverImage} alt="Cover preview" className="wb-gallery-thumb" />
-                        </div>
-                    </div>
-                )}
 
                 <div className="wb-field">
                     <label>រូបភាព</label>
@@ -260,14 +344,14 @@ export default function EnhancementsStep({ draft, update }) {
                     <label>Opening style</label>
                     <div className="wb-choice-grid wb-choice-grid--three">
                         {[
-                            ["cinematic", "Cinematic", "រូបភាព ឬវីដេអូពេញអេក្រង់"],
+                            ["khmer-royal", "Khmer Royal", "គម្របពិធីការខ្មែរ និងស៊ុមមាស"],
                             ["paper", "Royal Paper", "ក្រដាសក្រែម និងស៊ុមមាស"],
                             ["monogram", "Monogram", "ផ្តោតលើនិមិត្តសញ្ញាគូស្នេហ៍"],
                         ].map(([value, label, description]) => (
                             <button
                                 type="button"
                                 key={value}
-                                className={`wb-choice${(design.openingStyle || "cinematic") === value ? " is-active" : ""}`}
+                                className={`wb-choice${(design.openingStyle || "khmer-royal") === value ? " is-active" : ""}`}
                                 onClick={() => updateDesign({ openingStyle: value })}
                             >
                                 <IoVideocamOutline aria-hidden="true" />
@@ -310,14 +394,138 @@ export default function EnhancementsStep({ draft, update }) {
 
             <section className="wb-section">
                 <div className="wb-section-head">
-                    <span className="wb-section-kicker">Intro</span>
-                    <h3>វីដេអូបើកសន្លឹកការ និងតន្ត្រីផ្ទាល់ខ្លួន</h3>
+                    <span className="wb-section-kicker">Opening cover</span>
+                    <h3>គម្របសន្លឹកការបែបពិធីការខ្មែរ</h3>
+                </div>
+
+                <div className="wb-row">
+                    <div className="wb-field">
+                        <label htmlFor="opening-monogram">អក្សរកាត់គូស្វាមីភរិយា</label>
+                        <input
+                            id="opening-monogram"
+                            type="text"
+                            maxLength={24}
+                            value={design.monogramText || ""}
+                            onChange={(event) => updateDesign({ monogramText: event.target.value })}
+                            placeholder="ឧ. វ & ព"
+                        />
+                    </div>
+                    <div className="wb-field">
+                        <label htmlFor="opening-heading">ចំណងជើងពិធី</label>
+                        <input
+                            id="opening-heading"
+                            type="text"
+                            maxLength={90}
+                            value={opening.heading || ""}
+                            onChange={(event) => updateOpening({ heading: event.target.value })}
+                            placeholder="សិរីមង្គលអាពាហ៍ពិពាហ៍"
+                        />
+                    </div>
+                </div>
+
+                <div className="wb-field">
+                    <label htmlFor="opening-invitation-text">សារអញ្ជើញ</label>
+                    <textarea
+                        id="opening-invitation-text"
+                        rows={2}
+                        maxLength={180}
+                        value={opening.invitationText || ""}
+                        onChange={(event) => updateOpening({ invitationText: event.target.value })}
+                        placeholder="យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញ"
+                    />
+                </div>
+
+                <div className="wb-row">
+                    <div className="wb-field">
+                        <label htmlFor="opening-generic-guest">ពាក្យអញ្ជើញភ្ញៀវទូទៅ</label>
+                        <input
+                            id="opening-generic-guest"
+                            type="text"
+                            maxLength={120}
+                            value={opening.genericGuestText || ""}
+                            onChange={(event) => updateOpening({ genericGuestText: event.target.value })}
+                            placeholder="លោកអ្នក និងក្រុមគ្រួសារ"
+                        />
+                    </div>
+                    <div className="wb-field">
+                        <label htmlFor="opening-button-label">ស្លាកប៊ូតុងបើក</label>
+                        <input
+                            id="opening-button-label"
+                            type="text"
+                            maxLength={72}
+                            value={opening.openButtonText || ""}
+                            onChange={(event) => updateOpening({ openButtonText: event.target.value })}
+                            placeholder="បើកសំបុត្រអញ្ជើញ"
+                        />
+                    </div>
+                </div>
+
+                <div className="wb-row">
+                    <div className="wb-field">
+                        <label>រូបគម្រប</label>
+                        <div className="wb-media-actions">
+                            <button type="button" className="wb-btn wb-btn-secondary" onClick={() => coverInputRef.current?.click()}>
+                                <IoCameraOutline aria-hidden="true" />
+                                {pendingPreviews.cover || draft?.coverImage ? "ប្តូររូបគម្រប" : "ជ្រើសរូបគម្រប"}
+                            </button>
+                            {(pendingPreviews.cover || draft?.coverImage) && (
+                                <button type="button" className="wb-btn" onClick={() => removePendingFile("cover", { coverImage: "" })}>
+                                    ដករូបគម្រប
+                                </button>
+                            )}
+                        </div>
+                        <input
+                            ref={coverInputRef}
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                            hidden
+                            onChange={handleCoverFile}
+                        />
+                    </div>
+                    <div className="wb-field">
+                        <label htmlFor="opening-overlay">កម្រិតស្រមោលលើរូប ({Math.round((design.openingOverlayOpacity ?? 0.48) * 100)}%)</label>
+                        <input
+                            id="opening-overlay"
+                            type="range"
+                            min="0.2"
+                            max="0.8"
+                            step="0.02"
+                            value={design.openingOverlayOpacity ?? 0.48}
+                            onChange={(event) => updateDesign({ openingOverlayOpacity: Number(event.target.value) })}
+                        />
+                    </div>
+                </div>
+
+                {(pendingPreviews.cover || draft?.coverImage) && (
+                    <div className="wb-opening-media-preview">
+                        <img src={pendingPreviews.cover || draft.coverImage} alt="ការបង្ហាញរូបគម្រប" />
+                    </div>
+                )}
+
+                <div className="wb-field">
+                    <label>រចនាបថស៊ុម</label>
+                    <div className="wb-choice-grid wb-choice-grid--three">
+                        {[
+                            ["double-gold", "មាសពីរជាន់"],
+                            ["single-gold", "មាសមួយជាន់"],
+                            ["minimal-gold", "មាសសាមញ្ញ"],
+                        ].map(([value, label]) => (
+                            <button
+                                type="button"
+                                key={value}
+                                className={`wb-choice${(design.frameStyle || "double-gold") === value ? " is-active" : ""}`}
+                                onClick={() => updateDesign({ frameStyle: value })}
+                            >
+                                <strong>{label}</strong>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <label className="wb-toggle-row">
                     <input
                         type="checkbox"
-                        checked={draft?.openingVideoEnabled !== false && Boolean(openingVideo)}
+                        checked={draft?.openingVideoEnabled === true}
                         onChange={(e) => update({ openingVideoEnabled: e.target.checked })}
                     />
                     <span>
@@ -330,50 +538,74 @@ export default function EnhancementsStep({ draft, update }) {
                     <label>ជ្រើសវីដេអូបើក</label>
                     <OpeningVideoPicker
                         value={openingVideo}
-                        onChange={(video) => update({ openingVideo: video, openingVideoEnabled: Boolean(video) })}
+                        onChange={handleOpeningVideoChoice}
                     />
                 </div>
 
                 <div className="wb-field">
                     <label>Upload opening video</label>
-                    <button type="button" className="wb-btn wb-btn-secondary" onClick={() => openingVideoInputRef.current?.click()}>
-                        <IoVideocamOutline aria-hidden="true" />
-                        ជ្រើសវីដេអូផ្ទាល់ខ្លួន
-                    </button>
+                    <div className="wb-media-actions">
+                        <button type="button" className="wb-btn wb-btn-secondary" onClick={() => openingVideoInputRef.current?.click()}>
+                            <IoVideocamOutline aria-hidden="true" />
+                            {pendingPreviews.openingVideo ? "ប្តូរវីដេអូ" : "ជ្រើសវីដេអូផ្ទាល់ខ្លួន"}
+                        </button>
+                        {(pendingPreviews.openingVideo || openingVideo) && (
+                            <button type="button" className="wb-btn" onClick={() => removePendingFile("openingVideo", { openingVideo: null, openingVideoEnabled: false })}>
+                                ដកវីដេអូ
+                            </button>
+                        )}
+                    </div>
                     <input
                         ref={openingVideoInputRef}
                         type="file"
-                        accept="video/*"
+                        accept=".mp4,.webm,video/mp4,video/webm"
                         hidden
                         onChange={handleOpeningVideoFile}
                     />
                 </div>
 
+                {pendingPreviews.openingVideo && (
+                    <div className="wb-opening-media-preview">
+                        <video src={pendingPreviews.openingVideo} muted controls playsInline preload="metadata" />
+                    </div>
+                )}
+
                 <div className="wb-field">
                     <label>តន្ត្រី Background</label>
                     <MusicPicker
                         value={music}
-                        onChange={(track) => update({ music: track })}
+                        onChange={handleMusicChoice}
                     />
                 </div>
 
                 <div className="wb-field">
                     <label>Upload your own song</label>
-                    <button type="button" className="wb-btn wb-btn-secondary" onClick={() => musicInputRef.current?.click()}>
-                        <IoMusicalNotesOutline aria-hidden="true" />
-                        Choose song from my device
-                    </button>
-                    {music?.id === "custom-music" && (
-                        <p className="wb-help">Selected: {music.name}</p>
-                    )}
+                    <div className="wb-media-actions">
+                        <button type="button" className="wb-btn wb-btn-secondary" onClick={() => musicInputRef.current?.click()}>
+                            <IoMusicalNotesOutline aria-hidden="true" />
+                            {pendingPreviews.music ? "ប្តូរបទចម្រៀង" : "ជ្រើសបទចម្រៀងពីឧបករណ៍"}
+                        </button>
+                        {pendingPreviews.music && (
+                            <button type="button" className="wb-btn" onClick={() => removePendingFile("music", { music: MUSIC_TRACKS[0] })}>
+                                ដកបទផ្ទាល់ខ្លួន
+                            </button>
+                        )}
+                    </div>
+                    {draft.pendingMedia?.music?.name && <p className="wb-help">បានជ្រើស: {draft.pendingMedia.music.name}</p>}
                     <input
                         ref={musicInputRef}
                         type="file"
-                        accept="audio/*"
+                        accept=".mp3,.wav,.ogg,audio/mpeg,audio/wav,audio/ogg"
                         hidden
                         onChange={handleMusicFile}
                     />
                 </div>
+
+                {(mediaError || mediaStatus) && (
+                    <p className={`wb-media-status${mediaError ? " is-error" : ""}`} role={mediaError ? "alert" : "status"}>
+                        {mediaError || mediaStatus}
+                    </p>
+                )}
             </section>
 
             <RepeatableList

@@ -28,6 +28,57 @@ class FileUploadValidatorTests {
     }
 
     @Test
+    void acceptsOpeningVideoWithIsoMediaSignature() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "opening.mp4",
+                "video/mp4",
+                new byte[]{0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6F, 0x6D}
+        );
+
+        assertDoesNotThrow(() -> validator.validate(file));
+    }
+
+    @Test
+    void acceptsBackgroundMusicWithMp3Signature() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "wedding.mp3",
+                "audio/mpeg",
+                new byte[]{0x49, 0x44, 0x33, 0x04, 0x00, 0x00}
+        );
+
+        assertDoesNotThrow(() -> validator.validate(file));
+    }
+
+    @Test
+    void acceptsGuestSpreadsheetWithZipContainerSignature() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "guests.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                new byte[]{0x50, 0x4B, 0x03, 0x04, 0x14, 0x00}
+        );
+
+        assertDoesNotThrow(() -> validator.validate(file));
+    }
+
+    @Test
+    void rejectsVideoWhoseContentDoesNotMatchItsDeclaration() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "opening.mp4",
+                "video/mp4",
+                new byte[]{0x4D, 0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+        );
+
+        ApiException exception = assertThrows(ApiException.class, () -> validator.validate(file));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("Uploaded file content does not match its declared type", exception.getMessage());
+    }
+
+    @Test
     void rejectsContentTypeThatDoesNotMatchExtension() {
         MockMultipartFile file = new MockMultipartFile(
                 "file",

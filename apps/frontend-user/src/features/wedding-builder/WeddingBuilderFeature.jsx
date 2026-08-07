@@ -31,7 +31,6 @@ export default function CreateWedding() {
     const loadDraft = useWeddingStore((state) => state.loadDraft);
     const update = useWeddingStore((state) => state.update);
     const updateField = useWeddingStore((state) => state.updateField);
-    const publishDraft = useWeddingStore((state) => state.publishDraft);
 
     useEffect(() => {
         if (initialized.current) return;
@@ -82,13 +81,14 @@ export default function CreateWedding() {
             setPublishState({ action: "", error: "", warning: "Draft saved to the backend." });
             return saved;
         } catch (err) {
+            const recoveredDraft = err?.partialPatch ? update(err.partialPatch) : draft;
             if (isBackendUnavailable(err)) {
                 setPublishState({
                     action: "",
                     error: "",
                     warning: "Backend is unavailable, so the draft remains saved locally in this browser.",
                 });
-                return draft;
+                return recoveredDraft;
             }
             setPublishState({ action: "", error: err.message || "Could not save draft.", warning: "" });
             throw err;
@@ -108,20 +108,15 @@ export default function CreateWedding() {
             setPublishState({ action: "", error: "", warning: "" });
             return saved;
         } catch (err) {
-            if (isBackendUnavailable(err)) {
-                const saved = publishDraft();
-                setPublishedDraft(saved);
-                setPublishState({
-                    action: "",
-                    error: "",
-                    warning: "Backend is unavailable, so this link is published locally for this browser only.",
-                });
-                return saved;
-            }
-            setPublishState({ action: "", error: err.message || "Could not publish invitation.", warning: "" });
+            if (err?.partialPatch) update(err.partialPatch);
+            const message = isBackendUnavailable(err)
+                ? "មិនអាចភ្ជាប់ទៅ backend បានទេ។ សន្លឹកការមិនត្រូវបានបោះផ្សាយ ហើយអ្នកអាចព្យាយាមម្តងទៀត។"
+                : (err.message || "មិនអាចបោះផ្សាយសន្លឹកការបានទេ។");
+            setPublishedDraft(null);
+            setPublishState({ action: "", error: message, warning: "" });
             throw err;
         }
-    }, [draft, publishDraft, update]);
+    }, [draft, update]);
 
     const stepEl = useMemo(() => {
         if (!CurrentStep || !draft) return null;

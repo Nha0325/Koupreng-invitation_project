@@ -3,6 +3,7 @@ package com.koupreng.backend.service;
 import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.invitation.InvitationRequest;
 import com.koupreng.backend.dto.invitation.InvitationResponse;
+import com.koupreng.backend.dto.invitation.PublicGuestResponse;
 import com.koupreng.backend.dto.invitation.PublicInvitationResponse;
 import com.koupreng.backend.entity.invitation.EventType;
 import com.koupreng.backend.entity.invitation.Guest;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -184,6 +186,90 @@ class InvitationServiceTests {
         PublicInvitationResponse response = fixture.service.publicBySlug("draft-invitation", "token");
 
         assertEquals("draft-invitation", response.getSlug());
+    }
+
+    @Test
+    void publicSlugReturnsOnlySafePersonalizedGuestFieldsAndMarksFirstView() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PUBLIC);
+        Guest guest = new Guest();
+        guest.setId(91L);
+        guest.setGuestName("Lok Dara and family");
+        guest.setGuestGroup("Family");
+        guest.setNote("private host note");
+        guest.setInviteToken("secret-token");
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+        when(fixture.guestRepository.findByInvitationIdAndInviteToken(10L, "secret-token"))
+                .thenReturn(Optional.of(guest));
+
+        PublicInvitationResponse response = fixture.service.publicBySlug("draft-invitation", "secret-token");
+
+        assertEquals("Lok Dara and family", response.getGuest().getGuestName());
+        assertEquals("Family", response.getGuest().getGuestGroup());
+        assertNotNull(guest.getInvitationViewedAt());
+        assertFalse(hasDeclaredField(PublicGuestResponse.class, "id"));
+        assertFalse(hasDeclaredField(PublicGuestResponse.class, "note"));
+        assertFalse(hasDeclaredField(PublicGuestResponse.class, "inviteToken"));
+        assertFalse(hasDeclaredField(PublicGuestResponse.class, "phone"));
+    }
+
+    @Test
+    void publicSlugWithUnknownTokenStaysGenericForPublicInvitation() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PUBLIC);
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+        when(fixture.guestRepository.findByInvitationIdAndInviteToken(10L, "unknown"))
+                .thenReturn(Optional.empty());
+
+        PublicInvitationResponse response = fixture.service.publicBySlug("draft-invitation", "unknown");
+
+        assertNull(response.getGuest());
+        verify(fixture.guestRepository).findByInvitationIdAndInviteToken(10L, "unknown");
+    }
+
+    @Test
+    void privateInvitationRejectsTokenThatDoesNotBelongToThatInvitation() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PRIVATE);
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+        when(fixture.guestRepository.findByInvitationIdAndInviteToken(10L, "other-invitation-token"))
+                .thenReturn(Optional.empty());
+
+        ApiException exception = assertThrows(
+                ApiException.class,
+                () -> fixture.service.publicBySlug("draft-invitation", "other-invitation-token")
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+        verify(fixture.guestRepository).findByInvitationIdAndInviteToken(10L, "other-invitation-token");
+    }
+
+    @Test
+    void publicSlugPreservesPublishedDesignAndContentJson() {
+        Fixture fixture = fixture();
+        UserInvitation invitation = validInvitation(fixture.owner);
+        invitation.setStatus(InvitationStatus.PUBLISHED);
+        invitation.setVisibility(InvitationVisibility.PUBLIC);
+        invitation.setDesignJson("{\"openingStyle\":\"khmer-royal\"}");
+        invitation.setContentJson("{\"opening\":{\"openButtonText\":\"Open\"}}");
+        invitation.setEnabledSections("{\"gallery\":false,\"rsvp\":true}");
+        when(fixture.invitationRepository.findBySlugAndStatusAndDeletedFalse("draft-invitation", InvitationStatus.PUBLISHED))
+                .thenReturn(Optional.of(invitation));
+
+        PublicInvitationResponse response = fixture.service.publicBySlug("draft-invitation");
+
+        assertEquals(invitation.getDesignJson(), response.getDesignJson());
+        assertEquals(invitation.getContentJson(), response.getContentJson());
+        assertEquals(invitation.getEnabledSections(), response.getEnabledSections());
     }
 
     @Test

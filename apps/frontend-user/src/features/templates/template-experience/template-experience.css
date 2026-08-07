@@ -1716,6 +1716,289 @@
     }
 }
 
+/* Opening gate v2: scoped ceremonial cover shared by preview and public pages. */
+.tx-root .tx-gate {
+    position: relative;
+    width: 100%;
+    min-height: 100svh;
+    padding:
+        max(4.5rem, calc(env(safe-area-inset-top) + 2.25rem))
+        max(1.35rem, calc(env(safe-area-inset-right) + 1rem))
+        max(4rem, calc(env(safe-area-inset-bottom) + 2rem))
+        max(1.35rem, calc(env(safe-area-inset-left) + 1rem));
+    color: #fff9eb;
+    background: var(--tx-gate-primary, #6f1d2b);
+}
+
+/*
+ * Keep the document locked while the invitation is closed, but let the gate
+ * itself scroll when short landscape viewports cannot contain the ceremony
+ * copy and open button. `dvh` follows the visible mobile viewport; `vh` is the
+ * fallback for browsers that predate dynamic viewport units.
+ */
+.tx-root:not(.tx-root--preview) .tx-gate {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.tx-root--preview .tx-gate {
+    min-height: 100%;
+    aspect-ratio: 9 / 16;
+    padding: 3rem 1rem 2.5rem;
+}
+
+.tx-root .tx-gate.is-opening {
+    pointer-events: none;
+}
+
+.tx-root .tx-gate__media {
+    inset: 0;
+    transform: none;
+    object-position: center;
+}
+
+.tx-root .tx-gate__veil {
+    background:
+        radial-gradient(circle at 50% 32%, rgba(255, 239, 201, 0.2), transparent 32%),
+        linear-gradient(
+            180deg,
+            rgba(42, 10, 17, calc(var(--tx-gate-overlay-opacity, 0.48) * 0.82)),
+            rgba(48, 13, 18, var(--tx-gate-overlay-opacity, 0.48)) 46%,
+            rgba(27, 9, 8, min(0.88, calc(var(--tx-gate-overlay-opacity, 0.48) + 0.24)))
+        );
+}
+
+.tx-root .tx-gate__paper {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.16;
+    background:
+        repeating-linear-gradient(7deg, transparent 0 3px, rgba(255, 248, 225, 0.16) 4px 5px),
+        radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.16) 0 1px, transparent 2px);
+    background-size: auto, 19px 19px;
+    mix-blend-mode: soft-light;
+}
+
+.tx-root .tx-gate__frame {
+    position: absolute;
+    inset:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+    z-index: 2;
+    border: 1px solid color-mix(in srgb, var(--tx-gate-accent, #c99a3d) 88%, #fff4d7);
+    pointer-events: none;
+}
+
+.tx-root .tx-gate--frame-double-gold .tx-gate__frame {
+    box-shadow:
+        inset 0 0 0 6px rgba(92, 45, 12, 0.2),
+        inset 0 0 0 7px color-mix(in srgb, var(--tx-gate-accent, #c99a3d) 62%, transparent);
+}
+
+.tx-root .tx-gate--frame-minimal-gold .tx-gate__frame {
+    inset: 20px;
+    border-color: color-mix(in srgb, var(--tx-gate-accent, #c99a3d) 56%, transparent);
+    box-shadow: none;
+}
+
+.tx-root .tx-gate__corner {
+    position: absolute;
+    z-index: 3;
+    width: clamp(58px, 18vw, 92px);
+    height: auto;
+    color: var(--tx-gate-accent, #c99a3d);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.35;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 2px 5px rgba(35, 15, 4, 0.35));
+    pointer-events: none;
+}
+
+.tx-root .tx-gate__corner--top-left { top: 15px; left: 15px; }
+.tx-root .tx-gate__corner--top-right { top: 15px; right: 15px; transform: rotate(90deg); }
+.tx-root .tx-gate__corner--bottom-right { right: 15px; bottom: 15px; transform: rotate(180deg); }
+.tx-root .tx-gate__corner--bottom-left { bottom: 15px; left: 15px; transform: rotate(270deg); }
+
+.tx-root .tx-gate--ornament-minimal-gold .tx-gate__corner path:not(:first-child) {
+    display: none;
+}
+
+.tx-root .tx-gate__content {
+    z-index: 4;
+    gap: 0.35rem;
+    width: min(100%, 36rem);
+}
+
+.tx-root .tx-gate__eyebrow {
+    margin: 0;
+    color: #fff5dc;
+    font-family: var(--font-kh-title, "Moul", serif);
+    font-size: clamp(1rem, 4.5vw, 1.45rem);
+    font-weight: 400;
+    line-height: 1.8;
+    text-wrap: balance;
+}
+
+.tx-root .tx-gate__invitation-text,
+.tx-root .tx-gate__guest {
+    margin: 0;
+    color: rgba(255, 249, 235, 0.92);
+    font-family: var(--font-kh-body, "Noto Sans Khmer", sans-serif);
+    font-size: clamp(0.85rem, 3.2vw, 1rem);
+    line-height: 1.75;
+    text-wrap: balance;
+}
+
+.tx-root .tx-gate__crest {
+    width: clamp(88px, 25vw, 124px);
+    margin: 0.55rem 0 0.35rem;
+    border: 1px solid color-mix(in srgb, var(--tx-gate-accent, #c99a3d) 86%, #fff);
+    border-radius: 50% 50% 46% 54% / 52% 48% 55% 45%;
+    color: var(--tx-gate-accent, #c99a3d);
+    background: rgba(71, 19, 25, 0.68);
+    box-shadow:
+        inset 0 0 0 5px rgba(255, 233, 181, 0.08),
+        0 18px 42px rgba(21, 8, 4, 0.32);
+}
+
+.tx-root .tx-gate__crest strong {
+    max-width: 90%;
+    overflow-wrap: anywhere;
+    font-family: var(--font-en-romantic, Georgia, serif);
+    font-size: clamp(1.35rem, 7vw, 2.25rem);
+    font-weight: 500;
+}
+
+.tx-root .tx-gate h1 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2em 0.45em;
+    max-width: 100%;
+    margin: 0.2rem 0 0;
+    font-family: var(--font-kh-title, "Moul", serif);
+    font-size: clamp(1.55rem, 8.5vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+
+.tx-root .tx-gate h1 span {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.tx-root .tx-gate h1 em {
+    flex: 0 0 auto;
+    color: var(--tx-gate-accent, #c99a3d);
+    font-family: var(--font-en-romantic, Georgia, serif);
+    font-size: 0.62em;
+}
+
+.tx-root .tx-gate__separator {
+    display: flex;
+    align-items: center;
+    width: min(14rem, 72%);
+    height: 1.25rem;
+    margin: 0.1rem 0;
+}
+
+.tx-root .tx-gate__separator::before,
+.tx-root .tx-gate__separator::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--tx-gate-accent, #c99a3d));
+}
+
+.tx-root .tx-gate__separator::after { transform: scaleX(-1); }
+.tx-root .tx-gate__separator span {
+    width: 9px;
+    aspect-ratio: 1;
+    margin: 0 0.55rem;
+    border: 1px solid var(--tx-gate-accent, #c99a3d);
+    transform: rotate(45deg);
+}
+
+.tx-root .tx-gate__date {
+    margin: 0.2rem 0 0;
+    color: #f7ddb0;
+    font-family: var(--font-kh-body, "Noto Sans Khmer", sans-serif);
+    line-height: 1.7;
+}
+
+.tx-root .tx-gate__button {
+    min-width: min(100%, 15.5rem);
+    min-height: 48px;
+    margin-top: 1rem;
+    border: 1px solid #f2d38d;
+    border-radius: 999px;
+    color: #3b190c;
+    background: linear-gradient(135deg, #fff1bf, var(--tx-gate-accent, #c99a3d));
+    box-shadow: 0 12px 32px rgba(24, 8, 3, 0.34);
+    font-family: var(--font-kh-body, "Noto Sans Khmer", sans-serif);
+    font-size: clamp(0.9rem, 3.5vw, 1.05rem);
+    font-weight: 700;
+    white-space: normal;
+}
+
+.tx-root .tx-gate__button:focus-visible,
+.tx-root .tx-preview-replay:focus-visible {
+    outline: 3px solid #fff8df;
+    outline-offset: 3px;
+}
+
+.tx-root .tx-experience:focus { outline: none; }
+
+.tx-root .tx-preview-replay {
+    position: sticky;
+    z-index: 10;
+    bottom: 0.65rem;
+    left: 50%;
+    display: block;
+    min-height: 44px;
+    margin: -3.5rem auto 0.65rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid rgba(201, 154, 61, 0.55);
+    border-radius: 999px;
+    color: #4c2d14;
+    background: rgba(255, 250, 240, 0.94);
+    box-shadow: 0 8px 22px rgba(55, 31, 12, 0.18);
+    font-family: var(--font-kh-body, "Noto Sans Khmer", sans-serif);
+}
+
+@media (max-width: 360px) {
+    .tx-root .tx-gate {
+        padding-inline: max(1.05rem, env(safe-area-inset-left));
+    }
+
+    .tx-root .tx-gate__content { gap: 0.18rem; }
+    .tx-root .tx-gate__crest { width: 82px; }
+    .tx-root .tx-gate h1 { font-size: clamp(1.35rem, 8vw, 1.8rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tx-root .tx-gate,
+    .tx-root .tx-gate *,
+    .tx-root .tx-experience {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 /* ============================================================
    TEMPLATE THEME
    The kept template overrides CSS variables and a few accents.
@@ -5224,4 +5507,113 @@
         animation: none !important;
         transition: none !important;
     }
+}
+
+/* Keep the shared Khmer opening cover authoritative over legacy variant layers. */
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding:
+        max(4.5rem, calc(env(safe-area-inset-top) + 2.25rem))
+        max(1.35rem, calc(env(safe-area-inset-right) + 1rem))
+        max(4rem, calc(env(safe-area-inset-bottom) + 2rem))
+        max(1.35rem, calc(env(safe-area-inset-left) + 1rem));
+    background: var(--tx-gate-primary, #6f1d2b);
+}
+
+.tx-root--preview.template-experience--garden-royal-khmer-wedding .tx-gate {
+    height: 100%;
+    min-height: 100%;
+    overflow-y: auto;
+    padding: 3rem 1rem 2.5rem;
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__media {
+    opacity: 1;
+    filter: saturate(0.82) contrast(0.96);
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__veil {
+    background:
+        radial-gradient(circle at 50% 32%, rgba(255, 239, 201, 0.2), transparent 32%),
+        linear-gradient(
+            180deg,
+            rgba(42, 10, 17, calc(var(--tx-gate-overlay-opacity, 0.48) * 0.82)),
+            rgba(48, 13, 18, var(--tx-gate-overlay-opacity, 0.48)) 46%,
+            rgba(27, 9, 8, calc(var(--tx-gate-overlay-opacity, 0.48) + 0.24))
+        );
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__frame {
+    inset:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__content {
+    z-index: 4;
+    gap: 0.35rem;
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__eyebrow {
+    max-width: 18em;
+    margin: 0;
+    color: #fff5dc;
+    font-size: clamp(1rem, 4.5vw, 1.45rem);
+    line-height: 1.8;
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__crest {
+    width: clamp(88px, 25vw, 124px);
+    margin: 0.55rem 0 0.35rem;
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate h1 {
+    margin: 0.2rem 0 0;
+    font-size: clamp(1.55rem, 8.5vw, 2.8rem);
+    line-height: 1.55;
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__date {
+    margin: 0.2rem 0 0;
+}
+
+.tx-root.template-experience--garden-royal-khmer-wedding .tx-gate__button {
+    min-height: 48px;
+    margin-top: 1rem;
+    border-color: #f2d38d;
+}
+
+.tx-root .tx-faq__list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.tx-root .tx-faq__item {
+    border: 1px solid rgba(201, 154, 61, 0.32);
+    border-radius: 10px;
+    background: rgba(255, 250, 240, 0.82);
+}
+
+.tx-root .tx-faq__item summary {
+    min-height: 44px;
+    padding: 0.85rem 1rem;
+    color: var(--tpl-text);
+    cursor: pointer;
+    font-family: var(--font-kh-body, "Noto Sans Khmer", sans-serif);
+    font-weight: 700;
+    line-height: 1.65;
+}
+
+.tx-root .tx-faq__item p {
+    margin: 0;
+    padding: 0 1rem 1rem;
+    color: var(--tpl-muted);
+    font-family: var(--font-kh-body, "Noto Sans Khmer", sans-serif);
+    line-height: 1.8;
 }

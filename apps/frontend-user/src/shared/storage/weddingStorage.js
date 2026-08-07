@@ -87,11 +87,21 @@ export function createDraft(initial = {}) {
     faq: initial.faq || [],
     design: {
       monogramText: "",
-      primaryColor: "#C99A3D",
-      accentColor: "#6F7D55",
-      openingStyle: "cinematic",
+      primaryColor: "#6F1D2B",
+      accentColor: "#C99A3D",
+      openingStyle: "khmer-royal",
+      openingOverlayOpacity: 0.48,
+      frameStyle: "double-gold",
+      ornamentStyle: "khmer-corner-01",
       ornamentTheme: "royal-floral",
       ...initial.design,
+    },
+    opening: {
+      heading: "សិរីមង្គលអាពាហ៍ពិពាហ៍",
+      invitationText: "យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញ",
+      genericGuestText: "លោកអ្នក និងក្រុមគ្រួសារ",
+      openButtonText: "បើកសំបុត្រអញ្ជើញ",
+      ...initial.opening,
     },
     enabledSections: {
       countdown: true,
@@ -111,6 +121,7 @@ export function createDraft(initial = {}) {
     gallery: initial.gallery || [],
     openingVideo: initial.openingVideo || null,
     openingVideoEnabled: initial.openingVideoEnabled ?? Boolean(initial.openingVideo),
+    pendingMedia: initial.pendingMedia || {},
     rsvp: { enabled: true, deadline: "", ...initial.rsvp },
     extras: {
       playlistLink: "",

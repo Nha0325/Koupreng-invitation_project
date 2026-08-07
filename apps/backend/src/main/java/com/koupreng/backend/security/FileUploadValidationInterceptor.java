@@ -40,6 +40,9 @@ public class FileUploadValidationInterceptor implements HandlerInterceptor {
 
             for (MultipartFile file : files) {
                 validator.validate(file);
+                if (request.getRequestURI().endsWith("/profile-image")) {
+                    validator.requireImage(file);
+                }
             }
         }
 

@@ -1,4 +1,9 @@
 import { KEEP_TEMPLATE_CODE } from "../../templates/data/templatesData";
+import {
+  normalizeOpeningCopy,
+  normalizeOpeningDesign,
+  resolveOpeningVideo,
+} from "../../templates/template-experience/openingConfig";
 
 export function safeJson(value, fallback = {}) {
   if (!value) return fallback;
@@ -16,6 +21,10 @@ function timeValue(value) {
 
 export function isDataUrl(value) {
   return typeof value === "string" && value.startsWith("data:");
+}
+
+export function isLocalPreviewUrl(value) {
+  return typeof value === "string" && (value.startsWith("data:") || value.startsWith("blob:"));
 }
 
 function normalizeGalleryItem(item, index) {
@@ -55,7 +64,7 @@ export function toBackendLanguageMode(value) {
 }
 
 function publicMediaRef(value) {
-  if (!value || isDataUrl(value.url)) return null;
+  if (!value || isLocalPreviewUrl(value.url)) return null;
   return {
     id: value.id || "",
     name: value.name || "",
@@ -95,6 +104,22 @@ export function publicInvitationToDraft(invitation, media) {
       }
     : null;
 
+  const normalizedDesign = normalizeOpeningDesign({
+    ...design,
+    openingVideoEnabled: layout.openingVideoEnabled
+      ?? design.openingVideoEnabled
+      ?? Boolean(mediaOpeningVideo || design.openingVideoUrl || content.openingVideo),
+  });
+  const openingVideoEnabled = layout.openingVideoEnabled
+    ?? normalizedDesign.openingVideoEnabled
+    ?? Boolean(mediaOpeningVideo || design.openingVideoUrl || content.openingVideo);
+  const reconstructedOpeningVideo = resolveOpeningVideo({
+    mediaVideo: mediaOpeningVideo,
+    configuredVideo: design.openingVideoUrl,
+    contentVideo: content.openingVideo,
+    enabled: openingVideoEnabled,
+  });
+
   return {
     id: invitation?.id || invitation?.slug || "public-invitation",
     backendInvitationId: invitation?.id || null,
@@ -128,14 +153,24 @@ export function publicInvitationToDraft(invitation, media) {
       ? gallery
       : (Array.isArray(content.gallery) ? content.gallery.map(normalizeGalleryItem).filter(Boolean) : []),
     music: mediaMusic || content.music || null,
-    openingVideo: mediaOpeningVideo || content.openingVideo || null,
-    openingVideoEnabled: layout.openingVideoEnabled ?? Boolean(mediaOpeningVideo || content.openingVideo),
+    openingVideo: reconstructedOpeningVideo,
+    openingVideoEnabled,
     rsvp: {
       ...(content.rsvp || {}),
       enabled: enabled.rsvp !== false,
       deadline: content.rsvp?.deadline || invitation?.rsvpDeadline || "",
     },
-    design,
+    design: normalizedDesign,
+    opening: normalizeOpeningCopy(content.opening),
+    guest: invitation?.guest?.guestName
+      ? {
+          guestName: invitation.guest.guestName,
+          guestGroup: invitation.guest.guestGroup || "",
+          seatCount: invitation.guest.seatCount ?? null,
+          tableName: invitation.guest.tableName || invitation.guest.tableNumber || "",
+          seatLabel: invitation.guest.seatLabel || "",
+        }
+      : null,
     extras: {
       ...(content.extras || {}),
       languageMode: toTemplateLanguageMode(invitation?.languageMode || content.extras?.languageMode),
@@ -166,7 +201,7 @@ function normalizeTime(value) {
 function serializableGallery(gallery = []) {
   return gallery
     .map(normalizeGalleryItem)
-    .filter((item) => item?.preview && !isDataUrl(item.preview));
+    .filter((item) => item?.preview && !isLocalPreviewUrl(item.preview));
 }
 
 export function draftToInvitationPayload(draft, backendTemplateId) {
@@ -178,7 +213,7 @@ export function draftToInvitationPayload(draft, backendTemplateId) {
     rsvp: draft?.rsvp?.enabled !== false && draft?.enabledSections?.rsvp !== false,
   };
   const languageMode = extras.languageMode || "both";
-  const coverImage = draft?.coverImage && !isDataUrl(draft.coverImage) ? draft.coverImage : "";
+  const coverImage = draft?.coverImage && !isLocalPreviewUrl(draft.coverImage) ? draft.coverImage : "";
   const content = compactObject({
     templateId: draft?.templateId || KEEP_TEMPLATE_CODE,
     couple,
@@ -196,18 +231,22 @@ export function draftToInvitationPayload(draft, backendTemplateId) {
     coverImage,
     music: publicMediaRef(draft?.music),
     openingVideo: draft?.openingVideoEnabled === false ? null : publicMediaRef(draft?.openingVideo),
+    opening: normalizeOpeningCopy(draft?.opening),
     rsvp: draft?.rsvp || { enabled: true },
     extras: {
       ...extras,
       languageMode,
     },
   });
-  const design = {
+  const design = normalizeOpeningDesign({
     templateId: draft?.templateId || KEEP_TEMPLATE_CODE,
     ...(draft?.design || {}),
-  };
+    openingVideoEnabled:
+      draft?.openingVideoEnabled !== false && Boolean(draft?.openingVideo || draft?.design?.openingVideoUrl),
+  });
   const layout = {
-    openingVideoEnabled: draft?.openingVideoEnabled !== false && Boolean(draft?.openingVideo),
+    openingVideoEnabled:
+      draft?.openingVideoEnabled !== false && Boolean(draft?.openingVideo || draft?.design?.openingVideoUrl),
   };
 
   return {

@@ -1,6 +1,11 @@
 import { invitationService } from "../../invitations/api/invitationApi";
 import { mediaService } from "../../invitations/api/mediaApi";
 import templateService from "../../templates/templateService";
+import { loadGallery, saveGallery } from "../../../shared/storage/galleryStorage";
+import {
+  deleteDraftMediaFile,
+  loadDraftMediaFiles,
+} from "../../../shared/storage/draftMediaStorage";
 import {
   draftMediaSignature,
   draftToInvitationPayload,
@@ -43,32 +48,75 @@ function localGalleryFiles(gallery = []) {
 }
 
 async function resolveBackendTemplateId(templateCode) {
-  try {
-    const template = await templateService.getPublicBySlug(templateCode || "garden-royal-khmer-wedding");
-    return template?.id || null;
-  } catch {
-    return null;
-  }
+  const template = await templateService.getPublicBySlug(templateCode || "garden-royal-khmer-wedding");
+  if (!template?.id) throw new Error("The Garden Royal template is not available from the backend.");
+  return template.id;
 }
 
-async function uploadDraftMedia(invitationId, draft, nextSignature) {
-  if (!invitationId || draft.remoteMediaSignature === nextSignature) {
-    return false;
+function remoteGalleryItem(item, index) {
+  return {
+    id: item.id || `remote-gallery-${index}`,
+    name: item.originalFilename || `Gallery ${index + 1}`,
+    type: "image",
+    preview: item.fileUrl,
+  };
+}
+
+async function uploadDraftMedia(invitationId, draft) {
+  if (!invitationId) return { media: null, mediaSynced: false };
+  const [pendingMedia, storedGallery] = await Promise.all([
+    draft.id ? loadDraftMediaFiles(draft.id).catch(() => ({})) : Promise.resolve({}),
+    draft.id ? loadGallery(draft.id).catch(() => draft.gallery || []) : Promise.resolve(draft.gallery || []),
+  ]);
+  let mediaSynced = false;
+
+  const removedMedia = draft.removedMedia || {};
+  const removedGalleryMediaIds = Array.from(new Set(draft.removedGalleryMediaIds || []));
+  if (removedMedia.cover || removedMedia.openingVideo || removedMedia.music || removedGalleryMediaIds.length) {
+    const existing = await mediaService.list(invitationId);
+    const removalIds = [
+      removedMedia.cover ? existing?.coverImage?.id : null,
+      removedMedia.openingVideo ? existing?.video?.id : null,
+      removedMedia.music ? existing?.backgroundMusic?.id : null,
+      ...removedGalleryMediaIds,
+    ].filter(Boolean);
+    for (const mediaId of new Set(removalIds)) {
+      await mediaService.remove(invitationId, mediaId);
+    }
+    mediaSynced = removalIds.length > 0;
   }
 
-  if (isDataUrl(draft.coverImage)) {
+  if (pendingMedia.cover?.file) {
+    await mediaService.uploadCover(invitationId, pendingMedia.cover.file);
+    await deleteDraftMediaFile(draft.id, "cover");
+    mediaSynced = true;
+  } else if (isDataUrl(draft.coverImage)) {
     await mediaService.uploadCover(
       invitationId,
       dataUrlToFile(draft.coverImage, `cover.${extensionForDataUrl(draft.coverImage, "jpg")}`)
     );
+    mediaSynced = true;
   }
 
-  const galleryFiles = localGalleryFiles(draft.gallery || []);
+  const galleryFiles = localGalleryFiles(storedGallery);
   if (galleryFiles.length) {
-    await mediaService.uploadGallery(invitationId, galleryFiles);
+    const uploaded = await mediaService.uploadGallery(invitationId, galleryFiles);
+    const retained = storedGallery.filter((item) => {
+      const preview = typeof item === "string" ? item : item?.preview;
+      return !isDataUrl(preview);
+    });
+    await saveGallery(draft.id, [
+      ...retained,
+      ...uploaded.map(remoteGalleryItem),
+    ]);
+    mediaSynced = true;
   }
 
-  if (draft.openingVideoEnabled !== false && isDataUrl(draft.openingVideo?.url)) {
+  if (draft.openingVideoEnabled !== false && pendingMedia.openingVideo?.file) {
+    await mediaService.uploadVideo(invitationId, pendingMedia.openingVideo.file);
+    await deleteDraftMediaFile(draft.id, "openingVideo");
+    mediaSynced = true;
+  } else if (draft.openingVideoEnabled !== false && isDataUrl(draft.openingVideo?.url)) {
     await mediaService.uploadVideo(
       invitationId,
       dataUrlToFile(
@@ -76,9 +124,14 @@ async function uploadDraftMedia(invitationId, draft, nextSignature) {
         draft.openingVideo.name || `opening-video.${extensionForDataUrl(draft.openingVideo.url, "mp4")}`
       )
     );
+    mediaSynced = true;
   }
 
-  if (isDataUrl(draft.music?.url)) {
+  if (pendingMedia.music?.file) {
+    await mediaService.uploadMusic(invitationId, pendingMedia.music.file);
+    await deleteDraftMediaFile(draft.id, "music");
+    mediaSynced = true;
+  } else if (isDataUrl(draft.music?.url)) {
     await mediaService.uploadMusic(
       invitationId,
       dataUrlToFile(
@@ -86,12 +139,16 @@ async function uploadDraftMedia(invitationId, draft, nextSignature) {
         draft.music.name || `background-music.${extensionForDataUrl(draft.music.url, "mp3")}`
       )
     );
+    mediaSynced = true;
   }
 
-  return true;
+  return {
+    media: await mediaService.list(invitationId),
+    mediaSynced,
+  };
 }
 
-function responsePatch(response, signature, mediaSynced) {
+function responsePatch(response, remoteDraft, signature, mediaSynced) {
   return {
     backendInvitationId: response.id,
     backendTemplateId: response.templateId || null,
@@ -100,7 +157,76 @@ function responsePatch(response, signature, mediaSynced) {
     publishedAt: response.publishedAt ? Date.parse(response.publishedAt) : undefined,
     remoteMediaSignature: signature,
     remoteMediaSyncedAt: mediaSynced ? Date.now() : undefined,
+    coverImage: remoteDraft.coverImage,
+    gallery: remoteDraft.gallery,
+    music: remoteDraft.music,
+    openingVideo: remoteDraft.openingVideo,
+    openingVideoEnabled: remoteDraft.openingVideoEnabled,
+    pendingMedia: {},
+    removedMedia: {},
+    removedGalleryMediaIds: [],
   };
+}
+
+function recoveryPatch(response, backendTemplateId) {
+  return {
+    backendInvitationId: response.id,
+    backendTemplateId: response.templateId || backendTemplateId || null,
+    backendStatus: response.status || "DRAFT",
+    slug: response.slug || "",
+    publishedAt: null,
+  };
+}
+
+function withPartialPatch(error, partialPatch) {
+  const failure = error instanceof Error ? error : new Error(String(error || "Backend operation failed."));
+  failure.partialPatch = {
+    ...(failure.partialPatch || {}),
+    ...partialPatch,
+  };
+  return failure;
+}
+
+function draftWithRemoteMedia(draft, media) {
+  const cover = media?.coverImage?.fileUrl || (isDataUrl(draft.coverImage) ? "" : draft.coverImage || "");
+  const gallery = (media?.galleryImages || []).filter((item) => item?.fileUrl).map(remoteGalleryItem);
+  const openingVideo = media?.video?.fileUrl
+    ? {
+        id: media.video.id || "uploaded-opening-video",
+        name: media.video.originalFilename || "Opening video",
+        url: media.video.fileUrl,
+      }
+    : (isDataUrl(draft.openingVideo?.url) ? null : draft.openingVideo || null);
+  const music = media?.backgroundMusic?.fileUrl
+    ? {
+        id: media.backgroundMusic.id || "uploaded-music",
+        name: media.backgroundMusic.originalFilename || "Background music",
+        url: media.backgroundMusic.fileUrl,
+      }
+    : (isDataUrl(draft.music?.url) ? null : draft.music || null);
+
+  return {
+    ...draft,
+    coverImage: cover,
+    gallery: gallery.length ? gallery : (draft.gallery || []).filter((item) => !isDataUrl(item?.preview || item)),
+    openingVideo,
+    music,
+    pendingMedia: {},
+    removedMedia: {},
+    removedGalleryMediaIds: [],
+  };
+}
+
+export function validateDraftForPublish(draft) {
+  const missing = [];
+  if (!draft?.templateId) missing.push("គំរូសន្លឹកការ");
+  if (!draft?.couple?.groom?.trim()) missing.push("ឈ្មោះកូនកំលោះ");
+  if (!draft?.couple?.bride?.trim()) missing.push("ឈ្មោះកូនក្រមុំ");
+  if (!draft?.event?.date) missing.push("ថ្ងៃកម្មវិធី");
+  if (!draft?.event?.venueName?.trim()) missing.push("ទីតាំងកម្មវិធី");
+  if (missing.length) {
+    throw new Error(`សូមបំពេញព័ត៌មានចាំបាច់៖ ${missing.join(", ")}`);
+  }
 }
 
 export function isBackendUnavailable(error) {
@@ -108,28 +234,42 @@ export function isBackendUnavailable(error) {
 }
 
 export async function persistWeddingDraft(draft, { publish = false } = {}) {
+  if (publish) validateDraftForPublish(draft);
   const templateId = await resolveBackendTemplateId(draft.templateId);
   const payload = draftToInvitationPayload(draft, templateId);
   const saved = draft.backendInvitationId
     ? await invitationService.update(draft.backendInvitationId, payload)
     : await invitationService.create(payload);
-  const signature = draftMediaSignature(draft);
-  const mediaSynced = await uploadDraftMedia(saved.id, draft, signature);
+  let partialPatch = recoveryPatch(saved, templateId);
 
-  if (!publish) {
-    const drafted = await invitationService.saveDraft(saved.id);
-    return {
-      response: drafted,
-      patch: {
-        ...responsePatch(drafted, signature, mediaSynced),
-        publishedAt: null,
-      },
+  try {
+    const { media, mediaSynced } = await uploadDraftMedia(saved.id, draft);
+    const remoteDraft = draftWithRemoteMedia(draft, media);
+    const updated = await invitationService.update(saved.id, draftToInvitationPayload(remoteDraft, templateId));
+    const signature = draftMediaSignature(remoteDraft);
+    partialPatch = {
+      ...responsePatch(updated, remoteDraft, signature, mediaSynced),
+      backendStatus: updated.status || "DRAFT",
+      publishedAt: null,
     };
-  }
 
-  const published = await invitationService.publish(saved.id);
-  return {
-    response: published,
-    patch: responsePatch(published, signature, mediaSynced),
-  };
+    if (!publish) {
+      const drafted = await invitationService.saveDraft(updated.id);
+      return {
+        response: drafted,
+        patch: {
+          ...responsePatch(drafted, remoteDraft, signature, mediaSynced),
+          publishedAt: null,
+        },
+      };
+    }
+
+    const published = await invitationService.publish(updated.id);
+    return {
+      response: published,
+      patch: responsePatch(published, remoteDraft, signature, mediaSynced),
+    };
+  } catch (error) {
+    throw withPartialPatch(error, partialPatch);
+  }
 }

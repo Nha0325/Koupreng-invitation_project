@@ -66,9 +66,14 @@ export function draftToTemplate(draft, gallery = []) {
         message: draft.message || draft.story || baseTpl.message,
         storyText: draft.story || "",
         dressCode: draft.dressCode || baseTpl.dressCode,
-        design: draft.design || {},
+        design: {
+            ...(draft.design || {}),
+            openingVideoEnabled:
+                draft.openingVideoEnabled !== false && Boolean(draft.openingVideo || draft.design?.openingVideoUrl),
+        },
         music: draft.music || baseTpl.music,
         openingVideo: draft.openingVideoEnabled === false ? null : draft.openingVideo,
+        opening: draft.opening || {},
         // Host-authored rich sections. Passed straight through so the content
         // builder can prefer them over its demo fallbacks (see hostContent).
         hostContent: {
@@ -90,6 +95,8 @@ export function draftToTemplate(draft, gallery = []) {
             },
             eventTitle: draft.event?.title || "",
             rsvp: draft.rsvp || {},
+            opening: draft.opening || {},
+            guest: draft.guest || null,
         },
         // When the host has uploaded photos, drive gallery + story from them.
         storyImages: uploadedImages.length ? uploadedImages : baseTpl.storyImages,
