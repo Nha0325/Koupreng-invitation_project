@@ -137,9 +137,21 @@ export default function InvitationForm({ invitation }) {
                     <h1>{isEdit ? "Edit invitation" : "Create invitation"}</h1>
                     <p>Save incomplete details as draft, then publish when the required event fields are ready.</p>
                 </div>
-                <button className="inv-secondary-btn" type="button" onClick={() => navigate("/dashboard/invitations")}>
-                    Back
-                </button>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                    {isEdit && (
+                        <button
+                            className="inv-secondary-btn"
+                            type="button"
+                            onClick={() => navigate(`/dashboard/invitations/${invitation.id}/assistant`)}
+                            style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem" }}
+                        >
+                            ✨ Writing Helper / AI
+                        </button>
+                    )}
+                    <button className="inv-secondary-btn" type="button" onClick={() => navigate("/dashboard/invitations")}>
+                        Back
+                    </button>
+                </div>
             </header>
 
             <form className="inv-form" onSubmit={(event) => event.preventDefault()}>

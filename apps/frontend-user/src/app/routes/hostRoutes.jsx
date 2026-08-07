@@ -27,6 +27,7 @@ import WeddingGiftPage from "../../pages/host/WeddingGiftPage";
 import RequireAuth from "./RequireAuth";
 import OrganizationPage from "../../features/organizations/OrganizationPage";
 import OrganizationDetailPage from "../../features/organizations/OrganizationDetailPage";
+import AiAssistantPage from "../../features/ai-assistant/AiAssistantPage";
 
 export function hostRoutes() {
   return (
@@ -43,6 +44,7 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/new" element={<InvitationCreatePage />} />
       <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
+      <Route path="/dashboard/invitations/:id/assistant" element={<AiAssistantPage />} />
       <Route path="/dashboard/invitations/:id/guests" element={<GuestsPage />} />
       <Route path="/dashboard/invitations/:id/delivery" element={<InvitationDeliveryPage />} />
       <Route path="/dashboard/invitations/:id/media" element={<InvitationMediaPage />} />
