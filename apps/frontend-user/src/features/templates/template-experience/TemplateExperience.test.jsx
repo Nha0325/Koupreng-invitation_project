@@ -141,7 +141,9 @@ describe("TemplateExperience opening gate", () => {
         expect(play).toHaveBeenCalledTimes(1);
         expect(screen.getAllByTestId("public-rsvp")).toHaveLength(1);
         expect(document.activeElement).toHaveClass("tx-experience");
-        expect(document.body.style.overflow).toBe("");
+        await waitFor(() => {
+            expect(document.body.style.overflow).toBe("");
+        });
     });
 
     it("handles rejected audio playback without blocking the reveal", async () => {
