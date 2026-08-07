@@ -41,12 +41,15 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/new" element={<InvitationCreatePage />} />
       <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
-      <Route path="/dashboard/invitations/:id/guests" element={<Navigate to="/guests" replace />} />
+      <Route path="/dashboard/invitations/:id/guests" element={<GuestsPage />} />
       <Route path="/dashboard/invitations/:id/delivery" element={<InvitationDeliveryPage />} />
       <Route path="/dashboard/invitations/:id/media" element={<InvitationMediaPage />} />
       <Route path="/dashboard/invitations/:id/budget" element={<BudgetPage />} />
       <Route path="/dashboard/invitations/:id/check-in" element={<InvitationCheckInPage />} />
       <Route path="/dashboard/invitations/:id/seating" element={<SeatingPage />} />
+      <Route path="/dashboard/guests" element={<GuestsPage />} />
+      <Route path="/dashboard/expenses" element={<ExpensesPage />} />
+      <Route path="/dashboard/gifts" element={<WeddingGiftPage />} />
       <Route path="/dashboard/templates/paid" element={<PaidTemplatesPage />} />
       <Route path="/dashboard/profile" element={<ProfilePage />} />
       <Route path="/dashboard/change-password" element={<ChangePasswordPage />} />
@@ -54,15 +57,17 @@ export function hostRoutes() {
       <Route path="/dashboard/packages" element={<SubscriptionPackagesPage />} />
       <Route path="/dashboard/payments" element={<PaymentHistoryPage />} />
       <Route path="/dashboard/payments/:orderCode" element={<PaymentReceiptPage />} />
-      <Route path="/guests" element={<GuestsPage />} />
-      <Route path="/event/list" element={<EventsPage />} />
-      <Route path="/events" element={<EventsPage />} />
-      <Route path="/expenses" element={<ExpensesPage />} />
-      <Route path="/gift" element={<WeddingGiftPage />} />
-      <Route path="/gifts" element={<WeddingGiftPage />} />
+      
+      {/* Legacy Route Aliases Redirects */}
+      <Route path="/events" element={<Navigate to="/dashboard/events" replace />} />
+      <Route path="/event/list" element={<Navigate to="/dashboard/events" replace />} />
+      <Route path="/guests" element={<Navigate to="/dashboard/guests" replace />} />
+      <Route path="/expenses" element={<Navigate to="/dashboard/expenses" replace />} />
+      <Route path="/gift" element={<Navigate to="/dashboard/gifts" replace />} />
+      <Route path="/gifts" element={<Navigate to="/dashboard/gifts" replace />} />
+      <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
       <Route path="/templates/browse" element={<BrowseTemplatesPage />} />
       <Route path="/templates/browse/:id" element={<HostTemplateDemoPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
     </Route>
   );
 }

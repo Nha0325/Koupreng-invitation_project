@@ -150,10 +150,10 @@ export default function ReviewPublishStep({ draft, onSaveDraft, onPublish, publi
                         <Link to="/dashboard" className="wb-btn">
                             ទៅផ្ទាំងគ្រប់គ្រង
                         </Link>
-                        <Link to="/events" className="wb-btn">
+                        <Link to="/dashboard/events" className="wb-btn">
                             ត្រឡប់ទៅកម្មវិធី
                         </Link>
-                        <Link to="/guests" className="wb-btn">
+                        <Link to="/dashboard/guests" className="wb-btn">
                             គ្រប់គ្រងភ្ញៀវ
                         </Link>
                     </div>

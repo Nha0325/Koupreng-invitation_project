@@ -18,11 +18,11 @@ import { useLanguageStore } from "../../stores/useLanguageStore";
 import logo from "../../assets/logo.png";
 
 const NAV_ITEMS = [
-  { labelKey: "events", path: "/events", Icon: IoCalendarClearOutline },
+  { labelKey: "events", path: "/dashboard/events", Icon: IoCalendarClearOutline },
   { labelKey: "dashboard", path: "/dashboard", Icon: IoGridOutline },
-  { labelKey: "guests", path: "/guests", Icon: IoPeopleOutline },
-  { labelKey: "expenses", path: "/expenses", Icon: IoCashOutline },
-  { labelKey: "gifts", path: "/gifts", Icon: IoGiftOutline },
+  { labelKey: "guests", path: "/dashboard/guests", Icon: IoPeopleOutline },
+  { labelKey: "expenses", path: "/dashboard/expenses", Icon: IoCashOutline },
+  { labelKey: "gifts", path: "/dashboard/gifts", Icon: IoGiftOutline },
   { labelKey: "templates", path: "/templates/browse", Icon: IoColorPaletteOutline },
 ];
 
@@ -723,7 +723,7 @@ export default function HostNav() {
               {profileOpen && (
                 <div className="host-profile-menu" role="menu">
                   <Link
-                    to="/profile"
+                    to="/dashboard/profile"
                     className="host-profile-menu-item"
                     onClick={() => setProfileOpen(false)}
                     role="menuitem"

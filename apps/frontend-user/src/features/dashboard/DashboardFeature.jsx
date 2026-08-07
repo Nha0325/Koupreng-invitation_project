@@ -943,7 +943,7 @@ function HeroPanel({ data, source, lang }) {
             <Link to={guestLink} className={buttonClass}>
               <IoPeopleOutline aria-hidden="true" /> Manage guests
             </Link>
-            <Link to="/expenses" className={buttonClass}>
+            <Link to="/dashboard/expenses" className={buttonClass}>
               <IoCashOutline aria-hidden="true" /> Manage budget
             </Link>
             {data.publicLink ? (
@@ -1390,7 +1390,7 @@ function GiftPanel({ gifts, max, total }) {
             {money(total)} received
           </p>
         </div>
-        <Link to="/gifts" className={linkClass}>
+        <Link to="/dashboard/gifts" className={linkClass}>
           View gifts <IoChevronForwardOutline aria-hidden="true" />
         </Link>
       </div>

@@ -22,11 +22,12 @@ const EXPECTED_PATHS = [
   "/dashboard/invitations/:id/guests", "/dashboard/invitations/:id/delivery",
   "/dashboard/invitations/:id/media", "/dashboard/invitations/:id/budget",
   "/dashboard/invitations/:id/check-in", "/dashboard/invitations/:id/seating",
+  "/dashboard/guests", "/dashboard/expenses", "/dashboard/gifts",
   "/dashboard/templates/paid", "/dashboard/profile", "/dashboard/change-password",
   "/dashboard/notifications", "/dashboard/packages", "/dashboard/payments",
-  "/dashboard/payments/:orderCode", "/guests", "/event/list", "/events",
-  "/expenses", "/gift", "/gifts", "/templates/browse", "/templates/browse/:id",
-  "/profile", "*",
+  "/dashboard/payments/:orderCode", "/events", "/event/list", "/guests",
+  "/expenses", "/gift", "/gifts", "/profile", "/templates/browse",
+  "/templates/browse/:id", "*",
 ];
 
 describe("the authoritative user router", () => {
