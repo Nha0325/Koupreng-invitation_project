@@ -1,0 +1,47 @@
+.k-responsive-table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--brand-surface, #ffffff);
+  border: 1px solid var(--brand-border, #e7e7ee);
+  border-radius: var(--radius-xl, 20px);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+
+.k-responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm, 0.875rem);
+  line-height: var(--leading-relaxed, 1.65);
+}
+
+.k-responsive-table th {
+  padding: 0.875rem 1.25rem;
+  background: var(--brand-surface-2, #f8f8fd);
+  color: var(--brand-text-muted, #7a8799);
+  font-weight: var(--weight-bold, 700);
+  font-size: var(--text-xs, 0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--brand-border, #e7e7ee);
+  white-space: nowrap;
+}
+
+.k-responsive-table td {
+  padding: 1rem 1.25rem;
+  color: var(--brand-text, #1e293b);
+  border-bottom: 1px solid var(--brand-border-subtle, #f3e8f0);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.k-responsive-table tr:last-child td {
+  border-bottom: none;
+}
+
+.k-responsive-table tbody tr:hover {
+  background: var(--brand-surface-2, #f8f8fd);
+}

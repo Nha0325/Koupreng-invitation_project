@@ -1,0 +1,60 @@
+.k-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--brand-surface-2, #f8f8fd) 25%,
+    var(--brand-surface-3, #eae9f8) 50%,
+    var(--brand-surface-2, #f8f8fd) 75%
+  );
+  background-size: 200% 100%;
+  animation: k-skeleton-shimmer 1.5s infinite;
+}
+
+.k-skeleton-card {
+  background: var(--brand-surface, #ffffff);
+  border: 1px solid var(--brand-border, #e7e7ee);
+  border-radius: var(--radius-xl, 20px);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.k-skeleton-table {
+  background: var(--brand-surface, #ffffff);
+  border: 1px solid var(--brand-border, #e7e7ee);
+  border-radius: var(--radius-xl, 20px);
+  overflow: hidden;
+}
+
+.k-skeleton-table-header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--brand-surface-2, #f8f8fd);
+  border-bottom: 1px solid var(--brand-border, #e7e7ee);
+}
+
+.k-skeleton-table-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--brand-border-subtle, #f3e8f0);
+}
+
+.k-skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+@keyframes k-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .k-skeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+}

@@ -1,8 +1,16 @@
 import NotificationItem from "./NotificationItem";
+import { EmptyState } from "@/shared/ui";
+import { IoNotificationsOutline } from "react-icons/io5";
 
 export default function NotificationList({ notifications, onRead, busyId }) {
   if (!notifications?.length) {
-    return <div className="notif-empty">មិនទាន់មានការជូនដំណឹងទេ</div>;
+    return (
+      <EmptyState
+        icon={IoNotificationsOutline}
+        title="មិនទាន់មានការជូនដំណឹងទេ"
+        description="ការជូនដំណឹងថ្មីៗអំពី RSVP, ភ្ញៀវ និងប្រព័ន្ធ នឹងបង្ហាញនៅទីនេះ។"
+      />
+    );
   }
 
   return (

@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import HostNav from "./components/HostNav";
+import { ToastContainer } from "@/shared/ui";
 import "./HostShell.css";
 
 export default function HostShell() {
@@ -9,6 +10,7 @@ export default function HostShell() {
             <div className="dash-main-scroll">
                 <Outlet />
             </div>
+            <ToastContainer />
         </div>
     );
 }

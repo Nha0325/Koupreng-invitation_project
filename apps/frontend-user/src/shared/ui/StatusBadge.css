@@ -1,0 +1,45 @@
+.k-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-pill, 999px);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: var(--weight-semibold, 600);
+  line-height: 1;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.k-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.k-badge-success {
+  background: var(--status-success-bg, #dcfce7);
+  color: var(--status-success-fg, #15803d);
+}
+
+.k-badge-warning {
+  background: var(--status-warning-bg, #fef3c7);
+  color: var(--status-warning-fg, #b45309);
+}
+
+.k-badge-danger {
+  background: var(--status-danger-bg, #fee2e2);
+  color: var(--status-danger-fg, #dc2626);
+}
+
+.k-badge-info {
+  background: var(--status-info-bg, #e0f2fe);
+  color: var(--status-info-fg, #0369a1);
+}
+
+.k-badge-neutral {
+  background: var(--status-neutral-bg, #f1f5f9);
+  color: var(--status-neutral-fg, #475569);
+}

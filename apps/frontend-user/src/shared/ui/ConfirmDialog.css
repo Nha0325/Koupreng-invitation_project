@@ -1,0 +1,66 @@
+.k-confirm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.k-confirm-message {
+  font-size: var(--text-base, 1rem);
+  color: var(--brand-text, #1e293b);
+  line-height: var(--leading-relaxed, 1.65);
+}
+
+.k-confirm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.k-btn {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--weight-semibold, 600);
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.k-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.k-btn-secondary {
+  background: var(--brand-surface-2, #f8f8fd);
+  color: var(--brand-text, #1e293b);
+  border-color: var(--brand-border, #e7e7ee);
+}
+
+.k-btn-secondary:hover:not(:disabled) {
+  background: var(--brand-border, #e7e7ee);
+}
+
+.k-btn-primary {
+  background: var(--brand-primary, #6b6bc4);
+  color: var(--brand-on-primary, #ffffff);
+}
+
+.k-btn-primary:hover:not(:disabled) {
+  background: var(--brand-primary-hover, #5a55b3);
+}
+
+.k-btn-danger {
+  background: var(--status-danger-fg, #dc2626);
+  color: #ffffff;
+}
+
+.k-btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}

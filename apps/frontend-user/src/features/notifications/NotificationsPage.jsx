@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import notificationService from "./notificationService";
 import NotificationList from "./NotificationList";
+import { ErrorState, LoadingButton, SkeletonCard } from "@/shared/ui";
 import "./NotificationPages.css";
 
 export default function NotificationsPage() {
@@ -10,33 +11,29 @@ export default function NotificationsPage() {
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState(null);
 
-  useEffect(() => {
-    let active = true;
+  const loadData = useCallback(() => {
+    setLoading(true);
+    setError("");
     Promise.all([
       notificationService.list(),
       notificationService.summary(),
     ])
       .then(([items, counts]) => {
-        if (active) {
-          setNotifications(items || []);
-          setSummary(counts || null);
-          setError("");
-        }
+        setNotifications(items || []);
+        setSummary(counts || null);
+        setError("");
       })
       .catch((err) => {
-        if (active) {
-          setError(err?.message || "Could not load notifications");
-        }
+        setError(err?.message || "Could not load notifications");
       })
       .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
+        setLoading(false);
       });
-    return () => {
-      active = false;
-    };
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const markRead = async (notificationId) => {
     setBusyId(notificationId);
@@ -77,14 +74,15 @@ export default function NotificationsPage() {
           <h1>ការជូនដំណឹង</h1>
           <p>មើលស្ថានភាពការផ្ញើ RSVP ការរំលឹក និងសារប្រព័ន្ធរបស់អ្នក។</p>
         </div>
-        <button
+        <LoadingButton
           type="button"
           className="dash-btn dash-btn-primary"
-          disabled={!summary?.unread || busyId === "all"}
+          disabled={!summary?.unread}
+          isLoading={busyId === "all"}
           onClick={markAllRead}
         >
           Mark all read
-        </button>
+        </LoadingButton>
       </header>
 
       <section className="notif-summary-grid">
@@ -94,9 +92,13 @@ export default function NotificationsPage() {
         <Stat label="Failed" value={summary?.failed || 0} />
       </section>
 
-      {error && <div className="notif-alert">{error}</div>}
-      {loading ? (
-        <div className="notif-empty">កំពុងផ្ទុក...</div>
+      {error ? (
+        <ErrorState message={error} onRetry={loadData} />
+      ) : loading ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <SkeletonCard height="90px" />
+          <SkeletonCard height="90px" />
+        </div>
       ) : (
         <NotificationList notifications={notifications} onRead={markRead} busyId={busyId} />
       )}
