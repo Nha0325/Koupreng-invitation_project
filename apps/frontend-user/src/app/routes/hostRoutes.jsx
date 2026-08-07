@@ -25,6 +25,8 @@ import SeatingPage from "../../pages/host/SeatingPage";
 import SubscriptionPackagesPage from "../../pages/host/SubscriptionPackagesPage";
 import WeddingGiftPage from "../../pages/host/WeddingGiftPage";
 import RequireAuth from "./RequireAuth";
+import OrganizationPage from "../../features/organizations/OrganizationPage";
+import OrganizationDetailPage from "../../features/organizations/OrganizationDetailPage";
 
 export function hostRoutes() {
   return (
@@ -54,6 +56,8 @@ export function hostRoutes() {
       <Route path="/dashboard/profile" element={<ProfilePage />} />
       <Route path="/dashboard/change-password" element={<ChangePasswordPage />} />
       <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+      <Route path="/dashboard/organizations" element={<OrganizationPage />} />
+      <Route path="/dashboard/organizations/:organizationId" element={<OrganizationDetailPage />} />
       <Route path="/dashboard/packages" element={<SubscriptionPackagesPage />} />
       <Route path="/dashboard/payments" element={<PaymentHistoryPage />} />
       <Route path="/dashboard/payments/:orderCode" element={<PaymentReceiptPage />} />

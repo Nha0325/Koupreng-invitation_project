@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import {
+  IoBriefcaseOutline,
   IoCalendarClearOutline,
   IoCashOutline,
   IoCheckmarkOutline,
@@ -734,6 +735,15 @@ export default function HostNav() {
                         ? navText("editProfile")
                         : navText("createProfile")}
                     </span>
+                  </Link>
+                  <Link
+                    to="/dashboard/organizations"
+                    className="host-profile-menu-item"
+                    onClick={() => setProfileOpen(false)}
+                    role="menuitem"
+                  >
+                    <IoBriefcaseOutline aria-hidden="true" />
+                    <span>{navText("teams") || "ក្រុមការងារ / Workspaces"}</span>
                   </Link>
                   
                   <div style={{ height: "1px", background: "rgba(176, 146, 106, 0.2)", margin: "8px 0" }} />
