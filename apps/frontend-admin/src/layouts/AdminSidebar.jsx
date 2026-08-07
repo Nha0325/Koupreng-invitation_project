@@ -8,6 +8,7 @@ const links = [
     { to: "/templates", label: "គំរូធៀបការ", icon: "🎨" },
     { to: "/packages", label: "កញ្ចប់សេវាកម្ម", icon: "📦" },
     { to: "/payments", label: "ការទូទាត់", icon: "💳" },
+    { to: "/notifications", label: "ការជូនដំណឹង", icon: "🔔" },
     { to: "/system-logs", label: "ប្រវត្តិប្រព័ន្ធ", icon: "📜" },
 ];
 

@@ -15,6 +15,7 @@ import InvitationsPage from "../pages/invitations/AdminInvitationsPage";
 import InvitationDetailPage from "../pages/invitations/AdminInvitationDetailPage";
 import PaymentsPage from "../pages/payments/AdminPaymentsPage";
 import PackagesPage from "../pages/payments/AdminPackagesPage";
+import NotificationsPage from "../features/admin/AdminNotificationsPage";
 import SystemLogsPage from "../features/admin/AdminSystemLogsPage";
 import ReportsPage from "../pages/reports/AdminReportsPage";
 
@@ -50,6 +51,7 @@ export default function App() {
               <Route path={ADMIN_ROUTE_PATHS.templateEdit} element={<TemplateEditPage />} />
               <Route path={ADMIN_ROUTE_PATHS.payments} element={<PaymentsPage />} />
               <Route path={ADMIN_ROUTE_PATHS.packages} element={<PackagesPage />} />
+              <Route path={ADMIN_ROUTE_PATHS.notifications} element={<NotificationsPage />} />
               <Route path={ADMIN_ROUTE_PATHS.systemLogs} element={<SystemLogsPage />} />
               <Route path={ADMIN_ROUTE_PATHS.reports} element={<ReportsPage />} />
             </Route>

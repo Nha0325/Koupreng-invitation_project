@@ -40,6 +40,11 @@ export const adminManagementService = {
   updatePackage: (packageId, payload) => api.put(`/v1/admin/packages/${packageId}`, payload).then(unwrap),
   activatePackage: (packageId) => api.patch(`/v1/admin/packages/${packageId}/activate`, {}).then(unwrap),
   deactivatePackage: (packageId) => api.patch(`/v1/admin/packages/${packageId}/deactivate`, {}).then(unwrap),
+
+  notifications: (params) => api.get("/v1/admin/notifications", { params }).then(unwrap),
+  createNotification: (payload) => api.post("/v1/admin/notifications", payload).then(unwrap),
+  updateNotificationStatus: (notificationId, payload) =>
+    api.patch(`/v1/admin/notifications/${notificationId}/status`, payload).then(unwrap),
 };
 
 export default adminManagementService;

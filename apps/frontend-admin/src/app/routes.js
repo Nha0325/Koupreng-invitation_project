@@ -11,6 +11,7 @@ export const ADMIN_ROUTE_PATHS = Object.freeze({
   templateEdit: "/templates/:templateId",
   payments: "/payments",
   packages: "/packages",
+  notifications: "/notifications",
   systemLogs: "/system-logs",
   reports: "/reports",
 });
