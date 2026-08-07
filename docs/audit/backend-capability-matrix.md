@@ -1,0 +1,28 @@
+# Backend Capability Matrix
+
+**Domain Mapping:** Controller → DTO → Service → Repository → Entity → Flyway Table → Authorization Policy → Frontend Consumer
+
+---
+
+| Domain Capability | Controller | Request / Response DTO | Service | Repository | Entity | Flyway Table | Auth Policy | Frontend Consumer |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Auth** | `AuthController` | `LoginRequest`, `RegisterRequest`, `AuthResponse` | `AuthService` | `AppUserRepository` | `AppUser` | `users` | `permitAll()` for login/reg, `authenticated()` for me | `apps/frontend-user/src/features/auth` |
+| **Users** | `UserController` | `UserProfileResponse`, `UpdateProfileRequest` | `UserService` | `AppUserRepository` | `AppUser` | `users` | `authenticated()` | `apps/frontend-user/src/features/account` |
+| **Admin Users** | `AdminUserController` | `UserManagementResponse`, `UpdateUserRoleRequest` | `AdminManagementService` | `AppUserRepository` | `AppUser` | `users` | `hasRole('ADMIN')` | `apps/frontend-admin/src/services/adminManagementService.js` |
+| **Events / Invitations** | `InvitationController`, `EventController` | `InvitationRequest`, `InvitationResponse` | `InvitationService` | `UserInvitationRepository` | `UserInvitation` | `user_invitations` | Resource Owner / `hasRole('ADMIN')` | `apps/frontend-user/src/features/invitations` |
+| **Public Invitation** | `InvitationController` | `PublicInvitationResponse` | `InvitationService` | `UserInvitationRepository` | `UserInvitation` | `user_invitations` | `permitAll()` | `apps/frontend-user/src/features/invitation-view` |
+| **Templates** | `TemplateCatalogController` | `TemplateResponse` | `TemplateCatalogService` | `InvitationTemplateRepository` | `InvitationTemplate` | `invitation_templates` | `permitAll()` | `apps/frontend-user/src/features/templates` |
+| **Media** | `MediaController` | `MediaFileResponse` | `MediaService` | `MediaFileRepository` | `MediaFile` | `media_files` | Resource Owner | `apps/frontend-user/src/features/media` |
+| **Guests** | `GuestController` | `GuestRequest`, `GuestResponse`, `GuestImportRequest` | `GuestService` | `GuestRepository` | `Guest` | `guests` | Resource Owner | `apps/frontend-user/src/features/guests` |
+| **RSVP** | `RsvpController` | `RsvpRequest`, `RsvpResponse`, `RsvpSummaryResponse` | `RsvpService` | `RsvpRepository` | `Rsvp` | `rsvps` | Public `permitAll()` / Owner | `apps/frontend-user/src/features/rsvp` |
+| **Check-in** | `CheckInController` | `CheckInRequest`, `CheckInResponse`, `CheckInSummaryResponse` | `CheckInService` | `GuestCheckInRepository` | `GuestCheckIn` | `guest_check_ins` | Resource Owner / Staff | `apps/frontend-user/src/features/checkin` |
+| **Seating** | `SeatingController` | `EventTableRequest`, `SeatAssignmentRequest`, `SeatingPlanResponse` | `SeatingService` | `EventTableRepository`, `GuestSeatAssignmentRepository` | `EventTable`, `GuestSeatAssignment` | `event_tables`, `guest_seat_assignments` | Resource Owner | `apps/frontend-user/src/features/seating` |
+| **Budget** | `BudgetController` | `BudgetResponse`, `BudgetItemRequest` | `BudgetService` | `BudgetRepository`, `BudgetItemRepository` | `Budget`, `BudgetItem` | `budgets`, `budget_items` | Resource Owner | `apps/frontend-user/src/features/budget` |
+| **Wedding Gifts** | `WeddingGiftController` | `WeddingGiftRequest`, `WeddingGiftResponse` | `WeddingGiftService` | `WeddingGiftRepository` | `WeddingGift` | `wedding_gifts` | Resource Owner | `apps/frontend-user/src/features/planning` |
+| **Template Payments** | `TemplatePaymentController` | `CreateTemplatePaymentRequest`, `CreateTemplatePaymentResponse` | `TemplatePaymentService` | `TemplatePaymentOrderRepository` | `TemplatePaymentOrder` | `template_payment_orders` | `authenticated()` | `apps/frontend-user/src/features/templates` |
+| **Internal Payments** | `TemplatePaymentController` | `ConfirmTemplatePaymentRequest`, `TelegramDetectPaymentRequest` | `TemplatePaymentService` | `TemplatePaymentOrderRepository` | `TemplatePaymentOrder` | `template_payment_orders` | Header Secret (`AdminPaymentSecretFilter`) | `apps/telegram-bot` |
+| **Payment History** | `PaymentHistoryController` | `PaymentHistoryResponse` | `PaymentHistoryService` | `TemplatePaymentOrderRepository` | `TemplatePaymentOrder` | `template_payment_orders` | `authenticated()` | `apps/frontend-user/src/features/payments` |
+| **Subscriptions** | `SubscriptionController` | `SubscriptionPackageResponse`, `SubscriptionResponse` | `SubscriptionService` | `SubscriptionRepository`, `SubscriptionPackageRepository` | `Subscription`, `SubscriptionPackage` | `subscriptions`, `subscription_packages` | `authenticated()` | `apps/frontend-user/src/features/subscriptions` |
+| **Notifications** | `NotificationController`, `AdminNotificationController` | `NotificationResponse`, `CreateNotificationRequest` | `NotificationService` | `NotificationRepository` | `Notification` | `notifications` | User / Admin | `apps/frontend-user/src/features/notifications` |
+| **Organizations** | `OrganizationController` | `OrganizationResponse`, `OrganizationMemberRequest` | `OrganizationService` | `OrganizationRepository`, `OrganizationMemberRepository` | `Organization`, `OrganizationMember` | `organizations`, `organization_members` | Organization Owner / Member | `apps/frontend-user/src/features/organization` |
+| **AI Assistant** | `AiInvitationAssistantController` | `AiInvitationDraftRequest`, `AiInvitationDraftResponse` | `AiInvitationAssistantService` | None (Stateless AI provider) | N/A | N/A | `authenticated()` | `apps/frontend-user/src/features/ai-assistant` |
