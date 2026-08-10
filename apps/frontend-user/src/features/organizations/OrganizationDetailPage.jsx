@@ -7,6 +7,7 @@ import { useOrganizationMembers } from "./hooks/useOrganizationMembers";
 import MemberTable from "./components/MemberTable";
 import InviteMemberModal from "./components/InviteMemberModal";
 import ChangeRoleModal from "./components/ChangeRoleModal";
+import { canManageOrganization } from "./model/organizationPermissions";
 import "./OrganizationPage.css";
 
 export default function OrganizationDetailPage() {
@@ -28,10 +29,7 @@ export default function OrganizationDetailPage() {
   const [editingMember, setEditingMember] = useState(null);
   const [removingMember, setRemovingMember] = useState(null);
 
-  const isOwner =
-    organization?.ownerUserId && user?.id
-      ? String(organization.ownerUserId) === String(user.id)
-      : true;
+  const isOwner = canManageOrganization(organization?.ownerUserId, user?.id);
 
   const handleInvite = async (email, role) => {
     const success = await addMember(email, role);

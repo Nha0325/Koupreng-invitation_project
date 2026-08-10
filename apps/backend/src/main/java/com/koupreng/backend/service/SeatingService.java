@@ -140,7 +140,7 @@ public class SeatingService {
             EventTableRequest request
     ) {
         requireInvitationAccess(authentication, invitationId);
-        EventTable table = requireTable(invitationId, tableId);
+        EventTable table = requireTableForUpdate(invitationId, tableId);
         String tableName = requireText(request.getTableName(), "Table name is required");
         boolean nameUsedByOther = tableRepository.findByInvitationIdOrderBySortOrderAscTableNameAsc(invitationId).stream()
                 .anyMatch(candidate -> !Objects.equals(candidate.getId(), tableId)
@@ -163,7 +163,7 @@ public class SeatingService {
     @Transactional
     public void deleteTable(Authentication authentication, Long invitationId, Long tableId) {
         requireInvitationAccess(authentication, invitationId);
-        EventTable table = requireTable(invitationId, tableId);
+        EventTable table = requireTableForUpdate(invitationId, tableId);
         if (assignmentRepository.existsByTableId(tableId)) {
             throw new ApiException(HttpStatus.CONFLICT, "Table has assigned guests");
         }
@@ -173,8 +173,8 @@ public class SeatingService {
     @Transactional
     public SeatAssignmentResponse assign(Authentication authentication, Long invitationId, SeatAssignmentRequest request) {
         UserInvitation invitation = requireInvitationAccess(authentication, invitationId);
-        EventTable table = requireTable(invitationId, request.getTableId());
-        Guest guest = guestRepository.findByIdAndInvitationId(request.getGuestId(), invitationId)
+        EventTable table = requireTableForUpdate(invitationId, request.getTableId());
+        Guest guest = guestRepository.findForUpdateByIdAndInvitationId(request.getGuestId(), invitationId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Guest not found"));
         int seatCount = resolveSeatCount(request.getSeatCount(), guest.getSeatCount());
 
@@ -185,7 +185,11 @@ public class SeatingService {
                 .mapToInt(existing -> { Integer sc = existing.getSeatCount(); return sc == null ? 1 : sc; })
                 .sum();
         if (currentlyAssignedSeats + seatCount > table.getCapacity()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Table capacity exceeded");
+            throw new ApiException(
+                    HttpStatus.CONFLICT,
+                    "SEATING_CAPACITY_EXCEEDED",
+                    "Table capacity exceeded"
+            );
         }
 
         assignment.setInvitation(invitation);
@@ -258,8 +262,8 @@ public class SeatingService {
         table.setNotes(trimToNull(request.getNotes()));
     }
 
-    private EventTable requireTable(Long invitationId, Long tableId) {
-        return tableRepository.findByIdAndInvitationId(tableId, invitationId)
+    private EventTable requireTableForUpdate(Long invitationId, Long tableId) {
+        return tableRepository.findForUpdateByIdAndInvitationId(tableId, invitationId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Table not found"));
     }
 

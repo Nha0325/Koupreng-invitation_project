@@ -808,8 +808,8 @@ export default function HostNav() {
       <nav className={`host-mobile-menu${mobileMenuOpen ? " open" : ""}`}>
         {/* Profile section */}
         <Link
-          to="/profile"
-          className={`host-mobile-menu-item${isActive("/profile") ? " active" : ""}`}
+          to="/dashboard/profile"
+          className={`host-mobile-menu-item${isActive("/dashboard/profile") ? " active" : ""}`}
           style={{ marginBottom: 8 }}
           onClick={closeMobileMenu}
         >

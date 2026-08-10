@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "engineVersion": "3.1.0",
+  "generatedAt": "2026-08-10T08:58:32.517Z",
+  "selection": {
+    "agent": "codex",
+    "grammar": "operations-console",
+    "grammarSource": "built-in:operations-console",
+    "fallback": "operations-console",
+    "adapter": "product-ui",
+    "domain": "productivity",
+    "page": "list",
+    "profile": "none"
+  },
+  "bundle": {
+    "path": ".styleseed/effective-rules.md",
+    "sha256": "ec9a21bd4d37eb0a3f330e5a61819bc96558ab2fc6ba75275427013f2f89accc",
+    "bytes": 13597
+  },
+  "sources": [
+    {
+      "id": "agent-execution",
+      "sha256": "dfe4b0a2de36209ca50a04b39e35c248ac13fb8b059428fdb68a484cffc190cb",
+      "bytes": 329
+    },
+    {
+      "id": "core",
+      "sha256": "0dc97fbc6df81d361b0e08b4bc82aa10d40e4e5598fa7dbec210767eee51daa9",
+      "bytes": 4254
+    },
+    {
+      "id": "grammar",
+      "sha256": "e0439317e2e1c0722e391e9645b21978818f0d14dd07633385792f8e5a44b962",
+      "bytes": 1011
+    },
+    {
+      "id": "adapter",
+      "sha256": "7b5b5c34b0b235dca329e6384ccb94c66ee65a348bbe7142277ae7bbda3c13b0",
+      "bytes": 714
+    },
+    {
+      "id": "domain",
+      "sha256": "4b9b6bf4013de756d896fce08667f663fac0912c0523b143824222e31c4ca404",
+      "bytes": 798
+    },
+    {
+      "id": "page",
+      "sha256": "d347ce54903e7b826556118bf6a771152ad3c897ba897de14ace7b422ba7d564",
+      "bytes": 851
+    },
+    {
+      "id": "lock",
+      "sha256": "48984db87520c8a5af745fae893e6795dd2677dd563f2523569e1b2834578bd8",
+      "bytes": 1445
+    },
+    {
+      "id": "craft",
+      "sha256": "2683d353ca2bb5fcdb4735f3d30e54cf711bca7021277f0238264ec304d04603",
+      "bytes": 3550
+    }
+  ]
+}

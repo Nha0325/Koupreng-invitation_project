@@ -356,12 +356,23 @@ public class AppProperties {
         @NotBlank
         private String publicBaseUrl = "http://localhost:5173";
 
+        @Min(1)
+        private int maxPublicRsvpSubmissionsPerMinute = 5;
+
         public String getPublicBaseUrl() {
             return publicBaseUrl;
         }
 
         public void setPublicBaseUrl(String publicBaseUrl) {
             this.publicBaseUrl = publicBaseUrl;
+        }
+
+        public int getMaxPublicRsvpSubmissionsPerMinute() {
+            return maxPublicRsvpSubmissionsPerMinute;
+        }
+
+        public void setMaxPublicRsvpSubmissionsPerMinute(int maxPublicRsvpSubmissionsPerMinute) {
+            this.maxPublicRsvpSubmissionsPerMinute = maxPublicRsvpSubmissionsPerMinute;
         }
     }
 }

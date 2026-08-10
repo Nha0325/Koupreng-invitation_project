@@ -59,13 +59,8 @@ export function useGuestMutations({
           return [...current, normalized];
         });
 
-        if (editingId) {
-          setManualGuests((current) => {
-            const next = current.filter((item) => String(item.id) !== String(editingId));
-            saveManualGuests(eventId, next);
-            return next;
-          });
-        }
+      } else if (backendIdToUse) {
+        throw new Error("This guest is not part of the selected invitation");
       } else {
         const guestToSave = toManualGuest(form, editingId);
         setManualGuests((current) => {
@@ -107,6 +102,8 @@ export function useGuestMutations({
         setBackendGuests((current) =>
           current.filter((item) => String(item.id) !== String(guestToDelete.id))
         );
+      } else if (backendIdToUse) {
+        throw new Error("This guest is not part of the selected invitation");
       } else {
         setManualGuests((current) => {
           const next = current.filter((item) => String(item.id) !== String(guestToDelete.id));
@@ -130,17 +127,17 @@ export function useGuestMutations({
     setError("");
 
     try {
-      const normalizedNew = importedList.map(normalizeManualGuest);
-      setManualGuests((current) => {
-        const next = [...current, ...normalizedNew];
-        saveManualGuests(eventId, next);
-        return next;
-      });
-
       const backendIdToUse = backendInvitation ? invitationId(backendInvitation) : null;
       if (backendIdToUse) {
         const payloadList = importedList.map(toBackendGuestPayload);
-        await guestService.importForInvitation(backendIdToUse, payloadList).catch(() => {});
+        await guestService.importForInvitation(backendIdToUse, payloadList);
+      } else {
+        const normalizedNew = importedList.map(normalizeManualGuest);
+        setManualGuests((current) => {
+          const next = [...current, ...normalizedNew];
+          saveManualGuests(eventId, next);
+          return next;
+        });
       }
 
       await refreshData();

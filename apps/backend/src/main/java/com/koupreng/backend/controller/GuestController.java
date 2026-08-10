@@ -134,7 +134,7 @@ public class GuestController {
     public ResponseEntity<ApiResponse<List<GuestResponse>>> importGuests(
             Authentication authentication,
             @PathVariable Long invitationId,
-            @RequestBody GuestImportRequest request
+            @Valid @RequestBody GuestImportRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(

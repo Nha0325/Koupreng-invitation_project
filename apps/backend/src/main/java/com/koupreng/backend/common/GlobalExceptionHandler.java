@@ -1,6 +1,7 @@
 package com.koupreng.backend.common;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -21,6 +22,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.koupreng.backend.service.MessageService;
@@ -39,7 +42,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handleApiException(ApiException exception) {
         HttpStatus status = exception == null ? HttpStatus.INTERNAL_SERVER_ERROR : exception.getStatus();
-        return error(status, messageOrDefault(exception, msg.get("error.bad-request")));
+        String code = exception == null ? "INTERNAL_ERROR" : exception.getCode();
+        return error(status, code, messageOrDefault(exception, msg.get("error.bad-request")));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -51,6 +55,7 @@ public class GlobalExceptionHandler {
 
         Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, msg.get("error.validation-failed"));
         body.put("fields", fields);
+        body.put("fieldErrors", fields);
         return ResponseEntity.badRequest().body(body);
     }
 
@@ -63,6 +68,7 @@ public class GlobalExceptionHandler {
 
         Map<String, Object> body = errorBody(HttpStatus.BAD_REQUEST, msg.get("error.validation-failed"));
         body.put("fields", fields);
+        body.put("fieldErrors", fields);
         return ResponseEntity.badRequest().body(body);
     }
 
@@ -117,13 +123,44 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(errorBody(status, message));
     }
 
+    private ResponseEntity<Map<String, Object>> error(HttpStatus status, String code, String message) {
+        return ResponseEntity.status(status).body(errorBody(status, code, message));
+    }
+
     private Map<String, Object> errorBody(HttpStatus status, String message) {
+        return errorBody(status, defaultCode(status), message);
+    }
+
+    private Map<String, Object> errorBody(HttpStatus status, String code, String message) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", Instant.now());
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());
+        body.put("code", code);
         body.put("message", message);
+        body.put("path", currentRequestPath());
+        body.put("fieldErrors", Collections.emptyMap());
         return body;
+    }
+
+    private String currentRequestPath() {
+        if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+            return attributes.getRequest().getRequestURI();
+        }
+        return "";
+    }
+
+    private String defaultCode(HttpStatus status) {
+        return switch (status) {
+            case BAD_REQUEST -> "REQUEST_INVALID";
+            case UNAUTHORIZED -> "AUTH_UNAUTHORIZED";
+            case FORBIDDEN -> "AUTH_FORBIDDEN";
+            case NOT_FOUND -> "RESOURCE_NOT_FOUND";
+            case METHOD_NOT_ALLOWED -> "METHOD_NOT_ALLOWED";
+            case UNSUPPORTED_MEDIA_TYPE -> "MEDIA_TYPE_UNSUPPORTED";
+            case CONTENT_TOO_LARGE -> "UPLOAD_TOO_LARGE";
+            default -> "INTERNAL_ERROR";
+        };
     }
 
     private String messageOrDefault(Exception exception, String defaultMessage) {

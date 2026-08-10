@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AssistantComposer from "./components/AssistantComposer";
 import AssistantResult from "./components/AssistantResult";
+import { toInvitationStoryUpdate } from "./model/invitationContent";
 
 vi.mock("@/features/invitations/api/invitationApi", () => ({
   invitationService: {
@@ -44,7 +45,7 @@ describe("AI Invitation Assistant Module", () => {
       expect(screen.getByDisplayValue("Dara & Sophea")).toBeInTheDocument();
       expect(screen.getByDisplayValue("Himawari")).toBeInTheDocument();
       
-      const submitBtn = screen.getByText("✨ រៀបចំអត្ថបទ / Generate Content");
+      const submitBtn = screen.getByRole("button", { name: /Generate Content/ });
       fireEvent.click(submitBtn);
 
       expect(handleSubmit).toHaveBeenCalled();
@@ -69,6 +70,40 @@ describe("AI Invitation Assistant Module", () => {
       fireEvent.click(applyBtn);
 
       expect(handleApply).toHaveBeenCalledWith("សិរីសួស្តី អាពាហ៍ពិពាហ៍ Dara & Sophea");
+    });
+
+    it("discloses local fallback copy and backend warnings", () => {
+      render(
+        <AssistantResult
+          response={{
+            enabled: false,
+            source: "LOCAL_TEMPLATE",
+            generatedText: "Built-in draft",
+            warnings: ["AI provider adapter is not implemented yet."],
+          }}
+        />,
+      );
+
+      expect(screen.getByText(/Local template draft/)).toBeInTheDocument();
+      expect(screen.getByText(/No external AI provider was used/)).toBeInTheDocument();
+      expect(screen.getByText("AI provider adapter is not implemented yet.")).toBeInTheDocument();
+    });
+  });
+
+  describe("invitation update contract", () => {
+    it("maps applied copy to storyText without leaking response-only fields", () => {
+      expect(toInvitationStoryUpdate({
+        id: 42,
+        title: "Dara & Sophea",
+        eventType: "WEDDING",
+        storyText: "Old story",
+        status: "DRAFT",
+        slug: "dara-sophea",
+      }, "  New story  ")).toEqual({
+        title: "Dara & Sophea",
+        eventType: "WEDDING",
+        storyText: "New story",
+      });
     });
   });
 });

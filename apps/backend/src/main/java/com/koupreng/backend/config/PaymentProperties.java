@@ -15,7 +15,7 @@ public class PaymentProperties {
     @NotBlank
     private String providerMode = "static";
 
-    private boolean autoConfirmTelegramDetected = true;
+    private boolean autoConfirmTelegramDetected;
 
     @Min(1)
     private long orderExpiryMinutes = 60;

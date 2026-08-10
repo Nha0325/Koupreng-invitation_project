@@ -53,7 +53,15 @@ export default function GuestTable({
               <td>{guest.category || "-"}</td>
               <td>{guest.count || 1}</td>
               <td>
-                <StatusBadge status={guest.sendStatus} />
+                <div className="pe-guest-statuses">
+                  <StatusBadge status={guest.sendStatus} />
+                  {guest.rsvpStatus && (
+                    <StatusBadge
+                      status={guest.rsvpStatus}
+                      label={`RSVP: ${guest.rsvpStatus.replaceAll("_", " ")}`}
+                    />
+                  )}
+                </div>
               </td>
               <td>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
@@ -62,6 +70,7 @@ export default function GuestTable({
                     className="pe-icon-btn"
                     onClick={() => onShowQr(guest)}
                     title={t ? t("showQr") : "បង្ហាញ QR Code"}
+                    aria-label={t ? t("showQr") : "បង្ហាញ QR Code"}
                   >
                     <IoQrCodeOutline aria-hidden="true" />
                   </button>
@@ -70,6 +79,7 @@ export default function GuestTable({
                     className="pe-icon-btn"
                     onClick={() => onCopyLink(inviteUrl)}
                     title={t ? t("copyLink") : "ចម្លងតំណភ្ជាប់"}
+                    aria-label={t ? t("copyLink") : "ចម្លងតំណភ្ជាប់"}
                   >
                     <IoCopyOutline aria-hidden="true" />
                   </button>
@@ -78,6 +88,7 @@ export default function GuestTable({
                     className="pe-icon-btn"
                     onClick={() => onEdit(guest)}
                     title={t ? t("edit") : "កែប្រែ"}
+                    aria-label={t ? t("edit") : "កែប្រែ"}
                   >
                     <IoPencilOutline aria-hidden="true" />
                   </button>
@@ -86,6 +97,7 @@ export default function GuestTable({
                     className="pe-icon-btn danger"
                     onClick={() => onDelete(guest)}
                     title={t ? t("delete") : "លុប"}
+                    aria-label={t ? t("delete") : "លុប"}
                   >
                     <IoTrashOutline aria-hidden="true" />
                   </button>

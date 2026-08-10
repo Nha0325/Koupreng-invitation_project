@@ -1,5 +1,21 @@
 import { FormField, LoadingButton } from "@/shared/ui";
+import {
+  IoCreateOutline,
+  IoDocumentTextOutline,
+  IoHeartOutline,
+  IoLanguageOutline,
+  IoSparklesOutline,
+  IoTimeOutline,
+} from "react-icons/io5";
 import { AI_ACTIONS, LANGUAGE_OPTIONS, TONE_OPTIONS } from "../model/aiAssistantConstants";
+
+const ACTION_ICONS = {
+  copy: IoCreateOutline,
+  story: IoHeartOutline,
+  formalText: IoDocumentTextOutline,
+  translate: IoLanguageOutline,
+  timeline: IoTimeOutline,
+};
 
 export default function AssistantComposer({
   form,
@@ -8,37 +24,28 @@ export default function AssistantComposer({
   onSubmit,
 }) {
   return (
-    <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+    <form onSubmit={onSubmit} className="pe-ai-composer">
       <FormField label="ជំនួយការសរសេរ (Feature Action)" required>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "0.5rem" }}>
-          {AI_ACTIONS.map((act) => (
-            <button
-              key={act.value}
-              type="button"
-              className={`pe-action-chip${form.action === act.value ? " active" : ""}`}
-              onClick={() => setForm({ ...form, action: act.value })}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.625rem 0.875rem",
-                borderRadius: "10px",
-                border: form.action === act.value ? "2px solid var(--brand-primary)" : "1px solid var(--brand-border)",
-                background: form.action === act.value ? "rgba(107, 107, 196, 0.08)" : "var(--brand-surface)",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                color: "var(--brand-text)",
-              }}
-            >
-              <span>{act.icon}</span>
-              <span>{act.label}</span>
-            </button>
-          ))}
+        <div className="pe-ai-actions">
+          {AI_ACTIONS.map((act) => {
+            const ActionIcon = ACTION_ICONS[act.value] || IoCreateOutline;
+            return (
+              <button
+                key={act.value}
+                type="button"
+                className={`pe-action-chip${form.action === act.value ? " active" : ""}`}
+                onClick={() => setForm({ ...form, action: act.value })}
+                aria-pressed={form.action === act.value}
+              >
+                <ActionIcon aria-hidden="true" />
+                <span>{act.label}</span>
+              </button>
+            );
+          })}
         </div>
       </FormField>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+      <div className="pe-ai-field-grid">
         <FormField label="ឈ្មោះគូស្វាមីភរិយា / Couple Names">
           <input
             type="text"
@@ -58,7 +65,7 @@ export default function AssistantComposer({
         </FormField>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+      <div className="pe-ai-field-grid">
         <FormField label="ថ្ងៃខែឆ្នាំ / Event Date">
           <input
             type="text"
@@ -78,7 +85,7 @@ export default function AssistantComposer({
         </FormField>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+      <div className="pe-ai-field-grid">
         <FormField label="ភាសា / Language">
           <select
             value={form.language}
@@ -115,8 +122,9 @@ export default function AssistantComposer({
         />
       </FormField>
 
-      <LoadingButton type="submit" isLoading={loading} className="pe-primary-btn" style={{ alignSelf: "flex-start" }}>
-        ✨ រៀបចំអត្ថបទ / Generate Content
+      <LoadingButton type="submit" isLoading={loading} className="pe-primary-btn pe-ai-generate">
+        <IoSparklesOutline aria-hidden="true" />
+        <span>រៀបចំអត្ថបទ / Generate Content</span>
       </LoadingButton>
     </form>
   );

@@ -8,13 +8,6 @@ function scopedRsvpKey(targetId) {
   return `${RSVP_KEY_PREFIX}:${targetId}`;
 }
 
-function safeRandomId() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return `rsvp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 function readLegacy(targetId) {
   try {
     const raw = localStorage.getItem(LEGACY_RSVP_KEY);
@@ -36,36 +29,12 @@ export function listRsvps(targetId) {
   }
 }
 
-export function addRsvp(targetId, payload) {
-  if (!targetId) return null;
-
-  const response = {
-    id: safeRandomId(),
-    ...payload,
-    submittedAt: Date.now(),
-  };
-
-  try {
-    localStorage.setItem(scopedRsvpKey(targetId), JSON.stringify([response, ...listRsvps(targetId)]));
-  } catch {
-    // localStorage may be full or disabled.
-  }
-
-  return response;
-}
-
 export async function submitRsvp(payload) {
   const slug = payload.slug;
-  if (slug) {
-    try {
-      const response = await rsvpService.submitPublic(slug, payload);
-      return response;
-    } catch {
-      // Fallback to local draft caching if offline
-    }
+  if (!slug) {
+    throw new Error("A published invitation is required before an RSVP can be submitted");
   }
-  const targetId = payload.invitationId || payload.draftId || payload.slug;
-  return addRsvp(targetId, payload);
+  return rsvpService.submitPublic(slug, payload);
 }
 
 export function listRsvpByInvitation(invitationId) {

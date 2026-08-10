@@ -2,7 +2,11 @@ package com.koupreng.backend.repository;
 
 import com.koupreng.backend.entity.payment.TemplatePaymentOrder;
 import com.koupreng.backend.enums.PaymentStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -12,6 +16,11 @@ import java.util.Optional;
 public interface TemplatePaymentOrderRepository extends JpaRepository<TemplatePaymentOrder, Long> {
 
     Optional<TemplatePaymentOrder> findByOrderCode(String orderCode);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select paymentOrder from TemplatePaymentOrder paymentOrder "
+            + "where paymentOrder.orderCode = :orderCode")
+    Optional<TemplatePaymentOrder> findForUpdateByOrderCode(@Param("orderCode") String orderCode);
 
     Optional<TemplatePaymentOrder> findByTransactionId(String transactionId);
 

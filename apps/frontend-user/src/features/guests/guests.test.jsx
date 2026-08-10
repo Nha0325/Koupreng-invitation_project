@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { normalizeBackendGuest, normalizeManualGuest, initials } from "./model/guestMappers";
+import {
+  initials,
+  mergeBackendGuestsWithRsvps,
+  normalizeBackendGuest,
+  normalizeBackendRsvp,
+  normalizeManualGuest,
+} from "./model/guestMappers";
 import GuestStats from "./components/GuestStats";
 import GuestTable from "./components/GuestTable";
 
@@ -48,6 +54,23 @@ describe("Guest Domain Module", () => {
       expect(initials("Koupreng")).toBe("K");
       expect(initials("")).toBe("?");
     });
+
+    it("joins RSVP state by backend guest ID without creating duplicate guests", () => {
+      const guests = [
+        normalizeBackendGuest({ id: 101, guestName: "Sok Dara" }),
+        normalizeBackendGuest({ id: 102, guestName: "Sok Dara" }),
+      ];
+      const rsvps = [
+        normalizeBackendRsvp({ id: 501, guestId: 102, responseStatus: "ATTENDING", attendeeCount: 2 }),
+        normalizeBackendRsvp({ id: 502, guestId: 999, responseStatus: "MAYBE", attendeeCount: 1 }),
+      ];
+
+      const result = mergeBackendGuestsWithRsvps(guests, rsvps);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].rsvpStatus).toBeUndefined();
+      expect(result[1]).toMatchObject({ id: 102, rsvpStatus: "ATTENDING", rsvpAttendeeCount: 2 });
+    });
   });
 
   describe("GuestStats Component", () => {
@@ -64,6 +87,12 @@ describe("Guest Domain Module", () => {
       expect(screen.getByText("6")).toBeInTheDocument(); // total seats (2+1+3)
       expect(screen.getAllByText("1").length).toBe(2); // sent count (1) & responded count (1)
     });
+
+    it("counts canonical backend delivery statuses", () => {
+      render(<GuestStats guests={[{ id: 1, count: 1, sendStatus: "SENT" }]} t={(key) => key} />);
+
+      expect(screen.getByText("statSent").closest("article")).toHaveTextContent("1");
+    });
   });
 
   describe("GuestTable Component", () => {
@@ -77,6 +106,7 @@ describe("Guest Domain Module", () => {
           category: "Friend",
           count: 2,
           sendStatus: "PUBLISHED",
+          rsvpStatus: "ATTENDING",
         },
       ];
 
@@ -99,6 +129,7 @@ describe("Guest Domain Module", () => {
       expect(screen.getByText("012345678")).toBeInTheDocument();
       expect(screen.getByText("Groom Side")).toBeInTheDocument();
       expect(screen.getByText("Published")).toBeInTheDocument();
+      expect(screen.getByText("RSVP: ATTENDING")).toBeInTheDocument();
     });
   });
 });

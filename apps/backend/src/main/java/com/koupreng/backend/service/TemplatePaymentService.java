@@ -359,7 +359,7 @@ public class TemplatePaymentService {
         BigDecimal paidAmount = money(detectedPayment.amount(), detectedCurrency);
         requireStaticAbaAmount(detectedCurrency, paidAmount);
 
-        TemplatePaymentOrder order = requireOrder(orderCode);
+        TemplatePaymentOrder order = requireOrderForUpdate(orderCode);
 
         if (order.getStatus() == PaymentStatus.PAID) {
             throw new ApiException(HttpStatus.CONFLICT, "Order is already paid");
@@ -418,7 +418,7 @@ public class TemplatePaymentService {
 
     @Transactional
     public PaymentConfirmResponse confirmManualPayment(ConfirmTemplatePaymentRequest request) {
-        TemplatePaymentOrder order = requireOrder(request.getOrderCode());
+        TemplatePaymentOrder order = requireOrderForUpdate(request.getOrderCode());
         BigDecimal paidAmount = money(request.getAmount(), order.getCurrency());
 
         if (order.getStatus() == PaymentStatus.PAID) {
@@ -627,6 +627,12 @@ public class TemplatePaymentService {
     private TemplatePaymentOrder requireOrder(String orderCode) {
         String normalized = requireText(orderCode, "Order code is required").toUpperCase(Locale.ROOT);
         return orderRepository.findByOrderCode(normalized)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Order not found"));
+    }
+
+    private TemplatePaymentOrder requireOrderForUpdate(String orderCode) {
+        String normalized = requireText(orderCode, "Order code is required").toUpperCase(Locale.ROOT);
+        return orderRepository.findForUpdateByOrderCode(normalized)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Order not found"));
     }
 

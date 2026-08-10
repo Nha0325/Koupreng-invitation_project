@@ -557,7 +557,11 @@ public class InvitationService {
         Organization organization = organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Organization not found"));
         boolean owner = organization.getOwner() != null && organization.getOwner().getId().equals(user.getId());
-        boolean member = organizationMemberRepository.existsByOrganizationIdAndUserId(organizationId, user.getId());
+        boolean member = organizationMemberRepository.existsByOrganizationIdAndUserIdAndStatus(
+                organizationId,
+                user.getId(),
+                com.koupreng.backend.entity.organization.OrganizationMember.STATUS_ACTIVE
+        );
         if (!owner && !member) {
             throw new ApiException(HttpStatus.FORBIDDEN, "Organization access is required");
         }

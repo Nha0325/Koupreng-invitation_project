@@ -13,6 +13,7 @@ import com.koupreng.backend.security.ApiRequestLoggingFilter;
 import com.koupreng.backend.security.ApiSecurityProperties;
 import com.koupreng.backend.security.ClientAddressResolver;
 import com.koupreng.backend.security.CookieBearerTokenResolver;
+import com.koupreng.backend.security.PublicRsvpRateLimitFilter;
 import com.koupreng.backend.service.RateLimitService;
 import com.koupreng.backend.waf.WafFilter;
 import com.koupreng.backend.waf.WafProperties;
@@ -65,6 +66,11 @@ public class SecurityConfig {
                 rateLimitService,
                 clientAddressResolver
         );
+        PublicRsvpRateLimitFilter publicRsvpRateLimitFilter = new PublicRsvpRateLimitFilter(
+                appProperties.getInvitation(),
+                rateLimitService,
+                clientAddressResolver
+        );
         ApiRequestLoggingFilter apiRequestLoggingFilter =
                 new ApiRequestLoggingFilter(apiSecurityProperties.getLogging());
 
@@ -89,6 +95,7 @@ public class SecurityConfig {
                 .addFilterBefore(wafFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterBefore(adminPaymentSecretFilter, BearerTokenAuthenticationFilter.class)
                 .addFilterAfter(authRateLimitFilter, WafFilter.class)
+                .addFilterAfter(publicRsvpRateLimitFilter, AuthRateLimitFilter.class)
                 .addFilterBefore(apiRequestLoggingFilter, WafFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()

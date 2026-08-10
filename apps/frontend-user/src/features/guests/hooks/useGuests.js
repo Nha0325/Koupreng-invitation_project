@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import { guestService } from "@/features/guests/api/guestApi";
 import { invitationService } from "@/features/invitations/api/invitationApi";
 import { rsvpService } from "@/features/rsvp/api/rsvpApi";
@@ -8,14 +9,23 @@ import {
   normalizeBackendGuest,
   normalizeBackendRsvp,
   normalizeManualGuest,
+  mergeBackendGuestsWithRsvps,
 } from "../model/guestMappers";
 
 function invitationId(invitation) {
   return invitation?.id || invitation?.invitationId;
 }
 
-function pickBackendInvitation(invitations, draft) {
+function pickBackendInvitation(invitations, draft, requestedInvitationId) {
   if (!invitations?.length) return null;
+
+  if (requestedInvitationId) {
+    return (
+      invitations.find(
+        (invitation) => String(invitationId(invitation)) === String(requestedInvitationId)
+      ) || null
+    );
+  }
 
   const draftId = draft?.backendInvitationId || draft?.invitationId || draft?.id;
   return (
@@ -27,12 +37,20 @@ function pickBackendInvitation(invitations, draft) {
   );
 }
 
-function pickPublicInvitation(invitations, draft) {
+function pickPublicInvitation(invitations, draft, requestedInvitationId) {
   const published = (invitations || []).filter(
     (invitation) => invitation?.status === "PUBLISHED" && invitation?.slug
   );
 
   if (!published.length) return null;
+
+  if (requestedInvitationId) {
+    return (
+      published.find(
+        (invitation) => String(invitationId(invitation)) === String(requestedInvitationId)
+      ) || null
+    );
+  }
 
   const draftId = draft?.backendInvitationId || draft?.invitationId || draft?.id;
   return (
@@ -43,6 +61,7 @@ function pickPublicInvitation(invitations, draft) {
 }
 
 export function useGuests() {
+  const { invitationId: requestedInvitationId = "" } = useParams();
   const drafts = useMemo(() => listDrafts(), []);
   const activeEventId = getActiveEventId();
   const currentDraft =
@@ -70,9 +89,26 @@ export function useGuests() {
     setError("");
 
     try {
-      const myInvitations = await invitationService.listMy().catch(() => []);
-      const matchedBackend = pickBackendInvitation(myInvitations, draftMatch);
-      const matchedPublic = pickPublicInvitation(myInvitations, draftMatch);
+      const myInvitations = await invitationService.listMine();
+      const matchedBackend = pickBackendInvitation(
+        myInvitations,
+        draftMatch,
+        requestedInvitationId
+      );
+      const matchedPublic = pickPublicInvitation(
+        myInvitations,
+        draftMatch,
+        requestedInvitationId
+      );
+
+      if (requestedInvitationId && !matchedBackend) {
+        setBackendInvitation(null);
+        setPublicInvitation(null);
+        setBackendGuests([]);
+        setRsvpGuests([]);
+        setError("Invitation not found or you do not have permission to manage its guests");
+        return;
+      }
 
       setBackendInvitation(matchedBackend);
       setPublicInvitation(matchedPublic);
@@ -82,69 +118,47 @@ export function useGuests() {
 
       if (backendIdToUse) {
         try {
-          const rawGuests = await guestService.listByInvitation(backendIdToUse);
+          const [rawGuests, rawRsvps] = await Promise.all([
+            guestService.listByInvitation(backendIdToUse),
+            rsvpService.listByInvitation(backendIdToUse),
+          ]);
           fetchedBackendGuests = (rawGuests || []).map(normalizeBackendGuest);
+          setRsvpGuests((rawRsvps || []).map(normalizeBackendRsvp));
         } catch (err) {
           setError(err?.message || "Could not fetch backend guest records");
-        }
-      }
-
-      setBackendGuests(fetchedBackendGuests);
-
-      const slugToUse = matchedPublic?.slug || draftMatch?.slug;
-      if (slugToUse) {
-        try {
-          const rawWishes = await rsvpService.listWishes(slugToUse);
-          setRsvpGuests((rawWishes || []).map(normalizeBackendRsvp));
-        } catch {
           setRsvpGuests([]);
         }
       } else {
         setRsvpGuests([]);
       }
+
+      setBackendGuests(fetchedBackendGuests);
     } catch (err) {
       setError(err?.message || "Failed to load guest data");
     } finally {
       setLoading(false);
     }
-  }, [draftMatch]);
+  }, [draftMatch, requestedInvitationId]);
 
   useEffect(() => {
     refreshData();
   }, [refreshData]);
 
   const allGuests = useMemo(() => {
-    const combined = [...backendGuests];
-    const backendIds = new Set(backendGuests.map((item) => String(item.id)));
-    const backendNames = new Set(
-      backendGuests.map((item) => (item.name || "").trim().toLowerCase()).filter(Boolean)
-    );
-
-    for (const manual of manualGuests) {
-      const manualName = (manual.name || "").trim().toLowerCase();
-      if (!backendIds.has(String(manual.id)) && (!manualName || !backendNames.has(manualName))) {
-        combined.push(manual);
-      }
+    if (backendInvitation) {
+      return mergeBackendGuestsWithRsvps(backendGuests, rsvpGuests);
     }
-
-    const combinedNames = new Set(
-      combined.map((item) => (item.name || "").trim().toLowerCase()).filter(Boolean)
-    );
-
-    for (const rsvp of rsvpGuests) {
-      const rsvpName = (rsvp.name || "").trim().toLowerCase();
-      if (rsvpName && !combinedNames.has(rsvpName)) {
-        combined.push(rsvp);
-      }
+    if (requestedInvitationId) {
+      return [];
     }
-
-    return combined;
-  }, [backendGuests, manualGuests, rsvpGuests]);
+    return manualGuests;
+  }, [backendGuests, backendInvitation, manualGuests, requestedInvitationId, rsvpGuests]);
 
   return {
     eventId,
     draftMatch,
     backendInvitation,
+    requestedInvitationId,
     publicInvitation,
     guests: allGuests,
     manualGuests,

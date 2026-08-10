@@ -1,6 +1,10 @@
 import { createHostRecordId } from "@/shared/storage/hostPlanningStorage";
 import { DEFAULT_CATEGORIES, DEFAULT_GROUPS, SEND_STATUS } from "./guestConstants";
 
+function cleanText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export function normalizeManualGuest(guest) {
   const name = guest.name || guest.guestName || "Guest";
   return {
@@ -48,6 +52,7 @@ export function normalizeBackendGuest(guest) {
 export function normalizeBackendRsvp(entry) {
   return {
     id: entry.id,
+    guestId: entry.guestId,
     name: entry.name || entry.guestName || "RSVP Guest",
     companionName: "",
     phone: entry.phone || "",
@@ -56,10 +61,32 @@ export function normalizeBackendRsvp(entry) {
     sendStatus: SEND_STATUS.responded,
     amount: "-",
     seat: "",
-    count: Number(entry.count) || 1,
+    count: Number(entry.attendeeCount ?? entry.count) || 1,
     note: entry.message || "",
+    rsvpStatus: entry.responseStatus || entry.status || "",
+    respondedAt: entry.respondedAt || "",
     source: "rsvp",
   };
+}
+
+export function mergeBackendGuestsWithRsvps(guests = [], rsvps = []) {
+  const rsvpByGuestId = new Map(
+    rsvps
+      .filter((rsvp) => rsvp?.guestId != null)
+      .map((rsvp) => [String(rsvp.guestId), rsvp])
+  );
+
+  return guests.map((guest) => {
+    const rsvp = rsvpByGuestId.get(String(guest.backendId ?? guest.id));
+    if (!rsvp) return guest;
+
+    return {
+      ...guest,
+      rsvpStatus: rsvp.rsvpStatus,
+      rsvpAttendeeCount: rsvp.count,
+      rsvpRespondedAt: rsvp.respondedAt,
+    };
+  });
 }
 
 export function toManualGuest(form, existingId) {
@@ -82,14 +109,14 @@ export function toManualGuest(form, existingId) {
 
 export function toBackendGuestPayload(form) {
   return {
-    guestName: form.name.trim(),
-    phone: form.phone.trim() || null,
+    guestName: cleanText(form.name),
+    phone: cleanText(form.phone) || null,
     guestGroup: form.group || null,
     sideType: form.category || null,
-    tableNumber: form.seat.trim() || null,
+    tableNumber: cleanText(form.seat) || null,
     sendStatus: form.sendStatus || null,
     seatCount: Math.max(1, Number(form.count) || 1),
-    note: form.note.trim() || null,
+    note: cleanText(form.note) || null,
   };
 }
 

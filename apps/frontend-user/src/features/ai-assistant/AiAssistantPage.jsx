@@ -6,6 +6,8 @@ import { invitationService } from "@/features/invitations/api/invitationApi";
 import { useAiAssistant } from "./hooks/useAiAssistant";
 import AssistantComposer from "./components/AssistantComposer";
 import AssistantResult from "./components/AssistantResult";
+import { toInvitationStoryUpdate } from "./model/invitationContent";
+import "./AiAssistantPage.css";
 
 export default function AiAssistantPage() {
   const { id, invitationId: paramInvId } = useParams();
@@ -48,8 +50,8 @@ export default function AiAssistantPage() {
           ...prev,
           coupleNames: data.title || data.slug || "",
           hostName: data.groomName || data.brideName || "",
-          venueName: data.location || "",
-          eventDate: data.weddingDate || "",
+          venueName: data.venueName || "",
+          eventDate: data.eventDate || "",
         }));
       })
       .catch((err) => {
@@ -82,12 +84,12 @@ export default function AiAssistantPage() {
     if (!invitationId) return;
     try {
       if (invitation) {
-        await invitationService.update(invitationId, {
-          ...invitation,
-          notes: appliedText,
-        });
+        await invitationService.update(
+          invitationId,
+          toInvitationStoryUpdate(invitation, appliedText),
+        );
       }
-      toast.success("បានរក្សាទុកអត្ថបទទៅក្នុងធៀបរៀបរយ! / Content applied to invitation");
+      toast.success("បានរក្សាទុកក្នុងផ្នែករឿងរ៉ាវ / Saved to invitation story");
       navigate(`/dashboard/invitations/${invitationId}/edit`);
     } catch {
       toast.error("មិនអាចរក្សាទុកអត្ថបទបានទេ");
@@ -95,11 +97,11 @@ export default function AiAssistantPage() {
   };
 
   return (
-    <main className="dash-main" style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+    <main className="dash-main pe-ai-page">
       <div>
         <Link
           to={invitationId ? `/dashboard/invitations/${invitationId}/edit` : "/dashboard/invitations"}
-          style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", color: "var(--brand-text-muted)", textDecoration: "none", fontSize: "0.875rem", fontWeight: "600" }}
+          className="pe-ai-back-link"
         >
           <IoArrowBackOutline aria-hidden="true" />
           <span>ត្រឡប់ទៅការកែប្រែធៀប / Back to Invitation Editor</span>
@@ -121,8 +123,8 @@ export default function AiAssistantPage() {
       ) : invLoading ? (
         <SkeletonCard height="240px" />
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: response ? "1fr 1fr" : "1fr", gap: "1.5rem" }}>
-          <section style={{ background: "var(--brand-surface)", borderRadius: "var(--radius-xl)", padding: "1.5rem", border: "1px solid var(--brand-border)" }}>
+        <div className={`pe-ai-layout${response ? " has-result" : ""}`}>
+          <section className="pe-ai-panel">
             <AssistantComposer
               form={form}
               setForm={setForm}

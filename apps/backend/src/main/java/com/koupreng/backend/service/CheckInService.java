@@ -56,15 +56,15 @@ public class CheckInService {
     public CheckInResponse scan(Authentication authentication, Long invitationId, String tokenOrUrl, String note) {
         UserInvitation invitation = requireCheckInInvitation(authentication, invitationId);
         String token = extractToken(tokenOrUrl);
-        Guest guest = guestRepository.findByInvitationIdAndInviteToken(invitation.getId(), token)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Guest check-in token not found"));
+        Guest guest = guestRepository.findForUpdateByInvitationIdAndInviteToken(invitation.getId(), token)
+                .orElseThrow(() -> invalidScanToken(token));
         return checkIn(authentication, invitation, guest, "QR", note);
     }
 
     @Transactional
     public CheckInResponse manual(Authentication authentication, Long invitationId, Long guestId, String note) {
         UserInvitation invitation = requireCheckInInvitation(authentication, invitationId);
-        Guest guest = guestRepository.findByIdAndInvitationId(guestId, invitationId)
+        Guest guest = guestRepository.findForUpdateByIdAndInvitationId(guestId, invitationId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Guest not found"));
         return checkIn(authentication, invitation, guest, "MANUAL", note);
     }
@@ -146,6 +146,21 @@ public class CheckInService {
                 && authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch("ROLE_ADMIN"::equals);
+    }
+
+    private ApiException invalidScanToken(String token) {
+        if (guestRepository.existsByInviteToken(token)) {
+            return new ApiException(
+                    HttpStatus.CONFLICT,
+                    "CHECKIN_WRONG_INVITATION",
+                    "Check-in token belongs to a different invitation"
+            );
+        }
+        return new ApiException(
+                HttpStatus.NOT_FOUND,
+                "CHECKIN_INVALID_TOKEN",
+                "Guest check-in token not found"
+        );
     }
 
     private String extractToken(String tokenOrUrl) {

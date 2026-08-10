@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -77,6 +78,7 @@ public class GuestService {
     @Transactional
     public GuestResponse create(Authentication authentication, Long invitationId, GuestRequest request) {
         UserInvitation invitation = invitationService.requireOwnedInvitationEntity(authentication, invitationId);
+        ensureUniqueGuest(invitationId, null, request);
         Guest guest = new Guest();
         guest.setInvitation(invitation);
         guest.setInviteToken(uniqueInviteToken());
@@ -140,6 +142,7 @@ public class GuestService {
     public GuestResponse update(Authentication authentication, Long invitationId, Long guestId, GuestRequest request) {
         invitationService.requireOwnedInvitationEntity(authentication, invitationId);
         Guest guest = requireGuest(invitationId, guestId);
+        ensureUniqueGuest(invitationId, guestId, request);
         applyRequest(guest, request);
         if (guest.getQrCodeUrl() == null || guest.getQrCodeUrl().isBlank()) {
             guest.setQrCodeUrl(tokenUrl(guest.getInvitation(), guest.getInviteToken()));
@@ -170,6 +173,7 @@ public class GuestService {
         return request.getGuests().stream()
                 .filter(guest -> guest.getGuestName() != null && !guest.getGuestName().isBlank())
                 .map(guestRequest -> {
+                    ensureUniqueGuest(invitationId, null, guestRequest);
                     Guest guest = new Guest();
                     guest.setInvitation(invitation);
                     guest.setInviteToken(uniqueInviteToken());
@@ -468,12 +472,30 @@ public class GuestService {
     }
 
     private boolean isDuplicateGuest(Long invitationId, GuestRequest request) {
+        return duplicateGuest(invitationId, null, request);
+    }
+
+    private void ensureUniqueGuest(Long invitationId, Long currentGuestId, GuestRequest request) {
+        if (duplicateGuest(invitationId, currentGuestId, request)) {
+            throw new ApiException(
+                    HttpStatus.CONFLICT,
+                    "GUEST_DUPLICATE",
+                    "Guest with the same email or phone already exists"
+            );
+        }
+    }
+
+    private boolean duplicateGuest(Long invitationId, Long currentGuestId, GuestRequest request) {
         String email = trimToNull(request.getEmail());
-        if (email != null && guestRepository.findByInvitationIdAndEmailIgnoreCase(invitationId, email).isPresent()) {
+        if (email != null && guestRepository.findByInvitationIdAndEmailIgnoreCase(invitationId, email)
+                .filter(existing -> !Objects.equals(existing.getId(), currentGuestId))
+                .isPresent()) {
             return true;
         }
         String phone = trimToNull(request.getPhone());
-        return phone != null && guestRepository.findByInvitationIdAndPhone(invitationId, phone).isPresent();
+        return phone != null && guestRepository.findByInvitationIdAndPhone(invitationId, phone)
+                .filter(existing -> !Objects.equals(existing.getId(), currentGuestId))
+                .isPresent();
     }
 
     private GuestImportErrorResponse errorRow(int rowNumber, String reason) {

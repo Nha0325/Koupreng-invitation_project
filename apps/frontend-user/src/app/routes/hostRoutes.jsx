@@ -45,14 +45,14 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/new" element={<InvitationCreatePage />} />
       <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
-      <Route path="/dashboard/invitations/:id/assistant" element={<AiAssistantPage />} />
-      <Route path="/dashboard/invitations/:id/guests" element={<GuestsPage />} />
-      <Route path="/dashboard/invitations/:id/rsvp" element={<RsvpDashboardPage />} />
+      <Route path="/dashboard/invitations/:invitationId/assistant" element={<AiAssistantPage />} />
+      <Route path="/dashboard/invitations/:invitationId/guests" element={<GuestsPage />} />
+      <Route path="/dashboard/invitations/:invitationId/rsvp" element={<RsvpDashboardPage />} />
       <Route path="/dashboard/invitations/:id/delivery" element={<InvitationDeliveryPage />} />
       <Route path="/dashboard/invitations/:id/media" element={<InvitationMediaPage />} />
-      <Route path="/dashboard/invitations/:id/budget" element={<BudgetPage />} />
-      <Route path="/dashboard/invitations/:id/check-in" element={<InvitationCheckInPage />} />
-      <Route path="/dashboard/invitations/:id/seating" element={<SeatingPage />} />
+      <Route path="/dashboard/invitations/:invitationId/budget" element={<BudgetPage />} />
+      <Route path="/dashboard/invitations/:invitationId/check-in" element={<InvitationCheckInPage />} />
+      <Route path="/dashboard/invitations/:invitationId/seating" element={<SeatingPage />} />
       <Route path="/dashboard/guests" element={<GuestsPage />} />
       <Route path="/dashboard/expenses" element={<ExpensesPage />} />
       <Route path="/dashboard/gifts" element={<WeddingGiftPage />} />

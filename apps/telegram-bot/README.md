@@ -2,7 +2,7 @@
 
 FastAPI webhook helper for ABA PayWay static KHQR template payments.
 
-The bot listens for ABA PayWay bot alerts in the Telegram payment group. When a trusted ABA PayWay bot message contains an exact amount and an `EVT...` order code, it calls the Spring Boot backend at `POST /api/v1/internal/template-payments/telegram-detect`. The backend verifies the internal payment secret, order, amount, currency, expiry, and status before marking an order `PAID` and unlocking the template.
+The bot listens for ABA PayWay bot alerts in the Telegram payment group. When a trusted ABA PayWay bot message contains an exact amount and an `EVT...` order code, it calls the Spring Boot backend at `POST /api/v1/internal/template-payments/telegram-detect`. The backend verifies the internal payment secret, order, amount, currency, expiry, and status, then defaults the order to `PAID_PENDING_REVIEW`. An administrator must confirm the payment before the backend marks it `PAID` and unlocks the template.
 
 The frontend never marks an order paid and never unlocks a template.
 
@@ -76,7 +76,7 @@ or:
 TELEGRAM_ALLOWED_PAYMENT_BOT_USERNAMES=PayWayByABA_bot
 ```
 
-## Auto-Confirm Behavior
+## Detection and Review Behavior
 
 The bot ignores messages from disallowed groups.
 
@@ -86,7 +86,9 @@ The bot automatically processes a message only when:
 - the message contains an `EVT...` order code
 - the message contains an amount, for example `USD 0.01`, `USD0.01`, `0.01 USD`, `$0.01`, `Amount: USD 0.01`, `Paid: USD 0.01`, `Total: USD 0.01`, or `Received: USD 0.01`
 
-There is no amount-only auto-confirm fallback. Many users can pay the same USD 0.01 amount, so the backend refuses Telegram detection when the raw message does not include the order code.
+There is no amount-only detection fallback. Many users can pay the same USD 0.01 amount, so the backend refuses Telegram detection when the raw message does not include the order code.
+
+`AUTO_CONFIRM_TELEGRAM_DETECTED` defaults to `false`. Keep it disabled unless the product and security owners explicitly accept Telegram notification text as sufficient payment evidence. With the default, detection never creates template access.
 
 Payload sent to the backend:
 
@@ -106,7 +108,7 @@ Payload sent to the backend:
 }
 ```
 
-If the backend returns `PAID`, the bot replies:
+If an explicitly opted-in deployment returns `PAID`, or an administrator confirms the order, the bot replies:
 
 ```text
 ✅ Payment confirmed automatically
@@ -163,9 +165,10 @@ Only sender IDs in `TELEGRAM_ALLOWED_ADMIN_IDS` can use these commands.
 3. Ensure the ABA PayWay bot posts an alert containing the `EVT...` order code.
 4. This bot catches the alert automatically.
 5. This bot calls the backend with `X-ADMIN-PAYMENT-SECRET`.
-6. The backend marks the order `PAID`.
-7. The backend creates `UserTemplateAccess`.
-8. The template unlocks.
+6. The backend records the order as `PAID_PENDING_REVIEW`.
+7. An authorized administrator reconciles the payment and runs `/paid EVT... 0.01` (or uses the admin confirmation endpoint).
+8. The backend atomically marks the order `PAID` and creates `UserTemplateAccess`.
+9. The template unlocks.
 
 ## Logging
 

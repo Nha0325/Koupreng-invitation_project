@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { IoCheckmark, IoCopyOutline, IoSparklesOutline } from "react-icons/io5";
+import { useEffect, useState } from "react";
+import { IoCheckmark, IoCopyOutline, IoInformationCircleOutline, IoSparklesOutline } from "react-icons/io5";
 import { FormField, LoadingButton, toast } from "@/shared/ui";
 
 export default function AssistantResult({
@@ -9,7 +9,13 @@ export default function AssistantResult({
   const [editedText, setEditedText] = useState(response?.generatedText || "");
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    setEditedText(response?.generatedText || "");
+  }, [response]);
+
   if (!response) return null;
+
+  const isLocalTemplate = response.source === "LOCAL_TEMPLATE" || response.enabled === false;
 
   const handleCopy = async () => {
     try {
@@ -24,22 +30,34 @@ export default function AssistantResult({
 
   return (
     <article
-      style={{
-        background: "var(--brand-surface)",
-        border: "1px solid var(--brand-border)",
-        borderRadius: "var(--radius-xl)",
-        padding: "1.5rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.25rem",
-      }}
+      className="pe-ai-result"
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <IoSparklesOutline style={{ color: "var(--brand-primary)" }} />
-          <span>លទ្ធផលអត្ថបទដែលបានបង្កើត / Generated Result</span>
+      <div className="pe-ai-result-header">
+        <h3>
+          <IoSparklesOutline aria-hidden="true" />
+          <span>
+            {isLocalTemplate
+              ? "ពុម្ពអត្ថបទជំនួយ / Local template draft"
+              : "លទ្ធផលអត្ថបទ AI / AI-generated result"}
+          </span>
         </h3>
       </div>
+
+      {isLocalTemplate && (
+        <div role="status" className="pe-ai-source-notice">
+          <IoInformationCircleOutline aria-hidden="true" />
+          <span>This draft was created from Koupreng's built-in template. No external AI provider was used.</span>
+        </div>
+      )}
+
+      {response.warnings?.length > 0 && (
+        <div role="alert" className="pe-ai-warning-list">
+          <strong>Service notice</strong>
+          <ul>
+            {response.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+          </ul>
+        </div>
+      )}
 
       <FormField label="អ្នកអាចកែសម្រួលអត្ថបទមុនពេលប្រើប្រាស់ (Editable Content)">
         <textarea
@@ -51,9 +69,10 @@ export default function AssistantResult({
       </FormField>
 
       {response.suggestions?.length > 0 && (
-        <div style={{ background: "rgba(107, 107, 196, 0.06)", padding: "0.875rem", borderRadius: "10px", border: "1px solid rgba(107, 107, 196, 0.2)" }}>
-          <strong style={{ fontSize: "0.875rem", color: "var(--brand-primary)", display: "block", marginBottom: "0.375rem" }}>
-            💡 អនុសាសន៍បន្ថែម (Suggestions):
+        <div className="pe-ai-suggestions">
+          <strong>
+            <IoInformationCircleOutline aria-hidden="true" />
+            <span>អនុសាសន៍បន្ថែម (Suggestions)</span>
           </strong>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.875rem", color: "var(--brand-text)" }}>
             {response.suggestions.map((s, idx) => (
@@ -63,7 +82,7 @@ export default function AssistantResult({
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "0.5rem" }}>
+      <div className="pe-ai-result-actions">
         <button type="button" className="pe-secondary-btn" onClick={handleCopy}>
           {copied ? <IoCheckmark aria-hidden="true" /> : <IoCopyOutline aria-hidden="true" />}
           <span>{copied ? "បានចម្លង" : "ចម្លងអត្ថបទ"}</span>

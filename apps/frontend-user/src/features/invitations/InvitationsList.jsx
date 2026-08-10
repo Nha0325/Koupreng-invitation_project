@@ -155,7 +155,7 @@ export default function InvitationsList() {
                             <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/preview`)}>
                                 Preview
                             </button>
-                            <button type="button" onClick={() => navigate("/guests")}>
+                            <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/guests`)}>
                                 Guests
                             </button>
                             <button type="button" onClick={() => navigate(`/dashboard/invitations/${invitation.id}/delivery`)}>

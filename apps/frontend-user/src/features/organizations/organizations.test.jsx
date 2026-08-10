@@ -4,8 +4,15 @@ import { describe, expect, it, vi } from "vitest";
 import OrganizationCard from "./components/OrganizationCard";
 import MemberTable from "./components/MemberTable";
 import RoleBadge from "./components/RoleBadge";
+import { canManageOrganization } from "./model/organizationPermissions";
 
 describe("Organization Feature Module", () => {
+  it("fails closed when ownership data is missing", () => {
+    expect(canManageOrganization(undefined, 101)).toBe(false);
+    expect(canManageOrganization(101, undefined)).toBe(false);
+    expect(canManageOrganization(101, "101")).toBe(true);
+  });
+
   describe("RoleBadge", () => {
     it("renders role badges with normalized role names", () => {
       render(<RoleBadge role="CHECK_IN_STAFF" />);

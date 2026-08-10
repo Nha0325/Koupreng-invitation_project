@@ -179,7 +179,7 @@ export default function InvitationDeliveryManager() {
           <button
             className="inv-secondary-btn"
             type="button"
-            onClick={() => navigate("/guests")}
+            onClick={() => navigate(`/dashboard/invitations/${id}/guests`)}
           >
             Guests
           </button>

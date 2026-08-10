@@ -32,7 +32,7 @@ export default function PaymentQrCard({ order, onStatusChange, onRetry }) {
     const [checking, setChecking] = useState(false);
     const [now, setNow] = useState(() => Date.now());
     const status = order?.status || "PENDING";
-    const waitingForPayment = status === "PENDING" || status === "QR_CREATED";
+    const waitingForPayment = !isTerminalStatus(status);
     const orderCode = order?.orderCode || "";
     const qrValue = order?.qrString || "";
 

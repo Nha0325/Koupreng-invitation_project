@@ -34,5 +34,17 @@ class GlobalExceptionHandlerTests {
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
         assertEquals(405, response.getBody().get("status"));
         assertEquals("Request method is not supported", response.getBody().get("message"));
+        assertEquals("METHOD_NOT_ALLOWED", response.getBody().get("code"));
+    }
+
+    @Test
+    void apiExceptionExposesStableCodeWithoutImplementationDetails() {
+        ResponseEntity<Map<String, Object>> response = handler.handleApiException(
+                new ApiException(HttpStatus.CONFLICT, "SEATING_CAPACITY_EXCEEDED", "Table capacity exceeded")
+        );
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("SEATING_CAPACITY_EXCEEDED", response.getBody().get("code"));
+        assertEquals("Table capacity exceeded", response.getBody().get("message"));
     }
 }

@@ -1333,7 +1333,7 @@ function BudgetPanel({ budget, items }) {
             Spending progress
           </h2>
         </div>
-        <Link to="/expenses" className={linkClass}>
+        <Link to="/dashboard/expenses" className={linkClass}>
           Manage budget <IoChevronForwardOutline aria-hidden="true" />
         </Link>
       </div>

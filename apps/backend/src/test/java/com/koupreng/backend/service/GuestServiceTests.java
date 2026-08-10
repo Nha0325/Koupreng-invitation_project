@@ -1,5 +1,6 @@
 package com.koupreng.backend.service;
 
+import com.koupreng.backend.common.ApiException;
 import com.koupreng.backend.dto.guest.GuestGroupResponse;
 import com.koupreng.backend.dto.guest.GuestRequest;
 import com.koupreng.backend.dto.guest.GuestResponse;
@@ -16,6 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -32,6 +34,20 @@ class GuestServiceTests {
         assertEquals("Sophea", response.getGuestName());
         assertNotNull(response.getInviteToken());
         assertEquals("/i/samnang-sreyneang?token=" + response.getInviteToken(), response.getQrCodeUrl());
+    }
+
+    @Test
+    void createGuestRejectsDuplicateEmailWithinInvitation() {
+        Fixture fixture = fixture();
+        GuestRequest request = request("Duplicate");
+        request.setEmail("guest@example.test");
+        when(fixture.guestRepository.findByInvitationIdAndEmailIgnoreCase(10L, "guest@example.test"))
+                .thenReturn(Optional.of(guest(fixture.invitation, "Existing")));
+
+        ApiException exception = assertThrows(ApiException.class,
+                () -> fixture.service.create(fixture.authentication, 10L, request));
+
+        assertEquals("GUEST_DUPLICATE", exception.getCode());
     }
 
     @Test

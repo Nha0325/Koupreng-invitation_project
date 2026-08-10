@@ -70,13 +70,15 @@ export function useAiAssistant() {
       }
 
       let generatedText = apiResult?.generatedText;
-      if (!generatedText || !generatedText.trim()) {
+      const usedLocalTemplate = !generatedText || !generatedText.trim();
+      if (usedLocalTemplate) {
         generatedText = buildLocalTemplateText(action, request);
       }
 
       const finalResponse = {
         ...apiResult,
         generatedText,
+        source: usedLocalTemplate ? "LOCAL_TEMPLATE" : "AI_PROVIDER",
       };
 
       setResponse(finalResponse);

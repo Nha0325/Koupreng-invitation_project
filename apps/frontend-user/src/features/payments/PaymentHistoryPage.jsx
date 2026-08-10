@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../enterprise/EnterprisePages.css";
 import paymentService from "./paymentService";
+import { StatusBadge } from "@/shared/ui";
 
 function money(amount, currency = "USD") {
     return new Intl.NumberFormat("en", { style: "currency", currency }).format(Number(amount || 0));
@@ -61,10 +62,10 @@ export default function PaymentHistoryPage() {
                                     <tr key={payment.orderCode}>
                                         <td>{payment.orderCode}</td>
                                         <td>
-                                            <strong>{payment.templateName}</strong>
-                                            <div className="enterprise-muted">{payment.packageName}</div>
+                                            <strong>{payment.templateName || payment.packageName || "Payment"}</strong>
+                                            <div className="enterprise-muted">{payment.itemType || payment.packageName}</div>
                                         </td>
-                                        <td><span className={`enterprise-badge ${payment.status === "PAID" ? "good" : "warn"}`}>{payment.status}</span></td>
+                                        <td><StatusBadge status={payment.status} /></td>
                                         <td>{money(payment.paidAmount || payment.amount, payment.currency)}</td>
                                         <td>{dateTime(payment.createdAt)}</td>
                                         <td><Link className="enterprise-btn secondary" to={`/dashboard/payments/${payment.orderCode}`}>Receipt</Link></td>

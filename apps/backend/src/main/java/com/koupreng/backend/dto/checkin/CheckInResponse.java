@@ -24,6 +24,7 @@ public class CheckInResponse {
     private String source;
     private String note;
     private boolean alreadyCheckedIn;
+    private String result;
 
     public static CheckInResponse from(GuestCheckIn checkIn, boolean alreadyCheckedIn) {
         Guest guest = checkIn.getGuest();
@@ -37,6 +38,7 @@ public class CheckInResponse {
                 .source(checkIn.getSource())
                 .note(checkIn.getNote())
                 .alreadyCheckedIn(alreadyCheckedIn)
+                .result(alreadyCheckedIn ? "ALREADY_CHECKED_IN" : "CHECKED_IN")
                 .build();
     }
 }

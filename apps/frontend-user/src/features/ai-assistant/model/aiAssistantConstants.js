@@ -1,9 +1,9 @@
 export const AI_ACTIONS = [
-  { value: "copy", label: "Invitation Copy / ខ្លឹមសារធៀប", icon: "✍️" },
-  { value: "story", label: "Love Story / រឿងរ៉ាវស្នេហា", icon: "❤️" },
-  { value: "formalText", label: "Formal Invitation / លិខិតផ្លូវការ", icon: "📜" },
-  { value: "translate", label: "Khmer ↔ English / ប្រែភាសា", icon: "🌐" },
-  { value: "timeline", label: "Timeline Suggestion / កម្មវិធីបុណ្យ", icon: "⏰" },
+  { value: "copy", label: "Invitation Copy / ខ្លឹមសារធៀប" },
+  { value: "story", label: "Love Story / រឿងរ៉ាវស្នេហា" },
+  { value: "formalText", label: "Formal Invitation / លិខិតផ្លូវការ" },
+  { value: "translate", label: "Khmer ↔ English / ប្រែភាសា" },
+  { value: "timeline", label: "Timeline Suggestion / កម្មវិធីបុណ្យ" },
 ];
 
 export const TONE_OPTIONS = [

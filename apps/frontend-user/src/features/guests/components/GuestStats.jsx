@@ -9,12 +9,18 @@ export default function GuestStats({ guests = [], t }) {
     let respondedCount = 0;
 
     for (const g of guests) {
+      const normalizedSendStatus = String(g.sendStatus || "").toUpperCase();
       totalCount += 1;
       totalSeats += Math.max(1, Number(g.count) || 1);
-      if (g.sendStatus === SEND_STATUS.sent || g.sendStatus === SEND_STATUS.opened) {
+      if (
+        g.sendStatus === SEND_STATUS.sent
+        || g.sendStatus === SEND_STATUS.opened
+        || normalizedSendStatus === "SENT"
+        || normalizedSendStatus === "OPENED"
+      ) {
         sentCount += 1;
       }
-      if (g.sendStatus === SEND_STATUS.responded) {
+      if (g.rsvpStatus || g.sendStatus === SEND_STATUS.responded) {
         respondedCount += 1;
       }
     }
