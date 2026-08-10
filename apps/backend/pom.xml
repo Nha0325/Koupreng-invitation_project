@@ -27,7 +27,13 @@
 		<url/>
 	</scm>
 	<properties>
+		<jackson-2-bom.version>2.21.5</jackson-2-bom.version>
 		<java.version>25</java.version>
+		<log4j2.version>2.25.5</log4j2.version>
+		<mysql.version>26.7.0</mysql.version>
+		<netty.version>4.2.17.Final</netty.version>
+		<postgresql.version>42.7.13</postgresql.version>
+		<tomcat.version>11.0.24</tomcat.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -296,6 +302,9 @@
 						<configuration>
 							<failBuildOnCVSS>8</failBuildOnCVSS>
 							<skipTestScope>true</skipTestScope>
+							<suppressionFiles>
+								<suppressionFile>${project.basedir}/dependency-check-suppressions.xml</suppressionFile>
+							</suppressionFiles>
 						</configuration>
 						<executions>
 							<execution>
