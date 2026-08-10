@@ -12,7 +12,7 @@ const links = [
     { to: "/system-logs", label: "ប្រវត្តិប្រព័ន្ធ", icon: "📜" },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onClose }) {
     return (
         <aside className="sidebar">
             <div className="sidebar-brand">
@@ -25,6 +25,7 @@ export default function AdminSidebar() {
                     <NavLink
                         key={link.to}
                         to={link.to}
+                        onClick={onClose}
                         className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
                     >
                         <span className="nav-icon">{link.icon}</span>

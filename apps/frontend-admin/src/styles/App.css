@@ -634,12 +634,44 @@ table.data tbody tr:last-child td {
   word-break: break-word;
 }
 
+.mobile-nav-toggle {
+  display: none;
+}
+
 @media (max-width: 720px) {
   .sidebar {
     display: none;
   }
 
+  .mobile-nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    padding: 6px 10px;
+  }
+
+  .mobile-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 999;
+    display: flex;
+  }
+
+  .mobile-sidebar-drawer {
+    width: 260px;
+    height: 100%;
+    background: var(--navy);
+  }
+
+  .mobile-sidebar-drawer .sidebar {
+    display: flex !important;
+    width: 100%;
+    height: 100%;
+  }
+
   .content {
-    padding: 18px;
+    padding: 16px;
   }
 }

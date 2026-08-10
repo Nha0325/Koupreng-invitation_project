@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import { useAuth } from "../app/providers/AdminAuthProvider";
@@ -24,6 +25,8 @@ function initials(name = "") {
 export default function AdminLayout() {
     const { user, logout } = useAuth();
     const location = useLocation();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
     const title =
         TITLES[Object.keys(TITLES).find((key) => location.pathname.startsWith(key))] ||
         "រដ្ឋបាលគូព្រេង";
@@ -33,9 +36,29 @@ export default function AdminLayout() {
     return (
         <div className="admin-layout">
             <AdminSidebar />
+            
+            {/* Mobile Drawer Overlay */}
+            {sidebarOpen && (
+                <div className="mobile-sidebar-overlay" onClick={() => setSidebarOpen(false)}>
+                    <div className="mobile-sidebar-drawer" onClick={(e) => e.stopPropagation()}>
+                        <AdminSidebar onClose={() => setSidebarOpen(false)} />
+                    </div>
+                </div>
+            )}
+
             <div className="admin-main">
                 <header className="topbar">
-                    <div className="topbar-title">{title}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <button
+                            type="button"
+                            className="mobile-nav-toggle btn btn-ghost btn-sm"
+                            aria-label="Open Navigation Menu"
+                            onClick={() => setSidebarOpen(true)}
+                        >
+                            ☰
+                        </button>
+                        <div className="topbar-title">{title}</div>
+                    </div>
                     <div className="topbar-user">
                         <div className="topbar-user-info">
                             <span className="topbar-user-name">{displayName}</span>
