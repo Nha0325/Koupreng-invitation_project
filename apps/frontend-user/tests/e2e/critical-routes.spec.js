@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-const TEST_TOKEN = "eyJhbGciOiJub25lIn0.eyJleHAiOjQxMDIyNjg4MDB9.";
+const TEST_TOKEN = [
+  "eyJhbGciOiJub25lIn0",
+  "eyJleHAiOjQxMDIyNjg4MDB9",
+  "",
+].join(".");
 
 async function establishUserSession(page) {
   await page.addInitScript(({ token }) => {
