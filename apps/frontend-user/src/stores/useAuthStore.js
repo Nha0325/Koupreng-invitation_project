@@ -10,7 +10,7 @@ import {
  * useAuthStore — Zustand store for authentication state.
  * Pattern: create((set, get) => ({...})) per pmndrs/zustand docs.
  *
- * Reads initial state from the configured auth storage (koupreng.auth).
+ * Reads initial state from the storage selected by VITE_AUTH_STORAGE.
  * Components use this via the useAuth() hook for backward compatibility.
  */
 
@@ -33,19 +33,19 @@ export function isTokenExpired(token) {
   }
 }
 
-const initialAuth = readStoredAuth();
-if (initialAuth?.accessToken && isTokenExpired(initialAuth.accessToken)) {
+const storedAuth = readStoredAuth();
+const initialAuth = storedAuth?.accessToken && !isTokenExpired(storedAuth.accessToken)
+  ? storedAuth
+  : null;
+
+if (storedAuth && !initialAuth) {
   clearStoredAuth();
 }
 
-const validInitialAuth = initialAuth?.accessToken && !isTokenExpired(initialAuth.accessToken)
-  ? initialAuth
-  : null;
-
 export const useAuthStore = create((set) => ({
-  user: validInitialAuth?.user || null,
-  accessToken: validInitialAuth?.accessToken || null,
-  isAuthenticated: Boolean(validInitialAuth?.accessToken && validInitialAuth?.user),
+  user: initialAuth?.user || null,
+  accessToken: initialAuth?.accessToken || null,
+  isAuthenticated: Boolean(initialAuth?.accessToken && initialAuth?.user && !isTokenExpired(initialAuth?.accessToken)),
 
   login: (authData) => {
     const nextState = {

@@ -22,7 +22,15 @@ export function readStoredAuth() {
   }
 
   try {
-    const raw = storage.getItem(AUTH_STORAGE_KEY);
+    let raw = storage.getItem(AUTH_STORAGE_KEY);
+    if (!raw && AUTH_STORAGE_MODE === "localstorage") {
+      const legacySessionAuth = window.sessionStorage?.getItem(AUTH_STORAGE_KEY);
+      if (legacySessionAuth) {
+        storage.setItem(AUTH_STORAGE_KEY, legacySessionAuth);
+        window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        raw = legacySessionAuth;
+      }
+    }
     if (!raw) {
       return null;
     }
@@ -72,6 +80,9 @@ export function clearStoredAuth() {
   }
 
   storage.removeItem(AUTH_STORAGE_KEY);
+  if (AUTH_STORAGE_MODE === "localstorage") {
+    window.sessionStorage?.removeItem(AUTH_STORAGE_KEY);
+  }
 }
 
 export function getAccessToken() {
