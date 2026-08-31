@@ -3,8 +3,12 @@ import { api } from "@/shared/api/httpClient";
 import { unwrap } from "@/shared/api/helpers";
 
 export const planningService = {
-    listBudgetItems: (invitationId) =>
-        api.get(`/v1/invitations/${invitationId}/budget-items`).then(unwrap),
+    listBudgetItems: (invitationId) => {
+        if (!invitationId || (typeof invitationId === "string" && !/^\d+$/.test(invitationId))) {
+            return Promise.resolve([]);
+        }
+        return api.get(`/v1/invitations/${invitationId}/budget-items`).then(unwrap);
+    },
     createBudgetItem: (invitationId, data) =>
         api.post(`/v1/invitations/${invitationId}/budget-items`, data).then(unwrap),
     updateBudgetItem: (invitationId, itemId, data) =>
@@ -12,8 +16,12 @@ export const planningService = {
     removeBudgetItem: (invitationId, itemId) =>
         api.delete(`/v1/invitations/${invitationId}/budget-items/${itemId}`).then(unwrap),
 
-    listGifts: (invitationId) =>
-        api.get(`/v1/invitations/${invitationId}/gifts`).then(unwrap),
+    listGifts: (invitationId) => {
+        if (!invitationId || (typeof invitationId === "string" && !/^\d+$/.test(invitationId))) {
+            return Promise.resolve([]);
+        }
+        return api.get(`/v1/invitations/${invitationId}/gifts`).then(unwrap);
+    },
     createGift: (invitationId, data) =>
         api.post(`/v1/invitations/${invitationId}/gifts`, data).then(unwrap),
     updateGift: (invitationId, giftId, data) =>

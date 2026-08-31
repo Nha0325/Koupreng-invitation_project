@@ -63,8 +63,18 @@ export const rsvpService = {
       .then(unwrap),
   publicWishes: (slug, params) =>
     api.get(`/v1/public/invitations/${encodeURIComponent(slug)}/wishes${toQuery(publicParams(params))}`, { skipAuth: true }).then(unwrap),
-  listByInvitation: (invitationId) => api.get(`/v1/invitations/${invitationId}/rsvps`).then(unwrap),
-  summary: (invitationId) => api.get(`/v1/invitations/${invitationId}/rsvps/summary`).then(unwrap),
+  listByInvitation: (invitationId) => {
+    if (!invitationId || (typeof invitationId === "string" && !/^\d+$/.test(invitationId))) {
+      return Promise.resolve([]);
+    }
+    return api.get(`/v1/invitations/${invitationId}/rsvps`).then(unwrap);
+  },
+  summary: (invitationId) => {
+    if (!invitationId || (typeof invitationId === "string" && !/^\d+$/.test(invitationId))) {
+      return Promise.resolve(null);
+    }
+    return api.get(`/v1/invitations/${invitationId}/rsvps/summary`).then(unwrap);
+  },
 };
 
 export default rsvpService;

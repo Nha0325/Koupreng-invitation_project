@@ -24,7 +24,6 @@ public class PublicTemplateResponse {
     private String description;
     private String thumbnailUrl;
     private String previewUrl;
-    @JsonProperty("isPremium")
     private boolean premium;
     private BigDecimal price;
     private String currency;

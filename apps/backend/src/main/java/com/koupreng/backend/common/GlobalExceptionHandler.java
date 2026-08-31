@@ -92,6 +92,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.NOT_FOUND, msg.get("error.not-found"));
     }
 
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException exception) {
+        return error(HttpStatus.NOT_FOUND, msg.get("error.not-found"));
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException exception) {
         return error(HttpStatus.CONTENT_TOO_LARGE, msg.get("error.file-too-large"));

@@ -178,13 +178,17 @@ export default function AddTemplateStep() {
         navigate(`/dashboard/invitations/new?templateId=${template.id}`);
     };
 
-    const freeTemplates = templates.filter((template) => !template.premium).map((tpl) => ({
+    const isPremium = (template) => Boolean(template?.premium || template?.isPremium || Number(template?.price) > 0);
+
+    const freeTemplates = templates.filter((template) => !isPremium(template)).map((tpl) => ({
         ...tpl,
+        premium: false,
         added: selectedTemplates.includes(String(tpl.id)),
     }));
 
-    const paidTemplates = templates.filter((template) => template.premium).map((tpl) => ({
+    const paidTemplates = templates.filter((template) => isPremium(template)).map((tpl) => ({
         ...tpl,
+        premium: true,
         added: selectedTemplates.includes(String(tpl.id)),
     }));
 
