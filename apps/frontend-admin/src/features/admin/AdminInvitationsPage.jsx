@@ -76,7 +76,7 @@ export default function AdminInvitationsPage() {
                 {invitations.map((invitation) => (
                   <tr key={invitation.id}>
                     <td>{invitation.id}</td>
-                    <td><Link className="btn btn-ghost btn-sm" to={`/admin/invitations/${invitation.id}`}>{invitation.title || invitation.slug}</Link></td>
+                    <td><Link className="btn btn-ghost btn-sm" to={`/invitations/${invitation.id}`}>{invitation.title || invitation.slug}</Link></td>
                     <td>{invitation.ownerName || "—"}</td>
                     <td>{formatDate(invitation.eventDate)}</td>
                     <td>{invitation.status}</td>

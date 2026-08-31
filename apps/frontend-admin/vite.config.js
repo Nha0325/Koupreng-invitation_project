@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
@@ -12,10 +13,12 @@ export default defineConfig(({ mode }) => {
   const frontendAdminPort = Number(process.env.FRONTEND_ADMIN_PORT || env.FRONTEND_ADMIN_PORT || 5174)
 
   return {
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
     envDir,
     server: {
+      host: true,
       port: frontendAdminPort,
+      strictPort: true,
       proxy: {
         "/api": {
           target: `http://localhost:${backendPort}`,
@@ -25,7 +28,7 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
-      environment: 'jsdom',
+      environment: 'happy-dom',
       setupFiles: ['./src/test/setup.js'],
     },
   }

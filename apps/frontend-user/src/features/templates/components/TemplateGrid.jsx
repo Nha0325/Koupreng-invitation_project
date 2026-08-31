@@ -1,6 +1,8 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "../templates.css";
 import { COVER_KHMER_GOLDEN_CODE, KHMER_GOLDEN_CANVA_INSPIRED_CODE, KEEP_TEMPLATE_CODE, TEMPLATES } from "../data/templatesData";
+import { templateService } from "../templateService";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import heroBg from "../../../assets/icons/background.png";
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
@@ -21,6 +23,9 @@ const getCategoryLabels = (t) => ({
     ancient: t("catAncient") || "បុរាណ",
     modern: t("catModern") || "ទំនើប",
     contemporary: t("catContemporary") || "សហសម័យ",
+    luxury: "ប្រណិត",
+    minimalist: "សាមញ្ញ",
+    floral: "ផ្កាស្រស់",
 });
 
 function getCreatePath(path, isAuthenticated) {
@@ -41,17 +46,54 @@ function getTemplateBenefit(template, t) {
 
 /**
  * TemplateGrid — public wedding templates gallery.
- * Click a card to view template details (phone preview).
- * "ប្រើប្រាស់គំរូនេះ" button requires login to create wedding.
+ * Loads live active templates from Backend API with local fallback.
  */
 export default function TemplateGrid() {
     const { isAuthenticated } = useAuth();
     const { text: t } = useBackendMessages("templateGrid");
     const categoryLabels = getCategoryLabels(t);
+    const [apiTemplates, setApiTemplates] = useState(null);
 
-    const visibleTemplates = FEATURED_TEMPLATE_IDS
-        .map((templateId) => TEMPLATES.find((template) => template.id === templateId))
-        .filter(Boolean);
+    useEffect(() => {
+        let active = true;
+        templateService.listPublic()
+            .then((res) => {
+                if (active && Array.isArray(res) && res.length > 0) {
+                    setApiTemplates(res);
+                }
+            })
+            .catch(() => {
+                // Keep local fallback on error
+            });
+        return () => { active = false; };
+    }, []);
+
+    const visibleTemplates = useMemo(() => {
+        if (!apiTemplates || apiTemplates.length === 0) {
+            return FEATURED_TEMPLATE_IDS
+                .map((templateId) => TEMPLATES.find((template) => template.id === templateId))
+                .filter(Boolean);
+        }
+
+        return apiTemplates.map((apiTpl) => {
+            const code = apiTpl.code || String(apiTpl.id);
+            const localMatch = TEMPLATES.find((t) => t.id === code || t.id === apiTpl.slug);
+            const rawCat = (apiTpl.category || "TRADITIONAL").toLowerCase();
+            const categoryKey = rawCat === "traditional" ? "ancient" : (rawCat === "luxury" ? "contemporary" : rawCat);
+
+            return {
+                id: code,
+                name: apiTpl.name || localMatch?.name || "គំរូធៀបការខ្មែរ",
+                style: localMatch?.style || (apiTpl.code ? apiTpl.code.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) : "Khmer Wedding"),
+                category: categoryKey,
+                popular: Boolean(apiTpl.isPremium || apiTpl.premium || localMatch?.popular),
+                image: apiTpl.thumbnailUrl || TEMPLATE_CARD_COVER[code] || localMatch?.image || "/facebook/all/03-card/cover-card.jpg",
+                description: apiTpl.description || localMatch?.description || "គំរូសន្លឹកការដែលរួចរាល់សម្រាប់បង្ហាញ និង RSVP",
+                isPremium: Boolean(apiTpl.isPremium || apiTpl.premium),
+                price: apiTpl.price,
+            };
+        });
+    }, [apiTemplates]);
 
     return (
         <div className="tp-page">

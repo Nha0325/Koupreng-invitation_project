@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLanguageStore } from "../../stores/useLanguageStore";
 import { i18nService } from "../services/i18nService";
 
@@ -33,9 +33,14 @@ export function useBackendMessages(namespace) {
         };
     }, [lang, namespace]);
 
+    const text = useCallback(
+        (key, replacements) => formatMessage(messages[key] || key, replacements),
+        [messages]
+    );
+
     return {
         lang,
         messages,
-        text: (key, replacements) => formatMessage(messages[key] || key, replacements),
+        text,
     };
 }

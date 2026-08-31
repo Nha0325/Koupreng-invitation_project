@@ -39,9 +39,15 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.9.0",
+    "happy-dom": "^20.11.8",
     "jsdom": "^30.0.1",
     "knip": "^6.32.1",
     "vite": "^8.2.1",
     "vitest": "^4.1.10"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-x64": "^0.28.2",
+    "@rolldown/binding-linux-x64-gnu": "^1.2.3",
+    "@rollup/rollup-linux-x64-gnu": "^4.63.0"
   }
 }

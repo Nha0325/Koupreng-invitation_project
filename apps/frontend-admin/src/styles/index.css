@@ -1,70 +1,213 @@
-@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap');
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: "Inter", "Kantumruy Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-moul: "Moul", serif;
+}
 
 :root {
-  /* Brand palette — matches the Koupreng wedding admin theme */
-  --gold: #b0926a;
-  --gold-bright: #d4af37;
-  --gold-soft: #e2c293;
-  --navy: #112533;
-  --navy-2: #1a354b;
-  --deep-purple: #3d2461;
-  --ink: #4a3e3d;
-  --paper: #fbf7f0;
-  --paper-card: #fffdf9;
-  --line: rgba(176, 146, 106, 0.25);
-  --line-strong: rgba(176, 146, 106, 0.45);
-  --danger: #c0392b;
-  --success: #1e7d4f;
-  --warn: #b8860b;
-
-  font-family: 'Kantumruy Pro', system-ui, sans-serif;
-  color: var(--ink);
-  background: var(--paper);
+  --background: #f8fafc;
+  --foreground: #020617;
+  --card: #ffffff;
+  --card-foreground: #020617;
+  --popover: #ffffff;
+  --popover-foreground: #020617;
+  --primary: #d97706;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f8fafc;
+  --accent-foreground: #020617;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #d97706;
 }
 
-* {
-  box-sizing: border-box;
+.dark {
+  --background: #09090b;
+  --foreground: #f8fafc;
+  --card: #111113;
+  --card-foreground: #f8fafc;
+  --popover: #111113;
+  --popover-foreground: #f8fafc;
+  --primary: #f59e0b;
+  --primary-foreground: #000000;
+  --secondary: #1e1e24;
+  --secondary-foreground: #f8fafc;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --accent: #18181b;
+  --accent-foreground: #f8fafc;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #f59e0b;
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
+html, body, #root {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  min-height: 100%;
 }
 
-body {
-  background: var(--paper);
+.font-moul {
+  font-family: var(--font-moul);
+  line-height: 1.6;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button {
-  font-family: inherit;
-  cursor: pointer;
-}
-
-input,
-select,
-textarea {
-  font-family: inherit;
-}
-
-.moul {
-  font-family: 'Moul', serif;
-}
-
-/* Scrollbars */
+/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 8px;
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3f4450 transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+/* Modern Kambuja-POS UI Utility Classes */
+.card {
+  @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-[#111113] transition-all;
+}
+
+.page-head {
+  @apply flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6;
+}
+
+.page-title {
+  @apply text-xl sm:text-2xl font-bold text-slate-900 dark:text-zinc-100 leading-normal;
+}
+
+.page-subtitle {
+  @apply text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1;
+}
+
+.toolbar {
+  @apply flex items-center gap-3 flex-wrap mb-4;
+}
+
+.table-wrap {
+  @apply overflow-x-auto rounded-2xl border border-slate-200/80 bg-white dark:border-zinc-800 dark:bg-[#111113] shadow-xs;
+}
+
+table.data {
+  @apply w-full text-left text-xs sm:text-sm;
+}
+
+table.data thead th {
+  @apply px-4 py-3.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-900/50 whitespace-nowrap;
+}
+
+table.data tbody td {
+  @apply px-4 py-3 text-slate-700 dark:text-zinc-300 border-b border-slate-100 dark:border-zinc-800/80 whitespace-nowrap;
+}
+
+table.data tbody tr:hover {
+  @apply bg-slate-50/80 dark:bg-zinc-800/40 transition-colors;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-1.5 font-semibold transition-all rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm px-4 py-2;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold hover:brightness-110 shadow-sm shadow-amber-500/20 border-0;
+}
+
+.btn-ghost {
+  @apply border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-200 dark:hover:bg-zinc-800;
+}
+
+.btn-danger {
+  @apply bg-rose-500/10 text-rose-600 border border-rose-500/20 hover:bg-rose-500 hover:text-white dark:bg-rose-500/20 dark:text-rose-400;
+}
+
+.btn-sm {
+  @apply px-2.5 py-1 text-xs rounded-lg;
+}
+
+.text-input {
+  @apply h-9 rounded-xl border border-slate-200 bg-white px-3.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-100 dark:placeholder:text-zinc-500;
+}
+
+.select {
+  @apply h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-100;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider;
+}
+
+.badge-green {
+  @apply bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border-emerald-500/20;
+}
+
+.badge-red {
+  @apply bg-rose-500/10 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 border-rose-500/20;
+}
+
+.badge-amber {
+  @apply bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 border-amber-500/20;
+}
+
+.badge-gold {
+  @apply bg-amber-500/15 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 border-amber-500/30 font-bold;
+}
+
+.badge-gray {
+  @apply bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400 border-slate-200 dark:border-zinc-700;
+}
+
+.row-actions {
+  @apply flex items-center gap-2 flex-wrap;
 }

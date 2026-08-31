@@ -156,7 +156,7 @@ export default function AddTemplateStep() {
         return () => {
             active = false;
         };
-    }, [t]);
+    }, []);
 
     const handleSelect = (template) => {
         const templateId = String(template.id);

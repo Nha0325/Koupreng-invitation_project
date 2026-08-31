@@ -15,6 +15,7 @@ import com.koupreng.backend.dto.rsvp.RsvpResponse;
 import com.koupreng.backend.entity.audit.SystemAuditLog;
 import com.koupreng.backend.entity.invitation.GuestCheckIn;
 import com.koupreng.backend.entity.invitation.InvitationTemplate;
+import com.koupreng.backend.entity.invitation.TemplateCategory;
 import com.koupreng.backend.entity.invitation.UserInvitation;
 import com.koupreng.backend.entity.payment.TemplatePaymentOrder;
 import com.koupreng.backend.entity.user.AppUser;
@@ -154,7 +155,7 @@ public class AdminManagementService {
 
     @Transactional(readOnly = true)
     public List<AdminTemplateResponse> listTemplates() {
-        return templateRepository.findAllByCodeIgnoreCaseOrderByCreatedAtDesc(KEEP_TEMPLATE_CODE).stream()
+        return templateRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(AdminTemplateResponse::from)
                 .toList();
     }
@@ -165,7 +166,21 @@ public class AdminManagementService {
             AdminTemplateRequest requestBody,
             HttpServletRequest request
     ) {
-        throw new ApiException(HttpStatus.BAD_REQUEST, "Template creation is disabled in single-template mode");
+        InvitationTemplate template = new InvitationTemplate();
+        applyTemplateRequest(template, requestBody);
+        if (template.getCode() == null || template.getCode().isBlank()) {
+            template.setCode("template-" + System.currentTimeMillis());
+        }
+        if (template.getCategory() == null) {
+            template.setCategory(TemplateCategory.TRADITIONAL);
+        }
+        if (template.getStatus() == null || template.getStatus().isBlank()) {
+            template.setStatus(TEMPLATE_STATUS_ACTIVE);
+        }
+        InvitationTemplate saved = templateRepository.save(template);
+        auditLogService.logAdminAction(authentication, "TEMPLATE_CREATED", "TEMPLATE", saved.getId(),
+                "Created template", request, Map.of("name", saved.getName()));
+        return AdminTemplateResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
@@ -182,25 +197,30 @@ public class AdminManagementService {
     ) {
         InvitationTemplate template = requireTemplate(templateId);
         applyTemplateRequest(template, requestBody);
-        enforceSingleTemplate(template);
+        InvitationTemplate saved = templateRepository.save(template);
         auditLogService.logAdminAction(authentication, "TEMPLATE_UPDATED", "TEMPLATE", templateId,
-                "Updated template", request, Map.of("name", template.getName()));
-        return AdminTemplateResponse.from(template);
+                "Updated template", request, Map.of("name", saved.getName()));
+        return AdminTemplateResponse.from(saved);
     }
 
     @Transactional
     public AdminTemplateResponse activateTemplate(Authentication authentication, Long templateId, HttpServletRequest request) {
         InvitationTemplate template = requireTemplate(templateId);
         template.setStatus(TEMPLATE_STATUS_ACTIVE);
+        InvitationTemplate saved = templateRepository.save(template);
         auditLogService.logAdminAction(authentication, "TEMPLATE_ACTIVATED", "TEMPLATE", templateId,
                 "Activated template", request, Map.of("status", TEMPLATE_STATUS_ACTIVE));
-        return AdminTemplateResponse.from(template);
+        return AdminTemplateResponse.from(saved);
     }
 
     @Transactional
     public AdminTemplateResponse deactivateTemplate(Authentication authentication, Long templateId, HttpServletRequest request) {
-        requireTemplate(templateId);
-        throw new ApiException(HttpStatus.BAD_REQUEST, "The only available template cannot be deactivated");
+        InvitationTemplate template = requireTemplate(templateId);
+        template.setStatus(TEMPLATE_STATUS_INACTIVE);
+        InvitationTemplate saved = templateRepository.save(template);
+        auditLogService.logAdminAction(authentication, "TEMPLATE_DEACTIVATED", "TEMPLATE", templateId,
+                "Deactivated template", request, Map.of("status", TEMPLATE_STATUS_INACTIVE));
+        return AdminTemplateResponse.from(saved);
     }
 
     @Transactional
@@ -211,18 +231,20 @@ public class AdminManagementService {
             HttpServletRequest request
     ) {
         InvitationTemplate template = requireTemplate(templateId);
-        template.setPremium(false);
-        template.setPrice(BigDecimal.ZERO);
-        template.setCurrency("USD");
+        boolean isPremium = requestBody == null || requestBody.getPremium() == null || Boolean.TRUE.equals(requestBody.getPremium());
+        template.setPremium(isPremium);
+        InvitationTemplate saved = templateRepository.save(template);
         auditLogService.logAdminAction(authentication, "TEMPLATE_PREMIUM_CHANGED", "TEMPLATE", templateId,
-                "Kept single template free", request, Map.of("premium", false));
-        return AdminTemplateResponse.from(template);
+                "Updated template premium flag", request, Map.of("premium", isPremium));
+        return AdminTemplateResponse.from(saved);
     }
 
     @Transactional
     public void deleteTemplate(Authentication authentication, Long templateId, HttpServletRequest request) {
-        requireTemplate(templateId);
-        throw new ApiException(HttpStatus.BAD_REQUEST, "The only available template cannot be deleted");
+        InvitationTemplate template = requireTemplate(templateId);
+        templateRepository.delete(template);
+        auditLogService.logAdminAction(authentication, "TEMPLATE_DELETED", "TEMPLATE", templateId,
+                "Deleted template", request, Map.of("name", template.getName()));
     }
 
     @Transactional(readOnly = true)
@@ -629,7 +651,6 @@ public class AdminManagementService {
 
     private InvitationTemplate requireTemplate(Long templateId) {
         return templateRepository.findById(templateId)
-                .filter(template -> KEEP_TEMPLATE_CODE.equalsIgnoreCase(template.getCode()))
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Template not found"));
     }
 

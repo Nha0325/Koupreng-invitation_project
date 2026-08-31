@@ -1,408 +1,60 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
+  IoAddCircle,
   IoAddCircleOutline,
-  IoAlbumsOutline,
   IoBarChartOutline,
   IoCalendarClearOutline,
-  IoCashOutline,
+  IoCheckmarkCircle,
   IoCheckmarkCircleOutline,
   IoChevronForwardOutline,
+  IoCopyOutline,
   IoCreateOutline,
   IoGiftOutline,
   IoGlobeOutline,
   IoHeartOutline,
+  IoImagesOutline,
   IoLocationOutline,
   IoNotificationsOutline,
   IoPeopleOutline,
-  IoRefreshOutline,
+  IoQrCodeOutline,
+  IoSendOutline,
+  IoSparkles,
   IoSparklesOutline,
-  IoTicketOutline,
   IoTimeOutline,
   IoWalletOutline,
-  IoWarningOutline,
+  IoShareSocialOutline,
 } from "react-icons/io5";
-import {
-  getActiveEventId,
-  listBudgetExpenses,
-  listManualGuests,
-  listWeddingGifts,
-  setActiveEventId,
-} from "../../shared/storage/hostPlanningStorage";
-import { listRsvps } from "../rsvp/api/rsvpApi";
-import { listDrafts } from "../../shared/storage/weddingStorage";
-import { budgetService } from "../budget/api/budgetApi";
-import notificationService from "../notifications/notificationService";
-import seatingService from "../seating/seatingService";
-import { planningService } from "@/features/planning/api/planningApi";
-import { guestService } from "@/features/guests/api/guestApi";
+
 import { invitationService } from "@/features/invitations/api/invitationApi";
+import { guestService } from "@/features/guests/api/guestApi";
 import { rsvpService } from "@/features/rsvp/api/rsvpApi";
+import { budgetService } from "../budget/api/budgetApi";
+import { planningService } from "@/features/planning/api/planningApi";
+import notificationService from "../notifications/notificationService";
+import { listDrafts } from "../../shared/storage/weddingStorage";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
-import "./DashboardFeature.css";
 
-const FALLBACK_TEXT = {
-  title: "ផ្ទាំងគ្រប់គ្រងកម្មវិធី",
-  subtitle:
-    "A polished planning workspace for guests, RSVP, budget, gifts, and event readiness.",
-  emptyTitle: "មិនទាន់មានការអញ្ជើញ",
-  emptyText:
-    "Create your first wedding invitation to start managing guests, RSVP, budget, gifts, and event progress.",
-  createInvitation: "Create invitation",
-};
-
-const pageMotion = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
-};
-
-const riseMotion = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const cardMotion = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const panelClass =
-  "dash-panel rounded-[1.25rem] border border-stone-200/70 bg-white/90 p-5 shadow-[0_14px_45px_rgba(92,64,32,0.07)] ring-1 ring-white/80 backdrop-blur-xl";
-const eyebrowClass =
-  "inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-teal-700";
-const panelHeadClass = "mb-5 flex items-start justify-between gap-4";
-const linkClass =
-  "inline-flex items-center gap-1 text-sm font-black text-teal-700 transition hover:text-teal-900";
-const buttonClass =
-  "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-black text-stone-800 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-200 hover:bg-amber-50/50 hover:shadow-md";
-const primaryButtonClass =
-  "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-teal-700 bg-teal-700 px-4 py-2 text-sm font-black text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-teal-800 hover:shadow-md";
-const GENERIC_TITLES = new Set([
-  "koupreng wedding",
-  "wedding invitation",
-  "wedding website",
-]);
-
-function asList(value) {
-  if (Array.isArray(value)) return value;
-  if (Array.isArray(value?.data)) return value.data;
-  if (Array.isArray(value?.items)) return value.items;
-  if (Array.isArray(value?.content)) return value.content;
-  if (Array.isArray(value?.notifications)) return value.notifications;
-  if (Array.isArray(value?.guests)) return value.guests;
-  if (Array.isArray(value?.rsvps)) return value.rsvps;
-  if (Array.isArray(value?.gifts)) return value.gifts;
+function asList(val) {
+  if (Array.isArray(val)) return val;
+  if (Array.isArray(val?.data)) return val.data;
+  if (Array.isArray(val?.items)) return val.items;
+  if (Array.isArray(val?.content)) return val.content;
   return [];
 }
 
-function firstNumber(...values) {
-  const value = values.find(
-    (item) => item !== undefined && item !== null && item !== "",
-  );
-  return Number(value) || 0;
-}
-
-function field(source, ...names) {
-  return names
-    .map((name) => source?.[name])
-    .find((value) => value !== undefined && value !== null && value !== "");
-}
-
-function meaningfulText(...values) {
-  for (const value of values) {
-    const text = String(value || "").trim();
-    if (text.length > 1) return text;
-  }
-  return "";
-}
-
-function isGenericTitle(value) {
-  return GENERIC_TITLES.has(
-    String(value || "")
-      .trim()
-      .toLowerCase(),
-  );
-}
-
-function normalizeStatus(value) {
-  return String(value || "")
-    .trim()
-    .toUpperCase();
-}
-
-function invitationId(invitation) {
-  return field(invitation, "id", "invitationId");
-}
-
-function isPublished(invitation) {
-  const status = normalizeStatus(field(invitation, "status"));
-  return (
-    status === "PUBLISHED" ||
-    Boolean(
-      field(invitation, "publishedAt", "published_at") &&
-      field(invitation, "slug", "publicSlug"),
-    )
-  );
-}
-
-function selectInvitation(invitations) {
-  return (
-    invitations.find(isPublished) ||
-    invitations.find((item) => invitationId(item)) ||
-    null
-  );
-}
-
-function invitationTitle(invitation, draft) {
-  const explicitTitle = meaningfulText(
-    field(invitation, "title", "eventTitle"),
-    invitation?.event?.title,
-    draft?.event?.title,
-    draft?.title,
-  );
-  const groom =
-    field(invitation, "groomName", "groom_name") ||
-    invitation?.event?.groomName ||
-    draft?.event?.groomName;
-  const bride =
-    field(invitation, "brideName", "bride_name") ||
-    invitation?.event?.brideName ||
-    draft?.event?.brideName;
-  if (explicitTitle && !isGenericTitle(explicitTitle)) return explicitTitle;
-  if (groom && bride) return `${groom} & ${bride}`;
-  if (explicitTitle) return explicitTitle;
-  return "Koupreng Wedding";
-}
-
-function coupleNames(invitation, draft) {
-  const groom =
-    field(invitation, "groomName", "groom_name") ||
-    invitation?.event?.groomName ||
-    draft?.event?.groomName;
-  const bride =
-    field(invitation, "brideName", "bride_name") ||
-    invitation?.event?.brideName ||
-    draft?.event?.brideName;
-  if (groom && bride) return `${groom} & ${bride}`;
-  return field(invitation, "coupleName", "couple_name") || "";
-}
-
-function eventDate(invitation, draft) {
-  return (
-    field(
-      invitation,
-      "eventDate",
-      "event_date",
-      "date",
-      "weddingDate",
-      "wedding_date",
-    ) ||
-    invitation?.event?.date ||
-    draft?.event?.date ||
-    ""
-  );
-}
-
-function eventTime(invitation, draft) {
-  return (
-    field(invitation, "eventTime", "event_time") ||
-    invitation?.event?.time ||
-    draft?.event?.time ||
-    ""
-  );
-}
-
-function venueName(invitation, draft) {
-  return (
-    field(invitation, "venueName", "venue_name", "venue") ||
-    invitation?.event?.venueName ||
-    draft?.event?.venueName ||
-    ""
-  );
-}
-
-function venueAddress(invitation, draft) {
-  return (
-    field(invitation, "venueAddress", "venue_address") ||
-    invitation?.event?.venueAddress ||
-    draft?.event?.venueAddress ||
-    ""
-  );
-}
-
-function publicUrl(invitation, draft) {
-  const slug = field(invitation, "slug", "publicSlug") || draft?.slug;
-  return slug ? `/w/${encodeURIComponent(slug)}` : "";
-}
-
-function normalizeGuest(guest) {
-  return {
-    id: field(guest, "id", "guestId", "phone", "email", "name", "guestName"),
-    name: field(guest, "guestName", "name", "fullName") || "Guest",
-    group: field(guest, "group", "guestGroup", "category", "tableNumber") || "",
-    status: normalizeStatus(
-      field(guest, "rsvpStatus", "status", "responseStatus", "sendStatus"),
-    ),
-    contributionStatus: field(guest, "contributionStatus") || "",
-    totalContributed: firstNumber(guest.totalContributed),
-    count: Math.max(
-      1,
-      firstNumber(guest.count, guest.attendeeCount, guest.guestCount, 1),
-    ),
-    checkedIn: Boolean(guest.checkedIn || guest.checkInAt || guest.checkedInAt),
-    createdAt:
-      field(guest, "createdAt", "created_at", "updatedAt", "respondedAt") || "",
-  };
-}
-
-function normalizeRsvp(rsvp) {
-  const status = normalizeStatus(
-    field(rsvp, "status", "responseStatus", "attendingStatus"),
-  );
-  let mapped = status;
-  if (!mapped && rsvp.attending === true) mapped = "ACCEPTED";
-  if (!mapped && rsvp.attending === false) mapped = "DECLINED";
-  return {
-    id: field(rsvp, "id", "rsvpId", "guestId", "guestName", "name"),
-    name: field(rsvp, "guestName", "name", "fullName") || "RSVP",
-    status: mapped || "PENDING",
-    count: Math.max(
-      1,
-      firstNumber(rsvp.attendeeCount, rsvp.count, rsvp.guestCount, 1),
-    ),
-    createdAt:
-      field(rsvp, "respondedAt", "createdAt", "created_at", "submittedAt") ||
-      "",
-  };
-}
-
-function normalizeBudgetItem(item) {
-  return {
-    id: field(item, "id", "itemId", "name", "itemName"),
-    name: field(item, "name", "itemName") || "Budget item",
-    category: field(item, "category") || "Other",
-    budget: firstNumber(item.budget, item.estimatedCost),
-    amount: firstNumber(item.amount, item.actualCost),
-    status: field(item, "status") || "",
-    vendorName: field(item, "vendorName", "vendor_name") || "",
-    createdAt:
-      field(
-        item,
-        "date",
-        "expenseDate",
-        "createdAt",
-        "created_at",
-        "updatedAt",
-      ) || "",
-  };
-}
-
-function normalizeGift(gift) {
-  return {
-    id: field(gift, "id", "giftId", "payerName", "guestName", "name"),
-    name: field(gift, "payerName", "guestName", "name") || "Gift",
-    amount: firstNumber(gift.amount, gift.value),
-    currency: field(gift, "currency") || "USD",
-    status: field(gift, "status") || "",
-    createdAt:
-      field(gift, "paidAt", "createdAt", "created_at", "date", "updatedAt") ||
-      "",
-  };
-}
-
-function normalizeNotification(notification) {
-  return {
-    id: field(notification, "id", "notificationId", "createdAt", "title"),
-    title: field(notification, "title", "message", "type") || "Activity",
-    body: field(notification, "body", "message") || "",
-    createdAt:
-      field(notification, "createdAt", "created_at", "sentAt", "updatedAt") ||
-      "",
-  };
-}
-
-function localRsvpsForDraft(draft) {
-  if (!draft) return [];
-  const map = new Map();
-  listRsvps(draft.id || "").forEach((item) => map.set(item.id, item));
-  if (draft.slug) {
-    listRsvps(draft.slug).forEach((item) => map.set(item.id, item));
-  }
-  return Array.from(map.values()).map(normalizeRsvp);
-}
-
-function dateLabel(value, lang, fallback = "Not completed") {
-  if (!value) return fallback;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString(lang === "km" ? "km-KH" : "en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function relativeTime(value) {
-  if (!value) return "Recently";
-  const time = new Date(value).getTime();
-  if (Number.isNaN(time)) return "Recently";
-  const diff = Date.now() - time;
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
-
-function daysUntil(value) {
-  if (!value) return null;
-  const target = new Date(value);
-  if (Number.isNaN(target.getTime())) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  target.setHours(0, 0, 0, 0);
-  return Math.ceil((target.getTime() - today.getTime()) / 86400000);
-}
-
-function pct(part, total) {
-  return total
-    ? Math.min(100, Math.max(0, Math.round((part / total) * 100)))
-    : 0;
-}
-
-function money(value, currency = "USD") {
-  const amount = Math.round(Number(value) || 0).toLocaleString();
-  return currency === "KHR" ? `${amount}៛` : `$${amount}`;
-}
-
-function countdownValue(daysRemaining) {
-  return daysRemaining === null ? "Set date" : daysRemaining;
-}
-
-async function safeLoad(loader, fallback) {
-  try {
-    return await loader();
-  } catch {
-    return fallback;
-  }
-}
-
 export default function DashboardFeature() {
+  const navigate = useNavigate();
   const { lang, text } = useBackendMessages("dashboard");
-  const label = (key, fallback, replacements) => {
-    const translated = text(key, replacements);
-    return translated === key ? fallback : translated;
-  };
+  const [copied, setCopied] = useState(false);
+  const [selectedInvId, setSelectedInvId] = useState(null);
 
   const [state, setState] = useState({
     loading: true,
     error: "",
-    source: "backend",
-    selectedInvitation: null,
-    draft: null,
     invitations: [],
+    selectedInvitation: null,
     guests: [],
     rsvps: [],
     rsvpSummary: null,
@@ -410,1231 +62,914 @@ export default function DashboardFeature() {
     gifts: [],
     notifications: [],
     checkInSummary: null,
-    seatingPlan: null,
   });
 
-  useEffect(() => {
-    let active = true;
+  // Countdown timer state
+  const [timeRemaining, setTimeRemaining] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isPast: false,
+    hasDate: false,
+  });
 
-    async function loadDashboard() {
-      setState((current) => ({ ...current, loading: true, error: "" }));
+  const loadData = async (targetId = null) => {
+    try {
+      setState((prev) => ({ ...prev, loading: true, error: "" }));
+      const invs = asList(await invitationService.listMine().catch(() => []));
       const drafts = listDrafts();
-      const activeEventId = getActiveEventId();
-      const currentDraft =
-        drafts.find((draft) => draft.id === activeEventId) || drafts[0] || null;
+      const allInvs = [
+        ...invs,
+        ...drafts.filter((d) => !invs.some((i) => (i.id || i.invitationId) === (d.id || d.invitationId))),
+      ];
 
-      try {
-        const invitations = asList(await invitationService.listMine());
-        const selectedInvitation = selectInvitation(invitations);
-        const selectedId = invitationId(selectedInvitation);
+      const activeInv = targetId
+        ? allInvs.find((i) => (i.id || i.invitationId) == targetId) || allInvs[0] || null
+        : allInvs[0] || null;
 
-        if (selectedId) {
-          const [
-            guests,
-            rsvps,
-            rsvpSummary,
-            budgetItems,
-            gifts,
-            notifications,
-            checkInSummary,
-            seatingPlan,
-          ] = await Promise.all([
-            safeLoad(() => guestService.listByInvitation(selectedId), []),
-            safeLoad(() => rsvpService.listByInvitation(selectedId), []),
-            safeLoad(() => rsvpService.summary(selectedId), null),
-            safeLoad(() => budgetService.listItems(selectedId), []),
-            safeLoad(() => planningService.listGifts(selectedId), []),
-            safeLoad(
-              () => notificationService.listByInvitation(selectedId),
-              [],
-            ),
-            safeLoad(() => guestService.checkInSummary(selectedId), null),
-            safeLoad(() => seatingService.plan(selectedId), null),
+      const invId = activeInv?.id || activeInv?.invitationId;
+      if (invId) {
+        setSelectedInvId(invId);
+        const [guests, rsvps, rsvpSummary, budgetItems, gifts, notifs, checkIn] =
+          await Promise.all([
+            guestService.listByInvitation(invId).catch(() => []),
+            rsvpService.listByInvitation(invId).catch(() => []),
+            rsvpService.summary(invId).catch(() => null),
+            budgetService.listItems(invId).catch(() => []),
+            planningService.listGifts(invId).catch(() => []),
+            notificationService.listByInvitation(invId).catch(() => []),
+            guestService.checkInSummary(invId).catch(() => null),
           ]);
 
-          if (!active) return;
-          setState({
-            loading: false,
-            error: "",
-            source: "backend",
-            selectedInvitation,
-            draft: currentDraft,
-            invitations,
-            guests: asList(guests).map(normalizeGuest),
-            rsvps: asList(rsvps).map(normalizeRsvp),
-            rsvpSummary,
-            budgetItems: asList(budgetItems).map(normalizeBudgetItem),
-            gifts: asList(gifts).map(normalizeGift),
-            notifications: asList(notifications).map(normalizeNotification),
-            checkInSummary,
-            seatingPlan,
-          });
-          return;
-        }
-
-        if (currentDraft?.id) {
-          setActiveEventId(currentDraft.id);
-        }
-
-        if (!active) return;
         setState({
           loading: false,
           error: "",
-          source: "local",
-          selectedInvitation: null,
-          draft: currentDraft,
-          invitations,
-          guests: listManualGuests(currentDraft?.id).map(normalizeGuest),
-          rsvps: localRsvpsForDraft(currentDraft),
-          rsvpSummary: null,
-          budgetItems: listBudgetExpenses([], currentDraft?.id).map(
-            normalizeBudgetItem,
-          ),
-          gifts: listWeddingGifts([], currentDraft?.id).map(normalizeGift),
-          notifications: [],
-          checkInSummary: null,
-          seatingPlan: null,
+          invitations: allInvs,
+          selectedInvitation: activeInv,
+          guests: asList(guests),
+          rsvps: asList(rsvps),
+          rsvpSummary,
+          budgetItems: asList(budgetItems),
+          gifts: asList(gifts),
+          notifications: asList(notifs),
+          checkInSummary: checkIn,
         });
-      } catch (error) {
-        if (!active) return;
-        setState({
-          loading: false,
-          error: error?.message || "Could not load dashboard data.",
-          source: "backend",
-          selectedInvitation: null,
-          draft: null,
-          invitations: [],
-          guests: [],
-          rsvps: [],
-          rsvpSummary: null,
-          budgetItems: [],
-          gifts: [],
-          notifications: [],
-          checkInSummary: null,
-          seatingPlan: null,
-        });
+        return;
       }
-    }
 
-    loadDashboard();
-    return () => {
-      active = false;
-    };
+      setState({
+        loading: false,
+        error: "",
+        invitations: allInvs,
+        selectedInvitation: null,
+        guests: [],
+        rsvps: [],
+        rsvpSummary: null,
+        budgetItems: [],
+        gifts: [],
+        notifications: [],
+        checkInSummary: null,
+      });
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: err.message || "Failed to load dashboard data.",
+      }));
+    }
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
-  const data = useMemo(() => {
-    const {
-      selectedInvitation,
-      draft,
-      guests,
-      rsvps,
-      rsvpSummary,
-      budgetItems,
-      gifts,
-      notifications,
-      checkInSummary,
-      seatingPlan,
-    } = state;
-    const selectedId = invitationId(selectedInvitation);
-    const eventDay = eventDate(selectedInvitation, draft);
-    const daysRemaining = daysUntil(eventDay);
-    const published = selectedInvitation
-      ? isPublished(selectedInvitation)
-      : Boolean(draft?.publishedAt && draft?.slug);
-    const guestTotal = guests.reduce((sum, guest) => sum + guest.count, 0);
-    const rsvpTotal = rsvps.reduce((sum, item) => sum + item.count, 0);
-    const expectedGuests = Math.max(guestTotal, rsvpTotal);
-    const summaryExpected = firstNumber(
-      rsvpSummary?.totalGuests,
-      rsvpSummary?.guestTotal,
-      rsvpSummary?.expectedGuests,
-      rsvpSummary?.total,
-    );
-    const summaryAccepted = firstNumber(
-      rsvpSummary?.accepted,
-      rsvpSummary?.acceptedCount,
-      rsvpSummary?.yes,
-      rsvpSummary?.attending,
-    );
-    const summaryDeclined = firstNumber(
-      rsvpSummary?.declined,
-      rsvpSummary?.declinedCount,
-      rsvpSummary?.no,
-      rsvpSummary?.notAttending,
-    );
-    const summaryMaybe = firstNumber(
-      rsvpSummary?.maybe,
-      rsvpSummary?.maybeCount,
-      rsvpSummary?.tentative,
-    );
-    const accepted =
-      summaryAccepted ||
-      rsvps
-        .filter((item) =>
-          ["ACCEPTED", "YES", "ATTENDING", "CONFIRMED"].includes(item.status),
-        )
-        .reduce((sum, item) => sum + item.count, 0);
-    const declined =
-      summaryDeclined ||
-      rsvps
-        .filter((item) => ["DECLINED", "NO", "REJECTED"].includes(item.status))
-        .reduce((sum, item) => sum + item.count, 0);
-    const maybe =
-      summaryMaybe ||
-      rsvps
-        .filter((item) => ["MAYBE", "TENTATIVE"].includes(item.status))
-        .reduce((sum, item) => sum + item.count, 0);
-    const expected = Math.max(expectedGuests, summaryExpected);
-    const responded =
-      firstNumber(
-        rsvpSummary?.responded,
-        rsvpSummary?.respondedCount,
-        rsvpSummary?.responseCount,
-      ) ||
-      accepted + declined + maybe ||
-      rsvpTotal;
-    const pending =
-      firstNumber(rsvpSummary?.pending, rsvpSummary?.pendingCount) ||
-      Math.max(expected - responded, 0);
-    const rsvpRate =
-      firstNumber(
-        rsvpSummary?.responseRate,
-        rsvpSummary?.completionRate,
-        rsvpSummary?.rsvpRate,
-      ) || pct(responded, expected);
-    const totalBudget = budgetItems.reduce((sum, item) => sum + item.budget, 0);
-    const totalSpent = budgetItems.reduce((sum, item) => sum + item.amount, 0);
-    const budgetRate = pct(totalSpent, totalBudget);
-    const giftTotal = gifts.reduce((sum, item) => sum + item.amount, 0);
-    const checkInCount =
-      firstNumber(
-        checkInSummary?.checkedIn,
-        checkInSummary?.checkedInCount,
-        checkInSummary?.totalCheckedIn,
-      ) || guests.filter((guest) => guest.checkedIn).length;
-    const hasPaymentSetup =
-      gifts.length > 0 ||
-      Boolean(
-        draft?.gift?.length ||
-        selectedInvitation?.giftEnabled ||
-        selectedInvitation?.giftInfo,
-      );
-    const venueComplete = Boolean(venueName(selectedInvitation, draft));
-    const dateComplete = Boolean(eventDay);
-    const rsvpEnabled = Boolean(
-      selectedInvitation?.rsvpEnabled ??
-      selectedInvitation?.rsvp?.enabled ??
-      draft?.rsvp?.enabled ??
-      rsvps.length,
-    );
-    const seatingReady = Boolean(
-      asList(seatingPlan?.tables).length || asList(seatingPlan).length,
-    );
-    const healthScore = Math.min(
-      100,
-      Math.round(
-        [
-          published ? 18 : 0,
-          dateComplete ? 12 : 0,
-          venueComplete ? 12 : 0,
-          guestTotal > 0 ? 16 : 0,
-          Math.min(18, Math.round(rsvpRate * 0.18)),
-          budgetItems.length
-            ? Math.max(
-                8,
-                Math.min(14, 14 - Math.max(0, budgetRate - 100) * 0.08),
-              )
-            : 0,
-          hasPaymentSetup ? 10 : 0,
-        ].reduce((sum, item) => sum + item, 0),
-      ),
-    );
-    const healthLabel =
-      healthScore >= 82
-        ? "Excellent"
-        : healthScore >= 58
-          ? "Good progress"
-          : "Needs attention";
-    const recommendation =
-      healthScore >= 82
-        ? "Your event is well prepared. Keep monitoring RSVP and guest arrivals."
-        : healthScore >= 58
-          ? "Focus on the missing checklist items to make the event ready."
-          : "Publish the invitation, complete event details, and start collecting guest responses.";
+  const handleSelectInvitation = (id) => {
+    setSelectedInvId(id);
+    loadData(id);
+  };
 
-    const recentActivity = [
-      ...notifications.map((item) => ({
-        id: `notification-${item.id}`,
-        type: "Notification",
-        title: item.title,
-        detail: item.body,
-        time: item.createdAt,
-        Icon: IoNotificationsOutline,
-      })),
-      ...guests
-        .slice(0, 6)
-        .map((item) => ({
-          id: `guest-${item.id}`,
-          type: "Guest",
-          title: `${item.name} added`,
-          detail: item.group || "Guest list updated",
-          time: item.createdAt,
-          Icon: IoPeopleOutline,
-        })),
-      ...rsvps
-        .slice(0, 6)
-        .map((item) => ({
-          id: `rsvp-${item.id}`,
-          type: "RSVP",
-          title: `${item.name} responded`,
-          detail: item.status,
-          time: item.createdAt,
-          Icon: IoCheckmarkCircleOutline,
-        })),
-      ...gifts
-        .slice(0, 6)
-        .map((item) => ({
-          id: `gift-${item.id}`,
-          type: "Gift",
-          title: `${item.name} gift recorded`,
-          detail: money(item.amount, item.currency),
-          time: item.createdAt,
-          Icon: IoGiftOutline,
-        })),
-      ...budgetItems
-        .slice(0, 6)
-        .map((item) => ({
-          id: `budget-${item.id}`,
-          type: "Budget",
-          title: item.name,
-          detail: `${item.category} · ${money(item.amount)} spent`,
-          time: item.createdAt,
-          Icon: IoCashOutline,
-        })),
-    ]
-      .sort((a, b) => new Date(b.time || 0) - new Date(a.time || 0))
-      .slice(0, 8);
+  const stats = useMemo(() => {
+    const inv = state.selectedInvitation;
+    const guestTotal = state.guests.reduce((sum, g) => sum + (Number(g.count) || 1), 0);
+    const rsvpYes = state.rsvps.reduce(
+      (sum, r) =>
+        r.status === "ACCEPTED" || r.attending || r.responseStatus === "ACCEPTED"
+          ? sum + (Number(r.count) || 1)
+          : sum,
+      0
+    );
+    const rsvpNo = state.rsvps.reduce(
+      (sum, r) =>
+        r.status === "DECLINED" || r.responseStatus === "DECLINED"
+          ? sum + (Number(r.count) || 1)
+          : sum,
+      0
+    );
 
-    const giftBars = gifts.slice(0, 8);
-    const maxGift = Math.max(1, ...giftBars.map((item) => item.amount));
+    const totalBudget = state.budgetItems.reduce(
+      (sum, b) => sum + (Number(b.budget) || Number(b.estimatedCost) || Number(b.amount) || 0),
+      0
+    );
+    const actualExpense = state.budgetItems.reduce(
+      (sum, b) => sum + (Number(b.actualCost) || Number(b.amount) || 0),
+      0
+    );
+    const totalGifts = state.gifts.reduce(
+      (sum, g) => sum + (Number(g.amount) || 0),
+      0
+    );
+
+    const checkedInCount =
+      state.checkInSummary?.totalCheckedIn ||
+      state.guests.filter((g) => g.checkedIn).length ||
+      0;
+
+    const rsvpRate = guestTotal > 0 ? Math.min(100, Math.round((rsvpYes / guestTotal) * 100)) : 0;
+    const budgetRate = totalBudget > 0 ? Math.min(100, Math.round((actualExpense / totalBudget) * 100)) : 0;
 
     return {
-      selectedId,
-      eventDay,
-      eventTime: eventTime(selectedInvitation, draft),
-      daysRemaining,
-      published,
-      title: invitationTitle(selectedInvitation, draft),
-      couple: coupleNames(selectedInvitation, draft),
-      venue: venueName(selectedInvitation, draft),
-      venueAddress: venueAddress(selectedInvitation, draft),
-      publicLink: publicUrl(selectedInvitation, draft),
-      status:
-        field(selectedInvitation, "status") ||
-        (published ? "PUBLISHED" : "DRAFT"),
-      guestTotal,
-      expectedGuests: expected,
-      rsvp: { accepted, declined, maybe, pending, responded, rate: rsvpRate },
-      budget: {
-        total: totalBudget,
-        spent: totalSpent,
-        remaining: totalBudget - totalSpent,
-        rate: budgetRate,
-      },
-      giftTotal,
-      checkInCount,
-      healthScore,
-      healthLabel,
-      recommendation,
-      hasPaymentSetup,
-      venueComplete,
-      dateComplete,
-      rsvpEnabled,
-      seatingReady,
-      recentActivity,
-      giftBars,
-      maxGift,
+      hasInvitation: !!inv,
+      title:
+        inv?.title ||
+        (inv?.groomName && inv?.brideName
+          ? `${inv.groomName} & ${inv.brideName}`
+          : "ផ្ទាំងគ្រប់គ្រងមង្គលការ"),
+      couple: inv?.groomName && inv?.brideName ? `${inv.groomName} & ${inv.brideName}` : "",
+      eventDate: inv?.eventDate || inv?.weddingDate || "",
+      venue: inv?.venue || inv?.location || "",
+      slug: inv?.slug || "",
+      status: inv?.status || (inv?.published ? "PUBLISHED" : "DRAFT"),
+      id: inv?.id || inv?.invitationId,
+      guestTotal: Math.max(guestTotal, state.guests.length),
+      rsvpYes,
+      rsvpNo,
+      rsvpPending: Math.max(0, guestTotal - rsvpYes - rsvpNo),
+      rsvpRate,
+      checkedInCount,
+      totalBudget,
+      actualExpense,
+      budgetRate,
+      remainingBudget: Math.max(0, totalBudget - actualExpense),
+      totalGifts,
+      giftCount: state.gifts.length,
     };
   }, [state]);
 
+  // Live Countdown Effect
+  useEffect(() => {
+    if (!stats.eventDate) {
+      setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0, isPast: false, hasDate: false });
+      return;
+    }
+
+    const calculateTime = () => {
+      const target = new Date(stats.eventDate).getTime();
+      const now = new Date().getTime();
+      const diff = target - now;
+
+      if (isNaN(target)) {
+        setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0, isPast: false, hasDate: false });
+        return;
+      }
+
+      if (diff <= 0) {
+        setTimeRemaining({ days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true, hasDate: true });
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeRemaining({ days, hours, minutes, seconds, isPast: false, hasDate: true });
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 1000);
+    return () => clearInterval(interval);
+  }, [stats.eventDate]);
+
+  const handleCopyLink = (slug) => {
+    if (!slug) return;
+    const url = `${window.location.origin}/w/${slug}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
+  };
+
+  // Loading Skeleton
   if (state.loading) {
     return (
-      <DashboardShell>
-        <SkeletonDashboard />
-      </DashboardShell>
+      <div className="w-full min-h-screen px-4 sm:px-8 py-8 bg-[#faf7f2]">
+        <div className="max-w-7xl mx-auto flex flex-col gap-6 animate-pulse">
+          <div className="h-48 rounded-3xl bg-amber-100/50 w-full" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-36 rounded-2xl bg-white border border-stone-200" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-8 h-96 rounded-3xl bg-white border border-stone-200" />
+            <div className="lg:col-span-4 h-96 rounded-3xl bg-white border border-stone-200" />
+          </div>
+        </div>
+      </div>
     );
   }
 
-  if (!state.selectedInvitation && !state.draft) {
-    return (
-      <DashboardShell>
-        <ErrorBanner error={state.error} />
-        <EmptyDashboard label={label} />
-      </DashboardShell>
-    );
-  }
-
   return (
-    <DashboardShell>
-      <ErrorBanner error={state.error} fallback={state.source === "local"} />
-      <HeroPanel data={data} source={state.source} lang={lang} />
-      <KpiGrid data={data} giftCount={state.gifts.length} lang={lang} />
+    <div className="w-full min-h-screen bg-[#faf7f2] text-stone-900 px-4 sm:px-8 py-6 pb-28">
+      <div className="max-w-7xl mx-auto flex flex-col gap-8">
+        
+        {/* =========================================================================
+            CASE 1: HOST HAS NO INVITATIONS YET (CLEAN WELCOME HERO)
+           ========================================================================= */}
+        {!stats.hasInvitation ? (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-3xl border border-amber-200/90 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/60 p-8 sm:p-12 shadow-sm text-center flex flex-col items-center justify-center relative overflow-hidden"
+          >
+            <div className="absolute -right-16 -top-16 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
-      <section className="dash-section-grid grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-        <ReadinessPanel data={data} />
-        <AnalyticsPanel data={data} />
-      </section>
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100/80 px-4 py-1.5 text-xs font-black text-amber-900 mb-6 shadow-xs">
+              <IoSparkles className="text-amber-600" /> <span>Koupreng Digital Wedding Hub</span>
+            </div>
 
-      <section className="dash-section-grid grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
-        <BudgetPanel budget={data.budget} items={state.budgetItems} />
-        <GiftPanel
-          gifts={data.giftBars}
-          max={data.maxGift}
-          total={data.giftTotal}
-        />
-      </section>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 tracking-tight max-w-2xl leading-tight">
+              ផ្ទាំងគ្រប់គ្រងមង្គលការឌីជីថល
+            </h1>
 
-      <section className="dash-section-grid grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-        <ActivityPanel items={data.recentActivity} />
-        <div className="grid gap-6">
-          <EventDetailsPanel data={data} lang={lang} />
-          <QuickActions data={data} source={state.source} />
-        </div>
-      </section>
-    </DashboardShell>
-  );
-}
+            <p className="text-stone-600 text-sm sm:text-base max-w-xl mt-4 leading-relaxed">
+              សូមស្វាគមន៍! បង្កើតសន្លឹកការអាពាហ៍ពិពាហ៍បែបឌីជីថលដំបូងរបស់អ្នក ដើម្បីគ្រប់គ្រងបញ្ជីភ្ញៀវ តាមដានការឆ្លើយតប RSVP ថវិកា និងប្រាក់ចំណងដៃបានយ៉ាងងាយស្រួល។
+            </p>
 
-function DashboardShell({ children }) {
-  return (
-    <main
-      className="dash-main dashboard-page min-h-screen text-stone-900"
-    >
-      <div className="dash-content dashboard-page__inner flex flex-col gap-6">
-        {children}
-      </div>
-    </main>
-  );
-}
-
-function ErrorBanner({ error, fallback }) {
-  if (!error) return null;
-  return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-red-200 bg-red-50/90 p-4 text-sm font-bold text-red-800 shadow-sm sm:flex-row sm:items-center">
-      <IoWarningOutline className="h-5 w-5 shrink-0" aria-hidden="true" />
-      <span>{error}</span>
-      <small className="text-red-600 sm:ml-auto">
-        {fallback
-          ? "Showing local fallback data."
-          : "Dashboard data could not be loaded from the backend."}
-      </small>
-    </div>
-  );
-}
-
-function EmptyDashboard({ label }) {
-  return (
-    <motion.section
-      className="mx-auto mt-10 max-w-3xl rounded-[2rem] border border-amber-100 bg-white/80 p-8 text-center shadow-[0_24px_80px_rgba(92,64,32,0.12)] backdrop-blur-xl"
-      variants={riseMotion}
-    >
-      <div className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-[1.5rem] bg-gradient-to-br from-amber-100 via-white to-teal-100 text-4xl text-teal-700 ring-1 ring-amber-100">
-        <IoSparklesOutline aria-hidden="true" />
-      </div>
-      <span className={eyebrowClass}>
-        {label("title", FALLBACK_TEXT.title)}
-      </span>
-      <h1 className="mt-3 text-3xl font-black leading-tight text-stone-900 sm:text-5xl">
-        {label("emptyTitle", FALLBACK_TEXT.emptyTitle)}
-      </h1>
-      <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-stone-500 sm:text-base">
-        {label("emptyText", FALLBACK_TEXT.emptyText)}
-      </p>
-      <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-        <Link to="/create/wedding" className={primaryButtonClass}>
-          <IoSparklesOutline aria-hidden="true" />
-          {label("createInvitation", FALLBACK_TEXT.createInvitation)}
-        </Link>
-        <Link to="/templates/browse" className={buttonClass}>
-          <IoAlbumsOutline aria-hidden="true" />
-          Browse templates
-        </Link>
-      </div>
-    </motion.section>
-  );
-}
-
-function HeroPanel({ data, source, lang }) {
-  const editLink = data.selectedId
-    ? `/dashboard/invitations/${data.selectedId}/edit`
-    : data.selectedId === null
-      ? "/create/wedding"
-      : "/create/wedding";
-  const guestLink = "/guests";
-  const hasDate = data.daysRemaining !== null;
-
-  return (
-    <motion.section
-      className="dash-panel relative overflow-hidden rounded-[1.75rem] border border-amber-100/80 bg-[linear-gradient(135deg,#fffaf0_0%,#ffffff_52%,#ecfdf8_100%)] p-5 shadow-[0_18px_60px_rgba(92,64,32,0.10)] ring-1 ring-white/80 backdrop-blur-xl md:p-6"
-      variants={riseMotion}
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-teal-600 to-amber-200" />
-      <div className="dash-hero-grid grid gap-5">
-        <div className="min-w-0">
-          <span className={eyebrowClass}>
-            <IoSparklesOutline aria-hidden="true" /> Good day, host
-          </span>
-          <h1 className="mt-3 max-w-4xl break-words text-[clamp(2rem,3.6vw,3.4rem)] font-black leading-[1.04] tracking-normal text-stone-950">
-            {data.title}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500 sm:text-[15px]">
-            {data.couple || FALLBACK_TEXT.subtitle}
-          </p>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span
-              className={`inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-xs font-black ${data.published ? "border-teal-200 bg-teal-50 text-teal-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}
-            >
-              {data.published ? "Published" : "Draft"}
-            </span>
-            <MetaPill
-              icon={IoCalendarClearOutline}
-              text={dateLabel(data.eventDay, lang, "No date yet")}
-            />
-            <MetaPill
-              icon={IoTimeOutline}
-              text={data.eventTime || "Time not completed"}
-            />
-            <MetaPill
-              icon={IoLocationOutline}
-              text={data.venue || "Venue not completed"}
-            />
-            <MetaPill
-              icon={IoRefreshOutline}
-              text={
-                source === "backend" ? "Backend data" : "Local draft fallback"
-              }
-            />
-          </div>
-        </div>
-
-        <div className="grid content-start gap-3">
-          <div className="rounded-[1.35rem] border border-teal-100 bg-white/80 p-4 shadow-inner">
-            <span className="text-xs font-black uppercase tracking-[0.08em] text-stone-500">
-              Countdown
-            </span>
-            <strong
-              className={`mt-1 block font-black leading-none ${hasDate ? "text-5xl text-teal-700" : "text-2xl text-amber-700"}`}
-            >
-              {countdownValue(data.daysRemaining)}
-            </strong>
-            <small className="mt-1 block text-sm font-bold text-stone-500">
-              {hasDate
-                ? data.daysRemaining === 1
-                  ? "day remaining"
-                  : "days remaining"
-                : "Add the event date to enable countdown"}
-            </small>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            <Link to={editLink} className={primaryButtonClass}>
-              <IoCreateOutline aria-hidden="true" /> Edit invitation
-            </Link>
-            <Link to={guestLink} className={buttonClass}>
-              <IoPeopleOutline aria-hidden="true" /> Manage guests
-            </Link>
-            <Link to="/dashboard/expenses" className={buttonClass}>
-              <IoCashOutline aria-hidden="true" /> Manage budget
-            </Link>
-            {data.publicLink ? (
-              <Link to={data.publicLink} className={buttonClass}>
-                <IoGlobeOutline aria-hidden="true" /> View public
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                to="/create/wedding"
+                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-8 py-4 font-black text-base shadow-lg shadow-amber-500/25 transition hover:-translate-y-0.5"
+              >
+                <IoAddCircle className="text-2xl" />
+                <span>បង្កើតសន្លឹកការដំបូងរបស់អ្នក</span>
               </Link>
-            ) : (
-              <span className={`${buttonClass} cursor-not-allowed opacity-60`}>
-                <IoGlobeOutline aria-hidden="true" /> Public unavailable
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </motion.section>
-  );
-}
 
-function MetaPill({ icon: Icon, text }) {
-  return (
-    <span className="inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-stone-200 bg-white/75 px-3 text-xs font-black text-stone-600">
-      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span className="truncate">{text}</span>
-    </span>
-  );
-}
-
-function KpiGrid({ data, giftCount, lang }) {
-  const cards = [
-    {
-      icon: IoPeopleOutline,
-      value: data.guestTotal,
-      label: "Total guests",
-      note: `${data.rsvp.responded} RSVP responses`,
-      trend: data.guestTotal > 0 ? "List started" : "Add guests",
-      tone: "teal",
-    },
-    {
-      icon: IoCheckmarkCircleOutline,
-      value: `${data.rsvp.rate}%`,
-      label: "RSVP completion",
-      note:
-        data.expectedGuests > 0
-          ? `${data.rsvp.pending} guests pending`
-          : "Add guests to track RSVP",
-      trend:
-        data.expectedGuests === 0
-          ? "Awaiting setup"
-          : data.rsvp.rate >= 70
-            ? "On track"
-            : "Needs follow-up",
-      tone: "green",
-    },
-    {
-      icon: IoWalletOutline,
-      value: `${data.budget.rate}%`,
-      label: "Budget used",
-      note:
-        data.budget.total > 0
-          ? `${money(data.budget.spent)} of ${money(data.budget.total)}`
-          : "Create your first budget plan",
-      trend:
-        data.budget.total > 0
-          ? data.budget.rate > 100
-            ? "Over budget"
-            : "Controlled"
-          : "Set budget",
-      tone: "gold",
-    },
-    {
-      icon: IoGiftOutline,
-      value: money(data.giftTotal),
-      label: "Gifts received",
-      note: `${giftCount} records`,
-      trend: giftCount ? "Updated" : "No records",
-      tone: "violet",
-    },
-    {
-      icon: IoCalendarClearOutline,
-      value: countdownValue(data.daysRemaining),
-      label: "Days remaining",
-      note: data.eventDay
-        ? dateLabel(data.eventDay, lang)
-        : "Add the event date",
-      trend: data.dateComplete ? "Scheduled" : "Set date",
-      tone: "stone",
-    },
-    {
-      icon: IoTicketOutline,
-      value: data.checkInCount,
-      label: "Check-ins",
-      note: data.eventDay ? "Guests arrived" : "Available on event day",
-      trend: data.checkInCount
-        ? "Active"
-        : data.eventDay
-          ? "Waiting"
-          : "Standby",
-      tone: "blue",
-    },
-  ];
-
-  return (
-    <motion.section className="dash-kpi-grid grid gap-3" variants={pageMotion}>
-      {cards.map((card) => (
-        <StatCard key={card.label} {...card} />
-      ))}
-    </motion.section>
-  );
-}
-
-function StatCard({ icon: Icon, value, label, note, trend, tone }) {
-  const toneClass = {
-    teal: "bg-teal-50 text-teal-700 ring-teal-100",
-    green: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-    gold: "bg-amber-50 text-amber-700 ring-amber-100",
-    violet: "bg-violet-50 text-violet-700 ring-violet-100",
-    stone: "bg-stone-100 text-stone-700 ring-stone-200",
-    blue: "bg-sky-50 text-sky-700 ring-sky-100",
-  }[tone];
-
-  return (
-    <motion.article
-      className="group rounded-[1.2rem] border border-stone-200/70 bg-white/90 p-4 shadow-[0_10px_35px_rgba(92,64,32,0.06)] ring-1 ring-white/80 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_18px_50px_rgba(92,64,32,0.12)]"
-      variants={cardMotion}
-      whileHover={{ scale: 1.012 }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div
-          className={`grid h-10 w-10 place-items-center rounded-xl ring-1 ${toneClass}`}
-        >
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </div>
-        <span className="rounded-full bg-stone-50 px-2 py-1 text-[10px] font-black text-stone-500 ring-1 ring-stone-100">
-          {trend}
-        </span>
-      </div>
-      <strong className="mt-4 block break-words text-[1.7rem] font-black leading-none text-stone-950">
-        {value}
-      </strong>
-      <span className="mt-2 block text-sm font-black text-stone-700">
-        {label}
-      </span>
-      <small className="mt-1.5 block text-xs font-bold leading-5 text-stone-500">
-        {note}
-      </small>
-    </motion.article>
-  );
-}
-
-function ReadinessPanel({ data }) {
-  return (
-    <motion.article
-      className={`${panelClass} grid gap-5 lg:grid-cols-[180px_1fr]`}
-      variants={riseMotion}
-    >
-      <div className={`${panelHeadClass} lg:col-span-2`}>
-        <div>
-          <span className={eyebrowClass}>Event health</span>
-          <h2 className="mt-1 text-xl font-black text-stone-950">
-            {data.healthLabel}
-          </h2>
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500">
-            {data.recommendation}
-          </p>
-        </div>
-        <Link
-          to={
-            data.selectedId
-              ? `/dashboard/invitations/${data.selectedId}/edit`
-              : "/create/wedding"
-          }
-          className={linkClass}
-        >
-          Improve <IoChevronForwardOutline aria-hidden="true" />
-        </Link>
-      </div>
-      <ReadinessRing value={data.healthScore} label={data.healthLabel} />
-      <ChecklistCard data={data} />
-    </motion.article>
-  );
-}
-
-function ReadinessRing({ value, label }) {
-  return (
-    <div
-      className="dash-readiness-ring mx-auto"
-      style={{ "--score": `${value}%` }}
-      aria-label={`Event readiness score ${value}%`}
-    >
-      <div className="grid place-items-center text-center">
-        <strong className="text-3xl font-black leading-none text-stone-950">
-          {value}%
-        </strong>
-        <span className="mt-1 max-w-28 text-xs font-black text-stone-500">
-          {label}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ChecklistCard({ data }) {
-  const editLink = data.selectedId
-    ? `/dashboard/invitations/${data.selectedId}/edit`
-    : "/create/wedding";
-  const guestLink = "/guests";
-  const items = [
-    { label: "Invitation created", done: true, to: editLink },
-    { label: "Invitation published", done: data.published, to: editLink },
-    { label: "Event date completed", done: data.dateComplete, to: editLink },
-    { label: "Venue completed", done: data.venueComplete, to: editLink },
-    { label: "Guests added", done: data.guestTotal > 0, to: guestLink },
-    {
-      label: "RSVP responses received",
-      done: data.rsvp.responded > 0,
-      to: guestLink,
-    },
-    { label: "Budget planned", done: data.budget.total > 0, to: "/expenses" },
-    {
-      label: "Gift/payment configured",
-      done: data.hasPaymentSetup,
-      to: "/gifts",
-    },
-  ];
-
-  return (
-    <motion.div className="grid gap-2" variants={pageMotion}>
-      {items.map((item) => (
-        <motion.div key={item.label} variants={cardMotion}>
-          <Link
-            to={item.to}
-            className="group flex min-h-11 items-center gap-3 rounded-xl border border-stone-100 bg-white/75 px-3 py-2 text-sm font-black text-stone-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-200 hover:bg-amber-50/60"
-          >
-            <span
-              className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${item.done ? "bg-teal-50 text-teal-700" : "bg-amber-50 text-amber-700"}`}
-            >
-              {item.done ? (
-                <IoCheckmarkCircleOutline aria-hidden="true" />
-              ) : (
-                <IoTimeOutline aria-hidden="true" />
-              )}
-            </span>
-            <span className="min-w-0 flex-1">{item.label}</span>
-            <small
-              className={`text-xs ${item.done ? "text-teal-700" : "text-amber-700"}`}
-            >
-              {item.done ? "Done" : "Open"}
-            </small>
-          </Link>
-        </motion.div>
-      ))}
-    </motion.div>
-  );
-}
-
-function AnalyticsPanel({ data }) {
-  const segments = [
-    { label: "Accepted", value: data.rsvp.accepted, color: "#0f766e" },
-    { label: "Maybe", value: data.rsvp.maybe, color: "#4f7a95" },
-    { label: "Declined", value: data.rsvp.declined, color: "#b95c50" },
-    { label: "Pending", value: data.rsvp.pending, color: "#c49a55" },
-  ];
-
-  return (
-    <motion.article className={panelClass} variants={riseMotion}>
-      <div className={panelHeadClass}>
-        <div>
-          <span className={eyebrowClass}>RSVP insight</span>
-          <h2 className="mt-1 text-xl font-black text-stone-950">
-            Guest response mix
-          </h2>
-        </div>
-        <strong className="text-2xl font-black text-teal-700">
-          {data.rsvp.rate}%
-        </strong>
-      </div>
-      {data.expectedGuests === 0 ? (
-        <EmptyInline>
-          Add guests and collect RSVP responses to unlock analytics.
-        </EmptyInline>
-      ) : (
-        <div className="grid items-center gap-5 md:grid-cols-[180px_1fr]">
-          <RsvpDonutChart items={segments} total={data.expectedGuests} />
-          <GuestStatusBar items={segments} total={data.expectedGuests} />
-        </div>
-      )}
-    </motion.article>
-  );
-}
-
-function RsvpDonutChart({ items, total }) {
-  let offset = 0;
-  const radius = 38;
-  const circumference = 2 * Math.PI * radius;
-  return (
-    <div className="relative mx-auto h-44 w-44">
-      <svg
-        viewBox="0 0 100 100"
-        className="h-full w-full -rotate-90"
-        role="img"
-        aria-label="RSVP donut chart"
-      >
-        <circle cx="50" cy="50" r={radius} className="dash-donut-bg" />
-        {items.map((item) => {
-          const length = total ? (item.value / total) * circumference : 0;
-          const circle = (
-            <motion.circle
-              key={item.label}
-              cx="50"
-              cy="50"
-              r={radius}
-              className="dash-donut-segment"
-              stroke={item.color}
-              strokeDasharray={`${length} ${circumference - length}`}
-              strokeDashoffset={-offset}
-              initial={{ strokeDasharray: `0 ${circumference}` }}
-              animate={{
-                strokeDasharray: `${length} ${circumference - length}`,
-              }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-          );
-          offset += length;
-          return circle;
-        })}
-      </svg>
-      <div className="absolute inset-[28%] grid place-items-center rounded-full bg-white text-center shadow-[0_14px_35px_rgba(31,36,33,0.10)]">
-        <div>
-          <strong className="block text-2xl font-black leading-none text-stone-950">
-            {total || 0}
-          </strong>
-          <span className="mt-1 block text-xs font-black text-stone-500">
-            Guests
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GuestStatusBar({ items, total }) {
-  return (
-    <div className="min-w-0">
-      <div
-        className="flex h-4 overflow-hidden rounded-full bg-stone-100"
-        aria-label="Guest status stacked bar"
-      >
-        {items.map((item) => (
-          <motion.span
-            key={item.label}
-            style={{
-              width: `${pct(item.value, total)}%`,
-              background: item.color,
-            }}
-            initial={{ width: 0 }}
-            animate={{ width: `${pct(item.value, total)}%` }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          />
-        ))}
-      </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {items.map((item) => (
-          <div
-            key={item.label}
-            className="flex items-center gap-3 rounded-xl border border-stone-100 bg-white/75 p-3 text-sm font-black text-stone-700"
-          >
-            <i
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
-              style={{ background: item.color }}
-            />
-            <span className="min-w-0 flex-1 truncate">{item.label}</span>
-            <strong className="text-stone-950">{item.value}</strong>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function BudgetPanel({ budget, items }) {
-  return (
-    <motion.article className={panelClass} variants={riseMotion}>
-      <div className={panelHeadClass}>
-        <div>
-          <span className={eyebrowClass}>Budget</span>
-          <h2 className="mt-1 text-xl font-black text-stone-950">
-            Spending progress
-          </h2>
-        </div>
-        <Link to="/dashboard/expenses" className={linkClass}>
-          Manage budget <IoChevronForwardOutline aria-hidden="true" />
-        </Link>
-      </div>
-      <div className="rounded-[1.1rem] bg-gradient-to-br from-amber-50 to-teal-50 p-4 ring-1 ring-amber-100">
-        <span className="text-xs font-black uppercase tracking-[0.08em] text-stone-500">
-          Used
-        </span>
-        <strong className="mt-2 block text-4xl font-black leading-none text-stone-950">
-          {budget.rate}%
-        </strong>
-        <p className="mt-2 text-sm font-bold leading-6 text-stone-500">
-          {money(budget.spent)} spent, {money(Math.max(0, budget.remaining))}{" "}
-          remaining
-        </p>
-        <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/80">
-          <motion.span
-            className="block h-full rounded-full bg-gradient-to-r from-amber-500 to-teal-700"
-            style={{ width: `${Math.min(100, budget.rate)}%` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min(100, budget.rate)}%` }}
-          />
-        </div>
-      </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {items.slice(0, 5).map((item) => (
-          <div
-            key={item.id}
-            className="min-w-0 rounded-xl border border-stone-100 bg-white/75 p-3"
-          >
-            <span className="block truncate text-xs font-black text-stone-500">
-              {item.category}
-            </span>
-            <strong className="mt-1 block truncate text-sm font-black text-stone-950">
-              {money(item.amount)}
-            </strong>
-          </div>
-        ))}
-        {!items.length && <EmptyInline>No budget items yet.</EmptyInline>}
-      </div>
-    </motion.article>
-  );
-}
-
-function GiftPanel({ gifts, max, total }) {
-  return (
-    <motion.article className={panelClass} variants={riseMotion}>
-      <div className={panelHeadClass}>
-        <div>
-          <span className={eyebrowClass}>Gifts</span>
-          <h2 className="mt-1 text-xl font-black text-stone-950">
-            Gift amount trend
-          </h2>
-          <p className="mt-1 text-sm font-bold text-stone-500">
-            {money(total)} received
-          </p>
-        </div>
-        <Link to="/dashboard/gifts" className={linkClass}>
-          View gifts <IoChevronForwardOutline aria-hidden="true" />
-        </Link>
-      </div>
-      {!gifts.length ? (
-        <EmptyInline>No gift records yet.</EmptyInline>
-      ) : (
-        <div
-          className="grid min-h-56 grid-cols-4 items-end gap-3 sm:grid-cols-8"
-          aria-label="Gift amount mini bar chart"
-        >
-          {gifts.map((gift) => (
-            <div
-              key={gift.id}
-              className="grid min-w-0 grid-rows-[145px_auto_auto] gap-2 text-center"
-            >
-              <motion.span
-                className="self-end rounded-t-xl rounded-b bg-gradient-to-b from-violet-500 to-amber-500"
-                style={{
-                  height: `${Math.max(10, (gift.amount / max) * 100)}%`,
-                }}
-                initial={{ height: 0 }}
-                animate={{
-                  height: `${Math.max(10, (gift.amount / max) * 100)}%`,
-                }}
-              />
-              <small className="truncate text-[11px] font-black text-stone-500">
-                {gift.name}
-              </small>
-              <strong className="truncate text-xs font-black text-stone-900">
-                {money(gift.amount, gift.currency)}
-              </strong>
+              <Link
+                to="/templates/browse"
+                className="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 px-6 py-4 font-bold text-sm shadow-xs transition"
+              >
+                <span>ស្វែងរកគំរូធៀបការ (Templates)</span>
+                <IoChevronForwardOutline />
+              </Link>
             </div>
-          ))}
-        </div>
-      )}
-    </motion.article>
-  );
-}
 
-function ActivityPanel({ items }) {
-  return (
-    <motion.article className={panelClass} variants={riseMotion}>
-      <div className={panelHeadClass}>
-        <div>
-          <span className={eyebrowClass}>Recent activity</span>
-          <h2 className="mt-1 text-xl font-black text-stone-950">
-            What changed lately
-          </h2>
-        </div>
-      </div>
-      {!items.length ? (
-        <EmptyInline>
-          New guests, RSVP responses, gifts, and budget updates will appear
-          here.
-        </EmptyInline>
-      ) : (
-        <div className="grid gap-3">
-          {items.map(({ id, Icon, title, detail, type, time }) => (
-            <div
-              key={id}
-              className="grid min-h-14 grid-cols-[40px_1fr_auto] items-center gap-3 rounded-xl border border-stone-100 bg-white/75 p-3"
-            >
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-50 text-teal-700">
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0">
-                <strong className="block truncate text-sm font-black text-stone-950">
-                  {title}
-                </strong>
-                <small className="block truncate text-xs font-bold text-stone-500">
-                  {type} · {detail}
-                </small>
+            {/* Feature Highlights Cards */}
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full text-left">
+              <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl mb-3">
+                  <IoGlobeOutline />
+                </div>
+                <h4 className="font-black text-stone-900 text-sm">សន្លឹកការ Online</h4>
+                <p className="text-xs text-stone-500 mt-1">មាន Live Link ចែករំលែកតាម Telegram, FB</p>
               </div>
-              <em className="whitespace-nowrap text-xs font-black not-italic text-stone-400">
-                {relativeTime(time)}
-              </em>
+
+              <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl mb-3">
+                  <IoCheckmarkCircleOutline />
+                </div>
+                <h4 className="font-black text-stone-900 text-sm">តាមដាន RSVP</h4>
+                <p className="text-xs text-stone-500 mt-1">ដឹងចំនួនភ្ញៀវចូលរួមមុនថ្ងៃការជាក់ស្តែង</p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl mb-3">
+                  <IoQrCodeOutline />
+                </div>
+                <h4 className="font-black text-stone-900 text-sm">ស្កេន QR Check-In</h4>
+                <p className="text-xs text-stone-500 mt-1">ស្កេនវត្តមានភ្ញៀវមាត់ទ្វាររហ័សទាន់ចិត្ត</p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-stone-200/80 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl mb-3">
+                  <IoWalletOutline />
+                </div>
+                <h4 className="font-black text-stone-900 text-sm">ថវិកា & ចងដៃ</h4>
+                <p className="text-xs text-stone-500 mt-1">កត់ត្រាចំណាយ និងប្រាក់ចំណងដៃច្បាស់លាស់</p>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
-    </motion.article>
-  );
-}
+          </motion.div>
+        ) : (
+          /* =========================================================================
+              CASE 2: HOST HAS INVITATIONS (FULL CONTROL DASHBOARD)
+             ========================================================================= */
+          <>
+            {/* Top Multi-Event Selector Bar */}
+            {state.invitations.length > 1 && (
+              <div className="flex items-center gap-3 overflow-x-auto pb-1">
+                <span className="text-xs font-black text-stone-500 uppercase tracking-wider shrink-0">
+                  កម្មវិធីរបស់អ្នក:
+                </span>
+                <div className="flex items-center gap-2">
+                  {state.invitations.map((inv) => {
+                    const id = inv.id || inv.invitationId;
+                    const isSelected = id === selectedInvId;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => handleSelectInvitation(id)}
+                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                          isSelected
+                            ? "bg-amber-600 text-white shadow-sm"
+                            : "bg-white border border-stone-200 text-stone-700 hover:bg-amber-50"
+                        }`}
+                      >
+                        <span>{inv.title || `${inv.groomName || "កូនកំលោះ"} & ${inv.brideName || "កូនក្រមុំ"}`}</span>
+                        {isSelected && <span className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-function EventDetailsPanel({ data, lang }) {
-  const items = [
-    {
-      icon: IoCalendarClearOutline,
-      label: "Event date",
-      value: dateLabel(data.eventDay, lang, "Not completed"),
-    },
-    {
-      icon: IoTimeOutline,
-      label: "Event time",
-      value: data.eventTime || "Not completed",
-    },
-    {
-      icon: IoLocationOutline,
-      label: "Venue",
-      value: data.venue || "Not completed",
-    },
-    {
-      icon: IoHeartOutline,
-      label: "RSVP",
-      value: data.rsvpEnabled ? "Enabled" : "Needs setup",
-    },
-    {
-      icon: IoBarChartOutline,
-      label: "Budget",
-      value: `${money(data.budget.total)} planned`,
-    },
-    {
-      icon: IoGlobeOutline,
-      label: "Public link",
-      value: data.publicLink || "Unavailable",
-    },
-  ];
+            {/* 1. Grand Event Spotlight Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-3xl border border-amber-200/90 bg-gradient-to-br from-amber-50/95 via-white to-teal-50/80 p-6 sm:p-8 shadow-sm backdrop-blur-xl relative overflow-hidden"
+            >
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="min-w-0 max-w-3xl">
+                  {/* Status Badges */}
+                  <div className="flex flex-wrap items-center gap-2.5 mb-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-100/90 px-3.5 py-1 text-xs font-black text-amber-900 shadow-2xs">
+                      <IoSparkles className="text-amber-700 text-sm" /> ផ្ទាំងគ្រប់គ្រងមង្គលការឌីជីថល
+                    </span>
 
-  return (
-    <motion.article className={panelClass} variants={riseMotion}>
-      <div className={panelHeadClass}>
-        <div>
-          <span className={eyebrowClass}>Event details</span>
-          <h2 className="mt-1 break-words text-xl font-black text-stone-950">
-            {data.title}
-          </h2>
-        </div>
-      </div>
-      <dl className="grid gap-3 sm:grid-cols-2">
-        {items.map(({ icon: Icon, label, value }) => (
-          <div
-            key={label}
-            className="rounded-xl border border-stone-100 bg-white/75 p-3"
-          >
-            <dt className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.06em] text-stone-500">
-              <Icon aria-hidden="true" />
-              {label}
-            </dt>
-            <dd className="mt-2 break-words text-sm font-black text-stone-950">
-              {value}
-            </dd>
-          </div>
-        ))}
-      </dl>
-      {data.venueAddress && (
-        <p className="mt-3 rounded-xl bg-amber-50/80 p-3 text-sm font-bold leading-6 text-stone-600">
-          {data.venueAddress}
-        </p>
-      )}
-    </motion.article>
-  );
-}
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black ${
+                        stats.status === "PUBLISHED"
+                          ? "bg-teal-100 text-teal-900 border border-teal-300"
+                          : "bg-amber-100 text-amber-900 border border-amber-300"
+                      }`}
+                    >
+                      {stats.status === "PUBLISHED" ? (
+                        <>
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-600" />
+                          </span>
+                          <span>ផ្សាយផ្ទាល់ (Live)</span>
+                        </>
+                      ) : (
+                        <span>ព្រាង (Draft)</span>
+                      )}
+                    </span>
+                  </div>
 
-function QuickActions({ data }) {
-  const editLink = data.selectedId
-    ? `/dashboard/invitations/${data.selectedId}/edit`
-    : "/create/wedding";
-  const guestLink = "/guests";
-  const actions = [
-    { label: "Add guest", to: guestLink, Icon: IoAddCircleOutline },
-    { label: "Open guest manager", to: guestLink, Icon: IoPeopleOutline },
-    { label: "Manage budget", to: "/expenses", Icon: IoCashOutline },
-    { label: "Manage gifts", to: "/gifts", Icon: IoGiftOutline },
-    { label: "Edit invitation", to: editLink, Icon: IoCreateOutline },
-    {
-      label: "Browse templates",
-      to: "/templates/browse",
-      Icon: IoAlbumsOutline,
-    },
-  ];
-  if (data.publicLink) {
-    actions.splice(5, 0, {
-      label: "Preview public invitation",
-      to: data.publicLink,
-      Icon: IoGlobeOutline,
-    });
-  }
+                  {/* Heading 1 */}
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight leading-tight">
+                    {stats.title}
+                  </h1>
 
-  return (
-    <motion.article className={panelClass} variants={riseMotion}>
-      <div className={panelHeadClass}>
-        <div>
-          <span className={eyebrowClass}>Quick actions</span>
-          <h2 className="mt-1 text-xl font-black text-stone-950">
-            Move the plan forward
-          </h2>
-        </div>
-      </div>
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        {actions.map(({ label, to, Icon }) => (
-          <Link
-            key={label}
-            to={to}
-            className="group flex items-center gap-3 rounded-xl border border-stone-100 bg-white/75 p-2.5 text-sm font-black text-stone-800 transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-200 hover:bg-amber-50/70"
-          >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-50 to-teal-50 text-teal-700 ring-1 ring-amber-100">
-              <Icon className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">{label}</span>
-            <IoChevronForwardOutline
-              className="h-4 w-4 text-stone-400 transition group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
-          </Link>
-        ))}
-      </div>
-    </motion.article>
-  );
-}
+                  {/* Event Details */}
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-xs sm:text-sm text-stone-600">
+                    {stats.eventDate && (
+                      <span className="inline-flex items-center gap-2 font-bold text-stone-800 bg-white border border-stone-200/90 px-3.5 py-2 rounded-xl shadow-2xs">
+                        <IoCalendarClearOutline className="text-amber-600 text-base" />
+                        <span>{stats.eventDate}</span>
+                      </span>
+                    )}
+                    {stats.venue && (
+                      <span className="inline-flex items-center gap-2 font-bold text-stone-800 bg-white border border-stone-200/90 px-3.5 py-2 rounded-xl shadow-2xs">
+                        <IoLocationOutline className="text-teal-600 text-base" />
+                        <span>{stats.venue}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-function EmptyInline({ children }) {
-  return (
-    <div className="col-span-full grid min-h-32 place-items-center rounded-xl border border-dashed border-stone-200 bg-white/60 p-5 text-center text-sm font-bold leading-6 text-stone-500">
-      {children}
-    </div>
-  );
-}
+                {/* Countdown & Action Buttons */}
+                <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-4 shrink-0 w-full lg:w-auto">
+                  {timeRemaining.hasDate && (
+                    <div className="flex items-center gap-2">
+                      <div className="bg-white border border-amber-200 rounded-xl px-3 py-2 text-center min-w-[3.5rem] shadow-xs">
+                        <div className="text-xl font-black text-amber-800 leading-none">
+                          {timeRemaining.days}
+                        </div>
+                        <div className="text-[11px] font-bold text-amber-600 uppercase mt-0.5">ថ្ងៃ</div>
+                      </div>
+                      <span className="text-amber-400 font-black">:</span>
+                      <div className="bg-white border border-amber-200 rounded-xl px-3 py-2 text-center min-w-[3.5rem] shadow-xs">
+                        <div className="text-xl font-black text-amber-800 leading-none">
+                          {String(timeRemaining.hours).padStart(2, "0")}
+                        </div>
+                        <div className="text-[11px] font-bold text-amber-600 uppercase mt-0.5">ម៉ោង</div>
+                      </div>
+                      <span className="text-amber-400 font-black">:</span>
+                      <div className="bg-white border border-amber-200 rounded-xl px-3 py-2 text-center min-w-[3.5rem] shadow-xs">
+                        <div className="text-xl font-black text-amber-800 leading-none">
+                          {String(timeRemaining.minutes).padStart(2, "0")}
+                        </div>
+                        <div className="text-[11px] font-bold text-amber-600 uppercase mt-0.5">នាទី</div>
+                      </div>
+                      <span className="text-amber-400 font-black">:</span>
+                      <div className="bg-white border border-amber-200 rounded-xl px-3 py-2 text-center min-w-[3.5rem] shadow-xs">
+                        <div className="text-xl font-black text-amber-800 leading-none">
+                          {String(timeRemaining.seconds).padStart(2, "0")}
+                        </div>
+                        <div className="text-[11px] font-bold text-amber-600 uppercase mt-0.5">វិនាទី</div>
+                      </div>
+                    </div>
+                  )}
 
-function SkeletonDashboard() {
-  return (
-    <div className="grid gap-6">
-      <section
-        className="dash-loading-panel"
-        aria-busy="true"
-        aria-live="polite"
-      >
-        <span className="dash-loading-spinner" aria-hidden="true" />
-        <div>
-          <strong>កំពុងផ្ទុកផ្ទាំងគ្រប់គ្រង...</strong>
-          <p>Loading dashboard data...</p>
-        </div>
-      </section>
-      <div className="dash-skeleton min-h-[260px] rounded-[1.75rem]" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            className="dash-skeleton min-h-32 rounded-[1.2rem]"
-            key={index}
-          />
-        ))}
-      </div>
-      <div className="grid gap-6 xl:grid-cols-2">
-        <div className="dash-skeleton min-h-80 rounded-[1.5rem]" />
-        <div className="dash-skeleton min-h-80 rounded-[1.5rem]" />
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {stats.slug && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopyLink(stats.slug)}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-stone-700 shadow-xs hover:border-amber-400 hover:bg-amber-50/60 transition"
+                      >
+                        <IoCopyOutline className="text-base text-amber-600" />
+                        <span>{copied ? "បានចម្លង Link!" : "ចម្លង Link ធៀប"}</span>
+                      </button>
+                    )}
+
+                    {stats.slug && (
+                      <Link
+                        to={`/w/${stats.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-stone-700 shadow-xs hover:border-teal-400 hover:bg-teal-50/60 transition"
+                      >
+                        <IoGlobeOutline className="text-base text-teal-600" />
+                        <span>មើល Live</span>
+                      </Link>
+                    )}
+
+                    {stats.id && (
+                      <Link
+                        to={`/dashboard/invitations/${stats.id}/edit`}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-stone-700 shadow-xs hover:border-amber-400 hover:bg-amber-50/60 transition"
+                      >
+                        <IoCreateOutline className="text-base text-amber-600" />
+                        <span>កែសម្រួល</span>
+                      </Link>
+                    )}
+
+                    <Link
+                      to="/create/wedding"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-4 py-2 text-xs font-black shadow-md shadow-amber-500/25 transition hover:-translate-y-0.5"
+                    >
+                      <IoAddCircleOutline className="text-base" />
+                      <span>បង្កើតធៀបថ្មី</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 2. 4 Core KPI Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {/* Card 1: Guests */}
+              <Link
+                to="/dashboard/guests"
+                className="group flex flex-col justify-between rounded-3xl p-6 bg-white border border-stone-200/90 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-stone-500 uppercase tracking-wider">
+                    ភ្ញៀវកិត្តិយស
+                  </span>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 text-2xl group-hover:scale-110 transition-transform">
+                    <IoPeopleOutline />
+                  </div>
+                </div>
+                <div className="my-4">
+                  <div className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight">
+                    {stats.guestTotal}{" "}
+                    <span className="text-sm font-bold text-stone-400">នាក់</span>
+                  </div>
+                  <p className="text-xs text-stone-500 mt-1">
+                    បានបញ្ចូលក្នុងបញ្ជី {stats.guestTotal} នាក់
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-amber-700 font-bold">
+                  <span>គ្រប់គ្រងបញ្ជីភ្ញៀវ</span>
+                  <IoChevronForwardOutline />
+                </div>
+              </Link>
+
+              {/* Card 2: RSVP */}
+              <Link
+                to={stats.id ? `/dashboard/invitations/${stats.id}/rsvp` : "/dashboard/guests"}
+                className="group flex flex-col justify-between rounded-3xl p-6 bg-white border border-stone-200/90 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-stone-500 uppercase tracking-wider">
+                    ការឆ្លើយតប RSVP
+                  </span>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-500/10 text-teal-600 text-2xl group-hover:scale-110 transition-transform">
+                    <IoCheckmarkCircleOutline />
+                  </div>
+                </div>
+                <div className="my-4">
+                  <div className="text-3xl sm:text-4xl font-black text-teal-700 tracking-tight">
+                    {stats.rsvpRate}%
+                  </div>
+                  <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden mt-2.5">
+                    <div
+                      className="h-full bg-gradient-to-r from-teal-500 to-teal-600 rounded-full transition-all duration-500"
+                      style={{ width: `${stats.rsvpRate}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-stone-500 mt-2">
+                    ចូលរួម {stats.rsvpYes} នាក់ | អវត្តមាន {stats.rsvpNo} នាក់
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-teal-700 font-bold">
+                  <span>ពិនិត្យ RSVP</span>
+                  <IoChevronForwardOutline />
+                </div>
+              </Link>
+
+              {/* Card 3: Budget */}
+              <Link
+                to="/dashboard/expenses"
+                className="group flex flex-col justify-between rounded-3xl p-6 bg-white border border-stone-200/90 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-stone-500 uppercase tracking-wider">
+                    ថវិកា & ចំណាយ
+                  </span>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600 text-2xl group-hover:scale-110 transition-transform">
+                    <IoWalletOutline />
+                  </div>
+                </div>
+                <div className="my-4">
+                  <div className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight">
+                    ${stats.actualExpense.toLocaleString()}
+                  </div>
+                  <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden mt-2.5">
+                    <div
+                      className="h-full bg-gradient-to-r from-rose-500 to-rose-600 rounded-full transition-all duration-500"
+                      style={{ width: `${stats.budgetRate}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-stone-500 mt-2">
+                    គម្រោងថវិកាសរុប ${stats.totalBudget.toLocaleString()} ({stats.budgetRate}%)
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-rose-700 font-bold">
+                  <span>គ្រប់គ្រងចំណាយ</span>
+                  <IoChevronForwardOutline />
+                </div>
+              </Link>
+
+              {/* Card 4: Gifts */}
+              <Link
+                to="/dashboard/gifts"
+                className="group flex flex-col justify-between rounded-3xl p-6 bg-white border border-stone-200/90 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-stone-500 uppercase tracking-wider">
+                    ប្រាក់ចំណងដៃឌីជីថល
+                  </span>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-600 text-2xl group-hover:scale-110 transition-transform">
+                    <IoGiftOutline />
+                  </div>
+                </div>
+                <div className="my-4">
+                  <div className="text-3xl sm:text-4xl font-black text-purple-700 tracking-tight">
+                    ${stats.totalGifts.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-stone-500 mt-2">
+                    បានកត់ត្រា {stats.giftCount} ចំណងដៃ
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-purple-700 font-bold">
+                  <span>មើលបញ្ជីចងដៃ</span>
+                  <IoChevronForwardOutline />
+                </div>
+              </Link>
+            </div>
+
+            {/* 3. Main Content 2-Column Responsive Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Column (8 cols) */}
+              <div className="lg:col-span-8 flex flex-col gap-8">
+                
+                {/* Card: RSVP Live Progress & Status Breakdown */}
+                <div className="rounded-3xl p-7 bg-white border border-stone-200/90 shadow-xs">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-lg font-black text-stone-900 flex items-center gap-2">
+                      <IoCheckmarkCircleOutline className="text-teal-600 text-xl" />
+                      <span>ស្ថិតិការឆ្លើយតប RSVP & វត្តមានភ្ញៀវ</span>
+                    </h3>
+                    <Link
+                      to={stats.id ? `/dashboard/invitations/${stats.id}/rsvp` : "/dashboard/guests"}
+                      className="text-xs font-bold text-teal-700 hover:underline flex items-center gap-1"
+                    >
+                      <span>មើលបញ្ជីពេញលេញ</span>
+                      <IoChevronForwardOutline />
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200/80 text-center">
+                      <div className="text-3xl font-black text-teal-800">{stats.rsvpYes}</div>
+                      <div className="text-xs font-bold text-teal-700 mt-1">✅ ចូលរួម (Yes)</div>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200/80 text-center">
+                      <div className="text-3xl font-black text-rose-800">{stats.rsvpNo}</div>
+                      <div className="text-xs font-bold text-rose-700 mt-1">❌ អវត្តមាន (No)</div>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200/80 text-center">
+                      <div className="text-3xl font-black text-amber-800">{stats.rsvpPending}</div>
+                      <div className="text-xs font-bold text-amber-700 mt-1">⏳ រង់ចាំ (Pending)</div>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200/80 text-center">
+                      <div className="text-3xl font-black text-purple-800">{stats.checkedInCount}</div>
+                      <div className="text-xs font-bold text-purple-700 mt-1">🎟️ បាន Check-in</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card: Wedding Readiness Checklist */}
+                <div className="rounded-3xl p-7 bg-white border border-stone-200/90 shadow-xs">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-lg font-black text-stone-900 flex items-center gap-2">
+                      <IoCheckmarkCircle className="text-emerald-600 text-xl" />
+                      <span>តារាងត្រួតពិនិត្យការរៀបចំ (Readiness Checklist)</span>
+                    </h3>
+                  </div>
+
+                  <div className="flex flex-col gap-3.5">
+                    {/* Step 1 */}
+                    <div className="flex items-center justify-between p-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/60">
+                      <div className="flex items-center gap-3.5">
+                        <IoCheckmarkCircle className="text-2xl text-emerald-600 shrink-0" />
+                        <div>
+                          <h5 className="text-sm font-black text-stone-900">រៀបចំគំរូធៀបការ & ព័ត៌មាន</h5>
+                          <p className="text-xs text-stone-500 mt-0.5">បានបំពេញឈ្មោះកូនកំលោះ-ក្រមុំ និងទីតាំងរួចរាល់</p>
+                        </div>
+                      </div>
+                      {stats.id && (
+                        <Link
+                          to={`/dashboard/invitations/${stats.id}/edit`}
+                          className="text-xs font-bold text-stone-700 hover:text-amber-700 shrink-0"
+                        >
+                          កែសម្រួល
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                      stats.guestTotal > 0
+                        ? "bg-emerald-50/60 border-emerald-200/80"
+                        : "bg-stone-50 border-stone-200/80"
+                    }`}>
+                      <div className="flex items-center gap-3.5">
+                        {stats.guestTotal > 0 ? (
+                          <IoCheckmarkCircle className="text-2xl text-emerald-600 shrink-0" />
+                        ) : (
+                          <IoPeopleOutline className="text-2xl text-amber-600 shrink-0" />
+                        )}
+                        <div>
+                          <h5 className="text-sm font-black text-stone-900">
+                            បញ្ចូលបញ្ជីភ្ញៀវកិត្តិយស ({stats.guestTotal} នាក់)
+                          </h5>
+                          <p className="text-xs text-stone-500 mt-0.5">រៀបចំឈ្មោះភ្ញៀវ ចំនួនមនុស្ស និងលេខតុ</p>
+                        </div>
+                      </div>
+                      <Link
+                        to="/dashboard/guests"
+                        className="text-xs font-bold text-amber-700 hover:underline shrink-0"
+                      >
+                        គ្រប់គ្រងភ្ញៀវ
+                      </Link>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                      stats.rsvpYes > 0
+                        ? "bg-emerald-50/60 border-emerald-200/80"
+                        : "bg-stone-50 border-stone-200/80"
+                    }`}>
+                      <div className="flex items-center gap-3.5">
+                        {stats.rsvpYes > 0 ? (
+                          <IoCheckmarkCircle className="text-2xl text-emerald-600 shrink-0" />
+                        ) : (
+                          <IoCheckmarkCircleOutline className="text-2xl text-teal-600 shrink-0" />
+                        )}
+                        <div>
+                          <h5 className="text-sm font-black text-stone-900">
+                            តាមដានការឆ្លើយតប RSVP ({stats.rsvpRate}%)
+                          </h5>
+                          <p className="text-xs text-stone-500 mt-0.5">ទទួលការបញ្ជាក់វត្តមានពីភ្ញៀវដើម្បីរៀបចំម្ហូប</p>
+                        </div>
+                      </div>
+                      <Link
+                        to={stats.id ? `/dashboard/invitations/${stats.id}/rsvp` : "/dashboard/guests"}
+                        className="text-xs font-bold text-teal-700 hover:underline shrink-0"
+                      >
+                        ពិនិត្យ RSVP
+                      </Link>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                      stats.totalBudget > 0
+                        ? "bg-emerald-50/60 border-emerald-200/80"
+                        : "bg-stone-50 border-stone-200/80"
+                    }`}>
+                      <div className="flex items-center gap-3.5">
+                        {stats.totalBudget > 0 ? (
+                          <IoCheckmarkCircle className="text-2xl text-emerald-600 shrink-0" />
+                        ) : (
+                          <IoWalletOutline className="text-2xl text-rose-600 shrink-0" />
+                        )}
+                        <div>
+                          <h5 className="text-sm font-black text-stone-900">
+                            គម្រោងថវិកា & តាមដានការចំណាយ (${stats.actualExpense.toLocaleString()})
+                          </h5>
+                          <p className="text-xs text-stone-500 mt-0.5">កត់ត្រាចំណាយទីតាំង ម្ហូបការ សំលៀកបំពាក់ និងរូបថត</p>
+                        </div>
+                      </div>
+                      <Link
+                        to="/dashboard/expenses"
+                        className="text-xs font-bold text-rose-700 hover:underline shrink-0"
+                      >
+                        គម្រោងថវិកា
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column (4 cols) */}
+              <div className="lg:col-span-4 flex flex-col gap-8">
+                
+                {/* Card: Quick Action 8-Tool Control Grid */}
+                <div className="rounded-3xl p-6 bg-white border border-stone-200/90 shadow-xs">
+                  <h3 className="text-base font-black text-stone-900 mb-5 flex items-center gap-2">
+                    <IoSparkles className="text-amber-600 text-lg" />
+                    <span>ផ្ទាំងគ្រប់គ្រងរហ័ស (Control Hub)</span>
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-3.5">
+                    {/* 1. Guests */}
+                    <Link
+                      to="/dashboard/guests"
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-amber-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-2xl mb-2">
+                        <IoPeopleOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">បញ្ជីភ្ញៀវ</span>
+                    </Link>
+
+                    {/* 2. RSVP */}
+                    <Link
+                      to={stats.id ? `/dashboard/invitations/${stats.id}/rsvp` : "/dashboard/guests"}
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-teal-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center text-2xl mb-2">
+                        <IoCheckmarkCircleOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">RSVP</span>
+                    </Link>
+
+                    {/* 3. Check-In Scanner */}
+                    <Link
+                      to={stats.id ? `/dashboard/invitations/${stats.id}/check-in` : "/dashboard"}
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-2xl mb-2">
+                        <IoQrCodeOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">ស្កេន Check-In</span>
+                    </Link>
+
+                    {/* 4. Seating */}
+                    <Link
+                      to="/dashboard/seating"
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-indigo-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-2xl mb-2">
+                        <IoBarChartOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">រៀបចំតុ</span>
+                    </Link>
+
+                    {/* 5. Budget */}
+                    <Link
+                      to="/dashboard/expenses"
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-rose-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center text-2xl mb-2">
+                        <IoWalletOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">ថវិកា & ចំណាយ</span>
+                    </Link>
+
+                    {/* 6. Gifts */}
+                    <Link
+                      to="/dashboard/gifts"
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-purple-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-2xl mb-2">
+                        <IoGiftOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">ចងដៃ & KHQR</span>
+                    </Link>
+
+                    {/* 7. Media */}
+                    <Link
+                      to={stats.id ? `/dashboard/invitations/${stats.id}/media` : "/dashboard"}
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-amber-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-2xl mb-2">
+                        <IoImagesOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">រូបថត & មេឌា</span>
+                    </Link>
+
+                    {/* 8. Delivery */}
+                    <Link
+                      to={stats.id ? `/dashboard/invitations/${stats.id}/delivery` : "/dashboard"}
+                      className="flex flex-col items-center text-center p-4 rounded-2xl border border-stone-200/80 bg-white hover:border-teal-400 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-600 flex items-center justify-center text-2xl mb-2">
+                        <IoShareSocialOutline />
+                      </div>
+                      <span className="text-xs font-black text-stone-800">ផ្ញើ & ចែករំលែក</span>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Card: AI Assistant Quick Launcher */}
+                {stats.id && (
+                  <div className="rounded-3xl p-6 bg-gradient-to-br from-amber-50/90 via-white to-teal-50/80 border border-amber-200/90 shadow-xs">
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-xs">
+                        <IoSparkles className="text-lg" />
+                      </div>
+                      <h4 className="font-black text-stone-900 text-sm">AI ជំនួយការមង្គលការ</h4>
+                    </div>
+                    <p className="text-xs text-stone-600 leading-relaxed mb-4">
+                      សួរ AI ជួយសរសេរពាក្យជូនពរ សេចក្តីថ្លែងអំណរគុណ ឬគម្រោងកម្មវិធីតាមប្រពៃណីខ្មែរ។
+                    </p>
+                    <Link
+                      to={`/dashboard/invitations/${stats.id}/assistant`}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 text-xs font-black shadow-xs transition hover:-translate-y-0.5"
+                    >
+                      <span>សួរ AI ជំនួយការឥឡូវនេះ</span>
+                      <IoChevronForwardOutline />
+                    </Link>
+                  </div>
+                )}
+
+                {/* Card: Recent Notifications */}
+                <div className="rounded-3xl p-6 bg-white border border-stone-200/90 shadow-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-black text-stone-900 flex items-center gap-2">
+                      <IoNotificationsOutline className="text-amber-600 text-lg" />
+                      <span>ការជូនដំណឹងថ្មីៗ</span>
+                    </h3>
+                    <Link
+                      to="/dashboard/notifications"
+                      className="text-xs font-bold text-amber-700 hover:underline"
+                    >
+                      មើលទាំងអស់
+                    </Link>
+                  </div>
+
+                  <div className="flex flex-col gap-2.5">
+                    {state.notifications.length > 0 ? (
+                      state.notifications.slice(0, 4).map((n, i) => (
+                        <div
+                          key={n.id || i}
+                          className="rounded-2xl border border-stone-200/80 bg-stone-50/70 p-3.5 text-xs"
+                        >
+                          <div className="font-bold text-stone-900">{n.title || "សកម្មភាពថ្មី"}</div>
+                          <div className="text-stone-500 mt-1">{n.body || n.message}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="rounded-2xl border border-stone-200/60 bg-stone-50/40 p-6 text-center text-xs text-stone-400">
+                        មិនទាន់មានការជូនដំណឹងថ្មីនៅឡើយ
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

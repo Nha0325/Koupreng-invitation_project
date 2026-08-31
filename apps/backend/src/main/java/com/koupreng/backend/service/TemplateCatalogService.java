@@ -24,7 +24,7 @@ public class TemplateCatalogService {
 
     @Transactional(readOnly = true)
     public List<PublicTemplateResponse> listActiveTemplates() {
-        return templateRepository.findAllByCodeIgnoreCaseAndStatusIgnoreCaseOrderBySortOrderAscCreatedAtDesc(KEEP_TEMPLATE_CODE, STATUS_ACTIVE).stream()
+        return templateRepository.findAllByStatusIgnoreCaseOrderBySortOrderAscCreatedAtDesc(STATUS_ACTIVE).stream()
                 .map(PublicTemplateResponse::from)
                 .toList();
     }
@@ -32,16 +32,12 @@ public class TemplateCatalogService {
     @Transactional(readOnly = true)
     public PublicTemplateResponse getActiveTemplate(Long templateId) {
         return templateRepository.findByIdAndStatusIgnoreCase(templateId, STATUS_ACTIVE)
-                .filter(template -> KEEP_TEMPLATE_CODE.equalsIgnoreCase(template.getCode()))
                 .map(PublicTemplateResponse::from)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Template not found"));
     }
 
     @Transactional(readOnly = true)
     public PublicTemplateResponse getActiveTemplateByCode(String code) {
-        if (!KEEP_TEMPLATE_CODE.equalsIgnoreCase(code)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "Template not found");
-        }
         return templateRepository.findByCodeIgnoreCaseAndStatusIgnoreCase(code, STATUS_ACTIVE)
                 .map(PublicTemplateResponse::from)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Template not found"));
@@ -49,7 +45,7 @@ public class TemplateCatalogService {
 
     @Transactional(readOnly = true)
     public List<TemplateResponse> list() {
-        return templateRepository.findAllByCodeIgnoreCaseOrderByCreatedAtDesc(KEEP_TEMPLATE_CODE).stream()
+        return templateRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(TemplateResponse::from)
                 .toList();
     }

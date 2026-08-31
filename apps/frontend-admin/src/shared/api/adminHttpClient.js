@@ -51,6 +51,10 @@ apiClient.interceptors.response.use(
         
         if (status === 401) {
             clearAuth();
+            if (typeof window !== "undefined" && window.location && !window.location.pathname.startsWith("/login")) {
+                const current = window.location.pathname;
+                window.location.href = `/login?next=${encodeURIComponent(current)}`;
+            }
         }
 
         const message = data?.message || data?.error || error.message || "Request failed";

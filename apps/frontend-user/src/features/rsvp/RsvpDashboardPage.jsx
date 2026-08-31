@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import rsvpService from "./api/rsvpApi";
 import { invitationService } from "@/features/invitations/api/invitationApi";
 import { EmptyState, ErrorState, SkeletonCard, StatusBadge } from "@/shared/ui";
-import "../dashboard/DashboardPages.css";
 
 export default function RsvpDashboardPage() {
   const { invitationId } = useParams();

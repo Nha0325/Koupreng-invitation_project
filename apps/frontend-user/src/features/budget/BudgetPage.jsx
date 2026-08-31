@@ -8,7 +8,6 @@ import CategoryBreakdown from "./components/CategoryBreakdown";
 import BudgetProgress from "./components/BudgetProgress";
 import { EmptyState, ErrorState, SkeletonCard, toast } from "@/shared/ui";
 import "./BudgetPages.css";
-import "../dashboard/DashboardPages.css";
 
 export default function BudgetPage() {
   const { invitationId } = useParams();

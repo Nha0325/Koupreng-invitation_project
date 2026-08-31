@@ -1,11 +1,30 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { AdminPageHeader, StatCard, StatusBadge } from "../../components/AdminUI";
-import { Loading, ErrorState } from "../../components/States";
+import {
+  AdminPageHeader,
+  StatCard,
+  StatusBadge,
+  ActionButton,
+  LoadingState,
+  ErrorStateView,
+} from "../../shared/ui/AdminUI";
 import { useResource } from "../../hooks/useResource";
 import { formatMoney, formatDateTime } from "../../lib/format";
 import dashboardService from "./dashboardService";
-import "../admin/AdminFeature.css";
+import {
+  Users,
+  Palette,
+  Mail,
+  CreditCard,
+  TrendingUp,
+  ShieldCheck,
+  RefreshCw,
+  ArrowUpRight,
+  AlertTriangle,
+  UserCheck,
+  QrCode,
+  SendHorizontal
+} from "lucide-react";
 
 export default function AdminDashboardPage() {
   const { data, loading, error, reload } = useResource(dashboardService.summary);
@@ -40,100 +59,219 @@ export default function AdminDashboardPage() {
     };
   }, []);
 
-  if (loading) return <Loading />;
-  if (error || !data) return <ErrorState onRetry={reload} />;
-
-  const stats = [
-    ["Users", data.totalUsers, `${data.activeUsers} active`],
-    ["Templates", data.totalTemplates, `${data.premiumTemplates} premium`],
-    ["Invitations", data.totalInvitations, `${data.publishedInvitations} published`],
-    ["Guests", data.totalGuests, "Across all invitations"],
-    ["Payments", data.totalPayments, `${data.failedPayments} failed`],
-    ["Revenue", formatMoney(data.totalRevenue), data.systemHealthSummary],
-  ];
+  if (loading) return <LoadingState label="កំពុងទាញយកទិន្នន័យផ្ផ្ទាំងគ្រប់គ្រង..." />;
+  if (error || !data) return <ErrorStateView message="មិនអាចទាញយកទិន្នន័យ Dashboard បានទេ" onRetry={reload} />;
 
   return (
-    <div>
+    <div className="space-y-6">
+      {/* Page Header */}
       <AdminPageHeader
-        title="ផ្ទាំងគ្រប់គ្រង Admin"
-        subtitle="System analytics, recent activity, and operational health"
-        actions={<button type="button" className="btn btn-ghost" onClick={reload}>Refresh</button>}
+        eyebrow="ទិដ្ឋភាពទូទៅនៃប្រព័ន្ធ"
+        title="ផ្ទាំងគ្រប់គ្រង"
+        subtitle="ការវិភាគទិន្នន័យទូទៅ សកម្មភាពអ្នកប្រើប្រាស់ និងសុខភាពប្រព័ន្ធ"
+        actions={
+          <ActionButton variant="ghost" size="sm" onClick={reload}>
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>ផ្ទុកឡើងវិញ</span>
+          </ActionButton>
+        }
       />
 
-      <section className="admin-feature-grid">
-        {stats.map(([label, value, note]) => (
-          <StatCard key={label} label={label} value={value} note={note} />
-        ))}
+      {/* Main Stats Grid */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <StatCard
+          label="អ្នកប្រើសរុប"
+          value={data.totalUsers}
+          note={`${data.activeUsers ?? 0} គណនី Active`}
+          icon={Users}
+          tone="cyan"
+        />
+        <StatCard
+          label="គំរូធៀបការ"
+          value={data.totalTemplates}
+          note={`${data.premiumTemplates ?? 0} Premium`}
+          icon={Palette}
+          tone="purple"
+        />
+        <StatCard
+          label="ធៀបការសរុប"
+          value={data.totalInvitations}
+          note={`${data.publishedInvitations ?? 0} បានផ្សាយ`}
+          icon={Mail}
+          tone="amber"
+        />
+        <StatCard
+          label="ភ្ញៀវសរុប (Guests)"
+          value={data.totalGuests}
+          note="ភ្ញៀវក្នុងធៀបការទាំងអស់"
+          icon={UserCheck}
+          tone="emerald"
+        />
+        <StatCard
+          label="ការទូទាត់សរុប"
+          value={data.totalPayments}
+          note={`${data.failedPayments ?? 0} បរាជ័យ`}
+          icon={CreditCard}
+          tone="rose"
+        />
+        <StatCard
+          label="ចំណូលសរុប"
+          value={formatMoney(data.totalRevenue)}
+          note={data.systemHealthSummary || "ដំណើរការធម្មតា"}
+          icon={TrendingUp}
+          tone="amber"
+        />
       </section>
 
-      <section className="admin-feature-grid">
-        <StatCard label="RSVP conversion" value={percent(analytics.overview?.summary?.rsvpConversion)} note="Responses divided by guests" />
-        <StatCard label="RSVP attending" value={analytics.rsvp?.summary?.attending ?? "—"} note={`${percent(analytics.rsvp?.summary?.attendingRate)} attending rate`} />
-        <StatCard label="Check-in rate" value={percent(analytics.checkIn?.summary?.checkInRate)} note={`${analytics.checkIn?.summary?.checkedIn || 0} checked in`} />
-        <StatCard label="Delivery opened" value={analytics.delivery?.summary?.opened ?? "—"} note={`${analytics.delivery?.summary?.failed || 0} failed deliveries`} />
-        <StatCard label="Premium templates" value={analytics.templates?.summary?.premiumTemplates ?? "—"} note={`${analytics.templates?.summary?.activeTemplates || 0} active templates`} />
-        <StatCard label="Paid revenue" value={formatMoney(analytics.revenue?.summary?.totalRevenue || 0)} note={`${analytics.revenue?.summary?.failedPayments || 0} failed payments`} />
-        <StatCard label="System health" value={analytics.health?.summary?.status || "—"} note={`${analytics.health?.summary?.failedNotifications || 0} failed notifications`} />
+      {/* Secondary Analytics Cards */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          label="RSVP Conversion"
+          value={percent(analytics.overview?.summary?.rsvpConversion)}
+          note="អត្រាឆ្លើយតបធៀបនឹងចំនួនភ្ញៀវ"
+          icon={Mail}
+          tone="cyan"
+        />
+        <StatCard
+          label="Check-in Rate"
+          value={percent(analytics.checkIn?.summary?.checkInRate)}
+          note={`${analytics.checkIn?.summary?.checkedIn || 0} ភ្ញៀវបាន Check-in`}
+          icon={QrCode}
+          tone="emerald"
+        />
+        <StatCard
+          label="Telegram Delivery"
+          value={analytics.delivery?.summary?.opened ?? "—"}
+          note={`${analytics.delivery?.summary?.failed || 0} ផ្ញើមិនបានសម្រេច`}
+          icon={SendHorizontal}
+          tone="purple"
+        />
+        <StatCard
+          label="សុខភាពប្រព័ន្ធ"
+          value={analytics.health?.summary?.status || "OK"}
+          note={`${analytics.health?.summary?.failedNotifications || 0} alerts`}
+          icon={ShieldCheck}
+          tone="emerald"
+        />
       </section>
 
-      <div className="stat-grid">
-        <section className="card">
-          <div className="page-head">
-            <h3 className="page-title" style={{ fontSize: 16 }}>Operational alerts</h3>
-            <Link className="btn btn-ghost btn-sm" to="/admin/system-logs">Logs</Link>
+      {/* Tables Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Users Card */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-[#111113]">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                អ្នកប្រើប្រាស់ថ្មីៗ (Recent Users)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                គណនីដែលបានចុះឈ្មោះចុងក្រោយ
+              </p>
+            </div>
+            <Link
+              to="/users"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400"
+            >
+              <span>មើលទាំងអស់</span>
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <div className="table-wrap">
-            <table className="data">
-              <thead>
-                <tr><th>Severity</th><th>Title</th><th>Count</th><th>Description</th></tr>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50">
+                <tr>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">ឈ្មោះ</th>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">អ៊ីមែល</th>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">តួនាទី</th>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">ស្ថានភាព</th>
+                </tr>
               </thead>
-              <tbody>
-                {(analytics.alerts?.rows || []).map((alert) => (
-                  <tr key={`${alert.severity}-${alert.title}`}>
-                    <td><StatusBadge status={alert.severity} /></td>
-                    <td>{alert.title}</td>
-                    <td>{alert.count}</td>
-                    <td>{alert.description}</td>
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+                {(data.recentUsers || []).map((u) => (
+                  <tr key={u.id || u.email} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30">
+                    <td className="px-3 py-2.5 font-semibold text-slate-900 dark:text-zinc-100">{u.fullName || "—"}</td>
+                    <td className="px-3 py-2.5 text-slate-600 dark:text-zinc-400">{u.email || "—"}</td>
+                    <td className="px-3 py-2.5">
+                      <span className="inline-block rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <StatusBadge status={u.status} />
+                    </td>
                   </tr>
                 ))}
-                {!analytics.alerts?.rows?.length && <tr><td colSpan="4">No alerts loaded.</td></tr>}
+                {!(data.recentUsers?.length) && (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-slate-400">
+                      មិនទាន់មានទិន្នន័យ
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
-        </section>
+        </div>
 
-        <section className="card">
-          <div className="page-head">
-            <h3 className="page-title" style={{ fontSize: 16 }}>Recent users</h3>
-            <Link className="btn btn-ghost btn-sm" to="/admin/users">Users</Link>
+        {/* Recent Payments Card */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-[#111113]">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                ការទូទាត់ថ្មីៗ (Recent Payments)
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                ប្រតិបត្តិការទូទាត់ចុងក្រោយក្នុងប្រព័ន្ធ
+              </p>
+            </div>
+            <Link
+              to="/payments"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400"
+            >
+              <span>មើលទាំងអស់</span>
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <MiniTable rows={data.recentUsers || []} columns={["fullName", "email", "role", "status"]} />
-        </section>
 
-        <section className="card">
-          <div className="page-head">
-            <h3 className="page-title" style={{ fontSize: 16 }}>Recent payments</h3>
-            <Link className="btn btn-ghost btn-sm" to="/admin/reports">Reports</Link>
-          </div>
-          <div className="table-wrap">
-            <table className="data">
-              <thead>
-                <tr><th>Order</th><th>Status</th><th>Amount</th><th>Paid</th></tr>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50">
+                <tr>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">Order Code</th>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">ស្ថានភាព</th>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">ចំនួនទឹកប្រាក់</th>
+                  <th className="px-3 py-2.5 font-bold text-slate-500 dark:text-zinc-400">កាលបរិច្ឆេទ</th>
+                </tr>
               </thead>
-              <tbody>
-                {(data.recentPayments || []).map((payment) => (
-                  <tr key={payment.orderCode}>
-                    <td>{payment.orderCode}</td>
-                    <td><StatusBadge status={payment.status} /></td>
-                    <td>{formatMoney(payment.paidAmount ?? payment.amount, payment.currency)}</td>
-                    <td>{formatDateTime(payment.paidAt)}</td>
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+                {(data.recentPayments || []).map((p) => (
+                  <tr key={p.orderCode || p.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30">
+                    <td className="px-3 py-2.5 font-mono font-semibold text-slate-900 dark:text-zinc-100">
+                      {p.orderCode}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <StatusBadge status={p.status} />
+                    </td>
+                    <td className="px-3 py-2.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                      {formatMoney(p.paidAmount ?? p.amount, p.currency)}
+                    </td>
+                    <td className="px-3 py-2.5 text-slate-500 dark:text-zinc-400">
+                      {formatDateTime(p.paidAt)}
+                    </td>
                   </tr>
                 ))}
-                {!data.recentPayments?.length && <tr><td colSpan="4">No payments yet.</td></tr>}
+                {!(data.recentPayments?.length) && (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-slate-400">
+                      មិនទាន់មានទិន្នន័យទូទាត់ទេ
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );
@@ -142,24 +280,4 @@ export default function AdminDashboardPage() {
 function percent(value) {
   if (typeof value !== "number") return "—";
   return `${Math.round(value * 100)}%`;
-}
-
-function MiniTable({ rows, columns }) {
-  return (
-    <div className="table-wrap">
-      <table className="data">
-        <thead>
-          <tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id || row.orderCode}>
-              {columns.map((column) => <td key={column}>{row[column] || "—"}</td>)}
-            </tr>
-          ))}
-          {!rows.length && <tr><td colSpan={columns.length}>No records yet.</td></tr>}
-        </tbody>
-      </table>
-    </div>
-  );
 }

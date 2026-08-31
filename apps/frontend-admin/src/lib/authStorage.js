@@ -4,8 +4,13 @@
  */
 const STORAGE_KEY = "koupreng.admin.auth";
 
-function canUseStorage() {
-    return typeof window !== "undefined" && typeof window.sessionStorage !== "undefined";
+function getStorage() {
+    if (typeof window === "undefined") return null;
+    try {
+        return window.localStorage || window.sessionStorage || null;
+    } catch {
+        return null;
+    }
 }
 
 export function isTokenExpired(token) {
@@ -28,13 +33,17 @@ export function isTokenExpired(token) {
 }
 
 export function readAuth() {
-    if (!canUseStorage()) return null;
+    const storage = getStorage();
+    if (!storage) return null;
     try {
-        const raw = window.sessionStorage.getItem(STORAGE_KEY);
+        let raw = storage.getItem(STORAGE_KEY);
+        if (!raw && typeof window !== "undefined" && window.sessionStorage) {
+            raw = window.sessionStorage.getItem(STORAGE_KEY);
+        }
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         if (parsed?.accessToken && isTokenExpired(parsed.accessToken)) {
-            window.sessionStorage.removeItem(STORAGE_KEY);
+            clearAuth();
             return null;
         }
         return parsed?.accessToken ? parsed : null;
@@ -44,13 +53,28 @@ export function readAuth() {
 }
 
 export function writeAuth(authData) {
-    if (!canUseStorage()) return;
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(authData));
+    const storage = getStorage();
+    if (!storage) return;
+    try {
+        const str = JSON.stringify(authData);
+        storage.setItem(STORAGE_KEY, str);
+        if (typeof window !== "undefined" && window.sessionStorage) {
+            window.sessionStorage.setItem(STORAGE_KEY, str);
+        }
+    } catch {
+        // ignore storage write errors
+    }
 }
 
 export function clearAuth() {
-    if (!canUseStorage()) return;
-    window.sessionStorage.removeItem(STORAGE_KEY);
+    try {
+        if (typeof window !== "undefined") {
+            if (window.localStorage) window.localStorage.removeItem(STORAGE_KEY);
+            if (window.sessionStorage) window.sessionStorage.removeItem(STORAGE_KEY);
+        }
+    } catch {
+        // ignore
+    }
 }
 
 export function getAccessToken() {

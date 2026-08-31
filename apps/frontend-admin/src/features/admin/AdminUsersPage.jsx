@@ -69,7 +69,7 @@ export default function AdminUsersPage() {
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td>{user.id}</td>
-                    <td><Link className="btn btn-ghost btn-sm" to={`/admin/users/${user.id}`}>{user.fullName || "—"}</Link></td>
+                    <td><Link className="btn btn-ghost btn-sm" to={`/users/${user.id}`}>{user.fullName || "—"}</Link></td>
                     <td>{user.email || user.phone || "—"}</td>
                     <td><span className={`badge ${user.active ? "badge-green" : "badge-gray"}`}>{user.status}</span></td>
                     <td>

@@ -59,8 +59,8 @@ const hasTelegramBotId = isNumericId(telegramBotId) && Boolean(telegramBot);
 // Widget iframe flow: needs bot username + BotFather /setdomain configured
 const hasTelegramBot = Boolean(telegramBot);
 const hasPublicAppUrl = Boolean(publicAppUrl) && Boolean(normalizeOrigin(publicAppUrl));
-const TELEGRAM_CONFIG_ERROR = "Telegram login is not configured. Add VITE_TELEGRAM_BOT_ID, VITE_TELEGRAM_CLIENT_ID, VITE_TELEGRAM_BOT_USERNAME, TELEGRAM_CLIENT_ID, and TELEGRAM_BOT_TOKEN to root .env, then restart frontend and backend.";
-const GOOGLE_CONFIG_ERROR = "Google login is not configured. Add VITE_GOOGLE_CLIENT_ID and GOOGLE_CLIENT_IDS to root .env, then restart frontend and backend.";
+const TELEGRAM_CONFIG_ERROR = "មុខងារ Login ជាមួយ Telegram មិនទាន់បើកដំណើរការទេ សូមចូលដោយប្រើលេខទូរស័ព្ទ ឬ Email";
+const GOOGLE_CONFIG_ERROR = "មុខងារ Login ជាមួយ Google មិនទាន់បើកដំណើរការទេ សូមចូលដោយប្រើលេខទូរស័ព្ទ ឬ Email";
 
 const GOOGLE_GSI_ID = "google-gsi-script";
 const TELEGRAM_WIDGET_ID = "telegram-widget-script";
@@ -178,7 +178,7 @@ function prepareTelegramOrigin(setError) {
   }
 
   if (isLocalOrigin(window.location.origin)) {
-    setError("Telegram Bot domain invalid for localhost. Set VITE_PUBLIC_APP_URL=https://siren-devoutly-probe.ngrok-free.dev in root .env, run BotFather /setdomain with siren-devoutly-probe.ngrok-free.dev, then restart Vite and backend.");
+    setError("Telegram Login តម្រូវឱ្យមាន HTTPS Domain (ឬ Ngrok Tunnel) ព្រោះ Telegram Policy មិនអនុញ្ញាតលើ localhost ផ្ទាល់ទេ។ សម្រាប់ Localhost សូមប្រើ Google Login ឬ Email/Password។");
     return false;
   }
 
@@ -526,7 +526,7 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
             className="auth-social-btn google"
             onClick={() => setError(GOOGLE_CONFIG_ERROR)}
           >
-            <GoogleIcon /> Google មិនទាន់កំណត់
+            <GoogleIcon /> បន្តជាមួយ Google
           </button>
         )}
 
@@ -592,14 +592,18 @@ export default function SocialAuthButtons({ redirectTo = "/dashboard" }) {
             className="auth-social-btn telegram"
             onClick={() => setError(TELEGRAM_CONFIG_ERROR)}
           >
-            <TelegramIcon /> Telegram មិនទាន់កំណត់
+            <TelegramIcon /> បន្តជាមួយ Telegram
           </button>
         )}
 
       </div>
 
       {busy && <p className="auth-hint">Completing {busy} login…</p>}
-      {error && <p className="auth-error-msg">{error}</p>}
+      {error && (
+        <div className="auth-error mt-2">
+          {error}
+        </div>
+      )}
     </>
   );
 }
