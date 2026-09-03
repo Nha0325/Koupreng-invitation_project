@@ -3,14 +3,25 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import RsvpDashboardPage from "./RsvpDashboardPage";
 
-vi.mock("./api/rsvpApi", () => ({
-  default: {
-    listByInvitation: vi.fn().mockResolvedValue([
-      { id: 101, guestName: "Vireak", status: "ATTENDING", partySize: 2, wish: "Congratulations!" },
-    ]),
-    summary: vi.fn().mockResolvedValue({ attending: 1, declined: 0, pending: 0 }),
-  },
-}));
+vi.mock("./api/rsvpApi", () => {
+  const rsvps = [
+    { id: 101, guestName: "Vireak", status: "ATTENDING", partySize: 2, wish: "Congratulations!" },
+  ];
+  const summary = { attending: 1, declined: 0, pending: 0 };
+
+  return {
+    rsvpService: {
+      listByInvitation: vi.fn().mockResolvedValue(rsvps),
+      summary: vi.fn().mockResolvedValue(summary),
+      wishes: vi.fn().mockResolvedValue(rsvps),
+    },
+    default: {
+      listByInvitation: vi.fn().mockResolvedValue(rsvps),
+      summary: vi.fn().mockResolvedValue(summary),
+      wishes: vi.fn().mockResolvedValue(rsvps),
+    },
+  };
+});
 
 vi.mock("@/features/invitations/api/invitationApi", () => ({
   invitationService: {
@@ -34,4 +45,26 @@ describe("RsvpDashboardPage Module", () => {
       expect(screen.getByText("Congratulations!")).toBeInTheDocument();
     });
   });
+
+  it("allows switching to wishes card view mode", async () => {
+    render(
+      <MemoryRouter initialEntries={["/dashboard/invitations/1/rsvp"]}>
+        <Routes>
+          <Route path="/dashboard/invitations/:invitationId/rsvp" element={<RsvpDashboardPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /Wishes/i })[0]).toBeInTheDocument();
+    });
+
+    const wishesBtn = screen.getAllByRole("button", { name: /Wishes/i })[0];
+    wishesBtn.click();
+
+    await waitFor(() => {
+      expect(screen.getByText("“Congratulations!”")).toBeInTheDocument();
+    });
+  });
 });
+

@@ -128,7 +128,7 @@ export default function GuestsPage() {
     const success = await saveGuest(form, editingId);
     if (success) {
       setFormModalOpen(false);
-      toast.success(editingId ? "កែប្រែព័ត៌មានភ្ញៀវបានជោគជ័យ" : "បន្ថែមភ្ញៀវបានជោគជ័យ");
+      toast.success(editingId ? (t ? t("toastUpdated") : "កែប្រែព័ត៌មានភ្ញៀវបានជោគជ័យ") : (t ? t("toastAdded") : "បន្ថែមភ្ញៀវបានជោគជ័យ"));
     }
   };
 
@@ -137,16 +137,16 @@ export default function GuestsPage() {
     const success = await deleteGuest(deleteGuestTarget);
     if (success) {
       setDeleteGuestTarget(null);
-      toast.success("លុបឈ្មោះភ្ញៀវបានជោគជ័យ");
+      toast.success(t ? t("toastDeleted") : "លុបឈ្មោះភ្ញៀវបានជោគជ័យ");
     }
   };
 
-  const handleCopyLink = async (url) => {
-    const ok = await copyText(url);
+  const handleCopyLink = async (text) => {
+    const ok = await copyText(text);
     if (ok) {
-      toast.success(t ? t("linkCopied") : "ចម្លងតំណភ្ជាប់បានជោគជ័យ");
+      toast.success(t ? t("messageCopied") : "ចម្លងសារអញ្ជើញបានជោគជ័យ");
     } else {
-      toast.error("មិនអាចចម្លងតំណភ្ជាប់បានទេ");
+      toast.error(t ? t("linkCopyFailed") : "មិនអាចចម្លងបានទេ");
     }
   };
 
@@ -154,14 +154,14 @@ export default function GuestsPage() {
     setGroups(nextGroups);
     writeList(scopedKey("koupreng.host.guestGroups", eventId), nextGroups);
     setGroupModalOpen(false);
-    toast.success("រក្សាទុកក្រុមបានជោគជ័យ");
+    toast.success(t ? t("toastUpdated") : "រក្សាទុកក្រុមបានជោគជ័យ");
   };
 
   const handleSaveCategories = (nextCategories) => {
     setCategories(nextCategories);
     writeList(scopedKey("koupreng.host.guestCategories", eventId), nextCategories);
     setCategoryModalOpen(false);
-    toast.success("រក្សាទុកប្រភេទបានជោគជ័យ");
+    toast.success(t ? t("toastUpdated") : "រក្សាទុកប្រភេទបានជោគជ័យ");
   };
 
   return (

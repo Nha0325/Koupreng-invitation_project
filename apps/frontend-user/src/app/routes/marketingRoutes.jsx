@@ -4,6 +4,7 @@ import MarketingShell from "../../layouts/MarketingShell";
 import TemplateCheckoutPage from "../../features/payments/TemplateCheckoutPage";
 import HomePage from "../../pages/marketing/HomePage";
 import PricingPage from "../../pages/marketing/PricingPage";
+import ContactPage from "../../pages/marketing/ContactPage";
 import TemplateDemoPage from "../../pages/marketing/TemplateDemoPage";
 import TemplatesPage from "../../pages/marketing/TemplatesPage";
 import VenuesPage from "../../pages/marketing/VenuesPage";
@@ -24,6 +25,7 @@ export function marketingRoutes() {
       />
       <Route path="/templates/:id" element={<TemplateDemoPage />} />
       <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/venues" element={<VenuesPage />} />
     </Route>
   );

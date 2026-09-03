@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLanguageStore } from "../../stores/useLanguageStore";
 import { i18nService } from "../services/i18nService";
+import { LOCAL_MESSAGES } from "./messagesDictionary";
 
 export function formatMessage(value, replacements = {}) {
     return Object.entries(replacements).reduce(
@@ -34,8 +35,13 @@ export function useBackendMessages(namespace) {
     }, [lang, namespace]);
 
     const text = useCallback(
-        (key, replacements) => formatMessage(messages[key] || key, replacements),
-        [messages]
+        (key, replacements) => {
+            const serverVal = messages[key];
+            const localVal = LOCAL_MESSAGES[namespace]?.[lang]?.[key] || LOCAL_MESSAGES[namespace]?.["km"]?.[key];
+            const finalVal = serverVal || localVal || key;
+            return formatMessage(finalVal, replacements);
+        },
+        [messages, namespace, lang]
     );
 
     return {
@@ -44,3 +50,4 @@ export function useBackendMessages(namespace) {
         text,
     };
 }
+

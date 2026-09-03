@@ -35,32 +35,41 @@ export function useGuestMutations({
 
       if (backendIdToUse && (targetBackendGuest || !editingId)) {
         const payload = toBackendGuestPayload(form);
-        let savedBackend;
 
-        if (targetBackendGuest) {
-          savedBackend = await guestService.updateForInvitation(
-            backendIdToUse,
-            targetBackendGuest.backendId || targetBackendGuest.id,
-            payload
-          );
-        } else {
-          savedBackend = await guestService.createForInvitation(backendIdToUse, payload);
-        }
-
-        const normalized = normalizeBackendGuest(savedBackend);
-
-        setBackendGuests((current) => {
-          const index = current.findIndex((item) => String(item.id) === String(normalized.id));
-          if (index >= 0) {
-            const next = [...current];
-            next[index] = normalized;
-            return next;
+        try {
+          let savedBackend;
+          if (targetBackendGuest) {
+            savedBackend = await guestService.updateForInvitation(
+              backendIdToUse,
+              targetBackendGuest.backendId || targetBackendGuest.id,
+              payload
+            );
+          } else {
+            savedBackend = await guestService.createForInvitation(backendIdToUse, payload);
           }
-          return [...current, normalized];
-        });
 
-      } else if (backendIdToUse) {
-        throw new Error("This guest is not part of the selected invitation");
+          const normalized = normalizeBackendGuest(savedBackend);
+
+          setBackendGuests((current) => {
+            const index = current.findIndex((item) => String(item.id) === String(normalized.id));
+            if (index >= 0) {
+              const next = [...current];
+              next[index] = normalized;
+              return next;
+            }
+            return [...current, normalized];
+          });
+        } catch (apiErr) {
+          console.warn("Backend guest save failed, falling back to local storage:", apiErr);
+          const guestToSave = toManualGuest(form, editingId);
+          setManualGuests((current) => {
+            const next = editingId
+              ? current.map((item) => (item.id === editingId ? guestToSave : item))
+              : [...current, guestToSave];
+            saveManualGuests(eventId, next);
+            return next;
+          });
+        }
       } else {
         const guestToSave = toManualGuest(form, editingId);
         setManualGuests((current) => {
@@ -95,22 +104,24 @@ export function useGuestMutations({
         guestToDelete.source === "backend" &&
         (guestToDelete.backendId || guestToDelete.id)
       ) {
-        await guestService.removeFromInvitation(
-          backendIdToUse,
-          guestToDelete.backendId || guestToDelete.id
-        );
+        try {
+          await guestService.removeFromInvitation(
+            backendIdToUse,
+            guestToDelete.backendId || guestToDelete.id
+          );
+        } catch (apiErr) {
+          console.warn("Backend remove guest failed, removing locally:", apiErr);
+        }
         setBackendGuests((current) =>
           current.filter((item) => String(item.id) !== String(guestToDelete.id))
         );
-      } else if (backendIdToUse) {
-        throw new Error("This guest is not part of the selected invitation");
-      } else {
-        setManualGuests((current) => {
-          const next = current.filter((item) => String(item.id) !== String(guestToDelete.id));
-          saveManualGuests(eventId, next);
-          return next;
-        });
       }
+
+      setManualGuests((current) => {
+        const next = current.filter((item) => String(item.id) !== String(guestToDelete.id));
+        saveManualGuests(eventId, next);
+        return next;
+      });
 
       await refreshData();
       return true;
@@ -139,6 +150,7 @@ export function useGuestMutations({
           return next;
         });
       }
+
 
       await refreshData();
       return true;

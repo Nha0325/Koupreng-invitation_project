@@ -58,8 +58,8 @@ export default function InvitationPreviewPage() {
                 <button type="button" className="inv-secondary-btn" onClick={() => navigate(`/dashboard/invitations/${id}/media`)}>
                     Media
                 </button>
-                <button type="button" className="inv-secondary-btn" onClick={() => navigate("/dashboard/invitations")}>
-                    My Invitations
+                <button type="button" className="inv-secondary-btn" onClick={() => navigate("/dashboard")}>
+                    Dashboard
                 </button>
             </div>
             <InvitationDisplay invitation={invitation} media={media} preview />

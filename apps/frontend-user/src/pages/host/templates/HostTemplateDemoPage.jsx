@@ -1,5 +1,6 @@
-import HostTemplateDemoFeature from "@/features/templates/HostTemplateDemoFeature";
+import { HostTemplateDemoFeature } from "@/features/templates";
 
 export default function HostTemplateDemoPage() {
   return <HostTemplateDemoFeature />;
 }
+

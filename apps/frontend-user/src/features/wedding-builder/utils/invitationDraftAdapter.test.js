@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { draftToTemplate } from "./draftToTemplate";
-import { buildTemplateContent } from "../../templates/template-experience/templateExperienceContent";
+import { buildTemplateContent } from "@/features/templates";
+
 import {
     draftToInvitationPayload,
     publicInvitationToDraft,

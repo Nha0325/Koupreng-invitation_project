@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Palette,
   Sparkles,
@@ -13,16 +14,11 @@ import {
   XCircle,
   Edit3,
   Trash2,
-  ExternalLink,
-  Layers,
-  Image as ImageIcon,
   Upload,
   Link as LinkIcon,
   X,
   Eye,
-  AlertCircle,
-  FileImage,
-  SlidersHorizontal
+  AlertCircle
 } from "lucide-react";
 import { useResource } from "../../hooks/useResource";
 import { useToast } from "../../hooks/useToast";
@@ -30,7 +26,7 @@ import { formatDate } from "../../lib/format";
 import adminManagementService from "./adminManagementService";
 import { AdminPageHeader, StatCard, StatusBadge, ActionButton } from "../../shared/ui/AdminUI";
 import Toast from "../../components/Toast";
-import { Loading, ErrorState, Empty } from "../../components/States";
+import { Loading, ErrorState } from "../../components/States";
 
 const CATEGORIES = [
   { value: "ALL", label: "គ្រប់ប្រភេទ (All Categories)" },
@@ -86,6 +82,7 @@ function TemplateThumbnail({ src, alt, category }) {
 }
 
 export default function AdminTemplatesPage() {
+  const navigate = useNavigate();
   const { data, setData, loading, error, reload } = useResource(adminManagementService.templates);
   const { toast, show, clear } = useToast();
   const fileInputRef = useRef(null);
@@ -104,12 +101,12 @@ export default function AdminTemplatesPage() {
   const [imageInputMode, setImageInputMode] = useState("url"); // 'url' | 'upload'
   const [submitting, setSubmitting] = useState(false);
   const [busyId, setBusyId] = useState(null);
-
-  // Delete Confirmation State
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   // Raw templates list
-  const templatesList = useMemo(() => data || [], [data]);
+  const templatesList = useMemo(() => {
+    return Array.isArray(data) ? data : [];
+  }, [data]);
 
   // Statistics calculation
   const stats = useMemo(() => {
@@ -143,28 +140,14 @@ export default function AdminTemplatesPage() {
     });
   }, [templatesList, query, categoryFilter, typeFilter, statusFilter]);
 
-  // Open Modal for Create
+  // Open Full Studio for Create
   const handleOpenCreate = () => {
-    setEditingTemplate(null);
-    setFormData(EMPTY_TEMPLATE);
-    setImageInputMode("url");
-    setModalOpen(true);
+    navigate("/templates/new");
   };
 
-  // Open Modal for Edit
+  // Open Full Studio for Edit
   const handleOpenEdit = (template) => {
-    setEditingTemplate(template);
-    setFormData({
-      name: template.name || "",
-      category: template.category || "TRADITIONAL",
-      thumbnailUrl: template.thumbnailUrl || "",
-      previewUrl: template.previewUrl || "",
-      premium: Boolean(template.premium),
-      status: template.status || "ACTIVE",
-      description: template.description || "",
-    });
-    setImageInputMode(template.thumbnailUrl?.startsWith("data:") ? "upload" : "url");
-    setModalOpen(true);
+    navigate(`/templates/${template.id}`);
   };
 
   // Close Modal

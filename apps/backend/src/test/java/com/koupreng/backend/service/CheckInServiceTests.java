@@ -60,6 +60,41 @@ class CheckInServiceTests {
         assertEquals("CHECKIN_WRONG_INVITATION", exception.getCode());
     }
 
+    @Test
+    void summaryReturnsAggregatedMetrics() {
+        Fixture fixture = fixture();
+        when(fixture.guestRepository.countByInvitationId(10L)).thenReturn(50L);
+        when(fixture.checkInRepository.countByInvitationId(10L)).thenReturn(30L);
+        when(fixture.checkInRepository.findByInvitationIdOrderByCheckedInAtDesc(10L)).thenReturn(java.util.List.of());
+
+        var summary = fixture.service.summary(fixture.authentication, 10L);
+
+        assertEquals(10L, summary.getInvitationId());
+        assertEquals(50L, summary.getTotalGuests());
+        assertEquals(30L, summary.getCheckedIn());
+        assertEquals(20L, summary.getRemaining());
+    }
+
+    @Test
+    void listReturnsOrderedCheckIns() {
+        Fixture fixture = fixture();
+        GuestCheckIn checkIn = new GuestCheckIn();
+        checkIn.setId(1L);
+        checkIn.setInvitation(fixture.invitation);
+        checkIn.setGuest(fixture.guest);
+        checkIn.setSource("QR");
+        checkIn.setCheckedInAt(Instant.now());
+
+        when(fixture.checkInRepository.findByInvitationIdOrderByCheckedInAtDesc(10L))
+                .thenReturn(java.util.List.of(checkIn));
+
+        var list = fixture.service.list(fixture.authentication, 10L);
+
+        assertEquals(1, list.size());
+        assertEquals("Sophea", list.get(0).getGuestName());
+        assertEquals("QR", list.get(0).getSource());
+    }
+
     private Fixture fixture() {
         GuestCheckInRepository checkInRepository = mock(GuestCheckInRepository.class);
         GuestRepository guestRepository = mock(GuestRepository.class);

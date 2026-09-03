@@ -21,11 +21,14 @@ const { calls, invitationService, mediaService } = vi.hoisted(() => {
     };
 });
 
-vi.mock("../../invitations/api/invitationApi", () => ({ invitationService }));
-vi.mock("../../invitations/api/mediaApi", () => ({ mediaService }));
-vi.mock("../../templates/templateService", () => ({
+vi.mock("../../invitations/api/invitationApi", () => ({ invitationService, default: invitationService }));
+vi.mock("../../invitations/api/mediaApi", () => ({ mediaService, default: mediaService }));
+vi.mock("../../templates/api/templateService", () => ({
     default: { getPublicBySlug: vi.fn(async () => ({ id: 9 })) },
+    templateService: { getPublicBySlug: vi.fn(async () => ({ id: 9 })) },
 }));
+
+
 vi.mock("../../../shared/storage/galleryStorage", () => ({
     loadGallery: vi.fn(async () => []),
     saveGallery: vi.fn(async () => undefined),

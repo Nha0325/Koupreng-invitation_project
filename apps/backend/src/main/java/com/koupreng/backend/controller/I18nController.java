@@ -397,20 +397,29 @@ public class I18nController {
                         "events.deleteModalDesc", "events.cancelBtn", "events.confirmBtn",
                         "events.badgeDraft", "events.badgePublished", "events.noDate",
                         "events.editBtn", "events.deleteBtn", "events.newInvitation",
-                        "events.groom", "events.bride"
+                        "events.groom", "events.bride", "events.brandKicker",
+                        "events.goToCreate", "events.deletedSuccess"
+                );
+            case "invitations":
+                return List.of(
+                        "invitations.brand", "invitations.title", "invitations.subtitle",
+                        "invitations.createBtn", "invitations.emptyIcon", "invitations.emptyTitle",
+                        "invitations.emptyText", "invitations.emptyActionBtn", "invitations.loading"
                 );
             default:
                 return null;
         }
     }
 
+
     @GetMapping("/api/v1/i18n/messages")
     public ResponseEntity<ApiResponse<Map<String, Object>>> messages(
-            @RequestParam(defaultValue = "dashboard") String namespace
+            @RequestParam(defaultValue = "dashboard") String namespace,
+            @RequestParam(required = false) String lang
     ) {
         List<String> keys = getNamespaceKeys(namespace);
         if (keys == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, msg.get("error.bad-request"));
+            keys = List.of();
         }
 
         Map<String, String> messages = new LinkedHashMap<>();

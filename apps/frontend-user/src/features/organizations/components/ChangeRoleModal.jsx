@@ -27,29 +27,39 @@ export default function ChangeRoleModal({
     <Modal
       isOpen={Boolean(member)}
       onClose={onClose}
-      title="Change Member Role"
-      subtitle={`Update workspace role for ${member?.email || ""}`}
+      title="ផ្លាស់ប្តូរតួនាទីសមាជិក (Change Member Role)"
+      subtitle={`កែប្រែសិទ្ធិ និងតួនាទីសម្រាប់ ${member?.email || ""}`}
       size="sm"
       closeOnBackdropClick={!saving}
       closeOnEscape={!saving}
     >
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        <FormField label="Role" required>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        <FormField label="តួនាទីថ្មី (New Role)" required>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="k-org-input"
+            style={{ cursor: "pointer" }}
+          >
             {ORGANIZATION_ROLES.map((r) => (
               <option key={r.value} value={r.value}>
-                {r.label}
+                {r.label} — {r.description}
               </option>
             ))}
           </select>
         </FormField>
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
-          <button type="button" className="pe-secondary-btn" onClick={onClose} disabled={saving}>
-            Cancel
+          <button
+            type="button"
+            className="k-org-modal-cancel-btn"
+            onClick={onClose}
+            disabled={saving}
+          >
+            បោះបង់ (Cancel)
           </button>
-          <LoadingButton type="submit" isLoading={saving} className="pe-primary-btn">
-            Update Role
+          <LoadingButton type="submit" isLoading={saving} className="k-org-modal-submit-btn">
+            <span>រក្សាទុកតួនាទី</span>
           </LoadingButton>
         </div>
       </form>

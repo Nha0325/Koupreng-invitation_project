@@ -1,6 +1,6 @@
 import { invitationService } from "../../invitations/api/invitationApi";
 import { mediaService } from "../../invitations/api/mediaApi";
-import templateService from "../../templates/templateService";
+import templateService from "../../templates/api/templateService";
 import { loadGallery, saveGallery } from "../../../shared/storage/galleryStorage";
 import {
   deleteDraftMediaFile,

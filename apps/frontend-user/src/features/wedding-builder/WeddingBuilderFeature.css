@@ -1,0 +1,509 @@
+/* Wedding Builder (PlanEssential Event Creation Style) */
+.pe-create-page-wrapper {
+  min-height: 100vh;
+  background-color: #f7f4ee;
+  padding: 40px 16px 80px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: var(--brand-font-family, -apple-system, BlinkMacSystemFont, "Kantumruy Pro", "Inter", sans-serif);
+}
+
+.pe-create-card {
+  width: 100%;
+  max-width: 780px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(220, 210, 195, 0.4);
+  padding: 32px 36px;
+}
+
+.pe-create-card-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e1e1e;
+  margin: 0 0 24px 0;
+  letter-spacing: -0.01em;
+}
+
+/* Link Preview / Cover Section */
+.pe-cover-preview-section {
+  margin-bottom: 24px;
+}
+
+.pe-field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 8px;
+}
+
+.pe-field-label .required-star {
+  color: #e11d48;
+  margin-left: 3px;
+}
+
+.pe-cover-image-box {
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background: #f1ede4;
+  border: 1px solid rgba(200, 190, 175, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pe-cover-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pe-cover-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #8c827a;
+  font-size: 0.875rem;
+}
+
+.pe-cover-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pe-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8f6f0;
+  border: 1px solid #dcd3c4;
+  color: #333333;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pe-upload-btn:hover {
+  background: #ede7da;
+  border-color: #c5b9a5;
+}
+
+.pe-remove-cover-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pe-remove-cover-btn:hover {
+  background: #fecaca;
+}
+
+/* Form Grid */
+.pe-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+  .pe-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pe-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.pe-input,
+.pe-select,
+.pe-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e0d8cc;
+  background: #fcfbf9;
+  font-size: 0.875rem;
+  color: #222222;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.pe-input:focus,
+.pe-select:focus,
+.pe-textarea:focus {
+  border-color: #b98b42;
+  box-shadow: 0 0 0 3px rgba(185, 139, 66, 0.12);
+  background: #ffffff;
+}
+
+.pe-input::placeholder,
+.pe-textarea::placeholder {
+  color: #a8a096;
+  font-size: 0.8125rem;
+}
+
+.pe-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Toggle Switch Section */
+.pe-toggle-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.pe-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.pe-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.pe-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.pe-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .pe-slider {
+  background-color: #c51c35;
+}
+
+input:checked + .pe-slider:before {
+  transform: translateX(20px);
+}
+
+/* Agenda Accordion Section */
+.pe-agenda-accordion {
+  border: 1px solid #e5ded5;
+  border-radius: 12px;
+  margin-bottom: 28px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.pe-agenda-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #222222;
+  font-size: 0.9375rem;
+  user-select: none;
+  background: #ffffff;
+  transition: background-color 0.2s ease;
+}
+
+.pe-agenda-header:hover {
+  background: #fdfbf7;
+}
+
+.pe-agenda-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pe-agenda-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.pe-agenda-body {
+  padding: 20px;
+  border-top: 1px solid #f0e9df;
+  background: #faf8f5;
+}
+
+/* Empty State inside Agenda */
+.pe-agenda-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.pe-agenda-empty-icon {
+  font-size: 2.5rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.pe-agenda-empty-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.pe-create-agenda-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.pe-create-agenda-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Day Cards */
+.pe-day-card {
+  background: #ffffff;
+  border: 1px solid #e5ded5;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+
+.pe-day-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pe-day-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.pe-day-del-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.pe-day-del-btn:hover {
+  background: #fee2e2;
+}
+
+.pe-day-desc-group {
+  margin-bottom: 16px;
+}
+
+/* Sub-items Rows */
+.pe-subitem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pe-subitem-row {
+  display: grid;
+  grid-template-columns: 1fr 140px 36px;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 540px) {
+  .pe-subitem-row {
+    grid-template-columns: 1fr 100px 30px;
+  }
+}
+
+.pe-subitem-del-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pe-subitem-del-btn:hover {
+  background: #fee2e2;
+}
+
+.pe-add-subitem-btn {
+  background: none;
+  border: none;
+  color: #e11d48;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: opacity 0.2s;
+}
+
+.pe-add-subitem-btn:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.pe-add-day-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.pe-add-day-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #dcd3c4;
+  color: #e11d48;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.pe-add-day-btn:hover {
+  background: #fdf2f4;
+  border-color: #fca5a5;
+}
+
+/* Footer Actions */
+.pe-create-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid #eee8df;
+}
+
+.pe-btn-back {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: 24px;
+  background: #f1ede4;
+  border: 1px solid #d8cebe;
+  color: #444444;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pe-btn-back:hover {
+  background: #e5dfd2;
+}
+
+.pe-btn-submit {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: 24px;
+  background: #c51c35;
+  border: none;
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(197, 28, 53, 0.25);
+}
+
+.pe-btn-submit:hover:not(:disabled) {
+  background: #ab152b;
+  box-shadow: 0 6px 16px rgba(197, 28, 53, 0.35);
+}
+
+.pe-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

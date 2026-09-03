@@ -20,7 +20,6 @@ import {
   ShieldCheck,
   RefreshCw,
   ArrowUpRight,
-  AlertTriangle,
   UserCheck,
   QrCode,
   SendHorizontal

@@ -133,21 +133,38 @@ export function initials(name) {
 
 export function guestInviteUrl(draft, guest, publicInvitation) {
   const base = typeof window === "undefined" ? "" : window.location.origin;
-
-  if (guest?.qrCodeUrl) {
-    if (!base) return guest.qrCodeUrl;
-    try {
-      const url = new URL(guest.qrCodeUrl, base);
-      return `${base}${url.pathname}${url.search}${url.hash}`;
-    } catch {
-      return guest.qrCodeUrl;
-    }
+  const rawSlug = publicInvitation?.slug || draft?.slug || draft?.id || "invitation";
+  try {
+    return `${base}/w/${decodeURIComponent(rawSlug)}`;
+  } catch {
+    return `${base}/w/${rawSlug}`;
   }
+}
 
-  const slug = publicInvitation?.slug || draft?.slug || draft?.id || "invitation";
-  const token = guest?.inviteToken;
-  const query = token ? `?token=${encodeURIComponent(token)}` : "";
-  return `${base}/i/${encodeURIComponent(slug)}${query}`;
+
+export function buildShareMessage(guest, draft, publicInvitation) {
+  if (!guest) return "";
+  const inviteUrl = guestInviteUrl(draft, guest, publicInvitation);
+  const groomName = publicInvitation?.groomName || draft?.groomName || "";
+  const brideName = publicInvitation?.brideName || draft?.brideName || "";
+  const coupleText = groomName && brideName ? `(${groomName} ❤️ ${brideName})` : "";
+  const weddingTitle = publicInvitation?.title || draft?.title || "លិខិតអញ្ជើញអាពាហ៍ពិពាហ៍";
+  const eventDate = publicInvitation?.eventDate || draft?.eventDate || draft?.date || "";
+  const venueName = publicInvitation?.venueName || draft?.venueName || draft?.venue || "";
+
+  const guestSalutation = guest.companionName
+    ? `សូមគោរពអញ្ជើញ៖ ${guest.name} និង ${guest.companionName}`
+    : `សូមគោរពអញ្ជើញ៖ ${guest.name}`;
+
+  const dateText = eventDate ? `\n📅 កាលបរិច្ឆេទ៖ ${eventDate}` : "";
+  const venueText = venueName ? `\n📍 ទីតាំង៖ ${venueName}` : "";
+  const noteText = guest.note?.trim() ? `\n📝 កំណត់ចំណាំ៖ ${guest.note.trim()}` : "";
+
+  return `💌 ${weddingTitle} ${coupleText ? `${coupleText}\n` : ""}${guestSalutation}
+ចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងពិធីមង្គលការរបស់យើងខ្ញុំ។${dateText}${venueText}${noteText}
+
+👉 សូមចុចតំណភ្ជាប់ដើម្បីមើលធៀបការ និង RSVP:
+${inviteUrl}`;
 }
 
 export async function copyText(text) {

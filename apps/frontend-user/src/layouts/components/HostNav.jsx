@@ -7,27 +7,43 @@ import {
   IoCheckmarkOutline,
   IoChevronDownOutline,
   IoColorPaletteOutline,
+  IoDiamondOutline,
   IoGiftOutline,
   IoGridOutline,
   IoLogOutOutline,
   IoPeopleOutline,
   IoPersonOutline,
+  IoReceiptOutline,
 } from "react-icons/io5";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import { useLanguageStore } from "../../stores/useLanguageStore";
+import { listDrafts } from "@/shared/storage/weddingStorage";
 import logo from "../../assets/logo.png";
 
-const NAV_ITEMS = [
-  { labelKey: "events", path: "/dashboard/events", Icon: IoCalendarClearOutline },
-  { labelKey: "dashboard", path: "/dashboard", Icon: IoGridOutline },
-  { labelKey: "guests", path: "/dashboard/guests", Icon: IoPeopleOutline },
-  { labelKey: "expenses", path: "/dashboard/expenses", Icon: IoCashOutline },
-  { labelKey: "gifts", path: "/dashboard/gifts", Icon: IoGiftOutline },
-  { labelKey: "templates", path: "/templates/browse", Icon: IoColorPaletteOutline },
-];
+const NAV_LABELS = {
+  km: {
+    events: "កម្មវិធី",
+    dashboard: "ផ្ទាំងគ្រប់គ្រង",
+    guests: "បញ្ជីភ្ញៀវ",
+    expenses: "គម្រោងថវិកា",
+    gifts: "ចងដៃមង្គល",
+    browseTemplates: "ស្វែងរកគំរូ",
+    myInvitation: "គម្រូធៀប",
+  },
+  en: {
+    events: "Events",
+    dashboard: "Dashboard",
+    guests: "Guests",
+    expenses: "Budget",
+    gifts: "Gifts",
+    browseTemplates: "Browse Templates",
+    myInvitation: "Invitation Template",
+  },
+};
 
 const LANGUAGE_OPTIONS = [
+
   { code: "en", label: "English", buttonLabel: "English", flag: "us", htmlLang: "en" },
   { code: "km", label: "ភាសាខ្មែរ", buttonLabel: "ភាសាខ្មែរ", flag: "kh", htmlLang: "km" },
 ];
@@ -106,13 +122,40 @@ export default function HostNav() {
     return () => { document.body.style.overflow = ""; };
   }, [mobileMenuOpen]);
 
+  const drafts = listDrafts();
+  const activeDraftId = drafts[0]?.id;
+  const myInvitationPath = activeDraftId ? `/dashboard/invitations/${activeDraftId}/edit` : "/dashboard/invitations/design";
+
+  const dynamicNavItems = [
+    { labelKey: "events", path: "/dashboard/events", Icon: IoCalendarClearOutline },
+    { labelKey: "dashboard", path: "/dashboard", Icon: IoGridOutline },
+    { labelKey: "guests", path: "/dashboard/guests", Icon: IoPeopleOutline },
+    { labelKey: "expenses", path: "/dashboard/expenses", Icon: IoCashOutline },
+    { labelKey: "gifts", path: "/dashboard/gifts", Icon: IoGiftOutline },
+    { labelKey: "myInvitation", path: myInvitationPath, Icon: IoColorPaletteOutline },
+    { labelKey: "browseTemplates", path: "/templates/browse", Icon: IoColorPaletteOutline },
+  ];
+
   const isActive = (path) => {
     if (path === "/dashboard") return location.pathname === path;
+    if (path.includes("/invitations/") && path.includes("/edit")) {
+      return location.pathname.includes("/invitations/") && location.pathname.includes("/edit");
+    }
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
+  };
+
+  const getNavLabel = (key) => {
+    if (key === "browseTemplates") return language === "en" ? "Browse Templates" : "ស្វែងរកគំរូ";
+    if (key === "myInvitation") return language === "en" ? "Invitation Template" : "គម្រូធៀប";
+    const serverText = navText(key);
+    if (serverText && serverText !== key && serverText !== `hostNav.${key}`) {
+      return serverText;
+    }
+    return NAV_LABELS[language]?.[key] || NAV_LABELS.km[key] || key;
   };
 
   const handleLogout = () => {
@@ -692,14 +735,14 @@ export default function HostNav() {
 
           {/* Desktop nav links */}
           <nav className="host-nav-links">
-            {NAV_ITEMS.map((item, index) => (
-              <span key={item.path} className="host-nav-item-wrap">
+            {dynamicNavItems.map((item, index) => (
+              <span key={item.labelKey} className="host-nav-item-wrap">
                 {index > 0 && <span className="host-nav-divider">|</span>}
                 <Link
                   to={item.path}
                   className={`host-nav-link${isActive(item.path) ? " active" : ""}`}
                 >
-                  {navText(item.labelKey)}
+                  {getNavLabel(item.labelKey)}
                 </Link>
               </span>
             ))}
@@ -735,6 +778,24 @@ export default function HostNav() {
                         ? navText("editProfile")
                         : navText("createProfile")}
                     </span>
+                  </Link>
+                  <Link
+                    to="/dashboard/templates/paid"
+                    className="host-profile-menu-item"
+                    onClick={() => setProfileOpen(false)}
+                    role="menuitem"
+                  >
+                    <IoDiamondOutline aria-hidden="true" style={{ color: "#B0926A" }} />
+                    <span>{language === "en" ? "Paid Templates" : "គំរូដែលបានទិញ"}</span>
+                  </Link>
+                  <Link
+                    to="/dashboard/payments"
+                    className="host-profile-menu-item"
+                    onClick={() => setProfileOpen(false)}
+                    role="menuitem"
+                  >
+                    <IoReceiptOutline aria-hidden="true" />
+                    <span>{language === "en" ? "Payment History" : "ប្រវត្តិការទូទាត់"}</span>
                   </Link>
                   <Link
                     to="/dashboard/organizations"
@@ -821,20 +882,41 @@ export default function HostNav() {
 
         <div className="host-mobile-menu-divider" />
 
-        {NAV_ITEMS.map((item) => {
+        {dynamicNavItems.map((item) => {
           const ItemIcon = item.Icon;
           return (
             <Link
-              key={item.path}
+              key={item.labelKey}
               to={item.path}
               className={`host-mobile-menu-item${isActive(item.path) ? " active" : ""}`}
               onClick={closeMobileMenu}
             >
               <span className="menu-icon"><ItemIcon aria-hidden="true" /></span>
-              {navText(item.labelKey)}
+              {getNavLabel(item.labelKey)}
             </Link>
           );
         })}
+
+        <div className="host-mobile-menu-divider" />
+
+        <Link
+          to="/dashboard/templates/paid"
+          className={`host-mobile-menu-item${isActive("/dashboard/templates/paid") ? " active" : ""}`}
+          onClick={closeMobileMenu}
+        >
+          <span className="menu-icon"><IoDiamondOutline aria-hidden="true" style={{ color: "#B0926A" }} /></span>
+          <span>{language === "en" ? "Paid Templates" : "គំរូដែលបានទិញ"}</span>
+        </Link>
+
+        <Link
+          to="/dashboard/payments"
+          className={`host-mobile-menu-item${isActive("/dashboard/payments") ? " active" : ""}`}
+          onClick={closeMobileMenu}
+        >
+          <span className="menu-icon"><IoReceiptOutline aria-hidden="true" /></span>
+          <span>{language === "en" ? "Payment History" : "ប្រវត្តិការទូទាត់"}</span>
+        </Link>
+
         <div className="host-mobile-menu-divider" />
         <button
           type="button"

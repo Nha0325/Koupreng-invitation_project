@@ -5,7 +5,7 @@ import {
   IoTrashOutline,
 } from "react-icons/io5";
 import { StatusBadge } from "@/shared/ui";
-import { guestInviteUrl, initials } from "../model/guestMappers";
+import { buildShareMessage, guestInviteUrl, initials } from "../model/guestMappers";
 
 export default function GuestCard({
   guest,
@@ -18,6 +18,7 @@ export default function GuestCard({
   t,
 }) {
   const inviteUrl = guestInviteUrl(currentDraft, guest, publicInvitation);
+  const shareMessage = buildShareMessage(guest, currentDraft, publicInvitation);
 
   return (
     <article className="pe-guest-card">
@@ -70,9 +71,9 @@ export default function GuestCard({
         <button
           type="button"
           className="pe-icon-btn"
-          onClick={() => onCopyLink(inviteUrl)}
-          title={t ? t("copyLink") : "ចម្លងតំណ"}
-          aria-label={t ? t("copyLink") : "ចម្លងតំណ"}
+          onClick={() => onCopyLink(shareMessage || inviteUrl)}
+          title={t ? t("copyMessage") : "ចម្លងសារអញ្ជើញ"}
+          aria-label={t ? t("copyMessage") : "ចម្លងសារអញ្ជើញ"}
         >
           <IoCopyOutline aria-hidden="true" />
         </button>

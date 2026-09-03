@@ -1,32 +1,37 @@
 import { Link } from "react-router-dom";
-import { IoPeopleOutline, IoArrowForwardOutline } from "react-icons/io5";
-import { StatusBadge } from "@/shared/ui";
+import { IoPeopleOutline, IoArrowForwardOutline, IoBriefcaseOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
 
 export default function OrganizationCard({ organization }) {
   const memberCount = organization.members?.length || 0;
   const status = organization.status || "ACTIVE";
 
   return (
-    <article className="k-org-card">
-      <div className="k-org-card-header">
-        <div>
-          <h3 className="k-org-title">{organization.name}</h3>
-          <span className="k-org-slug">@{organization.slug}</span>
+    <article className="k-org-card-lux">
+      <div className="k-org-card-top">
+        <div className="k-org-icon-box">
+          <IoBriefcaseOutline />
         </div>
-        <StatusBadge status={status} />
+        <span className="k-org-badge-status">
+          <IoShieldCheckmarkOutline /> {status}
+        </span>
       </div>
 
-      <div className="k-org-card-meta">
-        <div className="k-org-stat">
-          <IoPeopleOutline aria-hidden="true" />
+      <div className="k-org-card-content">
+        <h3 className="k-org-card-title">{organization.name}</h3>
+        <span className="k-org-card-slug">@{organization.slug}</span>
+      </div>
+
+      <div className="k-org-card-meta-row">
+        <div className="k-org-stat-pill">
+          <IoPeopleOutline />
           <span>{memberCount} {memberCount === 1 ? "Member" : "Members"}</span>
         </div>
       </div>
 
-      <div className="k-org-card-footer">
-        <Link to={`/dashboard/organizations/${organization.id}`} className="k-org-open-btn">
-          <span>Open Workspace</span>
-          <IoArrowForwardOutline aria-hidden="true" />
+      <div className="k-org-card-footer-lux">
+        <Link to={`/dashboard/organizations/${organization.id}`} className="k-org-btn-enter">
+          <span>ចូលគ្រប់គ្រង Workspace</span>
+          <IoArrowForwardOutline />
         </Link>
       </div>
     </article>

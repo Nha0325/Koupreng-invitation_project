@@ -12,28 +12,30 @@
 .dp-trigger {
     width: 100%;
     min-width: 0;
-    height: 42px;
-    border-radius: 10px;
-    border: 1.5px solid #ebebeb;
-    background: #f9f9f9;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #dcd3c4;
+    background: #fdfbf7;
     padding: 0 14px;
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
     font-family: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.88rem;
+    transition: all 0.2s ease;
     text-align: left;
+    box-sizing: border-box;
 }
 
 .dp-trigger:hover,
 .dp-trigger.open {
-    border-color: #e11d48;
-    background: #fff;
+    border-color: #c51c35;
+    background: #ffffff;
 }
 
 .dp-trigger.open {
-    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.08);
+    box-shadow: 0 0 0 3px rgba(197, 28, 53, 0.1);
 }
 
 .dp-cal-icon {

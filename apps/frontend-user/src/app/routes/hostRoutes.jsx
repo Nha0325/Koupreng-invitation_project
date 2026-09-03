@@ -16,7 +16,6 @@ import InvitationEditPage from "../../pages/host/invitations/InvitationEditPage"
 import InvitationMediaPage from "../../pages/host/invitations/InvitationMediaPage";
 import InvitationPreviewPage from "../../pages/host/invitations/InvitationPreviewPage";
 import InvitationDeliveryPage from "../../pages/host/invitations/InvitationDeliveryPage";
-import MyInvitationsPage from "../../pages/host/invitations/MyInvitationsPage";
 import NotificationsPage from "../../pages/host/NotificationsPage";
 import PaymentHistoryPage from "../../pages/payments/PaymentHistoryPage";
 import PaymentReceiptPage from "../../pages/payments/PaymentReceiptPage";
@@ -29,6 +28,9 @@ import OrganizationPage from "../../features/organizations/OrganizationPage";
 import OrganizationDetailPage from "../../features/organizations/OrganizationDetailPage";
 import AiAssistantPage from "../../features/ai-assistant/AiAssistantPage";
 import RsvpDashboardPage from "../../features/rsvp/RsvpDashboardPage";
+import ReportsPage from "../../features/reports/ReportsPage";
+import QrPage from "../../features/qr/QrPage";
+import WishesPage from "../../features/wishes/WishesPage";
 
 export function hostRoutes() {
   return (
@@ -41,8 +43,10 @@ export function hostRoutes() {
     >
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/dashboard/events" element={<EventsPage />} />
-      <Route path="/dashboard/invitations" element={<MyInvitationsPage />} />
+      <Route path="/dashboard/invitations" element={<Navigate to="/dashboard/events" replace />} />
       <Route path="/dashboard/invitations/new" element={<InvitationCreatePage />} />
+      <Route path="/dashboard/invitations/design" element={<InvitationEditPage />} />
+      <Route path="/dashboard/invitations/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/edit" element={<InvitationEditPage />} />
       <Route path="/dashboard/invitations/:id/preview" element={<InvitationPreviewPage />} />
       <Route path="/dashboard/invitations/:invitationId/assistant" element={<AiAssistantPage />} />
@@ -53,6 +57,10 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/:invitationId/budget" element={<BudgetPage />} />
       <Route path="/dashboard/invitations/:invitationId/check-in" element={<InvitationCheckInPage />} />
       <Route path="/dashboard/invitations/:invitationId/seating" element={<SeatingPage />} />
+      <Route path="/dashboard/invitations/:invitationId/reports" element={<ReportsPage />} />
+      <Route path="/dashboard/invitations/:invitationId/qr" element={<QrPage />} />
+      <Route path="/dashboard/invitations/:invitationId/wishes" element={<WishesPage />} />
+      <Route path="/dashboard/reports" element={<ReportsPage />} />
       <Route path="/dashboard/guests" element={<GuestsPage />} />
       <Route path="/dashboard/expenses" element={<ExpensesPage />} />
       <Route path="/dashboard/gifts" element={<WeddingGiftPage />} />

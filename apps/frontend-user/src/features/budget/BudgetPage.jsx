@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import budgetService from "./api/budgetApi";
-import BudgetItemForm from "./BudgetItemForm";
-import BudgetItemTable from "./BudgetItemTable";
-import BudgetSummaryCards from "./BudgetSummaryCards";
+import BudgetItemForm from "./components/BudgetItemForm";
+import BudgetItemTable from "./components/BudgetItemTable";
+import BudgetSummaryCards from "./components/BudgetSummaryCards";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import BudgetProgress from "./components/BudgetProgress";
 import { EmptyState, ErrorState, SkeletonCard, toast } from "@/shared/ui";

@@ -1,20 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import "../templates.css";
-import { COVER_KHMER_GOLDEN_CODE, KHMER_GOLDEN_CANVA_INSPIRED_CODE, KEEP_TEMPLATE_CODE, TEMPLATES } from "../data/templatesData";
-import { templateService } from "../templateService";
+import "./templates.css";
+import {
+    KEEP_TEMPLATE_CODE,
+    ROYAL_KHMER_TEMPLATE_CODE,
+    COVER_KHMER_GOLDEN_CODE,
+    KHMER_GOLDEN_CANVA_INSPIRED_CODE,
+    TEMPLATES,
+} from "../data/templatesData";
+import { templateService } from "../api/templateService";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import heroBg from "../../../assets/icons/background.png";
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
 const FEATURED_TEMPLATE_IDS = [
     KEEP_TEMPLATE_CODE,
+    ROYAL_KHMER_TEMPLATE_CODE,
     COVER_KHMER_GOLDEN_CODE,
     KHMER_GOLDEN_CANVA_INSPIRED_CODE,
 ];
 
 const TEMPLATE_CARD_COVER = {
     [KEEP_TEMPLATE_CODE]: "/facebook/all/03-card/cover-card.jpg",
+    [ROYAL_KHMER_TEMPLATE_CODE]: "/facebook/all/01-card/cover-card.jpg",
     [COVER_KHMER_GOLDEN_CODE]: "/templates/cover-khmer-golden-wedding/cover-preview.svg",
     [KHMER_GOLDEN_CANVA_INSPIRED_CODE]: "/invitations/khmer-golden-canva-inspired/cover-card.svg",
 };

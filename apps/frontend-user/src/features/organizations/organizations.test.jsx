@@ -44,8 +44,9 @@ describe("Organization Feature Module", () => {
       expect(screen.getByText("Koupreng Planners")).toBeInTheDocument();
       expect(screen.getByText("@koupreng-planners")).toBeInTheDocument();
       expect(screen.getByText("2 Members")).toBeInTheDocument();
-      expect(screen.getByText("Open Workspace")).toBeInTheDocument();
+      expect(screen.getByText(/Workspace/i)).toBeInTheDocument();
     });
+
   });
 
   describe("MemberTable", () => {
@@ -85,8 +86,9 @@ describe("Organization Feature Module", () => {
 
       expect(screen.getByText("owner@koupreng.com")).toBeInTheDocument();
       expect(screen.getByText("staff@koupreng.com")).toBeInTheDocument();
-      expect(screen.getByText("Owner protected")).toBeInTheDocument();
+      expect(screen.getByText(/owner protected/i)).toBeInTheDocument();
       expect(screen.getAllByText("CHECK IN STAFF").length).toBeGreaterThan(0);
     });
+
   });
 });

@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
-      allowedHosts: ["localhost", ".dev", ".ngrok-free.app", ".ngrok-free.dev"],
+      allowedHosts: true,
       hmr: shouldUseSecureHmr
         ? {
             host: hmrHost,
@@ -76,6 +76,11 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'happy-dom',
       setupFiles: ['./src/test/setup.js'],
+      server: {
+        deps: {
+          inline: [/@exodus\/bytes/, /html-encoding-sniffer/],
+        },
+      },
     },
   }
 })

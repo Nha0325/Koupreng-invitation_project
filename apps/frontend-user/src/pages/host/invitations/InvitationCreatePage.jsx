@@ -1,5 +1,5 @@
-import InvitationForm from "@/features/invitations/InvitationForm";
+import WeddingBuilderFeature from "@/features/wedding-builder/WeddingBuilderFeature";
 
 export default function InvitationCreatePage() {
-  return <InvitationForm />;
+  return <WeddingBuilderFeature />;
 }

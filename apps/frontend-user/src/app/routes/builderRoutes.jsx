@@ -7,6 +7,7 @@ import WeddingSite from "../../features/wedding-site/WeddingSite";
 import CreateWeddingPage from "../../pages/builder/CreateWeddingPage";
 import PublicInvitationPage from "../../pages/public/PublicInvitationPage";
 import WeddingPreviewPage from "../../pages/public/WeddingPreviewPage";
+import InvitationEditPage from "../../pages/host/invitations/InvitationEditPage";
 import RequireAuth from "./RequireAuth";
 
 export function builderRoutes() {
@@ -22,7 +23,7 @@ export function builderRoutes() {
         }
       />
       <Route
-        path="/create/wedding/:draftId"
+        path="/event/create"
         element={
           <RequireAuth>
             <CreateWeddingPage />
@@ -30,10 +31,26 @@ export function builderRoutes() {
         }
       />
       <Route
-        path="/event/:draftId/manage"
+        path="/dashboard/events/create"
         element={
           <RequireAuth>
             <CreateWeddingPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/create/wedding/:id"
+        element={
+          <RequireAuth>
+            <InvitationEditPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/event/:id/manage"
+        element={
+          <RequireAuth>
+            <InvitationEditPage />
           </RequireAuth>
         }
       />

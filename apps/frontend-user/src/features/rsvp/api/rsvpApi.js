@@ -63,6 +63,12 @@ export const rsvpService = {
       .then(unwrap),
   publicWishes: (slug, params) =>
     api.get(`/v1/public/invitations/${encodeURIComponent(slug)}/wishes${toQuery(publicParams(params))}`, { skipAuth: true }).then(unwrap),
+  wishes: (invitationId) => {
+    if (!invitationId || (typeof invitationId === "string" && !/^\d+$/.test(invitationId))) {
+      return Promise.resolve([]);
+    }
+    return api.get(`/v1/invitations/${invitationId}/wishes`).then(unwrap);
+  },
   listByInvitation: (invitationId) => {
     if (!invitationId || (typeof invitationId === "string" && !/^\d+$/.test(invitationId))) {
       return Promise.resolve([]);

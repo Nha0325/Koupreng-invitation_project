@@ -1,12 +1,11 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
-import TemplateExperience from "../templates/template-experience/TemplateExperience";
+import { TemplateExperience } from "@/features/templates";
 import { draftToTemplate } from "../wedding-builder/utils/draftToTemplate";
 import { useWeddingStore } from "../../stores/useWeddingStore";
 import { loadGallery } from "../../shared/storage/galleryStorage";
 import { loadDraftMediaFiles } from "../../shared/storage/draftMediaStorage";
-import "../templates/template-experience/template-experience.css";
 
 /**
  * WeddingPreviewPage — renders the user's wedding draft as a full invitation

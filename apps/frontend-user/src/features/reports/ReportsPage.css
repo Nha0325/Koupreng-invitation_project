@@ -1,0 +1,133 @@
+.reports-page {
+  max-width: 1180px;
+}
+
+.report-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.report-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+  flex: 1;
+}
+
+.report-filter-item label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7d6d58;
+}
+
+.report-select,
+.report-date-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d8cdb8;
+  border-radius: 8px;
+  background: #faf6ef;
+  font-size: 14px;
+  color: #2a1f10;
+}
+
+.report-select:focus,
+.report-date-input:focus {
+  outline: none;
+  border-color: #b0926a;
+}
+
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.report-summary-card {
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fff;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.report-summary-card span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #7d6d58;
+}
+
+.report-summary-card strong {
+  font-size: 26px;
+  color: #2a1f10;
+  margin-top: 6px;
+}
+
+.report-summary-card.is-success {
+  border-left: 4px solid #12b76a;
+}
+
+.report-summary-card.is-pending {
+  border-left: 4px solid #f79009;
+}
+
+.report-summary-card.is-failed {
+  border-left: 4px solid #f04438;
+}
+
+.report-table-wrapper {
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+  background: #fff;
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.report-table th {
+  padding: 12px 16px;
+  background: #faf6ef;
+  font-size: 13px;
+  font-weight: 700;
+  color: #7d6d58;
+  border-bottom: 1px solid #eadfce;
+}
+
+.report-table td {
+  padding: 14px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid #f3eadf;
+  color: #2a1f10;
+}
+
+.report-empty {
+  text-align: center;
+  padding: 40px;
+  color: #7d6d58;
+  background: #fff;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+}
+
+@media (max-width: 720px) {
+  .report-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .report-filter-item {
+    min-width: 100%;
+  }
+}

@@ -5,7 +5,7 @@ import {
   IoTrashOutline,
 } from "react-icons/io5";
 import { ResponsiveTable, StatusBadge } from "@/shared/ui";
-import { guestInviteUrl, initials } from "../model/guestMappers";
+import { buildShareMessage, guestInviteUrl, initials } from "../model/guestMappers";
 
 export default function GuestTable({
   guests = [],
@@ -33,6 +33,7 @@ export default function GuestTable({
       <tbody>
         {guests.map((guest) => {
           const inviteUrl = guestInviteUrl(currentDraft, guest, publicInvitation);
+          const shareMessage = buildShareMessage(guest, currentDraft, publicInvitation);
           return (
             <tr key={guest.id}>
               <td>
@@ -77,9 +78,9 @@ export default function GuestTable({
                   <button
                     type="button"
                     className="pe-icon-btn"
-                    onClick={() => onCopyLink(inviteUrl)}
-                    title={t ? t("copyLink") : "ចម្លងតំណភ្ជាប់"}
-                    aria-label={t ? t("copyLink") : "ចម្លងតំណភ្ជាប់"}
+                    onClick={() => onCopyLink(shareMessage || inviteUrl)}
+                    title={t ? t("copyMessage") : "ចម្លងសារអញ្ជើញ"}
+                    aria-label={t ? t("copyMessage") : "ចម្លងសារអញ្ជើញ"}
                   >
                     <IoCopyOutline aria-hidden="true" />
                   </button>

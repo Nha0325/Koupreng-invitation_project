@@ -1,0 +1,87 @@
+.qr-page {
+  max-width: 860px;
+}
+
+.qr-page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.qr-card {
+  border: 1px solid #eadfce;
+  border-radius: 16px;
+  background: #fff;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(42, 31, 16, 0.04);
+  width: 100%;
+  max-width: 440px;
+}
+
+.qr-frame {
+  width: 240px;
+  height: 240px;
+  border-radius: 12px;
+  border: 1px solid #eadfce;
+  background: #faf6ef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.qr-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qr-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.qr-code-text {
+  font-family: monospace;
+  font-size: 13px;
+  color: #7d6d58;
+}
+
+.qr-title {
+  font-size: 18px;
+  color: #2a1f10;
+  margin: 0 0 8px;
+}
+
+.qr-guest {
+  font-size: 14px;
+  color: #5f513f;
+  margin: 0 0 10px;
+}
+
+.qr-link {
+  font-size: 13px;
+  color: #b0926a;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.qr-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.qr-skeleton-wrapper {
+  max-width: 440px;
+  margin: 20px auto;
+}

@@ -189,8 +189,8 @@ export default function InvitationMediaManager() {
                     <button type="button" className="inv-secondary-btn" onClick={() => navigate(`/dashboard/invitations/${id}/preview`)}>
                         Preview
                     </button>
-                    <button type="button" className="inv-secondary-btn" onClick={() => navigate("/dashboard/invitations")}>
-                        My Invitations
+                    <button type="button" className="inv-secondary-btn" onClick={() => navigate("/dashboard")}>
+                        Dashboard
                     </button>
                 </div>
             </header>

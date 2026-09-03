@@ -13,6 +13,29 @@ function money(amount, currency = "USD") {
 export default function AdminPaymentsPage() {
   const { data, loading, error, reload } = useResource(adminManagementService.payments);
   const [query, setQuery] = useState("");
+  const [confirmingCode, setConfirmingCode] = useState(null);
+  const [actionMessage, setActionMessage] = useState("");
+
+  const handleConfirm = async (payment) => {
+    if (!window.confirm(`តើអ្នកពិតជាចង់ Confirm Payment សម្រាប់ Order ${payment.orderCode} មែនទេ?`)) {
+      return;
+    }
+    setConfirmingCode(payment.orderCode);
+    setActionMessage("");
+    try {
+      await adminManagementService.confirmPayment({
+        orderCode: payment.orderCode,
+        amount: payment.amount || 0.01,
+        confirmedBy: "admin",
+      });
+      setActionMessage(`Order ${payment.orderCode} បាន Confirm ជោគជ័យ!`);
+      await reload();
+    } catch (err) {
+      alert(err.message || "Failed to confirm payment");
+    } finally {
+      setConfirmingCode(null);
+    }
+  };
 
   const payments = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -49,6 +72,12 @@ export default function AdminPaymentsPage() {
         <button type="button" className="btn btn-ghost" onClick={reload}>Refresh</button>
       </div>
 
+      {actionMessage && (
+        <div style={{ marginBottom: "16px", padding: "10px 16px", background: "#ecfdf5", color: "#065f46", borderRadius: "8px", fontWeight: "600" }}>
+          {actionMessage}
+        </div>
+      )}
+
       <section className="admin-feature-grid">
         <article className="admin-feature-card"><span>Total</span><strong>{totals.total}</strong></article>
         <article className="admin-feature-card"><span>Pending</span><strong>{totals.pending}</strong></article>
@@ -74,12 +103,13 @@ export default function AdminPaymentsPage() {
                   <th>Provider</th>
                   <th>Created</th>
                   <th>Paid</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((payment) => (
                   <tr key={payment.orderCode}>
-                    <td>{payment.orderCode || "—"}</td>
+                    <td><strong>{payment.orderCode || "—"}</strong></td>
                     <td>{payment.templateName || payment.packageName || "—"}</td>
                     <td>{payment.itemType || "TEMPLATE"}</td>
                     <td>{money(payment.amount, payment.currency)}</td>
@@ -87,6 +117,21 @@ export default function AdminPaymentsPage() {
                     <td>{payment.provider || "—"}</td>
                     <td>{formatDate(payment.createdAt)}</td>
                     <td>{formatDate(payment.paidAt)}</td>
+                    <td>
+                      {payment.status === "PENDING" ? (
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          disabled={confirmingCode === payment.orderCode}
+                          onClick={() => handleConfirm(payment)}
+                          style={{ padding: "4px 10px", fontSize: "0.8rem", cursor: "pointer" }}
+                        >
+                          {confirmingCode === payment.orderCode ? "..." : "Confirm"}
+                        </button>
+                      ) : (
+                        <span style={{ color: "#888", fontSize: "0.8rem" }}>—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
