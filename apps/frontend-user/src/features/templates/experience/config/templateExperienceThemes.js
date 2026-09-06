@@ -3,9 +3,10 @@ import {
     ROYAL_KHMER_TEMPLATE_CODE,
     KHMER_GOLDEN_CANVA_INSPIRED_CODE,
     COVER_KHMER_GOLDEN_CODE,
+    THE_DIGITAL_YES_TEMPLATE_CODE,
 } from "../../data/templatesData";
 
-export { KEEP_TEMPLATE_CODE, ROYAL_KHMER_TEMPLATE_CODE, KHMER_GOLDEN_CANVA_INSPIRED_CODE, COVER_KHMER_GOLDEN_CODE };
+export { KEEP_TEMPLATE_CODE, ROYAL_KHMER_TEMPLATE_CODE, KHMER_GOLDEN_CANVA_INSPIRED_CODE, COVER_KHMER_GOLDEN_CODE, THE_DIGITAL_YES_TEMPLATE_CODE };
 
 export const TEMPLATE_VARIANTS = {
     [KEEP_TEMPLATE_CODE]: {
@@ -56,6 +57,18 @@ export const TEMPLATE_VARIANTS = {
             { hex: "#5C3418", name: "ត្នោតចាស់" },
         ],
     },
+    [THE_DIGITAL_YES_TEMPLATE_CODE]: {
+        className: "template-experience--garden-royal-khmer-wedding template-experience--royal-khmer-wedding",
+        mood: "light",
+        badge: "Royal Luxury 2026",
+        amp: "❀",
+        dressColors: [
+            { hex: "#8B1E2D", name: "ក្រហមទុំ" },
+            { hex: "#D4AF37", name: "មាស" },
+            { hex: "#FFFDF7", name: "ស" },
+            { hex: "#4A151C", name: "ក្រហមចាស់" },
+        ],
+    },
 };
 
 export const DEFAULT_VARIANT = KEEP_TEMPLATE_CODE;
@@ -65,6 +78,7 @@ export const TEMPLATE_VARIANT_BY_ID = {
     [ROYAL_KHMER_TEMPLATE_CODE]: ROYAL_KHMER_TEMPLATE_CODE,
     [KHMER_GOLDEN_CANVA_INSPIRED_CODE]: KHMER_GOLDEN_CANVA_INSPIRED_CODE,
     [COVER_KHMER_GOLDEN_CODE]: COVER_KHMER_GOLDEN_CODE,
+    [THE_DIGITAL_YES_TEMPLATE_CODE]: THE_DIGITAL_YES_TEMPLATE_CODE,
 };
 
 export const VARIANT_ROUTE_ALIASES = {
@@ -75,6 +89,8 @@ export const VARIANT_ROUTE_ALIASES = {
     "royal-khmer": ROYAL_KHMER_TEMPLATE_CODE,
     "royal-khmer-wedding": ROYAL_KHMER_TEMPLATE_CODE,
     "vintage-gold": KEEP_TEMPLATE_CODE,
+    "the-digital-yes": THE_DIGITAL_YES_TEMPLATE_CODE,
+    "the-digital-yes-wedding": THE_DIGITAL_YES_TEMPLATE_CODE,
 };
 
 export function resolveVariant(tpl = {}, explicitVariant) {

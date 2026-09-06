@@ -54,7 +54,15 @@ export function normalizeOpeningCopy(value = {}) {
 
 export function normalizeOpeningDesign(value = {}) {
     const source = value && typeof value === "object" ? value : {};
-    const allowedOpeningStyles = new Set(["khmer-royal", "paper", "monogram", "cinematic"]);
+    const allowedOpeningStyles = new Set([
+        "khmer-royal",
+        "paper",
+        "monogram",
+        "cinematic",
+        "curtain",
+        "envelope-3d",
+        "magical-gate",
+    ]);
     const allowedFrameStyles = new Set(["double-gold", "single-gold", "minimal-gold"]);
     const allowedOrnaments = new Set(["khmer-corner-01", "khmer-line", "minimal-gold"]);
 

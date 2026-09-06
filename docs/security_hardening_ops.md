@@ -53,12 +53,50 @@ WAF_ENABLED=true
 WAF_AUDIT_ONLY=false
 ```
 
+## Operational Checklist & Production Readiness
+
+### 1. Redis Fallback Telemetry (`auth.cache.fallback`)
+`UserAuthCacheService` automatically falls back to direct database lookups if Redis is unreachable. However, to prevent a silent Redis failure from overwhelming the database connection pool:
+- The service logs a warning: `auth.cache.fallback user=<id> reason=<reason>: <details>`
+- A Micrometer counter is published: `auth.cache.fallback` with tag `reason` (`redis_unavailable`, `redis_read_error`, `redis_write_error`, `redis_evict_error`).
+- **Recommended Alerting Rule (Prometheus/Alertmanager)**:
+  ```yaml
+  - alert: UserAuthCacheRedisFallbackHigh
+    expr: rate(auth_cache_fallback_total[2m]) > 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "User authentication cache is falling back to relational database"
+      description: "Redis is unavailable or failing for JWT auth lookups. Relational DB pool exhaustion risk under load."
+  ```
+
+### 2. Upstream Reverse Proxy CSP Preservation (`/uploads/**`)
+`UploadSecurityFilter` enforces:
+- `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`
+- `X-Content-Type-Options: nosniff`
+
+When placing an upstream CDN / reverse proxy in front of the backend:
+- **Nginx**: Ensure `infra/nginx/koupreng-api.conf` retains `proxy_pass_header Content-Security-Policy;`, `proxy_pass_header X-Content-Type-Options;`, and `proxy_hide_header Set-Cookie;`.
+- **Cloudflare**: In **Caching -> Cache Rules**, if caching `/uploads/*`, verify that Transform Rules or Edge Workers do not strip or rewrite `Content-Security-Policy`. Disable automatic script injection for the `/uploads/` path.
+- **AWS CloudFront**: Attach a **Response Headers Policy** that enforces `Content-Security-Policy` and `X-Content-Type-Options`, or configure Cache Behavior to forward and include origin response security headers.
+
+### 3. SPA 401 Interceptor Verification
+When an administrator modifies a user's role or status, `UserAuthCacheService.evict(userId)` invalidates the cached auth state immediately across all nodes:
+- The user's next request receives `401 Unauthorized`.
+- **Frontend Interceptors**:
+  - `apps/frontend-user/src/shared/api/httpClient.js`
+  - `apps/frontend-admin/src/shared/api/adminHttpClient.js`
+- Both clients immediately invoke `clearStoredAuth()` / `clearAuth()` to purge tokens from storage.
+- If the current route is not `/login`, the client redirects to `/login?next=<current_path>` while strictly checking `!window.location.pathname.startsWith("/login")` to prevent reload loops.
+
 ## Files in this folder
 
-- `nginx/koupreng-api.conf`: HTTPS reverse proxy with public API routing and restricted metrics routing.
+- `nginx/koupreng-api.conf`: HTTPS reverse proxy with public API routing, upload security header forwarding, and restricted metrics routing.
 - `firewall/ufw-setup.sh`: Linux UFW baseline for SSH, HTTP, HTTPS, backend, and monitoring ports.
 - `firewall/windows-firewall.ps1`: Windows Defender Firewall equivalent.
 - `monitoring/prometheus.yml`: Prometheus scrape example for `/actuator/prometheus`.
 - `database/mysql-least-privilege.sql`: app, migration, and backup database users with SSL required.
 - `backup/mysql-backup.ps1`: MySQL dump backup with retention cleanup.
 - `backup/postgres-backup.ps1`: legacy backup helper retained for reference only; the current project database is MySQL.
+

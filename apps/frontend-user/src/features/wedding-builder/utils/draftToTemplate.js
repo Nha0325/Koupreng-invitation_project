@@ -53,7 +53,9 @@ export function draftToTemplate(draft, gallery = []) {
         .filter((p) => p && (p.url || p.preview))
         .map((p) => p.url || p.preview);
 
-    const effectiveGallery = uploadedImages.length > 0 ? uploadedImages : draftPhotos;
+    const effectiveGallery = uploadedImages.length > 0
+        ? uploadedImages
+        : (draftPhotos.length > 0 ? draftPhotos : (baseTpl.galleryImages || []));
 
     const eventDate = draft.event?.date || draft.eventDate || draft.eventDateText || "";
     const eventTime = draft.event?.ceremonyTime || draft.event?.receptionTime || draft.eventTime || "17:00";
@@ -117,12 +119,19 @@ export function draftToTemplate(draft, gallery = []) {
 
     const tpl = {
         ...baseTpl,
+        title: draft.title || draft.event?.title || baseTpl.title || "",
+        subtitle: draft.subtitle || "",
+        messageTitle: draft.messageTitle || "",
+        hideCoupleNameOnCover: Boolean(draft.hideCoupleNameOnCover),
+        thankYouTitle: draft.thankYouTitle || "",
+        thankYouText: draft.thankYouText || "",
         groom: groomName || baseTpl.groom,
         bride: brideName || baseTpl.bride,
         monogramText: draft.design?.monogramText || draft.monogramText || initialsCouple || (groomName && brideName ? `${groomName.trim().charAt(0).toUpperCase()} & ${brideName.trim().charAt(0).toUpperCase()}` : "N & P"),
         shortName: draft.design?.monogramText || draft.monogramText || initialsCouple || (groomName && brideName ? `${groomName.trim().charAt(0).toUpperCase()} & ${brideName.trim().charAt(0).toUpperCase()}` : "N & P"),
         dateText: eventDate ? displayDate(eventDate) : (draft.eventDateText || baseTpl.dateText),
         targetDate: targetDate || baseTpl.targetDate,
+        eventTime: draft.eventTime || draft.event?.ceremonyTime || draft.event?.receptionTime || "",
         ceremonyTime: draft.event?.ceremonyTime || draft.eventTime || baseTpl.ceremonyTime || "០៧:០០",
         receptionTime: draft.event?.receptionTime || draft.eventTime || baseTpl.receptionTime || "១៧:០០",
         venueName: draft.event?.venueName || draft.venueName || baseTpl.venueName,
@@ -131,11 +140,20 @@ export function draftToTemplate(draft, gallery = []) {
         customMainImage: draft.coverImage || baseTpl.phoneCoverImage || baseTpl.mainImage || "/facebook/all/03-card/cover-card.jpg",
         coverImage: draft.coverImage || baseTpl.phoneCoverImage || baseTpl.mainImage || "/facebook/all/03-card/cover-card.jpg",
         backgroundImage: draft.backgroundImage || draft.design?.backgroundImage || "",
-        message: draft.message || draft.messageText || draft.story || draft.storyText || baseTpl.message,
-        storyText: draft.story || draft.messageText || draft.storyText || "",
+        message: draft.message || draft.messageText || baseTpl.message,
+        storyText: (draft.storyChapters?.length || (draft.story && draft.story !== draft.messageText)) ? (draft.story || draft.storyText || "") : "",
         dressCode: draft.dressCode || baseTpl.dressCode,
+        enabledSections: {
+            ...(baseTpl.enabledSections || {}),
+            ...(draft.enabledSections || {}),
+            countdown: draft.showCountdown !== false,
+            story: draft.showStory !== false,
+            party: draft.showParty !== false,
+            rsvp: draft.rsvp?.enabled !== false && draft.enabledSections?.rsvp !== false,
+        },
         design: {
             ...(draft.design || {}),
+            openingStyle: draft.openingStyle || draft.design?.openingStyle || baseTpl.design?.openingStyle || "khmer-royal",
             coverImage: draft.coverImage || draft.design?.coverImage || baseTpl.phoneCoverImage || baseTpl.mainImage || "/facebook/all/03-card/cover-card.jpg",
             frontColor: draft.frontColor || draft.design?.frontColor || "#f9af59",
             bottomColor: draft.bottomColor || draft.design?.bottomColor || "#B08E4F",
@@ -148,24 +166,34 @@ export function draftToTemplate(draft, gallery = []) {
         // Host-authored rich sections. Passed straight through so the content
         // builder can prefer them over its demo fallbacks (see hostContent).
         hostContent: {
+            title: draft.title || draft.event?.title || "",
+            subtitle: draft.subtitle || "",
+            messageTitle: draft.messageTitle || "",
+            hideCoupleNameOnCover: Boolean(draft.hideCoupleNameOnCover),
+            thankYouTitle: draft.thankYouTitle || "",
+            thankYouText: draft.thankYouText || "",
+            eventTime: draft.eventTime || draft.event?.ceremonyTime || draft.event?.receptionTime || "",
             couple: {
                 groom: groomName || baseTpl.groom,
                 bride: brideName || baseTpl.bride,
                 ...(draft.couple || {}),
             },
             contact: draft.contact || {},
-            storyText: draft.story || draft.messageText || draft.storyText || "",
+            storyText: (draft.storyChapters?.length || (draft.story && draft.story !== draft.messageText)) ? (draft.story || draft.storyText || "") : "",
             storyTextEn: draft.extras?.storyTextEn || "",
             languageMode: draft.languageMode || draft.extras?.languageMode || "both",
             storyChapters: draft.storyChapters || [],
             schedule: finalSchedule.length > 0 ? finalSchedule : baseTpl.schedule,
-            party: draft.party || [],
+            party: (draft.party && draft.party.length > 0) ? draft.party : (draft.showParty !== false ? (baseTpl.party || []) : []),
             gift: giftList.length > 0 ? giftList : (draft.gift || []),
             gallery: effectiveGallery,
             wishMessage: draft.thankYouText || draft.extras?.guestNote || "",
             faq: draft.faq || [],
             enabledSections: {
                 ...(draft.enabledSections || {}),
+                countdown: draft.showCountdown !== false,
+                story: draft.showStory !== false,
+                party: draft.showParty !== false,
                 rsvp: draft.rsvp?.enabled !== false && draft.enabledSections?.rsvp !== false,
             },
             eventTitle: draft.event?.title || draft.title || "",

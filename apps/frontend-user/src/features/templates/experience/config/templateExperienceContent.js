@@ -81,8 +81,6 @@ const DEMO_PARTY = [
 
 const DEMO_GIFT = [
     { id: "aba", bank: "ABA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "ABA PAY", qrImage: "" },
-    { id: "acleda", bank: "ACLEDA Bank", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "0000-00-000000-0", note: "Toanchet", qrImage: "" },
-    { id: "wing", bank: "Wing", account: "ឈ្មោះម្ចាស់គណនី (គំរូ)", number: "000 000 000", note: "WingPay", qrImage: "" },
 ];
 
 const KHMER_GOLDEN_DEMO_SCHEDULE = [
@@ -100,33 +98,7 @@ const KHMER_GOLDEN_DEMO_SCHEDULE = [
 const DEMO_WISH =
     "សូមឱ្យសេចក្ដីស្រឡាញ់របស់យើងកាន់តែរីកចម្រើន និងពោរពេញដោយសុភមង្គល។ យើងខ្ញុំរីករាយទទួលពាក្យជូនពរពីលោកអ្នកក្នុងថ្ងៃដ៏មានន័យនេះ។";
 
-const DEMO_FAQ = [
-    {
-        id: "venue",
-        q: "តើពិធីប្រព្រឹត្តទៅនៅទីណា?",
-        a: "ពិធីនឹងប្រព្រឹត្តទៅនៅទីតាំងដែលបានបញ្ជាក់ក្នុងផ្នែក «ទីតាំង»។ សូមចុចប៊ូតុង «មើលទិសដៅ» ដើម្បីបើកផែនទី Google Maps។",
-    },
-    {
-        id: "dress",
-        q: "តើគួរស្លៀកពាក់បែបណា?",
-        a: "សូមមើលផ្នែក «សម្លៀកបំពាក់» សម្រាប់ពណ៌ និងរចនាបថដែលស្នើ។",
-    },
-    {
-        id: "plus-one",
-        q: "តើខ្ញុំអាចនាំភ្ញៀវបន្ថែមបានទេ?",
-        a: "សូមបញ្ជាក់ចំនួនភ្ញៀវនៅពេលបំពេញ RSVP ដើម្បីឱ្យយើងអាចរៀបចំកន្លែងអង្គុយឱ្យបានគ្រប់គ្រាន់។",
-    },
-    {
-        id: "parking",
-        q: "តើមានកន្លែងចតរថយន្តទេ?",
-        a: "មាន។ កន្លែងចតរថយន្តត្រូវបានរៀបចំនៅជិតទីតាំងពិធី ដោយឥតគិតថ្លៃ។",
-    },
-    {
-        id: "rsvp",
-        q: "តើខ្ញុំ RSVP ដោយរបៀបណា?",
-        a: "សូមចុចប៊ូតុង «ឆ្លើយតបការអញ្ជើញ» ហើយបំពេញព័ត៌មានរបស់អ្នក។ យើងរង់ចាំការឆ្លើយតបពីអ្នក។",
-    },
-];
+const DEMO_FAQ = [];
 
 /**
  * Single-template copy. The experience engine still accepts a variant arg, but
@@ -434,12 +406,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             style: tpl.dressCode.style || copy.dressStyle,
             colors: tpl.dressCode.colors,
         }
-        : {
-            name: copy.dressName,
-            description: copy.dressNote,
-            style: copy.dressStyle,
-            colors: theme.dressColors,
-        };
+        : null;
 
     const coverImage = nonBlank(tpl.customMainImage)
         || nonBlank(tpl.coverImage)
@@ -474,11 +441,11 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
     const hostStory = hostStoryChapters
         ? hostStoryChapters.map((c, index) => ({
             id: c.id || `chapter-${index}`,
-            kicker: c.kicker || `ជំពូកទី ${index + 1}`,
-            title: c.title || "",
+            kicker: c.kicker || `រឿងរ៉ាវស្នេហា`,
+            title: c.title || `ដំណើររបស់យើង`,
             date: c.date || "",
             text: c.text || "",
-            image: ownImages ? ownImages[index % ownImages.length] : undefined,
+            image: c.image || (ownImages ? ownImages[index % ownImages.length] : undefined),
         }))
         : combinedStoryText
             ? [{
@@ -508,7 +475,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             role: m.role || "",
             roleEn: m.roleEn || "",
             name: m.name || "",
-            image: ownImages ? ownImages[index % ownImages.length] : DEMO_PARTY[index % DEMO_PARTY.length].image,
+            image: m.image || (ownImages ? ownImages[index % ownImages.length] : DEMO_PARTY[index % DEMO_PARTY.length].image),
         }))
         : null;
 
@@ -577,12 +544,23 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         shortName: monogramText,
         guestName,
         isPersonalizedGuest: Boolean(personalizedGuestName),
+        guestTable: host.guest?.tableName || host.guest?.tableNumber || tpl.guestTable || "",
+        guestSeat: host.guest?.seatLabel || tpl.guestSeat || "",
+        guestSeatsCount: host.guest?.seatCount || tpl.guestSeatsCount || null,
+        guestGroup: host.guest?.guestGroup || tpl.guestGroup || "",
         groom: tpl.groom || "វណ្ណដា",
         bride: tpl.bride || "ស្រីពេជ្រ",
         groomNickname: nonBlank(hostCouple.groomNickname),
         brideNickname: nonBlank(hostCouple.brideNickname),
-        eventTitle: nonBlank(host.eventTitle),
+        eventTitle: nonBlank(host.eventTitle || tpl.eventTitle) || "WEDDING INVITATION",
+        title: nonBlank(tpl.title || host.title) || "សិរីមង្គលអាពាហ៍ពិពាហ៍",
+        subtitle: nonBlank(tpl.subtitle || host.subtitle),
+        messageTitle: nonBlank(tpl.messageTitle || host.messageTitle),
+        hideCoupleNameOnCover: Boolean(tpl.hideCoupleNameOnCover || host.hideCoupleNameOnCover),
+        thankYouTitle: nonBlank(tpl.thankYouTitle || host.thankYouTitle),
+        thankYouText: nonBlank(tpl.thankYouText || host.thankYouText || host.wishMessage),
         dateText: tpl.dateText || "ថ្ងៃពុធ ២៨ មករា ២០២៦",
+        eventTime: nonBlank(tpl.eventTime || host.eventTime || tpl.ceremonyTime),
         targetDate: tpl.targetDate,
         ceremonyTime: tpl.ceremonyTime || "០៧:០០",
         receptionTime: tpl.receptionTime || "១៧:០០",
@@ -590,7 +568,7 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
         portraitImage: coverImage,
         backgroundImage,
         message: tpl.message || copy.message,
-        families: "សូមគោរពអញ្ជើញ លោកអ្នក និងក្រុមគ្រួសារ",
+        families: nonBlank(tpl.subtitle || host.subtitle) || "សូមគោរពអញ្ជើញ លោកអ្នក និងក្រុមគ្រួសារ",
         couple: {
             groomIntro: hostCouple.groomIntro || (hasHostContent ? "" : copy.groomIntro),
             brideIntro: hostCouple.brideIntro || (hasHostContent ? "" : copy.brideIntro),
@@ -604,12 +582,12 @@ export function buildTemplateContent(tpl = {}, variant = DEFAULT_CONTENT_VARIANT
             mapEmbedUrl,
             image: coverImage,
         },
-        gallery: hostGallery && hostGallery.length ? hostGallery : (hasHostContent ? [] : buildGallery(tpl)),
-        story: hostStory && hostStory.length ? hostStory : (hasHostContent ? [] : buildStory(tpl, variant)),
-        schedule: hostSchedule && hostSchedule.length ? hostSchedule : (hasHostContent ? (host.schedule || []) : buildSchedule(tpl, variant)),
-        party: hostParty && hostParty.length ? hostParty : (hasHostContent ? [] : DEMO_PARTY),
+        gallery: (hostGallery && hostGallery.length) ? hostGallery : buildGallery(tpl),
+        story: (hostStory && hostStory.length) ? hostStory : buildStory(tpl, variant),
+        schedule: (hostSchedule && hostSchedule.length) ? hostSchedule : (hasHostContent ? (host.schedule || []) : buildSchedule(tpl, variant)),
+        party: (hostParty && hostParty.length) ? hostParty : DEMO_PARTY,
         dressCode,
-        gift: hostGift && hostGift.length ? hostGift : (hasHostContent ? [] : buildGift(tpl)),
+        gift: (hostGift && hostGift.length) ? hostGift : buildGift(tpl),
         giftNote: tpl.giftNote || (hasHostContent ? "" : copy.giftNote || ""),
         wish: {
             message: nonBlank(host.wishMessage) || (hasHostContent ? "" : copy.wishMessage || DEMO_WISH),

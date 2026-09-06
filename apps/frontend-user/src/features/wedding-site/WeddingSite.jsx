@@ -1,8 +1,9 @@
-import { Link, useParams } from "react-router-dom";
+import { useMemo } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import "./wedding-site.css";
-import RoyalInvitation from "./RoyalInvitation";
+import TemplateExperience from "../templates/experience/TemplateExperience";
 import { getTemplateById } from "../templates/data/templatesData";
-import useCountdown from "./hooks/useCountdown";
+import { resolveVariant } from "../templates/experience/config/templateExperienceThemes";
 
 /**
  * WeddingSite — full-page public wedding invitation viewer.
@@ -15,27 +16,38 @@ import useCountdown from "./hooks/useCountdown";
 export default function WeddingSite({
     tpl: tplProp,
     showBack = true,
-    skipIntro = false,
     backTo,
     backLabel = "← ត្រឡប់",
 }) {
     const { id } = useParams();
+    const [searchParams] = useSearchParams();
     const tpl = tplProp || getTemplateById(id);
-    const countdown = useCountdown(tpl.targetDate);
-    const isTemplatePreview = Boolean(id);
-    const openingVideoUrl = typeof tpl.openingVideo === "string" ? tpl.openingVideo : tpl.openingVideo?.url;
-    const shouldSkipIntro = skipIntro || isTemplatePreview || !showBack;
-    const shouldShowGate = isTemplatePreview || Boolean(openingVideoUrl);
+    const variant = useMemo(() => resolveVariant(tpl), [tpl]);
+
+    const isEmbedded = typeof window !== "undefined" && (
+        window.self !== window.top ||
+        searchParams.get("preview") === "true" ||
+        searchParams.get("embed") === "true"
+    );
+    const shouldShowBack = showBack && !isEmbedded;
     const backPath = backTo || `/templates/${tpl.id}`;
 
     return (
-        <div className="tpl-wed-root">
-            {showBack && (
+        <div className={`tpl-wed-root ${isEmbedded ? "tpl-wed-root--embedded" : ""}`}>
+            {shouldShowBack && (
                 <Link to={backPath} className="tpl-wed-back">
                     {backLabel}
                 </Link>
             )}
-            <RoyalInvitation tpl={tpl} countdown={countdown} skipIntro={shouldSkipIntro} flowerGate={shouldShowGate} />
+            <TemplateExperience
+                tpl={tpl}
+                variant={variant}
+                preview={false}
+                showBreadcrumb={!isEmbedded}
+                showActions={!isEmbedded}
+                showStickyCta={!isEmbedded}
+            />
         </div>
     );
 }
+

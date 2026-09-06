@@ -380,4 +380,43 @@ describe("TemplateOpeningGate media and greeting fallbacks", () => {
         render(<TemplateOpeningGate content={content({ guestName: "" })} lockDocumentScroll={false} onOpen={() => {}} />);
         expect(screen.getByText("សូមគោរពអញ្ជើញ លោកអ្នក និងក្រុមគ្រួសារ")).toBeVisible();
     });
+
+    it("renders Theatrical Velvet Curtain style when openingStyle is curtain", () => {
+        const curtainContent = content({
+            design: { openingStyle: "curtain", primaryColor: "#6f1d2b" },
+        });
+        const view = render(
+            <TemplateOpeningGate content={curtainContent} lockDocumentScroll={false} onOpen={() => {}} />
+        );
+        expect(view.container.querySelector(".tx-gate-curtain")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-curtain-panel--left")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-curtain-panel--right")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-curtain-valance")).toBeInTheDocument();
+    });
+
+    it("renders 3D Luxury Wax Seal Envelope style when openingStyle is envelope-3d", () => {
+        const envContent = content({
+            design: { openingStyle: "envelope-3d", primaryColor: "#5c0f1c" },
+        });
+        const view = render(
+            <TemplateOpeningGate content={envContent} lockDocumentScroll={false} onOpen={() => {}} />
+        );
+        expect(view.container.querySelector(".tx-gate-env3d")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-env3d-wax-seal")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-env3d-top-flap")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-env3d-card")).toBeInTheDocument();
+    });
+
+    it("renders Magical Portal Gate style when openingStyle is magical-gate", () => {
+        const magicContent = content({
+            design: { openingStyle: "magical-gate", primaryColor: "#4a0d24" },
+        });
+        const view = render(
+            <TemplateOpeningGate content={magicContent} lockDocumentScroll={false} onOpen={() => {}} />
+        );
+        expect(view.container.querySelector(".tx-gate-magical")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-magical-door--left")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-magical-door--right")).toBeInTheDocument();
+        expect(view.container.querySelector(".tx-magical-petals")).toBeInTheDocument();
+    });
 });

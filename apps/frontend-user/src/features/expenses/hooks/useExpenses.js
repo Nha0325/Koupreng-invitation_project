@@ -139,7 +139,7 @@ export function useExpenses() {
             .catch((err) => {
                 if (active) {
                     setError(err?.message || "Could not load expenses from backend");
-                    setExpenses([]);
+                    setExpenses(listBudgetExpenses([], eventId).map(normalizeExpense));
                 }
             })
             .finally(() => {
@@ -236,7 +236,11 @@ export function useExpenses() {
             }
             resetForm();
         } catch (err) {
-            setError(err.message || "Could not save expense item");
+            if (err?.status === 401 || err?.statusCode === 401) {
+                setError("Session ផុតកំណត់ សូម Logout រួច Login ចូលម្ដងទៀត។ (Session expired, please log in again)");
+            } else {
+                setError(err.message || "Could not save expense item");
+            }
         } finally {
             setSaving(false);
         }
@@ -272,7 +276,11 @@ export function useExpenses() {
                 saveBudgetExpenses(nextExpenses, eventId);
             }
         } catch (err) {
-            setError(err.message || "Could not delete expense item");
+            if (err?.status === 401 || err?.statusCode === 401) {
+                setError("Session ផុតកំណត់ សូម Logout រួច Login ចូលម្ដងទៀត។ (Session expired, please log in again)");
+            } else {
+                setError(err.message || "Could not delete expense item");
+            }
         } finally {
             setSaving(false);
         }

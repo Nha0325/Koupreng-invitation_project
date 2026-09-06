@@ -6,8 +6,7 @@ import {
 } from "react-icons/io5";
 import { DatePicker } from "../../../shared/ui/DatePicker";
 import { GuestSelectField } from "./GuestSelectField";
-
-const PAYMENT_METHODS = ["Bakong QR", "ABA", "សាច់ប្រាក់"];
+import { PaymentMethodSelect } from "./PaymentMethodSelect";
 
 export function GiftFormModal({
     show,
@@ -43,9 +42,10 @@ export function GiftFormModal({
                             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                                 <label className="wg-field-full">
                                     <span>{t ? t("fieldMethod") : "Payment Method"}</span>
-                                    <select value={form.method} onChange={(e) => updateForm("method", e.target.value)}>
-                                        {PAYMENT_METHODS.map((method) => (<option key={method} value={method}>{method}</option>))}
-                                    </select>
+                                    <PaymentMethodSelect
+                                        value={form.method}
+                                        onChange={(val) => updateForm("method", val)}
+                                    />
                                 </label>
                                 <label className="wg-field-full">
                                     <span>{t ? t("fieldAmount") : "Amount ($)"}</span>

@@ -26,6 +26,28 @@ describe("payment frontend contract", () => {
     expect(api.get).toHaveBeenNthCalledWith(2, "/v1/me/payments/KP%201/receipt");
   });
 
+  it("loads paid templates, template access, and orders", async () => {
+    api.get
+      .mockResolvedValueOnce({ data: [{ templateId: 101, status: "ACTIVE" }] })
+      .mockResolvedValueOnce({ data: { hasAccess: true } })
+      .mockResolvedValueOnce({ data: { orderCode: "ORD-99", status: "PAID" } });
+
+    await expect(paymentService.paidTemplates()).resolves.toEqual([
+      { templateId: 101, status: "ACTIVE" },
+    ]);
+    await expect(paymentService.templateAccess(101)).resolves.toEqual({
+      hasAccess: true,
+    });
+    await expect(paymentService.getTemplateOrder("ORD-99")).resolves.toEqual({
+      orderCode: "ORD-99",
+      status: "PAID",
+    });
+
+    expect(api.get).toHaveBeenNthCalledWith(1, "/v1/me/templates/paid");
+    expect(api.get).toHaveBeenNthCalledWith(2, "/v1/me/templates/101/access");
+    expect(api.get).toHaveBeenNthCalledWith(3, "/v1/template-payments/ORD-99");
+  });
+
   it("keeps pending and review states pollable while terminal failures stop polling", () => {
     expect(isTerminalStatus("PENDING")).toBe(false);
     expect(isTerminalStatus("PAID_PENDING_REVIEW")).toBe(false);

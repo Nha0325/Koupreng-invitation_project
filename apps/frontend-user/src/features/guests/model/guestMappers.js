@@ -133,12 +133,13 @@ export function initials(name) {
 
 export function guestInviteUrl(draft, guest, publicInvitation) {
   const base = typeof window === "undefined" ? "" : window.location.origin;
-  const rawSlug = publicInvitation?.slug || draft?.slug || draft?.id || "invitation";
-  try {
-    return `${base}/w/${decodeURIComponent(rawSlug)}`;
-  } catch {
-    return `${base}/w/${rawSlug}`;
-  }
+  const candidateSlug = publicInvitation?.slug || draft?.slug;
+  const isCleanSlug = candidateSlug && /^[a-zA-Z0-9_-]+$/.test(candidateSlug);
+  const cleanPath = isCleanSlug
+    ? candidateSlug
+    : (publicInvitation?.id || draft?.backendInvitationId || draft?.id || "invitation");
+
+  return `${base}/w/${cleanPath}`;
 }
 
 

@@ -1,6 +1,7 @@
 import {
     IoAddOutline,
     IoWalletOutline,
+    IoAlertCircleOutline,
 } from "react-icons/io5";
 import { useBackendMessages } from "../../shared/i18n/useBackendMessages";
 import { useExpenses } from "./hooks/useExpenses";
@@ -73,7 +74,12 @@ export function ExpensesList() {
                 </button>
             </div>
 
-            {error && <div className="exp-empty">{error}</div>}
+            {error && (
+                <div className="exp-alert exp-alert-error" role="alert">
+                    <IoAlertCircleOutline aria-hidden="true" />
+                    <span>{error}</span>
+                </div>
+            )}
 
             {!backendInvitation?.id && !drafts.length && (
                 <div className="exp-empty">

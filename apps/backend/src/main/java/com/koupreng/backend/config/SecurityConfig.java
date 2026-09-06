@@ -6,7 +6,6 @@ import java.util.List;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.koupreng.backend.repository.AppUserRepository;
 import com.koupreng.backend.security.AuthRateLimitFilter;
 import com.koupreng.backend.security.AdminPaymentSecretFilter;
 import com.koupreng.backend.security.ApiRequestLoggingFilter;
@@ -14,6 +13,7 @@ import com.koupreng.backend.security.ApiSecurityProperties;
 import com.koupreng.backend.security.ClientAddressResolver;
 import com.koupreng.backend.security.CookieBearerTokenResolver;
 import com.koupreng.backend.security.PublicRsvpRateLimitFilter;
+import com.koupreng.backend.security.UploadSecurityFilter;
 import com.koupreng.backend.service.RateLimitService;
 import com.koupreng.backend.waf.WafFilter;
 import com.koupreng.backend.waf.WafProperties;
@@ -37,6 +37,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -74,8 +76,28 @@ public class SecurityConfig {
         ApiRequestLoggingFilter apiRequestLoggingFilter =
                 new ApiRequestLoggingFilter(apiSecurityProperties.getLogging());
 
+        UploadSecurityFilter uploadSecurityFilter = new UploadSecurityFilter();
+
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> {
+                    if (appProperties.getAuth().getCookie().isEnabled()) {
+                        CsrfTokenRequestAttributeHandler handler = new CsrfTokenRequestAttributeHandler();
+                        handler.setCsrfRequestAttributeName(null);
+                        csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                .csrfTokenRequestHandler(handler)
+                                .ignoringRequestMatchers(
+                                        "/api/auth/login", "/api/auth/register",
+                                        "/api/auth/google", "/api/auth/telegram",
+                                        "/api/auth/forgot-password", "/api/auth/reset-password",
+                                        "/api/v1/payway/callback", "/api/v1/payway/return",
+                                        "/api/v1/payway/cancel", "/api/v1/internal/template-payments/**",
+                                        "/api/v1/public/invitations/**",
+                                        "/api/health", "/actuator/**"
+                                );
+                    } else {
+                        csrf.disable();
+                    }
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
@@ -97,6 +119,7 @@ public class SecurityConfig {
                 .addFilterAfter(authRateLimitFilter, WafFilter.class)
                 .addFilterAfter(publicRsvpRateLimitFilter, AuthRateLimitFilter.class)
                 .addFilterBefore(apiRequestLoggingFilter, WafFilter.class)
+                .addFilterAfter(uploadSecurityFilter, BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/", "/api/health").permitAll()
@@ -143,8 +166,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AppJwtAuthenticationConverter jwtAuthenticationConverter(AppUserRepository userRepository) {
-        return new AppJwtAuthenticationConverter(userRepository);
+    public AppJwtAuthenticationConverter jwtAuthenticationConverter(
+            com.koupreng.backend.service.UserAuthCacheService userAuthCacheService
+    ) {
+        return new AppJwtAuthenticationConverter(userAuthCacheService);
     }
 
     @Bean

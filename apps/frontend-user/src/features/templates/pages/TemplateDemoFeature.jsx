@@ -43,20 +43,47 @@ export default function TemplateDemoPage() {
     }, [targetId]);
 
     const tpl = useMemo(() => {
-        if (!remoteTpl) return localTpl;
+        const baseTpl = getTemplateById(remoteTpl?.code || remoteTpl?.slug || targetId);
+        if (!remoteTpl) return baseTpl;
+
+        let parsedConfig = {};
+        try {
+            if (remoteTpl.description && remoteTpl.description.startsWith("{")) {
+                parsedConfig = JSON.parse(remoteTpl.description);
+            }
+        } catch {
+            // keep standard description
+        }
+
         return {
-            ...localTpl,
-            id: remoteTpl.code || String(remoteTpl.id) || localTpl.id,
-            name: remoteTpl.name || localTpl.name,
-            style: remoteTpl.name || localTpl.style,
-            description: remoteTpl.description || localTpl.description,
-            image: remoteTpl.thumbnailUrl || localTpl.image,
-            mainImage: remoteTpl.thumbnailUrl || localTpl.mainImage,
-            phoneCoverImage: remoteTpl.thumbnailUrl || localTpl.phoneCoverImage,
-            price: remoteTpl.price ?? localTpl.price,
+            ...baseTpl,
+            id: remoteTpl.code || String(remoteTpl.id) || baseTpl.id,
+            name: remoteTpl.name || baseTpl.name,
+            style: remoteTpl.name || baseTpl.style,
+            description: parsedConfig.blessingMessage || remoteTpl.description || baseTpl.description,
+            image: remoteTpl.thumbnailUrl || baseTpl.image,
+            mainImage: remoteTpl.thumbnailUrl || baseTpl.mainImage,
+            phoneCoverImage: remoteTpl.thumbnailUrl || baseTpl.phoneCoverImage,
+            price: remoteTpl.price ?? baseTpl.price,
             isPremium: Boolean(remoteTpl.isPremium || remoteTpl.premium),
+            design: {
+                ...baseTpl.design,
+                openingStyle: parsedConfig.gateStyle || baseTpl.design?.openingStyle,
+                primaryColor: parsedConfig.primaryColor || baseTpl.design?.primaryColor,
+                secondaryColor: parsedConfig.secondaryColor || baseTpl.design?.secondaryColor,
+            },
+            groom: parsedConfig.groomName || baseTpl.groom,
+            bride: parsedConfig.brideName || baseTpl.bride,
+            dateText: parsedConfig.weddingDate || baseTpl.dateText,
+            opening: {
+                ...baseTpl.opening,
+                heading: parsedConfig.invitationTitle || baseTpl.opening?.heading,
+                invitationText: parsedConfig.invitationSubtitle || baseTpl.opening?.invitationText,
+            },
+            badge: parsedConfig.badgeText || baseTpl.badge,
+            amp: parsedConfig.ampSymbol || baseTpl.amp,
         };
-    }, [localTpl, remoteTpl]);
+    }, [remoteTpl, targetId]);
 
     const forcedVariant = aliasTargetId ? id : undefined;
     const createTemplatePath = `/create/wedding?template=${tpl.id}`;

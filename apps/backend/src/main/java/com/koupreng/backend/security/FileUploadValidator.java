@@ -2,6 +2,7 @@ package com.koupreng.backend.security;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -81,11 +82,17 @@ public class FileUploadValidator {
 
         String filename = safeFilename(file.getOriginalFilename());
         String extension = extension(filename);
+        if (".svg".equalsIgnoreCase(extension)) {
+            throw badRequest("SVG uploads are not permitted");
+        }
         if (!properties.getAllowedExtensions().contains(extension)) {
             throw badRequest("Uploaded file extension is not allowed");
         }
 
         String contentType = normalizedContentType(file.getContentType());
+        if (contentType.contains("svg")) {
+            throw badRequest("SVG uploads are not permitted");
+        }
         if (!properties.getAllowedContentTypes().contains(contentType)) {
             throw badRequest("Uploaded file type is not allowed");
         }
@@ -103,16 +110,35 @@ public class FileUploadValidator {
             throw badRequest("Uploaded file extension does not match its content type");
         }
 
-        if (properties.isVerifySignatures() && !hasExpectedSignature(file, contentType)) {
+        byte[] header = readHeader(file);
+        if (looksLikeSvg(header)) {
+            throw badRequest("SVG uploads are not permitted");
+        }
+
+        if (properties.isVerifySignatures() && !hasExpectedSignature(header, contentType)) {
             throw badRequest("Uploaded file content does not match its declared type");
         }
     }
 
     public void requireImage(MultipartFile file) {
-        String filename = safeFilename(file == null ? null : file.getOriginalFilename());
-        String contentType = normalizedContentType(file == null ? null : file.getContentType());
-        if (!IMAGE_EXTENSIONS.contains(extension(filename)) || !IMAGE_CONTENT_TYPES.contains(contentType)) {
+        if (file == null || file.isEmpty()) {
+            throw badRequest("Uploaded file is empty");
+        }
+        String filename = safeFilename(file.getOriginalFilename());
+        String extension = extension(filename);
+        String contentType = normalizedContentType(file.getContentType());
+        if (".svg".equalsIgnoreCase(extension) || contentType.contains("svg")) {
+            throw badRequest("SVG uploads are not permitted");
+        }
+        if (!IMAGE_EXTENSIONS.contains(extension) || !IMAGE_CONTENT_TYPES.contains(contentType)) {
             throw badRequest("Profile image must be a JPEG, PNG, or WebP image");
+        }
+        byte[] header = readHeader(file);
+        if (looksLikeSvg(header)) {
+            throw badRequest("SVG uploads are not permitted");
+        }
+        if (properties.isVerifySignatures() && !hasExpectedSignature(header, contentType)) {
+            throw badRequest("Uploaded file content does not match its declared type");
         }
     }
 
@@ -148,8 +174,15 @@ public class FileUploadValidator {
         return contentType.trim().toLowerCase(Locale.ROOT);
     }
 
-    private boolean hasExpectedSignature(MultipartFile file, String contentType) {
-        byte[] header = readHeader(file);
+    private boolean looksLikeSvg(byte[] header) {
+        if (header == null || header.length == 0) {
+            return false;
+        }
+        String preview = new String(header, StandardCharsets.UTF_8).toLowerCase(Locale.ROOT);
+        return preview.contains("<svg") || preview.contains("<?xml") || preview.contains("<!doctype svg");
+    }
+
+    private boolean hasExpectedSignature(byte[] header, String contentType) {
         if ("image/webp".equals(contentType)) {
             return isWebp(header);
         }

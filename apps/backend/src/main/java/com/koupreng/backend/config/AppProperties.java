@@ -105,6 +105,12 @@ public class AppProperties {
         @Min(1)
         private int maxSocialLoginAttemptsPerMinute = 20;
 
+        @Min(1)
+        private int maxForgotPasswordAttemptsPerMinute = 3;
+
+        @Min(1)
+        private int maxResetPasswordAttemptsPerMinute = 5;
+
         public Cookie getCookie() {
             return cookie;
         }
@@ -141,6 +147,22 @@ public class AppProperties {
             this.maxSocialLoginAttemptsPerMinute = maxSocialLoginAttemptsPerMinute;
         }
 
+        public int getMaxForgotPasswordAttemptsPerMinute() {
+            return maxForgotPasswordAttemptsPerMinute;
+        }
+
+        public void setMaxForgotPasswordAttemptsPerMinute(int maxForgotPasswordAttemptsPerMinute) {
+            this.maxForgotPasswordAttemptsPerMinute = maxForgotPasswordAttemptsPerMinute;
+        }
+
+        public int getMaxResetPasswordAttemptsPerMinute() {
+            return maxResetPasswordAttemptsPerMinute;
+        }
+
+        public void setMaxResetPasswordAttemptsPerMinute(int maxResetPasswordAttemptsPerMinute) {
+            this.maxResetPasswordAttemptsPerMinute = maxResetPasswordAttemptsPerMinute;
+        }
+
         public static class Cookie {
 
             private boolean enabled;
@@ -155,7 +177,7 @@ public class AppProperties {
 
             @NotBlank
             @Pattern(regexp = "(?i)lax|strict|none")
-            private String sameSite = "Lax";
+            private String sameSite = "Strict";
 
             @Min(0)
             private long maxAgeSeconds = 900;
@@ -264,8 +286,8 @@ public class AppProperties {
             @NotBlank
             private String jwkSetUri = "https://oauth.telegram.org/.well-known/jwks.json";
 
-            @Min(60)
-            private long authMaxAgeSeconds = 86400;
+            @Min(120)
+            private long authMaxAgeSeconds = 600;
 
             @NotBlank
             private String emailDomain = "telegram.local";

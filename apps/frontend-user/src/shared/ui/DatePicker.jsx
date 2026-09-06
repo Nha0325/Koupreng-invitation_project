@@ -45,6 +45,19 @@ export function DatePicker({ value, onChange, placeholder = "ជ្រើសក�
     const selectedDay = value ? parseInt(value.split("-")[2], 10) : null;
     const selectedMonth = value ? parseInt(value.split("-")[1], 10) - 1 : null;
     const selectedYear = value ? parseInt(value.split("-")[0], 10) : null;
+    const [dropUp, setDropUp] = useState(false);
+
+    useEffect(() => {
+        if (open && ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 330 && rect.top > 330) {
+                setDropUp(true);
+            } else {
+                setDropUp(false);
+            }
+        }
+    }, [open]);
 
     const displayValue = value
         ? `${parseInt(value.split("-")[2], 10)} ${KHMER_MONTHS[parseInt(value.split("-")[1], 10) - 1]} ${value.split("-")[0]}`
@@ -86,18 +99,27 @@ export function DatePicker({ value, onChange, placeholder = "ជ្រើសក�
 
     return (
         <div className="dp-wrap" ref={ref}>
-            <button type="button" className={`dp-trigger${open ? " open" : ""}`} onClick={() => setOpen((o) => !o)}>
-                <svg className="dp-cal-icon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button
+                type="button"
+                className={`dp-trigger${open ? " open" : ""}`}
+                onClick={() => setOpen((o) => !o)}
+                aria-haspopup="dialog"
+                aria-expanded={open}
+            >
+                <svg className="dp-cal-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <span className={displayValue ? "dp-value" : "dp-placeholder"}>
                     {displayValue || placeholder}
                 </span>
+                <svg className={`dp-caret ${open ? "open" : ""}`} width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
             </button>
 
             {open && (
-                <div className="dp-dropdown">
+                <div className={`dp-dropdown${dropUp ? " drop-up" : ""}`}>
                     <div className="dp-header">
                         <button type="button" className="dp-nav-btn" onClick={prevMonth}>
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -55,7 +55,7 @@ public class ProductionSecurityValidator implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (isProductionProfile()) {
+        if (!isDevelopmentProfile()) {
             validateProductionConfiguration();
         }
     }
@@ -79,10 +79,20 @@ public class ProductionSecurityValidator implements ApplicationRunner {
         }
     }
 
-    private boolean isProductionProfile() {
-        return Arrays.stream(environment.getActiveProfiles())
+    private boolean isDevelopmentProfile() {
+        String[] profiles = environment.getActiveProfiles();
+        if (profiles.length == 0) {
+            String propertyProfile = environment.getProperty("spring.profiles.active");
+            if (propertyProfile != null && !propertyProfile.isBlank()) {
+                profiles = propertyProfile.split(",");
+            }
+        }
+        return Arrays.stream(profiles)
+                .map(String::trim)
                 .map(profile -> profile.toLowerCase(Locale.ROOT))
-                .anyMatch(profile -> "prod".equals(profile) || "production".equals(profile));
+                .anyMatch(profile -> "dev".equals(profile)
+                        || "local".equals(profile)
+                        || "test".equals(profile));
     }
 
     private void validateJwt(List<String> failures) {

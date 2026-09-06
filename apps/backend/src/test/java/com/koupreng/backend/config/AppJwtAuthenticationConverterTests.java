@@ -10,6 +10,7 @@ import java.util.Optional;
 import com.koupreng.backend.entity.user.AppUser;
 import com.koupreng.backend.entity.user.Role;
 import com.koupreng.backend.repository.AppUserRepository;
+import com.koupreng.backend.service.UserAuthCacheService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,7 +22,8 @@ class AppJwtAuthenticationConverterTests {
     @Test
     void convertsValidTokenVersionForActiveUser() {
         AppUserRepository userRepository = mock(AppUserRepository.class);
-        AppJwtAuthenticationConverter converter = new AppJwtAuthenticationConverter(userRepository);
+        UserAuthCacheService cacheService = new UserAuthCacheService(userRepository);
+        AppJwtAuthenticationConverter converter = new AppJwtAuthenticationConverter(cacheService);
         AppUser user = user(AppUser.STATUS_ACTIVE);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
@@ -34,7 +36,8 @@ class AppJwtAuthenticationConverterTests {
     @Test
     void rejectsDisabledUser() {
         AppUserRepository userRepository = mock(AppUserRepository.class);
-        AppJwtAuthenticationConverter converter = new AppJwtAuthenticationConverter(userRepository);
+        UserAuthCacheService cacheService = new UserAuthCacheService(userRepository);
+        AppJwtAuthenticationConverter converter = new AppJwtAuthenticationConverter(cacheService);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user(AppUser.STATUS_DISABLED)));
 
         assertThrows(BadCredentialsException.class, () -> converter.convert(jwtWithTokenVersion(0)));
@@ -43,7 +46,8 @@ class AppJwtAuthenticationConverterTests {
     @Test
     void rejectsOldTokenAfterLogoutChangesTokenVersion() {
         AppUserRepository userRepository = mock(AppUserRepository.class);
-        AppJwtAuthenticationConverter converter = new AppJwtAuthenticationConverter(userRepository);
+        UserAuthCacheService cacheService = new UserAuthCacheService(userRepository);
+        AppJwtAuthenticationConverter converter = new AppJwtAuthenticationConverter(cacheService);
         AppUser user = user(AppUser.STATUS_ACTIVE);
         user.incrementTokenVersion();
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));

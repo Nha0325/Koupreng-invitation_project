@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────
-   DatePicker — same style as TimePicker
+   DatePicker — Modern Khmer Event Date Picker
 ───────────────────────────────────────── */
 
 .dp-wrap {
@@ -14,38 +14,52 @@
     min-width: 0;
     height: 40px;
     border-radius: 8px;
-    border: 1px solid #dcd3c4;
-    background: #fdfbf7;
+    border: 1px solid #e0d8cc;
+    background: #fcfbf9;
     padding: 0 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
     font-family: inherit;
     font-size: 0.88rem;
     transition: all 0.2s ease;
     text-align: left;
     box-sizing: border-box;
+    color: #222222;
 }
 
-.dp-trigger:hover,
-.dp-trigger.open {
-    border-color: #c51c35;
+.dp-trigger:hover {
+    border-color: #c5b9a5;
     background: #ffffff;
 }
 
 .dp-trigger.open {
-    box-shadow: 0 0 0 3px rgba(197, 28, 53, 0.1);
+    border-color: #b98b42;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(185, 139, 66, 0.12);
 }
 
 .dp-cal-icon {
-    color: #bbb;
+    color: #b98b42;
     flex-shrink: 0;
 }
 
+.dp-caret {
+    margin-left: auto;
+    color: #a8a096;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.dp-caret.open {
+    transform: rotate(180deg);
+    color: #b98b42;
+}
+
 .dp-placeholder {
-    font-size: 13px;
-    color: #aaa;
+    font-size: 0.8125rem;
+    color: #a8a096;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -53,9 +67,9 @@
 }
 
 .dp-value {
-    font-size: 13px;
-    color: #333;
-    font-weight: 500;
+    font-size: 0.875rem;
+    color: #222222;
+    font-weight: 600;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -67,19 +81,28 @@
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
-    z-index: 200;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #ede5d8;
+    box-shadow: 0 14px 40px rgba(74, 56, 33, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
     padding: 16px;
-    min-width: 290px;
-    animation: dp-fade-in 0.15s ease;
+    width: 290px;
+    box-sizing: border-box;
+    animation: dp-fade-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dp-dropdown.drop-up {
+    top: auto;
+    bottom: calc(100% + 6px);
+    box-shadow: 0 -14px 40px rgba(74, 56, 33, 0.14), 0 -2px 8px rgba(0, 0, 0, 0.04);
+    animation: dp-fade-in-up 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (max-width: 640px) {
     .dp-dropdown {
-        min-width: 100%;
-        max-width: calc(100vw - 96px);
+        width: min(290px, calc(100vw - 32px));
+        left: 0;
     }
 }
 
@@ -88,7 +111,17 @@
         opacity: 0;
         transform: translateY(-6px);
     }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
+@keyframes dp-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
     to {
         opacity: 1;
         transform: translateY(0);
@@ -106,27 +139,27 @@
 .dp-month-year {
     font-size: 14px;
     font-weight: 700;
-    color: #1a1a2e;
+    color: #222222;
 }
 
 .dp-nav-btn {
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    border: 1.5px solid #ebebeb;
-    background: #f9f9f9;
+    border: 1px solid #e0d8cc;
+    background: #fdfbf7;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #555;
-    transition: border-color 0.15s, background 0.15s;
+    color: #555555;
+    transition: all 0.15s ease;
 }
 
 .dp-nav-btn:hover {
-    border-color: #e11d48;
-    background: #fff;
-    color: #e11d48;
+    border-color: #b98b42;
+    background: #ffffff;
+    color: #b98b42;
 }
 
 /* ── Weekday labels ── */
@@ -139,8 +172,8 @@
 
 .dp-weekday {
     font-size: 11px;
-    font-weight: 600;
-    color: #aaa;
+    font-weight: 700;
+    color: #8c7b6c;
     text-align: center;
     padding: 4px 0;
 }
@@ -164,8 +197,9 @@
     background: transparent;
     cursor: pointer;
     font-family: inherit;
-    color: #333;
-    transition: background 0.15s, color 0.15s;
+    color: #333333;
+    font-weight: 500;
+    transition: all 0.15s ease;
 }
 
 .dp-empty {
@@ -173,24 +207,25 @@
 }
 
 .dp-day:hover {
-    background: #fef2f2;
-    color: #e11d48;
+    background: #fdf2f4;
+    color: #c51c35;
 }
 
 .dp-day.today {
-    border: 1.5px solid #e11d48;
-    font-weight: 600;
-}
-
-.dp-day.selected {
-    background: #e11d48;
-    color: #fff;
+    border: 1.5px solid #c51c35;
     font-weight: 700;
 }
 
+.dp-day.selected {
+    background: #c51c35;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(197, 28, 53, 0.3);
+}
+
 .dp-day.selected:hover {
-    background: #be123c;
-    color: #fff;
+    background: #ad182e;
+    color: #ffffff;
 }
 
 /* ── Actions ── */
@@ -200,39 +235,41 @@
     justify-content: flex-end;
     margin-top: 12px;
     padding-top: 10px;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #f0ebe1;
 }
 
 .dp-btn-today {
     padding: 7px 16px;
-    border-radius: 999px;
+    border-radius: 8px;
     border: none;
-    background: #e11d48;
-    color: #fff;
+    background: #c51c35;
+    color: #ffffff;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     font-family: inherit;
-    transition: background 0.15s;
+    box-shadow: 0 2px 6px rgba(197, 28, 53, 0.25);
+    transition: all 0.15s ease;
 }
 
 .dp-btn-today:hover {
-    background: #be123c;
+    background: #ad182e;
 }
 
 .dp-btn-cancel {
     padding: 7px 16px;
-    border-radius: 999px;
-    border: 1.5px solid #e0e0e0;
-    background: #fff;
-    color: #555;
+    border-radius: 8px;
+    border: 1px solid #dcd3c4;
+    background: #ffffff;
+    color: #555555;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
-    transition: border-color 0.15s;
+    transition: all 0.15s ease;
 }
 
 .dp-btn-cancel:hover {
-    border-color: #aaa;
+    background: #f5f5f7;
+    border-color: #bbb;
 }

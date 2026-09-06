@@ -1,0 +1,336 @@
+/* Bliss & Bone High-Fashion Editorial Stylesheet */
+:root {
+  --bliss-bg: #faf8f5;
+  --bliss-surface: #ffffff;
+  --bliss-charcoal: #1c1917;
+  --bliss-dark-muted: #44403c;
+  --bliss-taupe: #78716c;
+  --bliss-border: #e7e5e4;
+  --bliss-gold: #c5a059;
+  --bliss-gold-soft: #f4ece1;
+}
+
+.bliss-container {
+  min-height: 100vh;
+  background-color: var(--bliss-bg);
+  color: var(--bliss-charcoal);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Kantumruy Pro", serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Editorial Minimalist Header */
+.bliss-header {
+  padding: 2.5rem 2rem;
+  border-bottom: 1px solid var(--bliss-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bliss-bg);
+}
+
+.bliss-monogram {
+  font-family: "Cinzel", "Playfair Display", Georgia, serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--bliss-charcoal);
+}
+
+.bliss-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.bliss-header-link {
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bliss-dark-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.bliss-header-link:hover {
+  color: var(--bliss-gold);
+}
+
+.bliss-rsvp-trigger {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--bliss-charcoal);
+  color: #ffffff;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid var(--bliss-charcoal);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.bliss-rsvp-trigger:hover {
+  background: transparent;
+  color: var(--bliss-charcoal);
+}
+
+/* Split-Screen Hero */
+.bliss-hero-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 85vh;
+  border-bottom: 1px solid var(--bliss-border);
+}
+
+.bliss-hero-visual {
+  position: relative;
+  overflow: hidden;
+  background: #292524;
+}
+
+.bliss-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: contrast(1.05) saturate(0.95);
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bliss-hero-visual:hover .bliss-hero-img {
+  transform: scale(1.03);
+}
+
+.bliss-hero-editorial {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 5rem;
+  background: var(--bliss-bg);
+}
+
+.bliss-issue-tag {
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bliss-gold);
+  margin-bottom: 2rem;
+}
+
+.bliss-editorial-names {
+  font-family: "Cinzel", "Playfair Display", Georgia, serif;
+  font-size: clamp(3rem, 5.5vw, 5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  margin-bottom: 2rem;
+  letter-spacing: -0.02em;
+}
+
+.bliss-editorial-date {
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  color: var(--bliss-taupe);
+  margin-bottom: 2.5rem;
+  text-transform: uppercase;
+}
+
+.bliss-quote {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--bliss-dark-muted);
+  line-height: 1.8;
+  border-left: 2px solid var(--bliss-gold);
+  padding-left: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+/* Editorial Program Section */
+.bliss-section {
+  padding: 6rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.bliss-section-heading {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.bliss-kicker {
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--bliss-gold);
+  margin-bottom: 1rem;
+}
+
+.bliss-title {
+  font-family: "Cinzel", "Playfair Display", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Asymmetrical Program Grid */
+.bliss-program-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bliss-program-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--bliss-border);
+  gap: 2rem;
+}
+
+.bliss-program-time {
+  font-family: "Cinzel", serif;
+  font-size: 1.15rem;
+  color: var(--bliss-gold);
+  letter-spacing: 0.1em;
+}
+
+.bliss-program-title {
+  font-family: "Cinzel", "Playfair Display", serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 0.6rem;
+}
+
+.bliss-program-desc {
+  font-size: 0.95rem;
+  color: var(--bliss-taupe);
+  line-height: 1.7;
+}
+
+/* Asymmetrical Gallery Spread */
+.bliss-gallery-spread {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2rem;
+  align-items: center;
+  margin-top: 3rem;
+}
+
+.bliss-gallery-col-1 {
+  grid-column: span 7;
+  height: 580px;
+}
+
+.bliss-gallery-col-2 {
+  grid-column: span 5;
+  height: 440px;
+}
+
+.bliss-gallery-col-3 {
+  grid-column: span 4;
+  height: 480px;
+}
+
+.bliss-gallery-col-4 {
+  grid-column: span 8;
+  height: 520px;
+}
+
+.bliss-gallery-frame {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #e7e5e4;
+  position: relative;
+}
+
+.bliss-gallery-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+}
+
+.bliss-gallery-frame:hover img {
+  transform: scale(1.04);
+}
+
+/* Slide-out RSVP Drawer */
+.bliss-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.bliss-drawer-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.bliss-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  z-index: 501;
+  padding: 3.5rem 2.5rem;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+  transform: translateX(100%);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+}
+
+.bliss-drawer.open {
+  transform: translateX(0);
+}
+
+.bliss-drawer-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--bliss-taupe);
+}
+
+.bliss-drawer-title {
+  font-family: "Cinzel", serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+}
+
+/* Media Queries */
+@media (max-width: 900px) {
+  .bliss-hero-split {
+    grid-template-columns: 1fr;
+  }
+  .bliss-hero-visual {
+    height: 50vh;
+  }
+  .bliss-hero-editorial {
+    padding: 3rem 1.5rem;
+  }
+  .bliss-program-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .bliss-gallery-col-1,
+  .bliss-gallery-col-2,
+  .bliss-gallery-col-3,
+  .bliss-gallery-col-4 {
+    grid-column: span 12;
+    height: 380px;
+  }
+}

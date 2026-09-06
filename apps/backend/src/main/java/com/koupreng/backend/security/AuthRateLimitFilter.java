@@ -25,7 +25,9 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             "/api/auth/login", AuthEndpoint.LOGIN,
             "/api/auth/register", AuthEndpoint.REGISTER,
             "/api/auth/google", AuthEndpoint.SOCIAL,
-            "/api/auth/telegram", AuthEndpoint.SOCIAL
+            "/api/auth/telegram", AuthEndpoint.SOCIAL,
+            "/api/auth/forgot-password", AuthEndpoint.FORGOT_PASSWORD,
+            "/api/auth/reset-password", AuthEndpoint.RESET_PASSWORD
     );
 
     private final AppProperties.Auth authProperties;
@@ -82,6 +84,8 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             case LOGIN -> authProperties.getMaxLoginAttemptsPerMinute();
             case REGISTER -> authProperties.getMaxRegisterAttemptsPerMinute();
             case SOCIAL -> authProperties.getMaxSocialLoginAttemptsPerMinute();
+            case FORGOT_PASSWORD -> authProperties.getMaxForgotPasswordAttemptsPerMinute();
+            case RESET_PASSWORD -> authProperties.getMaxResetPasswordAttemptsPerMinute();
         };
     }
 
@@ -105,6 +109,8 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     private enum AuthEndpoint {
         LOGIN,
         REGISTER,
-        SOCIAL
+        SOCIAL,
+        FORGOT_PASSWORD,
+        RESET_PASSWORD
     }
 }

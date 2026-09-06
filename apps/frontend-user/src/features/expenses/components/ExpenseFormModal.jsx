@@ -42,7 +42,7 @@ export function ExpenseFormModal({
                             )}
                         </h3>
                         <div className="exp-form-body">
-                            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                            <div className="exp-form-col">
                                 <label className="exp-field-full">
                                     <span>{t ? t("fieldName") : "Expense Item Name"} <em>*</em></span>
                                     <input
@@ -64,7 +64,7 @@ export function ExpenseFormModal({
                                         ))}
                                     </select>
                                 </label>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                <div className="exp-budget-grid">
                                     <label className="exp-field-full">
                                         <span>{t ? t("fieldBudget") : "Estimated Budget ($)"}</span>
                                         <div className="exp-input-with-icon">
@@ -105,69 +105,79 @@ export function ExpenseFormModal({
                                 </label>
                             </div>
 
-                            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                            <div className="exp-form-col">
                                 <label className="exp-field-full">
                                     <span>{t ? t("fieldVendor") : "Vendor Name"}</span>
                                     <input
                                         type="text"
-                                        placeholder="e.g. Sokha Hotel, Wedding Studio..."
+                                        placeholder={t ? t("fieldVendorPlaceholder") || "e.g. Sokha Hotel, Wedding Studio..." : "e.g. Sokha Hotel, Wedding Studio..."}
                                         value={form.vendorName}
                                         onChange={(e) => updateForm("vendorName", e.target.value)}
                                     />
                                 </label>
-                                <label className="exp-field-full" style={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                                <label className="exp-field-full exp-field-notes">
                                     <span>{t ? t("fieldNotes") : "Additional Notes"}</span>
                                     <textarea
+                                        rows={3}
                                         placeholder={t ? t("placeholderNotes") : "Contract details or contact numbers..."}
                                         value={form.notesText}
                                         onChange={(e) => updateForm("notesText", e.target.value)}
-                                        style={{ flexGrow: 1, resize: "none" }}
                                     />
                                 </label>
 
                                 {/* Payments / Deposits section */}
                                 <div className="exp-payments-section">
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                                        <span style={{ fontSize: "13px", fontWeight: 700 }}>
+                                    <div className="exp-payments-header">
+                                        <span className="exp-payments-title">
                                             {t ? t("paymentsTitle") : "Payments & Installments"} ({form.payments?.length || 0})
                                         </span>
                                         <button
                                             type="button"
                                             className="exp-add-payment-btn"
                                             onClick={addPaymentRow}
-                                            style={{ fontSize: "12px", padding: "4px 8px" }}
                                         >
                                             <IoAddOutline aria-hidden="true" />
                                             {t ? t("addPaymentBtn") : "+ Add"}
                                         </button>
                                     </div>
-                                    {(form.payments || []).map((p, idx) => (
-                                        <div key={idx} style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "6px" }}>
-                                            <input
-                                                type="text"
-                                                placeholder="Description / Note"
-                                                value={p.desc || ""}
-                                                onChange={(e) => updatePaymentRow(idx, "desc", e.target.value)}
-                                                style={{ flex: "2 1 0", fontSize: "12px", padding: "6px" }}
-                                            />
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="any"
-                                                placeholder="$"
-                                                value={p.amount || ""}
-                                                onChange={(e) => updatePaymentRow(idx, "amount", e.target.value)}
-                                                style={{ flex: "1 1 0", fontSize: "12px", padding: "6px" }}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => removePaymentRow(idx)}
-                                                style={{ border: "none", background: "transparent", color: "#ef4444", cursor: "pointer" }}
-                                            >
-                                                <IoTrashOutline aria-hidden="true" />
-                                            </button>
+                                    {(form.payments || []).length === 0 ? (
+                                        <div className="exp-payments-empty">
+                                            {t ? t("paymentsEmpty") || "មិនទាន់មានការកក់ប្រាក់ ឬបង់រំលស់ទេ" : "No deposits or installments recorded yet."}
                                         </div>
-                                    ))}
+                                    ) : (
+                                        (form.payments || []).map((p, idx) => (
+                                            <div key={idx} className="exp-payment-row">
+                                                <input
+                                                    type="text"
+                                                    className="exp-payment-desc"
+                                                    placeholder="Description (e.g. Deposit)"
+                                                    value={p.desc || ""}
+                                                    onChange={(e) => updatePaymentRow(idx, "desc", e.target.value)}
+                                                />
+                                                <div className="exp-payment-amount-wrap">
+                                                    <span className="exp-input-prefix">$</span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="any"
+                                                        className="exp-payment-amount"
+                                                        placeholder="0"
+                                                        value={p.amount || ""}
+                                                        onChange={(e) => updatePaymentRow(idx, "amount", e.target.value)}
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="exp-payment-del-btn"
+                                                    title="Delete"
+                                                    aria-label="Delete installment"
+                                                    onClick={() => removePaymentRow(idx)}
+                                                >
+                                                    <IoTrashOutline aria-hidden="true" />
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         </div>

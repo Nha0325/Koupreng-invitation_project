@@ -32,6 +32,24 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path={ADMIN_ROUTE_PATHS.login} element={<LoginPage />} />
+            {/* Standalone Fullscreen Template Visual Studio */}
+            <Route
+              path={ADMIN_ROUTE_PATHS.templateNew}
+              element={
+                <RequireAdmin>
+                  <TemplateEditPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path={ADMIN_ROUTE_PATHS.templateEdit}
+              element={
+                <RequireAdmin>
+                  <TemplateEditPage />
+                </RequireAdmin>
+              }
+            />
+
             <Route
               element={
                 <RequireAdmin>
@@ -47,8 +65,6 @@ export default function App() {
               <Route path={ADMIN_ROUTE_PATHS.invitations} element={<InvitationsPage />} />
               <Route path={ADMIN_ROUTE_PATHS.invitationDetail} element={<InvitationDetailPage />} />
               <Route path={ADMIN_ROUTE_PATHS.templates} element={<TemplatesPage />} />
-              <Route path={ADMIN_ROUTE_PATHS.templateNew} element={<TemplateEditPage />} />
-              <Route path={ADMIN_ROUTE_PATHS.templateEdit} element={<TemplateEditPage />} />
               <Route path={ADMIN_ROUTE_PATHS.payments} element={<PaymentsPage />} />
               <Route path={ADMIN_ROUTE_PATHS.packages} element={<PackagesPage />} />
               <Route path={ADMIN_ROUTE_PATHS.notifications} element={<NotificationsPage />} />

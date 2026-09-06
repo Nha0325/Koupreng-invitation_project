@@ -231,7 +231,7 @@ input:checked + .pe-slider:before {
   border-radius: 12px;
   margin-bottom: 28px;
   background: #ffffff;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .pe-agenda-header {
@@ -245,6 +245,7 @@ input:checked + .pe-slider:before {
   font-size: 0.9375rem;
   user-select: none;
   background: #ffffff;
+  border-radius: 12px 12px 0 0;
   transition: background-color 0.2s ease;
 }
 
@@ -272,6 +273,7 @@ input:checked + .pe-slider:before {
   padding: 20px;
   border-top: 1px solid #f0e9df;
   background: #faf8f5;
+  border-radius: 0 0 12px 12px;
 }
 
 /* Empty State inside Agenda */
@@ -376,15 +378,23 @@ input:checked + .pe-slider:before {
 
 .pe-subitem-row {
   display: grid;
-  grid-template-columns: 1fr 140px 36px;
-  gap: 10px;
-  align-items: center;
+  grid-template-columns: 1fr 165px 36px;
+  gap: 12px;
+  align-items: flex-end;
 }
 
-@media (max-width: 540px) {
+@media (max-width: 600px) {
   .pe-subitem-row {
-    grid-template-columns: 1fr 100px 30px;
+    grid-template-columns: 1fr 140px 36px;
+    gap: 8px;
   }
+}
+
+.pe-subitem-del-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
 }
 
 .pe-subitem-del-btn {
@@ -392,11 +402,13 @@ input:checked + .pe-slider:before {
   border: none;
   color: #ef4444;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
+  padding: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.15rem;
+  transition: all 0.2s;
 }
 
 .pe-subitem-del-btn:hover {

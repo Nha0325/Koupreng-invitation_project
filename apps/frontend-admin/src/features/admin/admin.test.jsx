@@ -11,6 +11,7 @@ vi.mock("./adminManagementService", () => ({
   default: {
     users: vi.fn().mockResolvedValue([
       { id: 1, fullName: "Koupreng Admin", email: "admin@koupreng.com", role: "ADMIN", status: "ACTIVE", active: true, createdAt: "2026-08-01T00:00:00Z" },
+      { id: 2, fullName: "Sophea User", email: "sophea@koupreng.com", role: "USER", status: "ACTIVE", active: true, createdAt: "2026-08-01T00:00:00Z" },
     ]),
     invitations: vi.fn().mockResolvedValue([
       { id: 10, title: "Dara & Sophea Wedding", slug: "dara-sophea", ownerName: "Dara", status: "PUBLISHED", moderationStatus: "ACTIVE", eventDate: "2026-11-20" },
@@ -37,8 +38,9 @@ describe("Admin Feature Pages", () => {
       </MemoryRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText("Koupreng Admin")).toBeInTheDocument();
-      expect(screen.getByText("admin@koupreng.com")).toBeInTheDocument();
+      expect(screen.getByText("Sophea User")).toBeInTheDocument();
+      expect(screen.getByText("sophea@koupreng.com")).toBeInTheDocument();
+      expect(screen.queryByText("Koupreng Admin")).not.toBeInTheDocument();
     });
   });
 

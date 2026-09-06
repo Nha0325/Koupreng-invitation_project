@@ -47,7 +47,7 @@ export function GiftTable({ gifts = [], editGift, deleteGift, saving, t }) {
                         <th>{t ? t("colMethod") : "Payment Method"}</th>
                         <th>{t ? t("colDate") : "Date"}</th>
                         <th>{t ? t("colNote") : "Wishes / Notes"}</th>
-                        <th className="wg-th-actions">{t ? t("colActions") : "Actions"}</th>
+                        <th className="wg-th-actions"></th>
                     </tr>
                 </thead>
                 <tbody>

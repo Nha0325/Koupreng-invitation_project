@@ -44,6 +44,10 @@ export const budgetService = {
     api.put(`/v1/invitations/${invitationId}/budget-items/${itemId}`, data).then(unwrap),
   deletePlanningItem: (invitationId, itemId) =>
     api.delete(`/v1/invitations/${invitationId}/budget-items/${itemId}`).then(unwrap),
+  list: (invitationId) => budgetService.listItems(invitationId),
+  create: (invitationId, data) => budgetService.createItem(invitationId, data),
+  update: (invitationId, itemId, data) => budgetService.updatePlanningItem(invitationId, itemId, data),
+  remove: (invitationId, itemId) => budgetService.deletePlanningItem(invitationId, itemId),
 };
 
 export default budgetService;

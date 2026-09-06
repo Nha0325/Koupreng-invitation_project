@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ApiError } from "./ApiError";
 import { getStoredLang } from "./helpers";
-import { getAccessToken, isCookieAuthStorage } from "../storage/authStorage";
+import { clearStoredAuth, getAccessToken, isCookieAuthStorage } from "../storage/authStorage";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -45,6 +45,15 @@ apiClient.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const data = error.response?.data;
+
+    if (status === 401) {
+      clearStoredAuth();
+      if (typeof window !== "undefined" && window.location && !window.location.pathname.startsWith("/login")) {
+        const next = `${window.location.pathname}${window.location.search || ""}${window.location.hash || ""}`;
+        window.location.href = `/login?next=${encodeURIComponent(next)}`;
+      }
+    }
+
     const message = data?.message || error.response?.statusText || error.message || "Request failed";
 
     throw new ApiError(message, status, data);
@@ -59,4 +68,5 @@ export const api = {
   delete: (path, opts) => apiClient.delete(path, opts),
 };
 
+export { apiClient };
 export default api;

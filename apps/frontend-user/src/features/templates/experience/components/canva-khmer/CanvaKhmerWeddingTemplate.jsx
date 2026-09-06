@@ -18,6 +18,7 @@ import {
     IoPause,
     IoTimeOutline,
 } from "react-icons/io5";
+import { formatTime24toKhmer } from "@/shared/ui/TimePicker";
 
 const ASSET_ROOT = "/invitations/canva-khmer";
 const NAV_ITEMS = [
@@ -242,18 +243,25 @@ function CanvaKhmerOpeningCover({ content, onOpen }) {
             <div className="ck-cover__monogram" aria-label={`អក្សរកាត់ ${content.monogramText}`}>{content.monogramText}</div>
             <div className="ck-cover__title">
                 <small>THE WEDDING INVITATION</small>
-                <h1>{content.eventTitle || "សិរីមង្គលអាពាហ៍ពិពាហ៍"}</h1>
+                <h1>{content.title || content.eventTitle || "សិរីមង្គលអាពាហ៍ពិពាហ៍"}</h1>
             </div>
-            <p className="ck-cover__names">
-                <strong>{content.groom}</strong>
-                <span>❦</span>
-                <strong>{content.bride}</strong>
-            </p>
+            {!content.hideCoupleNameOnCover && (
+                <p className="ck-cover__names">
+                    <strong>{content.groom}</strong>
+                    <span>❦</span>
+                    <strong>{content.bride}</strong>
+                </p>
+            )}
             <button type="button" className="ck-cover__open" onClick={onOpen}>
                 ចុចទីនេះដើម្បីមើលព័ត៌មានលម្អិត
                 <IoChevronDownOutline aria-hidden="true" />
             </button>
-            {content.dateText && <time className="ck-cover__date">{content.dateText}</time>}
+            {content.dateText && (
+                <time className="ck-cover__date">
+                    {content.dateText}
+                    {content.eventTime ? ` • ${formatTime24toKhmer(content.eventTime) || content.eventTime}` : ""}
+                </time>
+            )}
         </motion.section>
     );
 }
@@ -272,12 +280,19 @@ function CanvaKhmerGardenHero({ content, sectionRef, onDetails }) {
             <div className="ck-hero__copy">
                 <p>THE WEDDING INVITATION</p>
                 <div className="ck-hero__monogram">{content.monogramText}</div>
-                <h1>{content.eventTitle || "សិរីមង្គលអាពាហ៍ពិពាហ៍"}</h1>
-                <div className="ck-hero__names"><strong>{content.groom}</strong><span>❦</span><strong>{content.bride}</strong></div>
+                <h1>{content.title || content.eventTitle || "សិរីមង្គលអាពាហ៍ពិពាហ៍"}</h1>
+                {!content.hideCoupleNameOnCover && (
+                    <div className="ck-hero__names"><strong>{content.groom}</strong><span>❦</span><strong>{content.bride}</strong></div>
+                )}
                 {nicknames && <small>{nicknames}</small>}
-                {content.dateText && <time>{content.dateText}</time>}
+                {content.dateText && (
+                    <time>
+                        {content.dateText}
+                        {content.eventTime ? ` • ${formatTime24toKhmer(content.eventTime) || content.eventTime}` : ""}
+                    </time>
+                )}
                 {content.venue?.name && <b>{content.venue.name}</b>}
-                <button type="button" onClick={onDetails}>សូមគោរពអញ្ជើញ</button>
+                <button type="button" onClick={onDetails}>{content.subtitle || "សូមគោរពអញ្ជើញ"}</button>
             </div>
         </section>
     );
@@ -309,7 +324,7 @@ function CanvaKhmerInvitationDetails({ content, sectionRef, showCountdown }) {
         <section id="ck-details" className="ck-slice ck-details" ref={sectionRef} data-ck-section="details">
             <CanvaArtwork name="details" />
             <div className="ck-details__paper">
-                <SectionTitle english="TOGETHER WITH OUR FAMILIES">សូមគោរពអញ្ជើញ</SectionTitle>
+                <SectionTitle english="TOGETHER WITH OUR FAMILIES">{content.subtitle || "សូមគោរពអញ្ជើញ"}</SectionTitle>
                 {parents.length > 0 && (
                     <div className="ck-details__parents">
                         {parents.map(([label, value]) => <p key={label}><small>{label}</small><strong>{value}</strong></p>)}

@@ -137,4 +137,32 @@ class FileUploadValidatorTests {
 
         assertEquals(HttpStatus.CONTENT_TOO_LARGE, exception.getStatus());
     }
+
+    @Test
+    void rejectsSvgUploadOutright() {
+        MockMultipartFile svgFile = new MockMultipartFile(
+                "file",
+                "malicious.svg",
+                "image/svg+xml",
+                "<svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(1)</script></svg>".getBytes()
+        );
+
+        ApiException exception = assertThrows(ApiException.class, () -> validator.validate(svgFile));
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("SVG uploads are not permitted", exception.getMessage());
+    }
+
+    @Test
+    void requireImageRejectsNonImage() {
+        MockMultipartFile pdfFile = new MockMultipartFile(
+                "file",
+                "document.pdf",
+                "application/pdf",
+                new byte[]{0x25, 0x50, 0x44, 0x46}
+        );
+
+        ApiException exception = assertThrows(ApiException.class, () -> validator.requireImage(pdfFile));
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("Profile image must be a JPEG, PNG, or WebP image", exception.getMessage());
+    }
 }

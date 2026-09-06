@@ -17,6 +17,8 @@ import { invitationService } from "@/features/invitations/api/invitationApi";
 import { getTemplateById } from "../templates/data/templatesData";
 import { saveDraft } from "@/shared/storage/weddingStorage";
 import { toast } from "@/shared/ui/toast";
+import { DatePicker } from "@/shared/ui/DatePicker";
+import { TimePicker } from "@/shared/ui/TimePicker";
 import "./WeddingBuilderFeature.css";
 
 const EVENT_TYPES = [
@@ -109,7 +111,7 @@ export default function WeddingBuilderFeature() {
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         title: "",
-        items: [{ id: `${Date.now()}-1`, name: "", time: "" }],
+        items: [{ id: `${Date.now()}-1`, name: "", time: "07:00" }],
       },
     ]);
   };
@@ -120,7 +122,7 @@ export default function WeddingBuilderFeature() {
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         title: "",
-        items: [{ id: `${Date.now()}-item`, name: "", time: "" }],
+        items: [{ id: `${Date.now()}-item`, name: "", time: "07:00" }],
       },
     ]);
   };
@@ -146,7 +148,7 @@ export default function WeddingBuilderFeature() {
             {
               id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
               name: "",
-              time: "",
+              time: "07:00",
             },
           ],
         };
@@ -402,12 +404,10 @@ export default function WeddingBuilderFeature() {
               <label className="pe-field-label">
                 កាលបរិច្ឆេទចាប់ផ្តើមកម្មវិធី <span className="required-star">*</span>
               </label>
-              <input
-                type="date"
-                className="pe-input"
+              <DatePicker
                 value={form.eventDate}
-                onChange={(e) => handleFieldChange("eventDate", e.target.value)}
-                required
+                onChange={(val) => handleFieldChange("eventDate", val)}
+                placeholder="ជ្រើសកាលបរិច្ឆេទ"
               />
             </div>
 
@@ -415,12 +415,10 @@ export default function WeddingBuilderFeature() {
               <label className="pe-field-label">
                 ម៉ោងពិសារភោជនាហារពេលល្ងាច <span className="required-star">*</span>
               </label>
-              <input
-                type="time"
-                className="pe-input"
+              <TimePicker
                 value={form.eventTime}
-                onChange={(e) => handleFieldChange("eventTime", e.target.value)}
-                required
+                onChange={(val) => handleFieldChange("eventTime", val)}
+                placeholder="ជ្រើសម៉ោង"
               />
             </div>
 
@@ -556,18 +554,16 @@ export default function WeddingBuilderFeature() {
                                 <label className="pe-field-label" style={{ fontSize: "0.75rem" }}>
                                   ម៉ោង <span className="required-star">*</span>
                                 </label>
-                                <input
-                                  type="text"
-                                  className="pe-input"
-                                  placeholder="ជ្រើសរើសម៉ោង"
+                                <TimePicker
                                   value={item.time}
-                                  onChange={(e) =>
-                                    handleSubItemChange(dayIndex, itemIndex, "time", e.target.value)
+                                  onChange={(val) =>
+                                    handleSubItemChange(dayIndex, itemIndex, "time", val)
                                   }
+                                  placeholder="ជ្រើសរើសម៉ោង"
                                 />
                               </div>
 
-                              <div style={{ paddingTop: "20px" }}>
+                              <div className="pe-subitem-del-wrap">
                                 <button
                                   type="button"
                                   className="pe-subitem-del-btn"

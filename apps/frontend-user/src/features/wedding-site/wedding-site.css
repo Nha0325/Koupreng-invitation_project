@@ -21,6 +21,13 @@
     font-family: 'Noto Serif Khmer', 'Playfair Display', serif;
 }
 
+.tpl-wed-root--embedded {
+    min-height: 100vh;
+    height: 100%;
+    background: transparent;
+    overflow-x: hidden;
+}
+
 .tpl-preview {
     position: relative;
     width: 100%;

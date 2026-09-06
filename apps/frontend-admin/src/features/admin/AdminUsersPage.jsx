@@ -16,12 +16,17 @@ export default function AdminUsersPage() {
 
   const users = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (data || []).filter((user) => {
-      if (!q) return true;
-      return [user.fullName, user.email, user.phone, user.role, user.status]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(q));
-    });
+    return (data || [])
+      .filter((user) => {
+        const role = String(user?.role || "").toUpperCase();
+        return role !== "ADMIN" && role !== "ROLE_ADMIN";
+      })
+      .filter((user) => {
+        if (!q) return true;
+        return [user.fullName, user.email, user.phone, user.role, user.status]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(q));
+      });
   }, [data, query]);
 
   const updateUser = async (user, action, value) => {
@@ -47,7 +52,7 @@ export default function AdminUsersPage() {
       <div className="page-head">
         <div>
           <h2 className="page-title">Users</h2>
-          <p className="page-subtitle">Search, inspect, activate, deactivate, and update roles.</p>
+          <p className="page-subtitle">Search, inspect, activate, and deactivate users.</p>
         </div>
       </div>
 
@@ -62,7 +67,7 @@ export default function AdminUsersPage() {
             <table className="data">
               <thead>
                 <tr>
-                  <th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Role</th><th>Joined</th><th>Actions</th>
+                  <th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -72,17 +77,6 @@ export default function AdminUsersPage() {
                     <td><Link className="btn btn-ghost btn-sm" to={`/users/${user.id}`}>{user.fullName || "—"}</Link></td>
                     <td>{user.email || user.phone || "—"}</td>
                     <td><span className={`badge ${user.active ? "badge-green" : "badge-gray"}`}>{user.status}</span></td>
-                    <td>
-                      <select
-                        className="select"
-                        value={user.role}
-                        disabled={busyId === user.id}
-                        onChange={(event) => updateUser(user, "role", event.target.value)}
-                      >
-                        <option value="USER">USER</option>
-                        <option value="ADMIN">ADMIN</option>
-                      </select>
-                    </td>
                     <td>{formatDate(user.createdAt)}</td>
                     <td>
                       <div className="row-actions">

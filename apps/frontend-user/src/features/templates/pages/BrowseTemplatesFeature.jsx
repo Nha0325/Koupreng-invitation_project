@@ -66,16 +66,19 @@ export default function BrowseTemplatesFeature() {
 
   useEffect(() => {
     let active = true;
-    paymentService.paidTemplates()
-      .then((res) => {
-        if (active && Array.isArray(res)) {
-          const ids = new Set(res.map((item) => String(item.templateId || item.id)));
-          setPaidIds(ids);
-        }
-      })
-      .catch(() => {
-        // Silently ignore if not authenticated or offline
-      });
+    if (typeof paymentService?.paidTemplates === "function") {
+      paymentService
+        .paidTemplates()
+        .then((res) => {
+          if (active && Array.isArray(res)) {
+            const ids = new Set(res.map((item) => String(item.templateId || item.id)));
+            setPaidIds(ids);
+          }
+        })
+        .catch(() => {
+          // Silently ignore if not authenticated or offline
+        });
+    }
     return () => {
       active = false;
     };

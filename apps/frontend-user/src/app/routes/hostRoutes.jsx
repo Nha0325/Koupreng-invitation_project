@@ -31,6 +31,7 @@ import RsvpDashboardPage from "../../features/rsvp/RsvpDashboardPage";
 import ReportsPage from "../../features/reports/ReportsPage";
 import QrPage from "../../features/qr/QrPage";
 import WishesPage from "../../features/wishes/WishesPage";
+import InvitationScopedRedirect from "./InvitationScopedRedirect";
 
 export function hostRoutes() {
   return (
@@ -62,6 +63,13 @@ export function hostRoutes() {
       <Route path="/dashboard/invitations/:invitationId/wishes" element={<WishesPage />} />
       <Route path="/dashboard/reports" element={<ReportsPage />} />
       <Route path="/dashboard/guests" element={<GuestsPage />} />
+      <Route path="/dashboard/seating" element={<InvitationScopedRedirect targetSubPath="seating" />} />
+      <Route path="/dashboard/check-in" element={<InvitationScopedRedirect targetSubPath="check-in" />} />
+      <Route path="/dashboard/rsvp" element={<InvitationScopedRedirect targetSubPath="rsvp" />} />
+      <Route path="/dashboard/media" element={<InvitationScopedRedirect targetSubPath="media" />} />
+      <Route path="/dashboard/delivery" element={<InvitationScopedRedirect targetSubPath="delivery" />} />
+      <Route path="/dashboard/share" element={<InvitationScopedRedirect targetSubPath="delivery" />} />
+      <Route path="/dashboard/budget" element={<Navigate to="/dashboard/expenses" replace />} />
       <Route path="/dashboard/expenses" element={<ExpensesPage />} />
       <Route path="/dashboard/gifts" element={<WeddingGiftPage />} />
       <Route path="/dashboard/templates/paid" element={<PaidTemplatesPage />} />

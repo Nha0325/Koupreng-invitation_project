@@ -1,58 +1,71 @@
-import { StatusBadge } from "@/shared/ui";
+import { EmptyState, StatusBadge } from "@/shared/ui";
+import { IoTimeOutline, IoArrowBackOutline } from "react-icons/io5";
 
 export function RsvpWishesWall({ wishesList = [], setViewMode }) {
   return (
-    <section className="dash-panel" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+    <section className="rsvp-board">
+      <div className="rsvp-wishes-head">
         <div>
-          <h2 style={{ fontSize: "1.125rem", margin: 0, fontWeight: 700 }}>ផ្ទាំងសារជូនពរមង្គលការ (Guest Wishes Wall)</h2>
-          <small style={{ color: "#64748b" }}>សារជូនពរដែលបានផ្ញើតាមរយៈទំព័រធៀបឌីជីថល</small>
+          <h2>ផ្ទាំងសារជូនពរមង្គលការ (Guest Wishes Wall)</h2>
+          <p>សារជូនពរដែលបានផ្ញើតាមរយៈទំព័រធៀបឌីជីថល</p>
         </div>
         <button
           type="button"
-          className="dash-btn dash-btn-sm"
+          className="rsvp-return-btn"
           onClick={() => setViewMode("TABLE")}
         >
-          ត្រឡប់ទៅតារាង RSVP
+          <IoArrowBackOutline aria-hidden="true" />
+          <span>ត្រឡប់ទៅតារាង RSVP</span>
         </button>
       </div>
 
       {wishesList.length === 0 ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "#94a3b8" }}>
-          មិនទាន់មានសារជូនពរនៅឡើយទេ
+        <div className="rsvp-empty-box">
+          <EmptyState
+            title="មិនទាន់មានសារជូនពរនៅឡើយទេ"
+            description="នៅពេលភ្ញៀវឆ្លើយតប RSVP រួចផ្ញើសារជូនពរ វានឹងបង្ហាញនៅទីនេះ។"
+          />
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
-          {wishesList.map((item) => (
-            <article
-              key={item.id || item.guestId || Math.random()}
-              style={{
-                background: "#ffffff",
-                borderRadius: "8px",
-                padding: "1rem",
-                border: "1px solid #e2e8f0",
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ color: "#0f172a", fontSize: "0.9375rem" }}>
-                  {item.guestName || item.name || "ភ្ញៀវកិត្តិយស"}
-                </strong>
-                <StatusBadge status={(item.status || "PENDING").toLowerCase()} />
-              </div>
-              <p style={{ margin: 0, fontSize: "0.875rem", color: "#334155", fontStyle: "italic", lineHeight: 1.5 }}>
-                “{item.wish || item.message}”
-              </p>
-              {item.createdAt && (
-                <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "auto", paddingTop: "0.25rem" }}>
-                  {new Intl.DateTimeFormat("km-KH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.createdAt))}
+        <div className="rsvp-wishes-grid">
+          {wishesList.map((item) => {
+            const author = item.guestName || item.name || "ភ្ញៀវកិត្តិយស";
+            const initial = author.trim().charAt(0).toUpperCase();
+            const dateVal = item.createdAt || item.updatedAt;
+
+            return (
+              <article
+                key={item.id || item.guestId || Math.random()}
+                className="rsvp-wish-card"
+              >
+                <div className="rsvp-wish-header">
+                  <div className="rsvp-wish-author">
+                    <div className="rsvp-wish-avatar" aria-hidden="true">
+                      {initial}
+                    </div>
+                    <strong>{author}</strong>
+                  </div>
+                  <StatusBadge status={(item.status || "PENDING").toUpperCase()} />
                 </div>
-              )}
-            </article>
-          ))}
+
+                <p className="rsvp-wish-quote">
+                  “{item.wish || item.message}”
+                </p>
+
+                {dateVal && (
+                  <div className="rsvp-wish-footer">
+                    <IoTimeOutline aria-hidden="true" />
+                    <span>
+                      {new Intl.DateTimeFormat("km-KH", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(dateVal))}
+                    </span>
+                  </div>
+                )}
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

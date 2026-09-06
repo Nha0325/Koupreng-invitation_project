@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { IoAddOutline, IoSearchOutline } from "react-icons/io5";
+import { IoAddOutline, IoChevronDownOutline, IoSearchOutline } from "react-icons/io5";
 import { useClickOutside } from "../../../shared/hooks/useClickOutside";
 
 export function GuestSelectField({ value, onChange, options, placeholder, existingGifts = [], t }) {
@@ -26,29 +26,22 @@ export function GuestSelectField({ value, onChange, options, placeholder, existi
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     width: "100%", padding: "10px 14px", border: existingGiftForSelected ? "1.5px solid #FB7185" : "1.5px solid #eadfce",
                     borderRadius: "10px", background: "#fdfaf5", fontSize: "14px",
-                    cursor: "pointer", color: value ? "#333" : "#999", textAlign: "left",
-                    fontFamily: "inherit", minHeight: "48px"
+                    cursor: "pointer", color: value ? "#2a1f10" : "#a8a096", textAlign: "left",
+                    fontFamily: "inherit", minHeight: "44px", transition: "border-color 0.2s"
                 }}
             >
                 {selectedOption ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <span style={{ 
-                            display: "inline-flex", alignItems: "center", justifyContent: "center", 
-                            width: "28px", height: "28px", background: existingGiftForSelected ? "#FFE4E6" : "#f5efe5", 
-                            color: existingGiftForSelected ? "#E11D48" : "#2a3b5c", 
-                            borderRadius: "50%", fontSize: "12px", fontWeight: "bold", flexShrink: 0
-                        }}>
-                            {selectedOption.name.substring(0, 2).toUpperCase()}
-                        </span>
-                        <span style={{ fontWeight: 600, color: "#111" }}>{selectedOption.name}</span>
-                    </div>
+                    <span style={{ fontWeight: 600, color: "#2a1f10", fontSize: "14px" }}>
+                        {selectedOption.name}
+                    </span>
                 ) : (
-                    <span>{placeholder}</span>
+                    <span style={{ color: "#a8a096" }}>{placeholder}</span>
                 )}
-                <span style={{ fontSize: "16px", color: "#888", display: "flex", flexDirection: "column", lineHeight: "8px" }}>
-                    <span style={{ fontSize: "10px" }}>▲</span>
-                    <span style={{ fontSize: "10px" }}>▼</span>
-                </span>
+                <IoChevronDownOutline style={{ 
+                    fontSize: "15px", color: "#a8a096", 
+                    transform: open ? "rotate(180deg)" : "none", 
+                    transition: "transform 0.2s ease" 
+                }} />
             </button>
 
             {existingGiftForSelected && !open && (
@@ -130,24 +123,16 @@ export function GuestSelectField({ value, onChange, options, placeholder, existi
                                     type="button"
                                     onClick={() => { onChange(g.name); setOpen(false); setQuery(""); }}
                                     style={{
-                                        display: "flex", alignItems: "center", gap: "12px", width: "100%", 
-                                        padding: "12px 14px", border: "none", background: "transparent",
-                                        textAlign: "left", cursor: "pointer", fontSize: "15px", color: "#111",
+                                        display: "flex", alignItems: "center", gap: "10px", width: "100%", 
+                                        padding: "10px 14px", border: "none", background: "transparent",
+                                        textAlign: "left", cursor: "pointer", fontSize: "14px", color: "#2a1f10",
                                         borderBottom: "1px solid #f9f9f9", transition: "background 0.2s",
                                         fontFamily: "inherit"
                                     }}
                                     onMouseOver={(e) => e.currentTarget.style.background = "#fdfaf5"}
                                     onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
                                 >
-                                    <span style={{ 
-                                        display: "inline-flex", alignItems: "center", justifyContent: "center", 
-                                        width: "32px", height: "32px", background: pastGift ? "#FFE4E6" : "#f5efe5", 
-                                        color: pastGift ? "#E11D48" : "#2a3b5c", 
-                                        borderRadius: "50%", fontSize: "13px", fontWeight: "bold", flexShrink: 0
-                                    }}>
-                                        {g.name.substring(0, 2).toUpperCase()}
-                                    </span>
-                                    <span style={{ flexGrow: 1, display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <span style={{ flexGrow: 1, display: "flex", alignItems: "center", gap: "8px", fontWeight: 500 }}>
                                         {g.name}
                                         {pastGift && (
                                             <span style={{ 

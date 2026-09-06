@@ -74,7 +74,7 @@ export function useSeating(invitationId) {
     }, [plan]);
 
     const createTable = async (event) => {
-        event.preventDefault();
+        if (event && event.preventDefault) event.preventDefault();
         setSaving(true);
         setError("");
         try {
@@ -85,6 +85,26 @@ export function useSeating(invitationId) {
             });
             setTableForm(emptyTable);
             toast("Table created");
+            await load();
+        } catch (err) {
+            setError(err.message || "Could not create table");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const createTableWithData = async (payload) => {
+        setSaving(true);
+        setError("");
+        try {
+            await seatingService.createTable(invitationId, {
+                tableName: payload.tableName,
+                tableLabel: payload.tableLabel || "",
+                capacity: Number(payload.capacity || 10),
+                sortOrder: Number(payload.sortOrder || 0),
+                notes: payload.notes || JSON.stringify({ x: 50, y: 50 }),
+            });
+            toast("បានបន្ថែមតុលើប្លង់ជោគជ័យ (Table added to canvas)");
             await load();
         } catch (err) {
             setError(err.message || "Could not create table");
@@ -142,6 +162,64 @@ export function useSeating(invitationId) {
         }
     };
 
+    const updateTable = async (tableId, payload) => {
+        setSaving(true);
+        setError("");
+        try {
+            await seatingService.updateTable(invitationId, tableId, payload);
+            toast("Table updated");
+            await load();
+        } catch (err) {
+            setError(err.message || "Could not update table");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const saveTablePositions = async (positionsMap) => {
+        setSaving(true);
+        setError("");
+        try {
+            const tables = plan?.tables || [];
+            const updates = Object.entries(positionsMap).map(([tableId, pos]) => {
+                const table = tables.find((t) => String(t.id) === String(tableId));
+                if (!table) return null;
+
+                let existingNotesObj = {};
+                try {
+                    if (table.notes && table.notes.trim().startsWith("{")) {
+                        existingNotesObj = JSON.parse(table.notes);
+                    }
+                } catch {
+                    // ignore non-json notes
+                }
+
+                const updatedNotes = JSON.stringify({
+                    ...existingNotesObj,
+                    x: Math.round(pos.x * 10) / 10,
+                    y: Math.round(pos.y * 10) / 10,
+                    zone: pos.zone || existingNotesObj.zone || "hall",
+                });
+
+                return seatingService.updateTable(invitationId, table.id, {
+                    tableName: table.tableName,
+                    tableLabel: table.tableLabel,
+                    capacity: table.capacity,
+                    sortOrder: table.sortOrder,
+                    notes: updatedNotes,
+                });
+            }).filter(Boolean);
+
+            await Promise.all(updates);
+            toast("បានរក្សាទុកប្លង់សាលការរួចរាល់ (Floor plan saved)");
+            await load();
+        } catch (err) {
+            setError(err.message || "Could not save floor plan");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return {
         invitation,
         plan,
@@ -154,10 +232,14 @@ export function useSeating(invitationId) {
         saving,
         error,
         createTable,
+        createTableWithData,
+        updateTable,
+        saveTablePositions,
         assignGuest,
         unassign,
         deleteTable,
         exportCsv: () => seatingService.exportCsv(invitationId),
+        refresh: load,
     };
 }
 

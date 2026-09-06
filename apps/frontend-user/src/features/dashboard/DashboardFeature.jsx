@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import {
   IoAddCircle,
   IoAddCircleOutline,
-  IoBarChartOutline,
   IoCalendarClearOutline,
   IoCheckmarkCircle,
   IoCheckmarkCircleOutline,
@@ -13,11 +12,11 @@ import {
   IoCreateOutline,
   IoGiftOutline,
   IoGlobeOutline,
-  IoImagesOutline,
   IoLocationOutline,
   IoNotificationsOutline,
   IoPeopleOutline,
   IoQrCodeOutline,
+  IoRestaurantOutline,
   IoSparkles,
   IoWalletOutline,
   IoShareSocialOutline,
@@ -536,7 +535,7 @@ export default function DashboardFeature() {
                   </Link>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px" }}>
                   <div style={{ padding: "16px", borderRadius: "12px", background: "rgba(15, 118, 110, 0.08)", border: "1px solid rgba(15, 118, 110, 0.18)", textAlign: "center" }}>
                     <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#0f766e" }}>{stats.rsvpYes}</div>
                     <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#0f766e", marginTop: "4px" }}>{text("rsvpYes")}</div>
@@ -550,11 +549,6 @@ export default function DashboardFeature() {
                   <div style={{ padding: "16px", borderRadius: "12px", background: "rgba(185, 139, 66, 0.08)", border: "1px solid rgba(185, 139, 66, 0.18)", textAlign: "center" }}>
                     <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#b98b42" }}>{stats.rsvpPending}</div>
                     <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#b98b42", marginTop: "4px" }}>{text("rsvpPending")}</div>
-                  </div>
-
-                  <div style={{ padding: "16px", borderRadius: "12px", background: "rgba(124, 58, 237, 0.08)", border: "1px solid rgba(124, 58, 237, 0.18)", textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#7c3aed" }}>{stats.checkedInCount}</div>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#7c3aed", marginTop: "4px" }}>{text("rsvpCheckIn")}</div>
                   </div>
                 </div>
               </div>
@@ -654,6 +648,13 @@ export default function DashboardFeature() {
                 </div>
 
                 <div className="dash-quick-grid">
+                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/edit` : "/templates/browse"} className="dash-quick-btn">
+                    <div className="quick-icon" style={{ background: "rgba(225, 29, 72, 0.12)", color: "#e11d48" }}>
+                      <IoSparkles style={{ color: "#e11d48" }} />
+                    </div>
+                    <span>{text("quickTemplates")}</span>
+                  </Link>
+
                   <Link to="/dashboard/guests" className="dash-quick-btn">
                     <div className="quick-icon" style={{ background: "rgba(185, 139, 66, 0.12)", color: "#b98b42" }}>
                       <IoPeopleOutline />
@@ -661,25 +662,25 @@ export default function DashboardFeature() {
                     <span>{text("quickGuests")}</span>
                   </Link>
 
-                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/rsvp` : "/dashboard/guests"} className="dash-quick-btn">
+                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/rsvp` : "/dashboard/rsvp"} className="dash-quick-btn">
                     <div className="quick-icon" style={{ background: "rgba(15, 118, 110, 0.12)", color: "#0f766e" }}>
                       <IoCheckmarkCircleOutline />
                     </div>
                     <span>{text("quickRsvp")}</span>
                   </Link>
 
-                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/check-in` : "/dashboard"} className="dash-quick-btn">
-                    <div className="quick-icon" style={{ background: "rgba(124, 58, 237, 0.12)", color: "#7c3aed" }}>
-                      <IoQrCodeOutline />
-                    </div>
-                    <span>{text("quickCheckIn")}</span>
-                  </Link>
-
-                  <Link to="/dashboard/seating" className="dash-quick-btn">
+                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/seating` : "/dashboard/seating"} className="dash-quick-btn">
                     <div className="quick-icon" style={{ background: "rgba(79, 70, 229, 0.12)", color: "#4f46e5" }}>
-                      <IoBarChartOutline />
+                      <IoRestaurantOutline />
                     </div>
                     <span>{text("quickSeating")}</span>
+                  </Link>
+
+                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/delivery` : "/dashboard/delivery"} className="dash-quick-btn">
+                    <div className="quick-icon" style={{ background: "rgba(15, 118, 110, 0.12)", color: "#0f766e" }}>
+                      <IoShareSocialOutline />
+                    </div>
+                    <span>{text("quickShare")}</span>
                   </Link>
 
                   <Link to="/dashboard/expenses" className="dash-quick-btn">
@@ -694,27 +695,6 @@ export default function DashboardFeature() {
                       <IoGiftOutline />
                     </div>
                     <span>{text("quickGifts")}</span>
-                  </Link>
-
-                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/media` : "/dashboard"} className="dash-quick-btn">
-                    <div className="quick-icon" style={{ background: "rgba(185, 139, 66, 0.12)", color: "#b98b42" }}>
-                      <IoImagesOutline />
-                    </div>
-                    <span>{text("quickMedia")}</span>
-                  </Link>
-
-                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/edit` : "/templates/browse"} className="dash-quick-btn">
-                    <div className="quick-icon" style={{ background: "rgba(225, 29, 72, 0.12)", color: "#e11d48" }}>
-                      <IoSparkles style={{ color: "#e11d48" }} />
-                    </div>
-                    <span>{text("quickTemplates")}</span>
-                  </Link>
-
-                  <Link to={stats.id ? `/dashboard/invitations/${stats.id}/delivery` : "/dashboard"} className="dash-quick-btn">
-                    <div className="quick-icon" style={{ background: "rgba(15, 118, 110, 0.12)", color: "#0f766e" }}>
-                      <IoShareSocialOutline />
-                    </div>
-                    <span>{text("quickShare")}</span>
                   </Link>
                 </div>
               </div>

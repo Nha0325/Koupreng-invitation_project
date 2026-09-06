@@ -1,32 +1,34 @@
-import { EmptyState, StatusBadge } from "@/shared/ui";
+import { EmptyState, SearchInput, StatusBadge } from "@/shared/ui";
+import { IoPeopleOutline } from "react-icons/io5";
 
 export function RsvpGuestTable({
-  filteredRsvps,
-  search,
+  filteredRsvps = [],
+  search = "",
   setSearch,
-  statusFilter,
+  statusFilter = "ALL",
   setStatusFilter,
-  wishesListCount,
+  wishesListCount = 0,
   setViewMode,
 }) {
   return (
-    <section className="dash-panel">
-      <div className="dash-toolbar" style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem", flex: "1 1 300px" }}>
-          <input
-            type="search"
-            className="dash-input"
-            placeholder="ស្វែងរកឈ្មោះភ្ញៀវ ឬពាក្យជូនពរ..."
+    <section className="rsvp-board">
+      <div className="rsvp-toolbar">
+        <div className="rsvp-search-wrapper">
+          <SearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch("")}
+            placeholder="ស្វែងរកតាមឈ្មោះ ឬពាក្យជូនពរ..."
+            ariaLabel="ស្វែងរក RSVP"
           />
         </div>
 
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+        <div className="rsvp-filter-group">
           <select
-            className="dash-select"
+            className="rsvp-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter by status"
           >
             <option value="ALL">គ្រប់ស្ថានភាព / All Status</option>
             <option value="ATTENDING">ចូលរួម (Attending)</option>
@@ -37,9 +39,8 @@ export function RsvpGuestTable({
           {wishesListCount > 0 && (
             <button
               type="button"
-              className="dash-btn dash-btn-sm"
+              className="rsvp-toggle-wishes-btn"
               onClick={() => setViewMode("WISHES")}
-              style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
             >
               💌 មើលផ្ទាំងជូនពរ / Wishes ({wishesListCount})
             </button>
@@ -48,13 +49,15 @@ export function RsvpGuestTable({
       </div>
 
       {filteredRsvps.length === 0 ? (
-        <EmptyState
-          title="មិនមានទិន្នន័យ RSVP ទេ"
-          description="មិនទាន់មានការឆ្លើយតបដែលត្រូវគ្នានឹងការស្វែងរក ឬតម្រងនេះនៅឡើយទេ។"
-        />
+        <div className="rsvp-empty-box">
+          <EmptyState
+            title="មិនមានទិន្នន័យ RSVP ទេ"
+            description="មិនទាន់មានការឆ្លើយតបដែលត្រូវគ្នានឹងការស្វែងរក ឬតម្រងនេះនៅឡើយទេ។"
+          />
+        </div>
       ) : (
-        <div className="dash-table-wrap">
-          <table className="dash-table">
+        <div className="rsvp-table-wrapper">
+          <table className="rsvp-table">
             <thead>
               <tr>
                 <th>ឈ្មោះភ្ញៀវ / Guest</th>
@@ -66,31 +69,51 @@ export function RsvpGuestTable({
             </thead>
             <tbody>
               {filteredRsvps.map((rsvp) => {
+                const guestName = rsvp.guestName || rsvp.name || "ភ្ញៀវកិត្តិយស";
+                const initial = guestName.trim().charAt(0).toUpperCase();
                 const wishText = rsvp.wish || rsvp.message;
+                const partySize = rsvp.attendeeCount || rsvp.partySize || 1;
+                const dateVal = rsvp.updatedAt || rsvp.createdAt;
+
                 return (
                   <tr key={rsvp.id || rsvp.guestId || Math.random()}>
                     <td>
-                      <strong>{rsvp.guestName || rsvp.name || "ភ្ញៀវកិត្តិយស"}</strong>
-                      {rsvp.phone && <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{rsvp.phone}</div>}
+                      <div className="rsvp-guest-cell">
+                        <div className="rsvp-guest-avatar" aria-hidden="true">
+                          {initial}
+                        </div>
+                        <div>
+                          <div className="rsvp-guest-name">{guestName}</div>
+                          {rsvp.phone && (
+                            <div className="rsvp-guest-phone">{rsvp.phone}</div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td>
-                      <StatusBadge status={(rsvp.status || "PENDING").toLowerCase()} />
+                      <StatusBadge status={(rsvp.status || "PENDING").toUpperCase()} />
                     </td>
                     <td>
-                      <span>{rsvp.attendeeCount || rsvp.partySize || 1} នាក់</span>
+                      <span className="rsvp-party-badge">
+                        <IoPeopleOutline aria-hidden="true" />
+                        <span>{partySize} នាក់</span>
+                      </span>
                     </td>
                     <td>
-                      <span style={{ fontSize: "0.8125rem", color: "#64748b" }}>
-                        {rsvp.updatedAt || rsvp.createdAt
-                          ? new Intl.DateTimeFormat("km-KH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(rsvp.updatedAt || rsvp.createdAt))
+                      <span className="rsvp-date-cell">
+                        {dateVal
+                          ? new Intl.DateTimeFormat("km-KH", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            }).format(new Date(dateVal))
                           : "—"}
                       </span>
                     </td>
-                    <td style={{ maxWidth: "260px" }}>
+                    <td style={{ maxWidth: "280px" }}>
                       {wishText ? (
-                        <span style={{ fontStyle: "italic", color: "#334155", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        <div className="rsvp-wish-text" title={wishText}>
                           {wishText}
-                        </span>
+                        </div>
                       ) : (
                         <span style={{ color: "#94a3b8" }}>—</span>
                       )}

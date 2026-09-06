@@ -5,6 +5,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.Map;
@@ -19,6 +20,11 @@ import com.koupreng.backend.config.AppProperties;
 import com.koupreng.backend.dto.TelegramLoginRequest;
 import com.koupreng.backend.entity.user.AuthProvider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -29,16 +35,27 @@ import org.springframework.stereotype.Service;
 @Service
 public class TelegramIdentityVerifier {
 
+    private static final Logger log = LoggerFactory.getLogger(TelegramIdentityVerifier.class);
     private static final long ALLOWED_CLOCK_SKEW_SECONDS = 60;
     private static final String OIDC_ISSUER = "https://oauth.telegram.org";
 
     private final AppProperties.Oauth.Telegram telegramProperties;
     private final JwtDecoder jwtDecoder;
+    private final ObjectProvider<StringRedisTemplate> redisTemplateProvider;
     private final Clock clock = Clock.systemUTC();
 
-    public TelegramIdentityVerifier(AppProperties appProperties) {
+    @Autowired
+    public TelegramIdentityVerifier(
+            AppProperties appProperties,
+            ObjectProvider<StringRedisTemplate> redisTemplateProvider
+    ) {
         this.telegramProperties = appProperties.getOauth().getTelegram();
         this.jwtDecoder = NimbusJwtDecoder.withJwkSetUri(telegramProperties.getJwkSetUri()).build();
+        this.redisTemplateProvider = redisTemplateProvider;
+    }
+
+    public TelegramIdentityVerifier(AppProperties appProperties) {
+        this(appProperties, null);
     }
 
     public ExternalAuthIdentity verify(TelegramLoginRequest request) {
@@ -125,7 +142,29 @@ public class TelegramIdentityVerifier {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid Telegram login data");
         }
 
+        deduplicateHash(request.hash());
+
         return telegramIdentity(String.valueOf(request.id()), fullName(request));
+    }
+
+    private void deduplicateHash(String hash) {
+        StringRedisTemplate redisTemplate = redisTemplateProvider != null ? redisTemplateProvider.getIfAvailable() : null;
+        if (redisTemplate == null) {
+            return;
+        }
+
+        String key = "telegram:auth:hash:" + hash;
+        Duration ttl = Duration.ofSeconds(Math.max(60, telegramProperties.getAuthMaxAgeSeconds()));
+        try {
+            Boolean isNew = redisTemplate.opsForValue().setIfAbsent(key, "1", ttl);
+            if (Boolean.FALSE.equals(isNew)) {
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "Telegram login data has already been used");
+            }
+        } catch (ApiException exception) {
+            throw exception;
+        } catch (Exception ex) {
+            log.warn("Failed to verify Telegram replay protection in Redis: {}", ex.getMessage());
+        }
     }
 
     private ExternalAuthIdentity telegramIdentity(String providerId, String fullName) {

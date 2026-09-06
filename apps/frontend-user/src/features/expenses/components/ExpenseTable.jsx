@@ -24,11 +24,29 @@ const CAT_ICONS = {
     "Other": IoCubeOutline,
 };
 
+const KHMER_MONTHS = [
+    "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា",
+    "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ",
+];
+
 function formatDate(dateStr) {
     if (!dateStr) return "—";
     try {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString("km-KH", { year: "numeric", month: "short", day: "numeric" });
+        const str = String(dateStr).trim();
+        const parts = str.split("T")[0].split("-");
+        if (parts.length === 3) {
+            const y = parts[0];
+            const m = parseInt(parts[1], 10);
+            const d = parseInt(parts[2], 10);
+            if (m >= 1 && m <= 12 && !isNaN(d)) {
+                return `${d} ${KHMER_MONTHS[m - 1]} ${y}`;
+            }
+        }
+        const d = new Date(str);
+        if (!isNaN(d.getTime())) {
+            return `${d.getDate()} ${KHMER_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+        }
+        return dateStr;
     } catch {
         return dateStr;
     }
@@ -129,8 +147,8 @@ export function ExpenseTable({
                                                 {item.category}
                                             </span>
                                         </td>
-                                        <td data-label={t ? t("colBudget") : "Budget"} className="exp-muted">
-                                            ${item.budget.toLocaleString()}
+                                        <td data-label={t ? t("colBudget") : "Budget"}>
+                                            <span className="exp-budget-val">${item.budget.toLocaleString()}</span>
                                         </td>
                                         <td data-label={t ? t("colAmount") : "Amount"}>
                                             <span className="exp-amount" style={{ color: isItemOver ? "#ef4444" : "inherit" }}>
@@ -143,9 +161,11 @@ export function ExpenseTable({
                                                 </span>
                                             )}
                                         </td>
-                                        <td data-label={t ? t("colDate") : "Date"} className="exp-muted">
-                                            <IoCalendarClearOutline aria-hidden="true" />
-                                            {formatDate(item.date)}
+                                        <td data-label={t ? t("colDate") : "Date"}>
+                                            <span className="exp-date-val">
+                                                <IoCalendarClearOutline aria-hidden="true" />
+                                                {formatDate(item.date)}
+                                            </span>
                                         </td>
                                         <td data-label={t ? t("colStatus") : "Status"}>
                                             <span className={`exp-status-badge ${item.status === "paid" ? "paid" : "pending"}`}>

@@ -1,7 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import {
-  IoBriefcaseOutline,
   IoCalendarClearOutline,
   IoCashOutline,
   IoCheckmarkOutline,
@@ -797,16 +796,6 @@ export default function HostNav() {
                     <IoReceiptOutline aria-hidden="true" />
                     <span>{language === "en" ? "Payment History" : "ប្រវត្តិការទូទាត់"}</span>
                   </Link>
-                  <Link
-                    to="/dashboard/organizations"
-                    className="host-profile-menu-item"
-                    onClick={() => setProfileOpen(false)}
-                    role="menuitem"
-                  >
-                    <IoBriefcaseOutline aria-hidden="true" />
-                    <span>{navText("teams") || "ក្រុមការងារ / Workspaces"}</span>
-                  </Link>
-                  
                   <div style={{ height: "1px", background: "rgba(176, 146, 106, 0.2)", margin: "8px 0" }} />
                   
                   <div style={{ padding: "4px 12px", fontSize: "12px", fontWeight: "700", color: "#888", textTransform: "uppercase" }}>

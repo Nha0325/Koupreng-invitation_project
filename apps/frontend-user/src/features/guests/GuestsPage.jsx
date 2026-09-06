@@ -262,7 +262,7 @@ export default function GuestsPage() {
       <GuestQrModal
         guest={qrGuestTarget}
         currentDraft={draftMatch}
-        publicInvitation={publicInvitation}
+        publicInvitation={publicInvitation || backendInvitation}
         onClose={() => setQrGuestTarget(null)}
         onCopyLink={handleCopyLink}
         t={t}

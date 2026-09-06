@@ -22,7 +22,7 @@ export default function TemplateFooter({ content }) {
             />
             <div className="tx-shell tx-shell--narrow tx-footer__inner">
                 <TemplateReveal>
-                    <p className="tx-kicker tx-footer__kicker">សូមអរគុណ</p>
+                    <p className="tx-kicker tx-footer__kicker">{content.thankYouTitle || "សូមអរគុណ"}</p>
                     <h2 id="tx-footer-title" className="tx-footer__title">
                         {content.groom} <em>{content.amp}</em> {content.bride}
                     </h2>
@@ -33,7 +33,7 @@ export default function TemplateFooter({ content }) {
                         <i /><span className="tx-divider__dot" /><i />
                     </span>
                     <p className="tx-footer__thanks">
-                        {content.footerThanks || "សូមអរគុណចំពោះក្ដីស្រឡាញ់ និងពរជ័យដ៏កក់ក្ដៅរបស់អ្នក"}
+                        {content.thankYouText || content.footerThanks || "សូមអរគុណចំពោះក្ដីស្រឡាញ់ និងពរជ័យដ៏កក់ក្ដៅរបស់អ្នក"}
                     </p>
                     <p className="tx-footer__thanks-en">
                         {content.footerThanksEn || "Thank you for joining our special day"}

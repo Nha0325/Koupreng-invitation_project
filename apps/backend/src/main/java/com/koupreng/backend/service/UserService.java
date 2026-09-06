@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.koupreng.backend.common.ApiException;
-import com.koupreng.backend.dto.ChangePasswordRequest;
 import com.koupreng.backend.dto.UpdateProfileRequest;
 import com.koupreng.backend.dto.UserResponse;
 import com.koupreng.backend.entity.user.AppUser;
@@ -24,11 +23,18 @@ public class UserService {
     private final AppUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MessageService msg;
+    private final UserAuthCacheService userAuthCacheService;
 
-    public UserService(AppUserRepository userRepository, PasswordEncoder passwordEncoder, MessageService msg) {
+    public UserService(
+            AppUserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            MessageService msg,
+            UserAuthCacheService userAuthCacheService
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.msg = msg;
+        this.userAuthCacheService = userAuthCacheService;
     }
 
     @Transactional(readOnly = true)
@@ -53,25 +59,6 @@ public class UserService {
         return UserResponse.from(user);
     }
 
-    @Transactional
-    public void changePassword(Authentication authentication, ChangePasswordRequest request) {
-        AppUser user = currentUser(authentication);
-
-        if (user.getPasswordHash() == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, msg.get("user.oauth-no-password"));
-        }
-        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, msg.get("user.password-wrong"));
-        }
-        if (request.currentPassword().equals(request.newPassword())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, msg.get("user.password-same"));
-        }
-
-        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
-        // Invalidate all previously issued tokens
-        user.incrementTokenVersion();
-    }
-
     @Transactional(readOnly = true)
     public List<UserResponse> listUsers() {
         return userRepository.findAll().stream()
@@ -92,6 +79,7 @@ public class UserService {
 
         user.setRole(role);
         user.incrementTokenVersion();
+        userAuthCacheService.evict(userId);
         return UserResponse.from(user);
     }
 

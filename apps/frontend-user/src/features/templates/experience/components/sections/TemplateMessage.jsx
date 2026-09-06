@@ -12,9 +12,9 @@ export default function TemplateMessage({ content }) {
                 <TemplateSectionHeader
                     id="tx-message-title"
                     icon={templateIcons.invitation}
-                    kicker="ការអញ្ជើញ"
-                    title="សូមគោរពអញ្ជើញ"
-                    subtitle="A JOYFUL INVITATION"
+                    kicker={content.messageTitle || "ការអញ្ជើញ"}
+                    title={content.subtitle || "សូមគោរពអញ្ជើញ"}
+                    subtitle={content.subtitleEn || "A JOYFUL INVITATION"}
                 />
 
                 <TemplateReveal delay={0.1} className="tx-message__card">

@@ -1,0 +1,114 @@
+import { templateService as apiService } from "../api/templateService";
+
+/**
+ * Normalizes template, draft, or invitation data into a predictable view-model
+ * for all dedicated layout templates.
+ */
+export function normalizeTemplateViewModel(tpl = {}, content = {}) {
+  const merged = { ...tpl, ...content };
+
+  const groom = merged.groom || merged.groomName || "កូនកំលោះ";
+  const bride = merged.bride || merged.brideName || "កូនក្រមុំ";
+  const groomEn = merged.groomEn || merged.groomNameEn || "";
+  const brideEn = merged.brideEn || merged.brideNameEn || "";
+
+  // Parents
+  const couple = merged.couple || {};
+  const groomFather = merged.groomFather || couple.groomFather || "";
+  const groomMother = merged.groomMother || couple.groomMother || "";
+  const brideFather = merged.brideFather || couple.brideFather || "";
+  const brideMother = merged.brideMother || couple.brideMother || "";
+  const groomParents = [groomFather, groomMother].filter(Boolean).join(" និង ") || couple.groomParents || "";
+  const brideParents = [brideFather, brideMother].filter(Boolean).join(" និង ") || couple.brideParents || "";
+
+  // Dates
+  const dateText = merged.dateText || merged.weddingDateText || merged.weddingDate || "ថ្ងៃសៅរ៍ ទី២៨ ខែវិច្ឆិកា ឆ្នាំ២០២៦";
+  const dateTextEn = merged.dateTextEn || merged.weddingDateTextEn || "";
+  const targetDate = merged.targetDate || merged.weddingDate || "2026-11-28T17:00:00+07:00";
+
+  // Venue
+  const venueObj = merged.venue || {};
+  const venueName = merged.venueName || venueObj.name || "The Premier Center Sen Sok";
+  const venueHall = merged.venueHall || venueObj.hall || "Grand Ballroom";
+  const venueAddress = merged.venueAddress || venueObj.address || "រាជធានីភ្នំពេញ";
+  const googleMapsUrl = merged.googleMapsUrl || venueObj.mapLink || venueObj.mapEmbedUrl || "";
+
+  // Gallery
+  const rawGallery = merged.gallery || merged.galleryImages || [];
+  const gallery = rawGallery.map((img, i) => {
+    if (typeof img === "string") {
+      return { src: img, alt: `Wedding photo ${i + 1}`, span: ["tall", "wide", "small", "small"][i % 4] };
+    }
+    return {
+      src: img.src || img.url || img.preview || "",
+      alt: img.alt || `Wedding photo ${i + 1}`,
+      span: img.span || ["tall", "wide", "small", "small"][i % 4],
+    };
+  });
+
+  // Schedule
+  const rawSchedule = merged.schedule || [];
+  const schedule = rawSchedule.map((item, i) => ({
+    id: item.id || `schedule-${i}`,
+    time: item.time || "០៧:០០",
+    title: item.title || "កម្មវិធីមង្គល",
+    titleEn: item.titleEn || "",
+    description: item.description || item.desc || "",
+    location: item.location || "",
+  }));
+
+  // Gift & QR
+  const rawGift = Array.isArray(merged.gift) ? merged.gift[0] : (merged.gift || {});
+  const bankAccount = {
+    bank: rawGift.bank || merged.bankName || "ABA Bank",
+    accountNumber: rawGift.number || merged.accountNumber || "000 123 456",
+    accountName: rawGift.account || merged.accountName || `${groom} & ${bride}`,
+    qrValue: rawGift.qrValue || merged.qrValue || `ABA Bank | ${groom} & ${bride} | 000 123 456`,
+  };
+
+  // Dress code
+  const dressCode = merged.dressCode || [
+    { name: "មាសប្រណិត", hex: "#D4AF37" },
+    { name: "ក្រហមទុំ", hex: "#8B1E2D" },
+    { name: "សំបកពងមាន់", hex: "#F5ECD7" },
+    { name: "ខៀវចាស់", hex: "#1E293B" },
+  ];
+
+  // Music
+  const music = merged.music?.url || (typeof merged.music === "string" ? merged.music : null);
+
+  // Message
+  const blessingMessage = (typeof merged.message === "string" && merged.message.trim())
+    ? merged.message
+    : (merged.blessingMessage || merged.message?.text || "សូមគោរពអញ្ជើញឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា ចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងពិធីមង្គលការរបស់យើងខ្ញុំ។");
+
+  return {
+    ...merged,
+    groom,
+    groomEn,
+    bride,
+    brideEn,
+    groomFather,
+    groomMother,
+    brideFather,
+    brideMother,
+    groomParents,
+    brideParents,
+    dateText,
+    dateTextEn,
+    targetDate,
+    venueName,
+    venueHall,
+    venueAddress,
+    googleMapsUrl,
+    gallery,
+    schedule,
+    bankAccount,
+    dressCode,
+    music,
+    blessingMessage,
+  };
+}
+
+export const templateService = apiService;
+export default templateService;

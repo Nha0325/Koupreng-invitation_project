@@ -23,6 +23,13 @@ export default function TemplateCountdown({ content }) {
         ["វិនាទី", countdown.s],
     ];
 
+    const isPast =
+        hasValidDate &&
+        countdown.d === "00" &&
+        countdown.h === "00" &&
+        countdown.m === "00" &&
+        countdown.s === "00";
+
     return (
         <section className="tx-section tx-countdown" data-tx-section="countdown" aria-labelledby="tx-countdown-title">
             <div className="tx-shell tx-shell--narrow">
@@ -35,14 +42,21 @@ export default function TemplateCountdown({ content }) {
                 />
 
                 {hasValidDate ? (
-                    <TemplateReveal className="tx-countdown__grid" aria-label="រាប់ថយក្រោយ">
-                        {cells.map(([label, value]) => (
-                            <div className="tx-countdown__cell" key={label}>
-                                <strong>{value}</strong>
-                                <span>{label}</span>
-                            </div>
-                        ))}
-                    </TemplateReveal>
+                    <>
+                        <TemplateReveal className="tx-countdown__grid" aria-label="រាប់ថយក្រោយ">
+                            {cells.map(([label, value]) => (
+                                <div className="tx-countdown__cell" key={label}>
+                                    <strong>{value}</strong>
+                                    <span>{label}</span>
+                                </div>
+                            ))}
+                        </TemplateReveal>
+                        {isPast && (
+                            <p style={{ textAlign: "center", marginTop: "1rem", color: "#b45309", fontSize: "0.85rem", fontWeight: 600 }}>
+                                🎉 កាលបរិច្ឆេទនៃថ្ងៃសិរីសួស្តីអាពាហ៍ពិពាហ៍
+                            </p>
+                        )}
+                    </>
                 ) : (
                     <TemplateReveal>
                         <p className="tx-countdown__fallback">

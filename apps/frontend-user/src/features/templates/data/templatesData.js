@@ -5,6 +5,9 @@ export const KEEP_TEMPLATE_CODE = "garden-royal-khmer-wedding";
 export const ROYAL_KHMER_TEMPLATE_CODE = "royal-khmer-wedding";
 export const KHMER_GOLDEN_CANVA_INSPIRED_CODE = "khmer-golden-canva-inspired-wedding";
 export const COVER_KHMER_GOLDEN_CODE = "cover-khmer-golden-wedding";
+export const THE_DIGITAL_YES_TEMPLATE_CODE = "the-digital-yes-wedding";
+export const WITHJOY_PORTAL_CODE = "withjoy-modern-portal";
+export const BLISS_EDITORIAL_CODE = "bliss-editorial-wedding";
 
 export const TEMPLATE_CATEGORIES = [
     { id: "all", label: "ទាំងអស់", labelEn: "All" },
@@ -240,7 +243,128 @@ const COVER_KHMER_GOLDEN_TEMPLATE = withTemplateMedia({
     description: "គំរូសំបុត្រអញ្ជើញបែបខ្មែរមាស ប្រណិត មានស៊ុមលម្អ ផ្កា និងទំព័របើកសំបុត្របែបអនិមេសិន។",
 });
 
+export const THE_DIGITAL_YES_TEMPLATE = withTemplateMedia({
+    id: THE_DIGITAL_YES_TEMPLATE_CODE,
+    name: "មន្តស្នេហ៍ស្រោមសំបុត្រ 3D (The Digital Yes)",
+    style: "The Digital Yes Magical 3D Envelope Wedding",
+    category: "modern",
+    popular: true,
+    image: "/templates/canva-luxury/emerald-luxury.jpg",
+    mainImage: "/templates/canva-luxury/emerald-luxury.jpg",
+    phoneCoverImage: "/templates/canva-luxury/emerald-luxury.jpg",
+    music: { url: musicInstrumental },
+    groom: "វណ្ណដា",
+    groomEn: "Vanda Chea",
+    bride: "ស្រីពេជ្រ",
+    brideEn: "Sreypich Sok",
+    dateText: "ថ្ងៃសៅរ៍ ទី២៨ ខែវិច្ឆិកា ឆ្នាំ២០២៦",
+    dateTextEn: "Saturday, November 28, 2026",
+    targetDate: "2026-11-28T17:00:00+07:00",
+    ceremonyTime: "០៧:០០",
+    receptionTime: "១៧:០០",
+    venueName: "The Premier Center Sen Sok",
+    venueAddress: "អគារ A, សែនសុខ, ភ្នំពេញ",
+    mapQuery: "The Premier Center Sen Sok Phnom Penh Cambodia",
+    bg: "#0d261e",
+    paper: "#FFFDF7",
+    color: "#D4AF37",
+    accent: "#13382c",
+    dark: "#081c15",
+    label: "THE DIGITAL YES",
+    description: "គំរូធៀបការបែប Modern Luxury ដែលមានចលនាបើកស្រោមសំបុត្រ 3D ត្រាបោះពុម្ព Wax Seal ផ្កាធ្លាក់ និងចាក់ភ្លេងស្វ័យប្រវត្តិ។",
+    design: {
+        openingStyle: "envelope-3d",
+        primaryColor: "#13382c",
+        accentColor: "#D4AF37",
+    },
+}, "03-card");
+
+export const EMERALD_CANVA_LUXE_CODE = "emerald-canva-luxe-wedding";
+
+export const EMERALD_CANVA_LUXE_TEMPLATE = withTemplateMedia({
+    id: EMERALD_CANVA_LUXE_CODE,
+    name: "សិរីមង្គលត្បូងមរកត (Emerald Royal Luxe)",
+    style: "Emerald Royal Luxe 3D Wedding",
+    category: "modern",
+    popular: true,
+    image: "/templates/canva-luxury/emerald-luxury.jpg",
+    mainImage: "/templates/canva-luxury/emerald-luxury.jpg",
+    phoneCoverImage: "/templates/canva-luxury/emerald-luxury.jpg",
+    music: { url: musicInstrumental },
+    groom: "វណ្ណដា",
+    groomEn: "Vanda Chea",
+    bride: "ស្រីពេជ្រ",
+    brideEn: "Sreypich Sok",
+    dateText: "ថ្ងៃសៅរ៍ ទី២៨ ខែវិច្ឆិកា ឆ្នាំ២០២៦",
+    dateTextEn: "Saturday, November 28, 2026",
+    targetDate: "2026-11-28T17:00:00+07:00",
+    ceremonyTime: "០៧:០០",
+    receptionTime: "១៧:០០",
+    venueName: "The Premier Center Sen Sok",
+    venueAddress: "អគារ A, សែនសុខ, ភ្នំពេញ",
+    mapQuery: "The Premier Center Sen Sok Phnom Penh Cambodia",
+    bg: "#0d261e",
+    paper: "#FFFDF7",
+    color: "#D4AF37",
+    accent: "#13382c",
+    dark: "#081c15",
+    label: "EMERALD ROYAL LUXE",
+    description: "គំរូធៀបការបែប Modern Emerald & Gold Luxury ដែលមានចលនាបើកវាំងននល្ខោន ផ្កាអ័រគីដេ និងពន្លឺមាសចែងចាំង។",
+    design: {
+        openingStyle: "curtain",
+        primaryColor: "#13382c",
+        accentColor: "#D4AF37",
+    },
+}, "03-card");
+
+export const WITHJOY_PORTAL_TEMPLATE = withTemplateMedia({
+    id: WITHJOY_PORTAL_CODE,
+    name: "អាពាហ៍ពិពាហ៍ទំនើប WithJoy (Modern App Portal)",
+    style: "Modern WithJoy App Portal Wedding",
+    category: "modern",
+    popular: true,
+    image: "/facebook/all/03-card/cover-card.jpg",
+    mainImage: "/facebook/all/03-card/cover-card.jpg",
+    phoneCoverImage: "/facebook/all/03-card/cover-card.jpg",
+    music: { url: musicWaitingDay },
+    groom: "វណ្ណដា",
+    bride: "ស្រីពេជ្រ",
+    dateText: "ថ្ងៃពុធ ទី២៨ ខែមករា ឆ្នាំ២០២៦",
+    targetDate: "2026-01-28T17:00:00+07:00",
+    venueName: "The Premier Center Sen Sok",
+    venueAddress: "អគារ A, សែនសុខ, ភ្នំពេញ",
+    label: "WITHJOY PORTAL",
+    description: "គំរូធៀបការបែប Interactive Web App ទំនើប មាន Navigation Bar, Love Story, Schedule, Lightbox Gallery និង RSVP។",
+}, "03-card");
+
+export const BLISS_EDITORIAL_TEMPLATE = withTemplateMedia({
+    id: BLISS_EDITORIAL_CODE,
+    name: "ទស្សនាវដ្តីស្នេហា (Bliss & Bone Editorial)",
+    style: "Bliss & Bone High-Fashion Editorial",
+    category: "modern",
+    popular: true,
+    image: "/facebook/all/03-card/03-01.jpg",
+    mainImage: "/facebook/all/03-card/03-01.jpg",
+    phoneCoverImage: "/facebook/all/03-card/03-01.jpg",
+    music: { url: musicInstrumental },
+    groom: "វណ្ណដា",
+    groomEn: "Vanda Chea",
+    bride: "ស្រីពេជ្រ",
+    brideEn: "Sreypich Sok",
+    dateText: "ថ្ងៃសៅរ៍ ទី២៨ ខែវិច្ឆិកា ឆ្នាំ២០២៦",
+    dateTextEn: "Saturday, November 28, 2026",
+    targetDate: "2026-11-28T17:00:00+07:00",
+    venueName: "The Premier Center Sen Sok",
+    venueAddress: "ផ្លូវ 1003, សែនសុខ, ភ្នំពេញ",
+    label: "BLISS EDITORIAL",
+    description: "គំរូធៀបការបែប High-Fashion Vogue Editorial អក្សរ Serif ថ្លៃថ្នូរ Asymmetrical Gallery និង Slide-out RSVP Drawer។",
+}, "03-card");
+
 export const TEMPLATES = [
+    THE_DIGITAL_YES_TEMPLATE,
+    EMERALD_CANVA_LUXE_TEMPLATE,
+    WITHJOY_PORTAL_TEMPLATE,
+    BLISS_EDITORIAL_TEMPLATE,
     KEPT_TEMPLATE,
     ROYAL_KHMER_TEMPLATE,
     COVER_KHMER_GOLDEN_TEMPLATE,
@@ -253,9 +377,25 @@ export function normalizeTemplateId(id) {
     return id || KEEP_TEMPLATE_CODE;
 }
 
+const DB_TEMPLATE_ID_MAP = {
+    "1": ROYAL_KHMER_TEMPLATE_CODE,
+    "2": EMERALD_CANVA_LUXE_CODE,
+    "3": WITHJOY_PORTAL_CODE,
+    "4": BLISS_EDITORIAL_CODE,
+    "5": KHMER_GOLDEN_CANVA_INSPIRED_CODE,
+    "7": THE_DIGITAL_YES_TEMPLATE_CODE,
+};
+
 export function getTemplateById(id) {
-    const normalizedId = normalizeTemplateId(id);
-    return TEMPLATES.find((template) => template.id === normalizedId) || KEPT_TEMPLATE;
+    const rawId = String(id || "").trim();
+    const mappedCode = DB_TEMPLATE_ID_MAP[rawId];
+    const normalizedId = normalizeTemplateId(mappedCode || rawId);
+    return TEMPLATES.find((template) =>
+        template.id === normalizedId ||
+        template.code === normalizedId ||
+        template.slug === normalizedId ||
+        String(template.id) === rawId
+    ) || KEPT_TEMPLATE;
 }
 
 export function isTemplatePremium() {

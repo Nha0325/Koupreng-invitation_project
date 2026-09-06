@@ -2,8 +2,8 @@ package com.koupreng.backend.config;
 
 import java.util.List;
 
-import com.koupreng.backend.entity.user.AppUser;
-import com.koupreng.backend.repository.AppUserRepository;
+import com.koupreng.backend.service.UserAuthCacheService;
+import com.koupreng.backend.service.UserAuthCacheService.CachedAuthInfo;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,32 +11,30 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.transaction.annotation.Transactional;
 
 public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenticationToken> {
 
-    private final AppUserRepository userRepository;
+    private final UserAuthCacheService userAuthCacheService;
 
-    public AppJwtAuthenticationConverter(AppUserRepository userRepository) {
-        this.userRepository = userRepository;
+    public AppJwtAuthenticationConverter(UserAuthCacheService userAuthCacheService) {
+        this.userAuthCacheService = userAuthCacheService;
     }
 
     @Override
-    @Transactional
     public JwtAuthenticationToken convert(Jwt jwt) {
         Long userId = parseUserId(jwt.getSubject());
-        AppUser user = userRepository.findById(userId)
+        CachedAuthInfo authInfo = userAuthCacheService.getAuthInfo(userId)
                 .orElseThrow(() -> new BadCredentialsException("Authentication required"));
 
-        if (!user.isActive()) {
+        if (!authInfo.active()) {
             throw new BadCredentialsException("Account is disabled");
         }
-        validateTokenVersion(jwt, user);
+        validateTokenVersion(jwt, authInfo);
 
         List<GrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                new SimpleGrantedAuthority("ROLE_" + authInfo.role().name())
         );
-        return new JwtAuthenticationToken(jwt, authorities, user.getId().toString());
+        return new JwtAuthenticationToken(jwt, authorities, userId.toString());
     }
 
     private Long parseUserId(String subject) {
@@ -50,9 +48,9 @@ public class AppJwtAuthenticationConverter implements Converter<Jwt, JwtAuthenti
         }
     }
 
-    private void validateTokenVersion(Jwt jwt, AppUser user) {
+    private void validateTokenVersion(Jwt jwt, CachedAuthInfo authInfo) {
         Object value = jwt.getClaim("token_version");
-        if (!(value instanceof Number version) || version.intValue() != user.getTokenVersion()) {
+        if (!(value instanceof Number version) || version.intValue() != authInfo.tokenVersion()) {
             throw new BadCredentialsException("Authentication required");
         }
     }

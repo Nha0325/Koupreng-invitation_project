@@ -44,6 +44,7 @@ public class AccountService {
     private final PasswordEncoder passwordEncoder;
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
     private final Environment environment;
+    private final UserAuthCacheService userAuthCacheService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AccountService(
@@ -52,7 +53,8 @@ public class AccountService {
             CurrentUserService currentUserService,
             PasswordEncoder passwordEncoder,
             ObjectProvider<JavaMailSender> mailSenderProvider,
-            Environment environment
+            Environment environment,
+            UserAuthCacheService userAuthCacheService
     ) {
         this.userRepository = userRepository;
         this.resetTokenRepository = resetTokenRepository;
@@ -60,6 +62,7 @@ public class AccountService {
         this.passwordEncoder = passwordEncoder;
         this.mailSenderProvider = mailSenderProvider;
         this.environment = environment;
+        this.userAuthCacheService = userAuthCacheService;
     }
 
     @Transactional
@@ -73,6 +76,7 @@ public class AccountService {
         requirePasswordPolicy(request.newPassword());
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.incrementTokenVersion();
+        userAuthCacheService.evict(user.getId());
     }
 
     @Transactional
@@ -101,6 +105,7 @@ public class AccountService {
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
         user.incrementTokenVersion();
         resetToken.setUsedAt(now);
+        userAuthCacheService.evict(user.getId());
     }
 
     private void createAndSendResetToken(AppUser user, String email) {

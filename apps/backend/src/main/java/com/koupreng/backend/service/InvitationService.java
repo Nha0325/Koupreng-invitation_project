@@ -38,6 +38,7 @@ import com.koupreng.backend.repository.MediaFileRepository;
 import com.koupreng.backend.repository.NotificationRepository;
 import com.koupreng.backend.repository.RsvpRepository;
 import com.koupreng.backend.config.AppProperties;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -328,11 +329,29 @@ public class InvitationService {
         return publicBySlug(slug, null, inviteToken);
     }
 
+    private UserInvitation findPublicInvitationEntity(String slug) {
+        Optional<UserInvitation> invitationOpt = invitationRepository
+                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED);
+
+        if (invitationOpt.isEmpty()) {
+            try {
+                Long id = Long.parseLong(slug);
+                invitationOpt = invitationRepository.findByIdAndDeletedFalse(id)
+                        .filter(inv -> inv.getStatus() == InvitationStatus.PUBLISHED || inv.getStatus() == InvitationStatus.DRAFT);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        if (invitationOpt.isEmpty()) {
+            invitationOpt = invitationRepository.findBySlugAndDeletedFalse(slug);
+        }
+
+        return invitationOpt.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
+    }
+
     @Transactional
     public PublicInvitationResponse publicBySlug(String slug, String accessToken, String inviteToken) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
+        UserInvitation invitation = findPublicInvitationEntity(slug);
 
         requirePubliclyVisibleByModeration(invitation);
         requirePublicInvitationAccess(invitation, accessToken, inviteToken);
@@ -348,9 +367,7 @@ public class InvitationService {
 
     @Transactional(readOnly = true)
     public UserInvitation requirePublicInvitationForView(String slug, String inviteToken) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
+        UserInvitation invitation = findPublicInvitationEntity(slug);
 
         requirePubliclyVisibleByModeration(invitation);
         requirePublicInvitationAccess(invitation, null, inviteToken);
@@ -359,9 +376,7 @@ public class InvitationService {
 
     @Transactional
     public InvitationAccessVerifyResponse verifyPublicAccess(String slug, InvitationAccessVerifyRequest request) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
+        UserInvitation invitation = findPublicInvitationEntity(slug);
 
         requirePubliclyVisibleByModeration(invitation);
         ensureAccessToken(invitation);
@@ -407,9 +422,7 @@ public class InvitationService {
             String accessToken,
             String inviteToken
     ) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
+        UserInvitation invitation = findPublicInvitationEntity(slug);
 
         requirePubliclyVisibleByModeration(invitation);
         if (!tokenAccess) {
@@ -626,7 +639,7 @@ public class InvitationService {
     }
 
     private void ensureSlug(UserInvitation invitation) {
-        if (trimToNull(invitation.getSlug()) != null) {
+        if (trimToNull(invitation.getSlug()) != null && isAsciiSlug(invitation.getSlug())) {
             return;
         }
 
@@ -634,13 +647,24 @@ public class InvitationService {
                 joinNames(invitation.getGroomName(), invitation.getBrideName()),
                 joinNames(invitation.getHostName(), invitation.getPartnerName()),
                 invitation.getTitle(),
-                "invitation"
+                "wedding"
         );
-        invitation.setSlug(uniqueSlug(slugify(base), invitation.getId()));
+        String cleanBase = slugify(base);
+        if ("wedding".equals(cleanBase) || "invitation".equals(cleanBase)) {
+            if (invitation.getId() != null) {
+                invitation.setSlug(String.valueOf(invitation.getId()));
+                return;
+            }
+        }
+        invitation.setSlug(uniqueSlug(cleanBase, invitation.getId()));
+    }
+
+    private boolean isAsciiSlug(String slug) {
+        return slug != null && slug.matches("^[a-zA-Z0-9_-]+$");
     }
 
     private String uniqueSlug(String base, Long invitationId) {
-        String safeBase = base == null || base.isBlank() ? "invitation" : base;
+        String safeBase = base == null || base.isBlank() ? "wedding" : base;
         for (int attempt = 0; attempt < 25; attempt++) {
             String candidate = attempt == 0 ? safeBase : safeBase + "-" + attempt;
             if (!slugExistsForOtherInvitation(candidate, invitationId)) {
@@ -661,15 +685,18 @@ public class InvitationService {
     }
 
     private String slugify(String value) {
+        if (value == null || value.isBlank()) {
+            return "wedding";
+        }
         String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase(Locale.ROOT)
-                .replaceAll("[^\\p{L}\\p{N}]+", "-")
+                .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("(^-|-$)", "");
         if (normalized.length() > 80) {
             normalized = normalized.substring(0, 80).replaceAll("-$", "");
         }
-        return normalized.isBlank() ? "invitation" : normalized;
+        return normalized.isBlank() ? "wedding" : normalized;
     }
 
     private void ensureAccessToken(UserInvitation invitation) {
@@ -726,9 +753,7 @@ public class InvitationService {
 
     @Transactional
     public GuestInvitationViewResponse guestView(String slug, String inviteToken) {
-        UserInvitation invitation = invitationRepository
-                .findBySlugAndStatusAndDeletedFalse(slug, InvitationStatus.PUBLISHED)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Invitation not found"));
+        UserInvitation invitation = findPublicInvitationEntity(slug);
 
         requirePubliclyVisibleByModeration(invitation);
 

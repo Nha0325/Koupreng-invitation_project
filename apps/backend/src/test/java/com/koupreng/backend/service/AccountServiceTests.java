@@ -67,6 +67,8 @@ class AccountServiceTests {
         Environment environment = mock(Environment.class);
         when(environment.getActiveProfiles()).thenReturn(new String[0]);
 
+        UserAuthCacheService userAuthCacheService = mock(UserAuthCacheService.class);
+
         return new Fixture(
                 new AccountService(
                         userRepository,
@@ -74,7 +76,8 @@ class AccountServiceTests {
                         currentUserService,
                         passwordEncoder,
                         mailSenderProvider,
-                        environment
+                        environment,
+                        userAuthCacheService
                 ),
                 userRepository,
                 resetTokenRepository,

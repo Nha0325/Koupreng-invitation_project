@@ -10,6 +10,32 @@ export { default as TemplateGrid } from "./components/TemplateGrid";
 // Experience Engine
 export { default as TemplateExperience } from "./experience/TemplateExperience";
 
+// Template Registry & Dedicated Layouts
+export {
+    templateRegistry,
+    TEMPLATE_UI_REGISTRY,
+    getDedicatedTemplateComponent,
+    DefaultTemplateLayout,
+} from "./registry/templateRegistry";
+export { default as DigitalYesLayout } from "./layouts/DigitalYes/DigitalYesLayout";
+export { default as RoyalKhmerLayout } from "./layouts/RoyalKhmer/RoyalKhmerLayout";
+export { default as EmeraldLuxeLayout } from "./layouts/EmeraldLuxe/EmeraldLuxeLayout";
+
+// Shared Primitives
+export {
+    CountdownTimer,
+    GalleryGrid,
+    RsvpContainer,
+    ScheduleList,
+    FloatingAudioPlayer,
+    RibbonOpening,
+    CinematicVideoOpening,
+    FloatingActionBar,
+} from "./shared";
+
+// Services
+export { normalizeTemplateViewModel } from "./services/templateService";
+
 // API Services
 export { templateCatalogService } from "./api/templateCatalogApi";
 export { templateService } from "./api/templateService";

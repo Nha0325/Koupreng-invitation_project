@@ -38,9 +38,27 @@ export function ExpenseSummaryCards({ totalBudget, totalSpent, isOver, diff, per
             </div>
             <div className="exp-sum-card">
                 <div className="exp-sum-icon"><IoStatsChartOutline aria-hidden="true" /></div>
-                <div>
+                <div style={{ flex: 1 }}>
                     <span className="exp-sum-label">{t ? t("sumPercent") : "Budget Used %"}</span>
                     <span className="exp-sum-value">{percent}%</span>
+                    <div style={{
+                        marginTop: "8px",
+                        width: "100%",
+                        height: "6px",
+                        background: "#f0e6d8",
+                        borderRadius: "999px",
+                        overflow: "hidden"
+                    }}>
+                        <div style={{
+                            width: `${Math.min(percent, 100)}%`,
+                            height: "100%",
+                            background: isOver
+                                ? "linear-gradient(90deg, #ef4444, #dc2626)"
+                                : "linear-gradient(90deg, #B0926A, #8c6f4b)",
+                            borderRadius: "999px",
+                            transition: "width 0.4s ease"
+                        }} />
+                    </div>
                 </div>
             </div>
         </div>

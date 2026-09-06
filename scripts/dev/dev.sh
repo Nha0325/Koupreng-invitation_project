@@ -66,6 +66,7 @@ if [ -f "${ROOT_DIR}/.env" ]; then
   source "${ROOT_DIR}/.env"
   set +a
 fi
+export SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-dev}"
 
 echo -e "${BOLD}${CYAN}======================================================${NC}"
 echo -e "${BOLD}${YELLOW}   ⚜️  KOUPRENG FULL STACK DEV RUNNER (LINUX)  ⚜️${NC}"
@@ -126,7 +127,7 @@ free_port 8080
 echo -e "\n${BOLD}[2/4] Starting Backend (Spring Boot on :8080)...${NC}"
 (
   cd "${ROOT_DIR}/apps/backend"
-  ./mvnw spring-boot:run
+  ./mvnw spring-boot:run -Dspring-boot.run.profiles="${SPRING_PROFILES_ACTIVE:-dev}"
 ) &
 PIDS+=($!)
 

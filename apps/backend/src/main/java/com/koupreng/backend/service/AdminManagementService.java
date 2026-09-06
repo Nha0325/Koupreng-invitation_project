@@ -68,6 +68,7 @@ public class AdminManagementService {
     private final NotificationRepository notificationRepository;
     private final SystemAuditLogRepository systemAuditLogRepository;
     private final AuditLogService auditLogService;
+    private final UserAuthCacheService userAuthCacheService;
 
     public AdminManagementService(
             AppUserRepository userRepository,
@@ -79,7 +80,8 @@ public class AdminManagementService {
             GuestCheckInRepository guestCheckInRepository,
             NotificationRepository notificationRepository,
             SystemAuditLogRepository systemAuditLogRepository,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            UserAuthCacheService userAuthCacheService
     ) {
         this.userRepository = userRepository;
         this.invitationRepository = invitationRepository;
@@ -91,6 +93,7 @@ public class AdminManagementService {
         this.notificationRepository = notificationRepository;
         this.systemAuditLogRepository = systemAuditLogRepository;
         this.auditLogService = auditLogService;
+        this.userAuthCacheService = userAuthCacheService;
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +113,7 @@ public class AdminManagementService {
         AppUser user = requireUser(userId);
         user.setStatus(STATUS_ACTIVE);
         user.incrementTokenVersion();
+        userAuthCacheService.evict(userId);
         auditLogService.logAdminAction(authentication, "USER_ACTIVATED", "USER", userId,
                 "Activated user account", request, Map.of("status", STATUS_ACTIVE));
         return AdminUserResponse.from(user);
@@ -121,6 +125,7 @@ public class AdminManagementService {
         ensureNotLastActiveAdmin(user);
         user.setStatus(STATUS_DISABLED);
         user.incrementTokenVersion();
+        userAuthCacheService.evict(userId);
         auditLogService.logAdminAction(authentication, "USER_DEACTIVATED", "USER", userId,
                 "Deactivated user account", request, Map.of("status", STATUS_DISABLED));
         return AdminUserResponse.from(user);
@@ -140,6 +145,7 @@ public class AdminManagementService {
         Role previousRole = user.getRole();
         user.setRole(role);
         user.incrementTokenVersion();
+        userAuthCacheService.evict(userId);
         auditLogService.logAdminAction(authentication, "USER_ROLE_CHANGED", "USER", userId,
                 "Changed user role", request, Map.of("from", previousRole, "to", role));
         return AdminUserResponse.from(user);

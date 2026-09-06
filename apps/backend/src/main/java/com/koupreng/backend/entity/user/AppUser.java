@@ -148,6 +148,10 @@ public class AppUser {
         return tokenVersion;
     }
 
+    public void setTokenVersion(int tokenVersion) {
+        this.tokenVersion = tokenVersion;
+    }
+
     public void incrementTokenVersion() {
         tokenVersion++;
     }

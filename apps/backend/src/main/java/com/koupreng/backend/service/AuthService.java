@@ -40,6 +40,7 @@ public class AuthService {
     private final TelegramIdentityVerifier telegramIdentityVerifier;
     private final AuditLogService auditLogService;
     private final MessageService msg;
+    private final UserAuthCacheService userAuthCacheService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public AuthService(
@@ -50,7 +51,8 @@ public class AuthService {
             GoogleIdentityVerifier googleIdentityVerifier,
             TelegramIdentityVerifier telegramIdentityVerifier,
             MessageService msg,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            UserAuthCacheService userAuthCacheService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -60,6 +62,7 @@ public class AuthService {
         this.telegramIdentityVerifier = telegramIdentityVerifier;
         this.msg = msg;
         this.auditLogService = auditLogService;
+        this.userAuthCacheService = userAuthCacheService;
     }
 
     public AuthService(
@@ -72,7 +75,7 @@ public class AuthService {
             MessageService msg
     ) {
         this(userRepository, passwordEncoder, jwtEncoder, appProperties,
-                googleIdentityVerifier, telegramIdentityVerifier, msg, null);
+                googleIdentityVerifier, telegramIdentityVerifier, msg, null, null);
     }
 
     @Transactional
@@ -153,6 +156,9 @@ public class AuthService {
     public void logout(Authentication authentication) {
         AppUser user = currentUser(authentication);
         user.incrementTokenVersion();
+        if (userAuthCacheService != null) {
+            userAuthCacheService.evict(user.getId());
+        }
     }
 
     private Optional<AppUser> findByIdentifier(String rawIdentifier) {

@@ -7,9 +7,12 @@ import { buildTemplateContent } from "./config/templateExperienceContent";
 import {
     getVariantTheme,
     KHMER_GOLDEN_CANVA_INSPIRED_CODE,
+    THE_DIGITAL_YES_TEMPLATE_CODE,
     resolveVariant,
 } from "./config/templateExperienceThemes";
 import CanvaKhmerWeddingTemplate from "./components/canva-khmer/CanvaKhmerWeddingTemplate";
+import TheDigitalYesInvitation from "@/features/wedding-site/TheDigitalYesInvitation";
+import { getDedicatedTemplateComponent } from "../registry/templateRegistry";
 import TemplateOpeningGate from "./components/sections/TemplateOpeningGate";
 import TemplateHero from "./components/sections/TemplateHero";
 import TemplateMessage from "./components/sections/TemplateMessage";
@@ -28,6 +31,7 @@ import TemplateFaq from "./components/sections/TemplateFaq";
 
 import TemplateFooter from "./components/sections/TemplateFooter";
 import TemplateMusicControl from "./components/controls/TemplateMusicControl";
+import FloatingActionBar from "../shared/Controls/FloatingActionBar";
 import { useTemplateMusicController } from "./hooks/useTemplateMusicController";
 import TemplateQuickNav from "./components/controls/TemplateQuickNav";
 import TemplateSectionHeader from "./components/shared/TemplateSectionHeader";
@@ -80,10 +84,86 @@ export default function TemplateExperience({
 }) {
     const resolvedVariant = useMemo(() => resolveVariant(tpl, variant), [tpl, variant]);
     const theme = useMemo(() => getVariantTheme(resolvedVariant), [resolvedVariant]);
-    const content = useMemo(
+    const [liveData, setLiveData] = useState(null);
+
+    const baseContent = useMemo(
         () => contentProp || buildTemplateContent(tpl, resolvedVariant),
         [contentProp, tpl, resolvedVariant]
     );
+
+    const content = useMemo(() => {
+        if (!liveData) return baseContent;
+        return {
+            ...baseContent,
+            groom: liveData.groomName || baseContent.groom,
+            bride: liveData.brideName || baseContent.bride,
+            amp: liveData.ampSymbol || baseContent.amp || "♥",
+            badge: liveData.badgeText || baseContent.badge,
+            monogramText: liveData.groomName && liveData.brideName
+                ? `${liveData.groomName[0]} & ${liveData.brideName[0]}`
+                : baseContent.monogramText,
+            dateText: liveData.weddingDateText || liveData.weddingDate || baseContent.dateText,
+            venue: liveData.venueName ? {
+                ...baseContent.venue,
+                name: liveData.venueName,
+                hall: liveData.venueHall,
+                address: liveData.venueAddress || baseContent.venue?.address,
+            } : baseContent.venue,
+            coverImage: liveData.coverImage || baseContent.coverImage,
+            message: (typeof liveData.blessingMessage === "string" && liveData.blessingMessage.trim())
+                ? liveData.blessingMessage
+                : (typeof baseContent.message === "string" ? baseContent.message : (baseContent.message?.text || "")),
+            couple: (liveData.groomFather || liveData.brideFather || liveData.groomMother || liveData.brideMother) ? {
+                ...baseContent.couple,
+                groomParents: [liveData.groomFather, liveData.groomMother].filter(Boolean).join(" និង ") || baseContent.couple?.groomParents,
+                brideParents: [liveData.brideFather, liveData.brideMother].filter(Boolean).join(" និង ") || baseContent.couple?.brideParents,
+            } : baseContent.couple,
+            design: {
+                ...baseContent.design,
+                openingStyle: liveData.gateStyle || liveData.openingStyle || baseContent.design?.openingStyle,
+                primaryColor: liveData.primaryColor || baseContent.design?.primaryColor,
+                secondaryColor: liveData.secondaryColor || baseContent.design?.secondaryColor,
+                cardMotion: liveData.cardMotion || liveData.cardLayout || baseContent.design?.cardMotion,
+            },
+            cardMotion: liveData.cardMotion || liveData.cardLayout || baseContent.cardMotion,
+            videoUrl: liveData.videoUrl || baseContent.videoUrl,
+            music: liveData.bgMusicUrl || liveData.musicUrl || baseContent.music,
+            googleMapUrl: liveData.googleMapUrl || baseContent.googleMapUrl,
+            bankAccount: {
+                bank: liveData.bankName || baseContent.bankAccount?.bank || "ABA Bank",
+                accountNumber: liveData.bankAccountNumber || baseContent.bankAccount?.accountNumber || "000 123 456",
+                accountName: liveData.bankAccountName || baseContent.bankAccount?.accountName || "VANDA & SREYPICH Official",
+                qrUrl: liveData.qrGiftUrl || baseContent.bankAccount?.qrUrl,
+            },
+            enableFloatingBar: liveData.enableFloatingBar !== false,
+            enabledSections: liveData.enabledSections ? {
+                ...baseContent.enabledSections,
+                ...liveData.enabledSections,
+            } : baseContent.enabledSections,
+            opening: {
+                ...baseContent.opening,
+                heading: liveData.invitationTitle || baseContent.opening?.heading,
+                invitationText: liveData.invitationSubtitle || baseContent.opening?.invitationText,
+                genericGuestText: liveData.guestName || baseContent.opening?.genericGuestText,
+            },
+            guestName: liveData.guestName || baseContent.guestName,
+            gallery: (liveData.galleryImages && liveData.galleryImages.length)
+                ? liveData.galleryImages.map((src, i) => ({ src, span: ["tall", "wide", "small", "small"][i % 4] }))
+                : baseContent.gallery,
+            story: (liveData.storyText) ? (
+                baseContent.story?.map((c, i) => i === 0 ? { ...c, text: liveData.storyText } : c) || baseContent.story
+            ) : baseContent.story,
+            schedule: (liveData.schedule && liveData.schedule.length)
+                ? liveData.schedule.map((s, i) => ({
+                    id: s.id || `schedule-${i}`,
+                    time: s.time || "07:00",
+                    title: s.title || "កម្មវិធី",
+                    description: s.desc || s.description || "",
+                }))
+                : baseContent.schedule,
+        };
+    }, [baseContent, liveData]);
+
     const reducedMotion = usePrefersReducedMotion();
     const [musicAudioRef, musicController] = useTemplateMusicController(content.music);
     const isCanvaKhmerTemplate =
@@ -110,9 +190,23 @@ export default function TemplateExperience({
     const contentRef = useRef(null);
     const openingTimerRef = useRef(null);
     const openingInFlightRef = useRef(false);
-    const [gateState, setGateState] = useState(() => (preview ? "opened" : "closed"));
+    const [gateState, setGateState] = useState("closed");
     const [heroOpened, setHeroOpened] = useState(false);
     const gateOpen = gateState === "opened";
+
+    useEffect(() => {
+        const handleMessage = (event) => {
+            if (event.data?.type === "LIVE_PREVIEW_SYNC" && event.data.data) {
+                setLiveData(event.data.data);
+            }
+            if (event.data?.type === "TOGGLE_GATE") {
+                const shouldOpen = Boolean(event.data.open ?? event.data.isOpen);
+                setGateState(shouldOpen ? "opened" : "closed");
+            }
+        };
+        window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
+    }, []);
 
 
     const setContentNode = useCallback((node) => {
@@ -128,15 +222,25 @@ export default function TemplateExperience({
         node.scrollIntoView({ behavior: "smooth", block: "start" });
     }, []);
 
+    const openingStyle = content.design?.openingStyle || "khmer-royal";
+
     const handleOpen = useCallback(() => {
         if (openingInFlightRef.current || gateState !== "closed") return;
         openingInFlightRef.current = true;
         setGateState("opening");
         if (!preview) void musicController.play();
+
+        let duration = 460;
+        if (openingStyle === "curtain" || openingStyle === "CURTAIN") duration = 1300;
+        else if (openingStyle === "envelope-3d" || openingStyle === "WAX_ENVELOPE") duration = 1600;
+        else if (openingStyle === "magical-gate") duration = 1300;
+        else if (openingStyle === "ribbon-untie" || openingStyle === "RIBBON_UNTIE") duration = 300;
+        else if (openingStyle === "cinematic-video" || openingStyle === "CINEMATIC_VIDEO") duration = 300;
+
         openingTimerRef.current = window.setTimeout(() => {
             setGateState("opened");
-        }, reducedMotion ? 0 : 460);
-    }, [gateState, musicController, preview, reducedMotion]);
+        }, reducedMotion ? 0 : duration);
+    }, [gateState, musicController, preview, reducedMotion, openingStyle]);
 
     useEffect(() => () => {
         if (openingTimerRef.current !== null) {
@@ -185,21 +289,24 @@ export default function TemplateExperience({
     );
     const ornamentTheme = content.design?.ornamentTheme || "royal-floral";
 
-    if (isCanvaKhmerTemplate) {
+    const DedicatedComponent = getDedicatedTemplateComponent(tpl, variant);
+    if (DedicatedComponent) {
         return (
-            <CanvaKhmerWeddingTemplate
+            <DedicatedComponent
+                tpl={content}
                 content={content}
-                useTemplateLink={useTemplateLink}
-                backLink={backLink}
+                showBack={!preview && showBreadcrumb}
+                backTo={backLink}
                 backLabel={backLabel}
-                primaryCtaLabel={primaryCtaLabel}
                 preview={preview}
+                useTemplateLink={useTemplateLink}
+                primaryCtaLabel={primaryCtaLabel}
                 showActions={showActions}
                 showStickyCta={showStickyCta}
-                isHostedInvitation={Boolean(tpl.hostContent)}
+                isHostedInvitation={Boolean(tpl?.hostContent)}
             >
                 {children}
-            </CanvaKhmerWeddingTemplate>
+            </DedicatedComponent>
         );
     }
 
@@ -230,7 +337,7 @@ export default function TemplateExperience({
                 ) : (
                     <motion.div
                         key="invitation-content"
-                        className="tx-experience"
+                        className={`tx-experience${content.cardMotion ? ` tx-motion--${String(content.cardMotion).toLowerCase().replace(/_/g, "-")}` : ""}`}
                         ref={setContentNode}
                         tabIndex={-1}
                         initial={reducedMotion ? false : { opacity: 0, y: 18 }}
@@ -242,13 +349,12 @@ export default function TemplateExperience({
                         <TemplateCouple content={content} />
                         {sectionEnabled("countdown") && <TemplateCountdown content={content} />}
                         {sectionEnabled("schedule") && <TemplateSchedule content={content} />}
-                        {sectionEnabled("story") && <TemplateStory content={content} />}
-                        {sectionEnabled("party") && <TemplateParty content={content} />}
-                        {sectionEnabled("gallery") && <TemplateGallery content={content} />}
-                        {sectionEnabled("gift") && <TemplateGift content={content} />}
                         {sectionEnabled("map") && <TemplateVenue content={content} />}
+                        {sectionEnabled("gallery") && <TemplateGallery content={content} />}
+                        {sectionEnabled("story") && content.story?.length > 0 && <TemplateStory content={content} />}
+                        {sectionEnabled("party") && <TemplateParty content={content} />}
+                        {sectionEnabled("gift") && <TemplateGift content={content} />}
                         {sectionEnabled("dressCode") && <TemplateDressCode content={content} />}
-
                         {sectionEnabled("faq") && <TemplateFaq content={content} />}
 
                         {sectionEnabled("rsvp") && (
@@ -283,10 +389,51 @@ export default function TemplateExperience({
 
             {content.music && <audio ref={musicAudioRef} src={content.music} loop preload="none" />}
             {gateOpen && <TemplateMusicControl controller={musicController} />}
+            {gateOpen && content.enableFloatingBar !== false && (
+                <FloatingActionBar
+                    audioController={musicController}
+                    googleMapsUrl={content.venue?.mapUrl || content.googleMapUrl}
+                    bankAccount={content.bankAccount || {
+                        bank: "ABA Bank",
+                        accountNumber: "000 123 456",
+                        accountName: `${content.groom} & ${content.bride}`,
+                    }}
+                />
+            )}
             {gateOpen && preview && (
-                <button type="button" className="tx-preview-replay" onClick={handleReplay}>
-                    បើកគម្របម្តងទៀត
-                </button>
+                <div
+                    className="tx-preview-replay-wrapper"
+                    style={{
+                        position: "sticky",
+                        bottom: "16px",
+                        left: 0,
+                        right: 0,
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 50,
+                        pointerEvents: "none",
+                        marginTop: "-3.5rem",
+                        marginBottom: "16px",
+                    }}
+                >
+                    <button
+                        type="button"
+                        className="tx-preview-replay"
+                        style={{
+                            pointerEvents: "auto",
+                            position: "relative",
+                            left: "auto",
+                            right: "auto",
+                            transform: "none",
+                            margin: "0 auto",
+                        }}
+                        onClick={handleReplay}
+                    >
+                        បើកគម្របម្តងទៀត
+                    </button>
+                </div>
             )}
             {gateOpen && showStickyCta && heroOpened && (
                 <TemplateQuickNav

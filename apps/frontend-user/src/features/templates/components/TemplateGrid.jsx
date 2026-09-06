@@ -6,6 +6,7 @@ import {
     ROYAL_KHMER_TEMPLATE_CODE,
     COVER_KHMER_GOLDEN_CODE,
     KHMER_GOLDEN_CANVA_INSPIRED_CODE,
+    THE_DIGITAL_YES_TEMPLATE_CODE,
     TEMPLATES,
 } from "../data/templatesData";
 import { templateService } from "../api/templateService";
@@ -14,6 +15,7 @@ import heroBg from "../../../assets/icons/background.png";
 import { useBackendMessages } from "../../../shared/i18n/useBackendMessages";
 
 const FEATURED_TEMPLATE_IDS = [
+    THE_DIGITAL_YES_TEMPLATE_CODE,
     KEEP_TEMPLATE_CODE,
     ROYAL_KHMER_TEMPLATE_CODE,
     COVER_KHMER_GOLDEN_CODE,
@@ -21,6 +23,7 @@ const FEATURED_TEMPLATE_IDS = [
 ];
 
 const TEMPLATE_CARD_COVER = {
+    [THE_DIGITAL_YES_TEMPLATE_CODE]: "/facebook/all/03-card/cover-card.jpg",
     [KEEP_TEMPLATE_CODE]: "/facebook/all/03-card/cover-card.jpg",
     [ROYAL_KHMER_TEMPLATE_CODE]: "/facebook/all/01-card/cover-card.jpg",
     [COVER_KHMER_GOLDEN_CODE]: "/templates/cover-khmer-golden-wedding/cover-preview.svg",

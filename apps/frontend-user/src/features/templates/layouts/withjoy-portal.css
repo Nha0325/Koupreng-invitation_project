@@ -1,0 +1,519 @@
+/* WithJoy Interactive Modern Wedding Portal Stylesheet */
+:root {
+  --wj-primary: #1a365d;
+  --wj-primary-light: #2b6cb0;
+  --wj-accent: #d69e2e;
+  --wj-accent-soft: #fefcbf;
+  --wj-bg: #f7fafc;
+  --wj-surface: #ffffff;
+  --wj-text: #2d3748;
+  --wj-text-muted: #718096;
+  --wj-border: #e2e8f0;
+  --wj-glass: rgba(255, 255, 255, 0.88);
+  --wj-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+.wj-portal {
+  min-height: 100vh;
+  background-color: var(--wj-bg);
+  color: var(--wj-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Kantumruy Pro", sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Sticky Glassmorphism Header */
+.wj-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--wj-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--wj-border);
+  transition: all 0.3s ease;
+}
+
+.wj-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wj-nav-brand {
+  font-family: "Cinzel", "Playfair Display", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--wj-primary);
+  text-decoration: none;
+}
+
+.wj-nav-links {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.wj-nav-link {
+  color: var(--wj-text-muted);
+  text-decoration: none;
+  font-size: 0.925rem;
+  font-weight: 500;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.wj-nav-link:hover,
+.wj-nav-link.active {
+  color: var(--wj-primary);
+  background-color: rgba(43, 108, 176, 0.08);
+}
+
+.wj-nav-rsvp-btn {
+  background: linear-gradient(135deg, var(--wj-primary), var(--wj-primary-light));
+  color: #ffffff !important;
+  font-weight: 600;
+  padding: 0.5rem 1.2rem !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 12px rgba(26, 54, 93, 0.2);
+}
+
+/* Hero Section */
+.wj-hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  padding: 4rem 1.5rem;
+}
+
+.wj-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 25, 47, 0.4) 0%, rgba(10, 25, 47, 0.75) 100%);
+}
+
+.wj-hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 800px;
+}
+
+.wj-hero-tag {
+  display: inline-block;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wj-accent);
+  background: rgba(214, 158, 46, 0.15);
+  border: 1px solid rgba(214, 158, 46, 0.4);
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  margin-bottom: 1.25rem;
+  backdrop-filter: blur(4px);
+}
+
+.wj-hero-names {
+  font-family: "Cinzel", "Playfair Display", Georgia, serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.wj-hero-date {
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  color: #e2e8f0;
+}
+
+/* Countdown Bar */
+.wj-countdown-grid {
+  display: inline-grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1.25rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.wj-countdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wj-countdown-num {
+  font-size: 1.85rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--wj-accent);
+}
+
+.wj-countdown-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #cbd5e0;
+}
+
+/* Section Shared Styles */
+.wj-section {
+  padding: 5rem 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.wj-section-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.wj-section-kicker {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--wj-primary-light);
+  margin-bottom: 0.5rem;
+}
+
+.wj-section-title {
+  font-family: "Cinzel", "Playfair Display", Georgia, serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  color: var(--wj-primary);
+  font-weight: 700;
+}
+
+.wj-section-sub {
+  color: var(--wj-text-muted);
+  max-width: 600px;
+  margin: 0.5rem auto 0;
+  line-height: 1.6;
+}
+
+/* Love Story Timeline */
+.wj-timeline {
+  position: relative;
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.wj-timeline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: var(--wj-border);
+  transform: translateX(-50%);
+}
+
+.wj-story-card {
+  position: relative;
+  width: 46%;
+  margin-bottom: 3rem;
+  background: var(--wj-surface);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--wj-shadow);
+  border: 1px solid var(--wj-border);
+  transition: transform 0.3s ease;
+}
+
+.wj-story-card:hover {
+  transform: translateY(-4px);
+}
+
+.wj-story-card.left {
+  margin-left: 0;
+  text-align: right;
+}
+
+.wj-story-card.right {
+  margin-left: 54%;
+  text-align: left;
+}
+
+.wj-story-pin {
+  position: absolute;
+  top: 24px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--wj-accent);
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 3px var(--wj-primary-light);
+}
+
+.wj-story-card.left .wj-story-pin {
+  right: -9.5%;
+}
+
+.wj-story-card.right .wj-story-pin {
+  left: -9.5%;
+}
+
+.wj-story-date {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--wj-accent);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.wj-story-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--wj-primary);
+  margin-bottom: 0.6rem;
+}
+
+.wj-story-desc {
+  font-size: 0.95rem;
+  color: var(--wj-text-muted);
+  line-height: 1.6;
+}
+
+/* Schedule Grid */
+.wj-schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.wj-schedule-card {
+  background: var(--wj-surface);
+  border-radius: 16px;
+  padding: 1.75rem;
+  border: 1px solid var(--wj-border);
+  box-shadow: var(--wj-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.25s ease;
+}
+
+.wj-schedule-card:hover {
+  transform: translateY(-4px);
+}
+
+.wj-schedule-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(43, 108, 176, 0.1);
+  color: var(--wj-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.wj-schedule-time {
+  font-weight: 700;
+  color: var(--wj-accent);
+  font-size: 1.1rem;
+  margin-bottom: 0.35rem;
+}
+
+.wj-schedule-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--wj-primary);
+  margin-bottom: 0.5rem;
+}
+
+.wj-schedule-desc {
+  font-size: 0.9rem;
+  color: var(--wj-text-muted);
+  line-height: 1.5;
+}
+
+/* Masonry Photo Gallery */
+.wj-gallery-grid {
+  column-count: 3;
+  column-gap: 1.5rem;
+}
+
+.wj-gallery-item {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--wj-shadow);
+  cursor: pointer;
+  position: relative;
+}
+
+.wj-gallery-img {
+  width: 100%;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.wj-gallery-item:hover .wj-gallery-img {
+  transform: scale(1.05);
+}
+
+/* Multi-Step RSVP Form */
+.wj-rsvp-card {
+  max-width: 650px;
+  margin: 0 auto;
+  background: var(--wj-surface);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--wj-border);
+}
+
+.wj-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.wj-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--wj-text);
+  margin-bottom: 0.5rem;
+}
+
+.wj-input,
+.wj-select,
+.wj-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--wj-border);
+  font-size: 0.95rem;
+  background: #f8fafc;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.wj-input:focus,
+.wj-select:focus,
+.wj-textarea:focus {
+  outline: none;
+  border-color: var(--wj-primary-light);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.15);
+  background: #ffffff;
+}
+
+.wj-radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.wj-radio-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--wj-border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.wj-radio-label:has(input:checked) {
+  background: rgba(43, 108, 176, 0.08);
+  border-color: var(--wj-primary-light);
+  color: var(--wj-primary);
+  font-weight: 600;
+}
+
+.wj-btn-submit {
+  width: 100%;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, var(--wj-primary), var(--wj-primary-light));
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(26, 54, 93, 0.25);
+}
+
+.wj-btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(26, 54, 93, 0.35);
+}
+
+/* Floating Music Player */
+.wj-music-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 90;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--wj-primary);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.wj-music-fab:hover {
+  transform: scale(1.08);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .wj-nav-links {
+    display: none;
+  }
+  .wj-countdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  .wj-timeline::before {
+    left: 20px;
+  }
+  .wj-story-card {
+    width: 100%;
+    margin-left: 45px !important;
+    text-align: left !important;
+  }
+  .wj-story-card.left .wj-story-pin,
+  .wj-story-card.right .wj-story-pin {
+    left: -33px;
+  }
+  .wj-gallery-grid {
+    column-count: 2;
+  }
+  .wj-rsvp-card {
+    padding: 1.5rem;
+  }
+}

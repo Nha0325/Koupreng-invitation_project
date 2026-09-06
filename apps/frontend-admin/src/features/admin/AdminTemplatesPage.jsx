@@ -101,7 +101,7 @@ export default function AdminTemplatesPage() {
   const [imageInputMode, setImageInputMode] = useState("url"); // 'url' | 'upload'
   const [submitting, setSubmitting] = useState(false);
   const [busyId, setBusyId] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   // Raw templates list
   const templatesList = useMemo(() => {
